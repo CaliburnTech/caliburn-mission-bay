@@ -106,9 +106,7 @@ const CreateVariationModal = ({ isOpen, onClose, parentSquadron }) => {
           {/* Info */}
           <div className="bg-purple-500/10 rounded-lg p-3 text-purple-300 text-sm">
             <p>
-              This variation will inherit all properties from the parent squadron.
-              You can modify any property, and it will track what you've changed.
-              Changes to the parent will cascade to inherited fields.
+              {`This variation will inherit all properties from the parent squadron. You can modify any property, and it will track what you've changed. Changes to the parent will cascade to inherited fields.`}
             </p>
           </div>
         </div>

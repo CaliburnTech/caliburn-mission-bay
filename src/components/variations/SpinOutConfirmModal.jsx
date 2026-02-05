@@ -50,8 +50,7 @@ const SpinOutConfirmModal = ({ isOpen, onClose, squadron }) => {
               <div className="text-orange-200 text-sm">
                 <p className="font-medium mb-1">This action cannot be undone</p>
                 <p className="text-orange-300/80">
-                  "{squadron.name}" will become an independent squadron.
-                  It will no longer inherit changes from "{squadron.parentName}".
+                  {`"${squadron.name}" will become an independent squadron. It will no longer inherit changes from "${squadron.parentName}".`}
                 </p>
               </div>
             </div>
@@ -63,15 +62,15 @@ const SpinOutConfirmModal = ({ isOpen, onClose, squadron }) => {
             <ul className="space-y-2 text-gray-400">
               <li className="flex items-start gap-2">
                 <span className="text-lime-brand mt-1">•</span>
-                <span>All current values (inherited + overridden) become this squadron's own values</span>
+                <span>{`All current values (inherited + overridden) become this squadron's own values`}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-lime-brand mt-1">•</span>
-                <span>The "Based on" link will be removed</span>
+                <span>{`The "Based on" link will be removed`}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-lime-brand mt-1">•</span>
-                <span>Future changes to "{squadron.parentName}" won't affect this squadron</span>
+                <span>{`Future changes to "${squadron.parentName}" won't affect this squadron`}</span>
               </li>
             </ul>
           </div>

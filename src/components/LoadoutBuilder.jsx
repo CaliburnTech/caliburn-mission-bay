@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import useOutfitterStore from '../store/outfitterStore';
 import useNavigationStore from '../store/navigationStore';
-import { vesselHullData, vesselHullComponents } from '../data/vesselData';
+import { vesselHullComponents } from '../data/vesselData';
 import { individualCapabilities } from '../data/marketplaceData';
 import DeploymentFlowModal from './loadout/DeploymentFlowModal';
 
@@ -255,7 +255,7 @@ const CategorySlotCard = ({
               provider: 'Caliburn',
               icon: Cpu
             }}
-            isCore={true}
+            isCore
           />
         )}
 
@@ -314,7 +314,6 @@ const CapabilityBrowser = ({
   onSelect,
   onHover,
   equippedIds,
-  isGlobalSearch = false,
   initialSearchTerm = ''
 }) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
@@ -587,7 +586,8 @@ const MarioKartStats = ({ vessel, loadout, previewCapability }) => {
               isCapacity
                 ? (previewDelta < 0 ? 'text-red-400' : 'text-green-400')
                 : (previewDelta > 0 ? 'text-green-400' : 'text-red-400')
-            }`}>
+            }`}
+            >
               {previewDelta > 0 ? '+' : ''}{isCapacity ? -previewDelta : previewDelta}
             </span>
           )}
@@ -648,7 +648,8 @@ const DeploymentStatus = ({ isReady, issues, equippedCount, onDeploy }) => {
       isReady
         ? 'bg-lime-brand/10 border-lime-brand/50'
         : 'bg-gray-800/50 border-gray-600/50'
-    }`}>
+    }`}
+    >
       {/* Status Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -673,7 +674,8 @@ const DeploymentStatus = ({ isReady, issues, equippedCount, onDeploy }) => {
             <div key={idx} className="flex items-center gap-2 text-xs">
               <div className={`w-1.5 h-1.5 rounded-full ${
                 issue.severity === 'error' ? 'bg-red-400' : 'bg-yellow-400'
-              }`} />
+              }`}
+              />
               <span className={issue.severity === 'error' ? 'text-red-400' : 'text-yellow-400'}>
                 {issue.message}
               </span>
@@ -719,7 +721,7 @@ const DeploymentStatus = ({ isReady, issues, equippedCount, onDeploy }) => {
 
 // Main Loadout Builder Component
 const LoadoutBuilder = ({ onBackToShipyard }) => {
-  const { selectedHull, setSelectedHull } = useOutfitterStore();
+  const { selectedHull } = useOutfitterStore();
 
   // Local loadout state (category -> array of equipped capabilities)
   const [loadout, setLoadout] = useState({
@@ -1036,7 +1038,8 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
             deploymentStatus.isReady
               ? 'bg-lime-brand/20 text-lime-brand border border-lime-brand/30'
               : 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30'
-          }`}>
+          }`}
+          >
             {deploymentStatus.isReady ? (
               <><CheckCircle2 size={14} /> Ready</>
             ) : (

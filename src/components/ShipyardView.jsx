@@ -7,9 +7,7 @@ import { VariationBadge, ComparisonView } from './variations';
 
 const ShipyardView = ({
   openSquadronManagement,
-  onSelectHull,
-  showSquadrons,
-  setShowSquadrons
+  onSelectHull
 }) => {
   const [showHullPicker, setShowHullPicker] = useState(false);
   const [selectedSquadronId, setSelectedSquadronId] = useState(null);
@@ -154,7 +152,8 @@ const ShipyardView = ({
                 {/* Squadron Name */}
                 <div className={`text-xs font-semibold text-center truncate w-full px-1 ${
                   isSelected ? 'text-lime-brand' : 'text-gray-300'
-                }`}>
+                }`}
+                >
                   {squadron.name.length > 20
                     ? squadron.name.split(' ').slice(0, 2).join(' ')
                     : squadron.name}

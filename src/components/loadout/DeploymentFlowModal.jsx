@@ -4,9 +4,8 @@ import {
   Anchor, Target, Shield, Radio, Navigation, Cpu, Zap,
   Battery, Wrench, Clock, MapPin
 } from 'lucide-react';
-import { swarmSquadrons, squadronUnitConfigurations, activeDeployments, getDeploymentsByMission, getDeploymentsByHull } from '../../data/fleetData';
+import { swarmSquadrons, squadronUnitConfigurations, getDeploymentsByMission, getDeploymentsByHull } from '../../data/fleetData';
 import useMissionStore from '../../store/missionStore';
-import { missionFlowTemplates } from '../../data/marketplaceData';
 
 // Mission type icons mapping
 const MISSION_ICONS = {
@@ -29,7 +28,7 @@ const STATUS_COLORS = {
 };
 
 // Vessel Inventory Panel Component
-const VesselInventoryPanel = ({ hullName, loadout, onSavePackage }) => {
+const VesselInventoryPanel = ({ hullName, onSavePackage }) => {
   // Find squadrons matching this hull type
   const matchingSquadrons = useMemo(() => {
     return swarmSquadrons.filter(s => s.icon === hullName);
@@ -141,7 +140,8 @@ const VesselInventoryPanel = ({ hullName, loadout, onSavePackage }) => {
                     <span className="text-gray-200 text-xs font-semibold">{dep.loadoutName}</span>
                     <span className={`text-[0.6rem] font-semibold px-1.5 py-0.5 rounded ${
                       dep.status === 'active' ? 'bg-green-400/20 text-green-400' : 'bg-yellow-400/20 text-yellow-400'
-                    }`}>
+                    }`}
+                    >
                       {dep.vesselCount} {dep.status === 'active' ? 'ACTIVE' : 'STAGING'}
                     </span>
                   </div>
@@ -325,13 +325,15 @@ const MissionCard = ({ mission, isSelected, onSelect }) => {
       <div className="flex items-start gap-3">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
           isSelected ? 'bg-lime-brand/20' : 'bg-gray-700/50'
-        }`}>
+        }`}
+        >
           <Icon size={16} className={isSelected ? 'text-lime-brand' : 'text-gray-400'} />
         </div>
         <div className="flex-1 min-w-0">
           <div className={`font-semibold text-sm truncate ${
             isSelected ? 'text-lime-brand' : 'text-gray-200'
-          }`}>
+          }`}
+          >
             {mission.name}
           </div>
           <div className="text-gray-500 text-xs mt-0.5">

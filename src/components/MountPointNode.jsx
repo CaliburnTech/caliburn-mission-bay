@@ -109,7 +109,7 @@ const MountPointNode = ({
   };
 
   return (
-    <React.Fragment>
+    <>
       {/* Mount Point Circle */}
       <div
         onClick={onClick}
@@ -147,7 +147,7 @@ const MountPointNode = ({
       >
         {mountName}
       </div>
-    </React.Fragment>
+    </>
   );
 };
 

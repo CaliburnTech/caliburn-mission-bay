@@ -51,17 +51,17 @@ const SquadronManagementModal = () => {
     setSelectedView('squadron'); // Mission Planner
   };
 
-  const navigateToCapability = (capabilityName) => {
+  const navigateToCapability = () => {
     closeSquadronManagement();
     setSelectedView('capabilities');
   };
 
-  const handleCreateVariationClose = (newId) => {
+  const handleCreateVariationClose = () => {
     setShowCreateVariation(false);
     // If a new variation was created, could optionally open it
   };
 
-  const handleSpinOutClose = (success) => {
+  const handleSpinOutClose = () => {
     setShowSpinOutConfirm(false);
     // Modal stays open showing updated (now independent) squadron
   };

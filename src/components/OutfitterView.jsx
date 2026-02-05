@@ -23,7 +23,6 @@ const OutfitterView = ({ onBackToShipyard }) => {
 
   // Use custom hook for drag-drop functionality
   const {
-    draggingFromMount,
     handleDragStart,
     handleDragEnd,
     handleDragOver,
@@ -469,7 +468,7 @@ const OutfitterView = ({ onBackToShipyard }) => {
                       position={position}
                       equippedCapability={equippedCap}
                       isSelected={selectedMountPoint === slot.id}
-                      isCustom={true}
+                      isCustom
                       isMovingSource={movingFromMount === slot.id}
                       isValidMoveTarget={movingFromMount && movingFromMount !== slot.id}
                       isDragSource={isDragSource(slot.id)}

@@ -245,7 +245,7 @@ const GlobalSearch = ({ onNavigate }) => {
         >
           {!hasResults ? (
             <div className="p-4 text-center text-gray-500 text-sm">
-              No results found for "{searchTerm}"
+              {`No results found for "${searchTerm}"`}
             </div>
           ) : (
             <>

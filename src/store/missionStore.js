@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { initialMissions } from '../data/missionsData';
 
-const useMissionStore = create((set, get) => ({
+const useMissionStore = create((set) => ({
   // Mission template selection
   selectedMissionTemplate: null,
   setSelectedMissionTemplate: (template) => set({ selectedMissionTemplate: template }),

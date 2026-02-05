@@ -52,7 +52,7 @@ const getDefaultZoneConfig = (missionKey) => {
 };
 
 // Mission Configuration View (opened when clicking a mission or creating new)
-const MissionConfigView = ({ mission, onBack, onSave }) => {
+const MissionConfigView = ({ mission, onBack }) => {
   const {
     selectedMissionTemplate,
     missionPlannerConfig,
@@ -168,10 +168,6 @@ const MissionConfigView = ({ mission, onBack, onSave }) => {
     onBack();
   };
 
-  const handleLaunch = () => {
-    handleSave(false);
-    // Mission will be saved as 'ready', then can be launched from table
-  };
 
   const currentMission = KEY_MISSIONS.find(m => m.key === selectedMissionTemplate);
   const configuredStates = Object.keys(stateHierarchies).length;
