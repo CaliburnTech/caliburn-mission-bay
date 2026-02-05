@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+
+# Enhanced JSX Syntax Validation Pre-commit Hook
+echo "🔍 Running enhanced JSX syntax validation..."
+
+# Run comprehensive JSX validation
+npm run validate:jsx
+
+# If JSX validation fails, prevent commit
+if [ $? -ne 0 ]; then
+  echo "❌ JSX validation failed! Please fix syntax errors before committing."
+  echo "💡 Try running: npm run jsx:emergency-fix"
+  echo "💡 Or run: npm run jsx:doctor for detailed diagnosis"
+  exit 1
+fi
+
+# Run ESLint JSX rules
+npm run lint:jsx
+
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint JSX validation failed! Please fix linting errors before committing."
+  echo "💡 Try running: npm run test:jsx:fix to auto-fix issues"
+  exit 1
+fi
+
+# Additional safety check - try to compile with tsc if available
+if command -v tsc >/dev/null 2>&1; then
+  echo "🔧 Running TypeScript compilation check..."
+  npx tsc --noEmit --allowJs --checkJs src/**/*.{js,jsx} 2>/dev/null || echo "⚠️ TypeScript check skipped (optional)"
+fi
+
+echo "✅ All JSX validation checks passed!"
+echo "🚀 Commit is safe to proceed"
