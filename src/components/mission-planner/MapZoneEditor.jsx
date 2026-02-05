@@ -567,7 +567,7 @@ const MapZoneEditor = ({ zoneConfig, setZoneConfig, missionType }) => {
           {mapLayer === 'nautical' && currentLayer.seamark && <TileLayer url={currentLayer.seamark} />}
           <MapInvalidateSize />
           <MapClickHandler isDrawingMode={isDrawingMode} onAddPoint={addPoint} />
-          <MapFitBounds bounds={allBoundsPoints} />
+          <MapFitBounds key={missionType} bounds={allBoundsPoints} />
 
           {geometryType === 'zone' && points.length >= 3 && (
             <Polygon positions={points.map(p => [p.lat, p.lng])} pathOptions={{ color: zoneStyle.color, fillColor: zoneStyle.color, fillOpacity: zoneStyle.fillOpacity, weight: 2 }} />
