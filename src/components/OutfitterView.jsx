@@ -2,6 +2,7 @@ import React from 'react';
 import { Ship, X, Target, Settings, ChevronLeft, Plus, Minus, Grid3X3, Maximize2, Move } from 'lucide-react';
 import { vesselHullComponents, vesselHullData, vesselMountPoints } from '../data/vesselData';
 import { individualCapabilities, capabilityCategories } from '../data/marketplaceData';
+import { getSecurityLevel, STATUS_COLORS, BRAND_COLORS } from '../constants/colors';
 import useOutfitterStore from '../store/outfitterStore';
 import useMountPointDragDrop from '../hooks/useMountPointDragDrop';
 import VesselStatsDisplay from './VesselStatsDisplay';
@@ -337,7 +338,7 @@ const OutfitterView = ({ onBackToShipyard }) => {
                         y1={`${mount.y}%`}
                         x2="50%"
                         y2="50%"
-                        stroke={isEquipped ? '#4ade80' : 'rgba(203, 253, 0, 0.3)'}
+                        stroke={isEquipped ? STATUS_COLORS.ready.hex : `${BRAND_COLORS.lime.hex}4D`}
                         strokeWidth={isEquipped ? "3" : "1"}
                         strokeDasharray={isEquipped ? "none" : "5,5"}
                         opacity={isEquipped ? "0.8" : "0.4"}
@@ -354,7 +355,7 @@ const OutfitterView = ({ onBackToShipyard }) => {
                         y1={`${position.y}%`}
                         x2="50%"
                         y2="50%"
-                        stroke={isEquipped ? '#4ade80' : 'rgba(203, 253, 0, 0.3)'}
+                        stroke={isEquipped ? STATUS_COLORS.ready.hex : `${BRAND_COLORS.lime.hex}4D`}
                         strokeWidth={isEquipped ? "3" : "1"}
                         strokeDasharray={slot.isCustom ? "3,3" : (isEquipped ? "none" : "5,5")}
                         opacity={isEquipped ? "0.8" : "0.4"}
@@ -574,15 +575,9 @@ const OutfitterView = ({ onBackToShipyard }) => {
                       const maxScore = 4;
                       const securityPercentage = Math.round((securityScore / maxScore) * 100);
 
-                      const getSecurityRating = () => {
-                        if (securityScore === 0) return { label: 'BASELINE', color: '#ef4444' };
-                        if (securityScore === 1) return { label: 'ENHANCED', color: '#f59e0b' };
-                        if (securityScore === 2) return { label: 'ADVANCED', color: '#fbbf24' };
-                        if (securityScore === 3) return { label: 'HIGH SECURITY', color: '#10b981' };
-                        return { label: 'MAXIMUM SECURITY', color: '#22c55e' };
-                      };
-
-                      const rating = getSecurityRating();
+                      // Security rating from centralized color constants
+                      const securityLevel = getSecurityLevel(securityScore);
+                      const rating = { label: securityLevel.label, color: securityLevel.hex };
 
                       return (
                         <div>

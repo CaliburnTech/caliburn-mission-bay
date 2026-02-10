@@ -22,101 +22,95 @@ export const USVPatrolHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-// Freedom-class LCS - Professional Technical Diagram
+// Freedom-class LCS - Semiplaning Monohull (NOT trimaran - that's Independence-class)
 export const FreedomLCSHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.6} viewBox="0 0 400 150" className={className}>
-    <g className="stroke-lime-brand stroke-[1.5] fill-none opacity-30" transform="translate(0, 20)">
-      {/* Trimaran hull - center hull */}
-      <path d="M 40 120
-               L 50 110
-               L 60 105
-               L 80 103
-               L 320 103
-               L 340 105
-               L 350 110
-               L 360 120
-               L 355 130
-               L 345 135
-               L 330 137
-               L 70 137
-               L 55 135
-               L 45 130
-               L 40 120 Z"
-      />
+  <svg width={size} height={size * 0.45} viewBox="0 0 500 180" className={className}>
+    <defs>
+      <linearGradient id="freedomGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#4a5568" />
+        <stop offset="100%" stopColor="#2d3748" />
+      </linearGradient>
+    </defs>
 
-      {/* Port outrigger */}
-      <path d="M 60 100
-               L 65 95
-               L 280 95
-               L 285 100
-               L 280 105
-               L 65 105
-               L 60 100 Z"
-      />
+    {/* Monohull - semi-planing hull form with fine entry */}
+    <path
+      d="M 30 95
+         L 45 80
+         L 70 72
+         L 100 68
+         L 400 68
+         L 440 72
+         L 465 82
+         L 480 95
+         L 475 110
+         L 458 120
+         L 430 125
+         L 100 125
+         L 70 122
+         L 50 115
+         L 35 105
+         L 30 95 Z"
+      className="fill-[#3d4852] stroke-lime-brand stroke-2"
+    />
 
-      {/* Starboard outrigger */}
-      <path d="M 60 140
-               L 65 135
-               L 280 135
-               L 285 140
-               L 280 145
-               L 65 145
-               L 60 140 Z"
-      />
+    {/* Waterline */}
+    <path d="M 38 108 L 475 108" className="stroke-lime-brand stroke-1 opacity-50" strokeDasharray="4,2" />
 
-      {/* Angular superstructure */}
-      <path d="M 140 103
-               L 140 85
-               L 145 75
-               L 240 75
-               L 245 85
-               L 245 103"
-      />
-      <path d="M 150 75
-               L 150 65
-               L 155 60
-               L 230 60
-               L 235 65
-               L 235 75"
-      />
+    {/* Angular superstructure - distinctive LCS look */}
+    <path
+      d="M 150 68 L 150 45 L 160 38 L 280 38 L 290 45 L 290 68"
+      className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]"
+    />
+    <path
+      d="M 165 38 L 165 28 L 175 22 L 265 22 L 275 28 L 275 38"
+      className="fill-[#3d4852] stroke-lime-brand stroke-1"
+    />
 
-      {/* Integrated mast */}
-      <path d="M 190 60
-               L 190 40
-               L 195 35
-               L 195 60"
-      />
-      <rect x="188" y="35" width="9" height="5" />
+    {/* Bridge windows */}
+    <rect x="175" y="42" width="90" height="10" className="fill-[#1a202c] stroke-lime-brand stroke-[0.5] opacity-80" />
 
-      {/* 57mm gun */}
-      <circle cx="80" cy="103" r="10" />
-      <rect x="75" y="98" width="10" height="10" />
+    {/* Integrated sensor mast */}
+    <line x1="220" y1="22" x2="220" y2="5" className="stroke-lime-brand stroke-2" />
+    <rect x="212" y="2" width="16" height="8" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
+    <circle cx="220" cy="0" r="4" className="fill-none stroke-lime-brand stroke-1" />
 
-      {/* SeaRAM mount */}
-      <circle cx="120" cy="90" r="8" />
-      <path d="M 112 90 L 128 90 M 120 82 L 120 98" />
+    {/* 57mm Mk 110 gun forward */}
+    <rect x="75" y="55" width="30" height="18" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
+    <line x1="90" y1="55" x2="90" y2="42" className="stroke-lime-brand stroke-2" />
+    <rect x="85" y="40" width="10" height="5" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
 
-      {/* Mission bay (large modular area) */}
-      <rect x="250" y="108" width="60" height="24" strokeDasharray="3,2" />
+    {/* SeaRAM launcher */}
+    <circle cx="130" cy="58" r="10" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
+    <line x1="120" y1="58" x2="140" y2="58" className="stroke-lime-brand stroke-1" />
+    <line x1="130" y1="48" x2="130" y2="68" className="stroke-lime-brand stroke-1" />
 
-      {/* Side launch doors */}
-      <rect x="255" y="125" width="8" height="10" strokeDasharray="1,1" />
-      <rect x="297" y="125" width="8" height="10" strokeDasharray="1,1" />
+    {/* Aft superstructure/hangar */}
+    <rect x="310" y="50" width="80" height="25" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
 
-      {/* Flight deck */}
-      <rect x="310" y="103" width="45" height="34" strokeDasharray="2,2" />
-      <circle cx="332.5" cy="120" r="13" strokeDasharray="1,1" />
+    {/* Mission bay */}
+    <rect x="320" y="78" width="70" height="35" className="fill-[#2d3748] stroke-lime-brand stroke-1" strokeDasharray="3,2" />
 
-      {/* Waterjet positions */}
-      <circle cx="355" cy="120" r="5" strokeDasharray="1,1" />
-      <circle cx="355" cy="110" r="3" strokeDasharray="1,1" />
-      <circle cx="355" cy="130" r="3" strokeDasharray="1,1" />
+    {/* Mission bay doors */}
+    <rect x="325" y="100" width="10" height="12" className="fill-none stroke-lime-brand stroke-[0.5]" strokeDasharray="1,1" />
+    <rect x="375" y="100" width="10" height="12" className="fill-none stroke-lime-brand stroke-[0.5]" strokeDasharray="1,1" />
 
-      {/* Component mounting areas */}
-      <rect x="90" y="112" width="30" height="18" strokeDasharray="2,2" />
-      <rect x="155" y="112" width="40" height="18" strokeDasharray="2,2" />
-      <rect x="210" y="112" width="30" height="18" strokeDasharray="2,2" />
-    </g>
+    {/* Flight deck */}
+    <rect x="400" y="68" width="70" height="45" className="fill-[#3d4852] stroke-lime-brand stroke-[1.5]" />
+    <circle cx="435" cy="92" r="18" className="fill-none stroke-lime-brand stroke-1" strokeDasharray="3,2" />
+    <line x1="417" y1="92" x2="453" y2="92" className="stroke-lime-brand stroke-[0.5] opacity-50" />
+    <line x1="435" y1="74" x2="435" y2="110" className="stroke-lime-brand stroke-[0.5] opacity-50" />
+
+    {/* Waterjet exhausts (4 waterjets) */}
+    <ellipse cx="468" cy="85" rx="5" ry="4" className="fill-[#1a202c] stroke-lime-brand stroke-1" />
+    <ellipse cx="468" cy="95" rx="5" ry="4" className="fill-[#1a202c] stroke-lime-brand stroke-1" />
+    <ellipse cx="468" cy="105" rx="5" ry="4" className="fill-[#1a202c] stroke-lime-brand stroke-1" />
+
+    {/* Component mounting areas */}
+    <rect x="170" y="75" width="50" height="35" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
+    <rect x="240" y="75" width="50" height="35" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
+
+    {/* Bow sonar (hull-mounted) */}
+    <ellipse cx="45" cy="95" rx="10" ry="6" className="fill-none stroke-lime-brand stroke-1 opacity-50" strokeDasharray="2,2" />
   </svg>
 );
 
@@ -793,80 +787,93 @@ export const CatamaranHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-// MetalShark Autonomous Patrol Boat - Professional Technical Diagram
+// MetalShark Autonomous Patrol Boat - Angular V-hull with flat transom
 export const MetalSharkHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.6} viewBox="0 0 400 150" className={className}>
-    <g className="stroke-lime-brand stroke-[1.5] fill-none opacity-30" transform="translate(0, 20)">
-      {/* High-speed patrol boat hull */}
-      <path d="M 50 120
-               L 55 110
-               L 65 105
-               L 85 102
-               L 100 100
-               L 300 100
-               L 315 102
-               L 335 105
-               L 345 110
-               L 350 120
-               L 345 128
-               L 335 132
-               L 315 134
-               L 300 136
-               L 100 136
-               L 85 134
-               L 65 132
-               L 55 128
-               L 50 120 Z"
-      />
+  <svg width={size} height={size * 0.5} viewBox="0 0 450 180" className={className}>
+    <defs>
+      <linearGradient id="metalsharkGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#4a5568" />
+        <stop offset="100%" stopColor="#2d3748" />
+      </linearGradient>
+    </defs>
 
-      {/* Deep-V hull lines */}
-      <path d="M 65 105 L 70 118 L 65 132" className="stroke-[0.5]" />
-      <path d="M 335 105 L 330 118 L 335 132" className="stroke-[0.5]" />
+    {/* V-hull with sharp bow and flat transom stern - classic patrol boat shape */}
+    <path
+      d="M 30 90
+         L 60 80
+         L 100 72
+         L 150 66
+         L 200 62
+         L 280 60
+         L 360 60
+         L 400 60
+         L 400 120
+         L 360 120
+         L 280 120
+         L 200 118
+         L 150 114
+         L 100 108
+         L 60 100
+         L 30 90 Z"
+      className="stroke-lime-brand stroke-[1.5]"
+      fill="url(#metalsharkGradient)"
+    />
 
-      {/* Pilothouse */}
-      <rect x="140" y="80" width="60" height="20" />
-      <path d="M 140 80 L 145 70 L 195 70 L 200 80" />
-      {/* Windows */}
-      <rect x="145" y="85" width="50" height="8" className="fill-lime-brand opacity-10" />
+    {/* Flat transom stern */}
+    <line x1="400" y1="60" x2="400" y2="120" className="stroke-lime-brand stroke-2" />
 
-      {/* Mast with sensors */}
-      <line x1="170" y1="70" x2="170" y2="45" />
-      <circle cx="170" cy="45" r="4" />
-      <line x1="165" y1="55" x2="175" y2="55" />
-      <rect x="167" y="60" width="6" height="4" />
+    {/* V-hull chine lines from bow */}
+    <path d="M 30 90 L 150 75 L 280 68" className="stroke-lime-brand stroke-1 opacity-50" />
+    <path d="M 30 90 L 150 105 L 280 112" className="stroke-lime-brand stroke-1 opacity-50" />
 
-      {/* Forward weapon mount */}
-      <circle cx="90" cy="100" r="12" strokeDasharray="2,2" />
+    {/* Center keel line */}
+    <line x1="30" y1="90" x2="400" y2="90" className="stroke-lime-brand stroke-[0.5] opacity-30" />
 
-      {/* Aft deck equipment area */}
-      <rect x="220" y="102" width="70" height="32" strokeDasharray="2,2" />
+    {/* Angular pilothouse/cabin - forward position */}
+    <path
+      d="M 140 62 L 140 42 L 150 34 L 220 34 L 230 42 L 230 62"
+      className="fill-[#3d4852] stroke-lime-brand stroke-[1.5]"
+    />
+    {/* Angled windscreen */}
+    <path
+      d="M 145 44 L 152 36 L 218 36 L 225 44"
+      className="fill-[#1a202c] stroke-lime-brand stroke-1"
+    />
 
-      {/* Twin outboard configuration */}
-      <rect x="340" y="108" width="18" height="8" />
-      <rect x="340" y="120" width="18" height="8" />
-      <circle cx="358" cy="112" r="4" />
-      <circle cx="358" cy="124" r="4" />
-      <path d="M 350 112 L 340 112 M 350 124 L 340 124" />
+    {/* Sensor mast */}
+    <line x1="185" y1="34" x2="185" y2="14" className="stroke-lime-brand stroke-[1.5]" />
+    <rect x="178" y="10" width="14" height="8" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
+    <circle cx="185" cy="8" r="4" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
 
-      {/* Side-mounted equipment */}
-      <rect x="75" y="115" width="8" height="15" />
-      <rect x="317" y="115" width="8" height="15" />
+    {/* Forward weapon/sensor mount on bow */}
+    <path
+      d="M 80 82 L 80 75 L 90 70 L 110 70 L 120 75 L 120 82"
+      className="fill-[#3d4852] stroke-lime-brand stroke-1"
+    />
+    <circle cx="100" cy="78" r="8" className="fill-none stroke-lime-brand stroke-1" strokeDasharray="2,2" />
 
-      {/* Component mounting areas */}
-      <rect x="105" y="108" width="30" height="20" strokeDasharray="2,2" />
-      <rect x="155" y="108" width="35" height="20" strokeDasharray="2,2" />
-      <rect x="210" y="108" width="25" height="20" strokeDasharray="2,2" />
+    {/* Open aft deck - work area */}
+    <rect x="250" y="68" width="140" height="44" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
 
-      {/* Autonomous systems indicators */}
-      <circle cx="150" cy="90" r="3" className="fill-lime-brand opacity-30" />
-      <circle cx="160" cy="90" r="3" className="fill-lime-brand opacity-30" />
-      <circle cx="180" cy="90" r="3" className="fill-lime-brand opacity-30" />
-      <circle cx="190" cy="90" r="3" className="fill-lime-brand opacity-30" />
+    {/* Outboard motor mounts on transom */}
+    <rect x="405" y="70" width="15" height="16" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
+    <rect x="405" y="94" width="15" height="16" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
+    <ellipse cx="425" cy="78" rx="6" ry="4" className="fill-none stroke-lime-brand stroke-1" />
+    <ellipse cx="425" cy="102" rx="6" ry="4" className="fill-none stroke-lime-brand stroke-1" />
 
-      {/* Hull steps/strakes */}
-      <line x1="100" y1="125" x2="300" y2="125" className="stroke-[0.5]" strokeDasharray="8,4" />
-      <line x1="100" y1="130" x2="300" y2="130" className="stroke-[0.5]" strokeDasharray="8,4" />
-    </g>
+    {/* Gunwale/rail lines */}
+    <path d="M 100 66 L 280 60 L 400 60" className="stroke-lime-brand stroke-[0.5] opacity-40" />
+    <path d="M 100 114 L 280 120 L 400 120" className="stroke-lime-brand stroke-[0.5] opacity-40" />
+
+    {/* Component mounting areas on aft deck */}
+    <rect x="260" y="72" width="50" height="36" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="2,2" />
+    <rect x="320" y="72" width="50" height="36" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="2,2" />
+
+    {/* Autonomous systems indicators */}
+    <circle cx="160" cy="40" r="2" className="fill-lime-brand opacity-60" />
+    <circle cx="175" cy="40" r="2" className="fill-lime-brand opacity-60" />
+    <circle cx="195" cy="40" r="2" className="fill-lime-brand opacity-60" />
+    <circle cx="210" cy="40" r="2" className="fill-lime-brand opacity-60" />
   </svg>
 );
 
@@ -954,43 +961,100 @@ export const CorvetteHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-export const SailboatHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.6} viewBox="0 0 400 200" className={className}>
-    <g className="stroke-lime-brand stroke-[1.5] fill-none opacity-30" transform="translate(0, 20)">
-      <path d="M 100 130
-               C 100 125, 105 123, 110 123
-               L 290 123
-               C 295 123, 300 125, 300 130
-               C 300 135, 295 137, 290 137
-               L 110 137
-               C 105 137, 100 135, 100 130 Z"
-      />
-      <line x1="200" y1="137" x2="200" y2="155" />
-      <ellipse cx="200" cy="155" rx="15" ry="3" />
-      <path d="M 200 123
-               L 200 30
-               C 200 25, 205 20, 210 20
-               L 215 20
-               C 220 20, 225 22, 225 25
-               L 225 110
-               C 225 115, 220 118, 215 118
-               L 210 118
-               C 205 118, 200 120, 200 123 Z"
-      />
-      <circle cx="200" cy="120" r="5" />
-      <line x1="195" y1="120" x2="205" y2="120" />
-      <rect x="120" y="125" width="60" height="8" strokeDasharray="1,1" />
-      <rect x="220" y="125" width="60" height="8" strokeDasharray="1,1" />
-      <rect x="190" y="128" width="20" height="6" />
-      <rect x="130" y="126" width="25" height="8" strokeDasharray="2,2" />
-      <rect x="245" y="126" width="25" height="8" strokeDasharray="2,2" />
-      <line x1="290" y1="123" x2="290" y2="110" />
-      <circle cx="290" cy="110" r="2" />
-      <circle cx="212" cy="50" r="3" />
-      <line x1="212" y1="50" x2="225" y2="50" />
-    </g>
+// Saildrone USV - Rigid Wing Sail Design (NOT fabric sail)
+export const SaildroneHull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.7} viewBox="0 0 400 280" className={className}>
+    <defs>
+      <linearGradient id="saildroneWingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#4a5568" />
+        <stop offset="100%" stopColor="#2d3748" />
+      </linearGradient>
+    </defs>
+
+    {/* Narrow hull - elongated kayak-like shape */}
+    <path
+      d="M 180 220
+         L 170 215
+         L 165 200
+         L 165 180
+         L 170 170
+         L 230 170
+         L 235 180
+         L 235 200
+         L 230 215
+         L 220 220
+         L 200 225
+         L 180 220 Z"
+      className="fill-[#3d4852] stroke-lime-brand stroke-[1.5]"
+    />
+
+    {/* Deep keel fin */}
+    <path
+      d="M 200 225 L 200 260 L 195 265 L 205 265 L 200 260"
+      className="fill-[#2d3748] stroke-lime-brand stroke-1"
+    />
+    <ellipse cx="200" cy="268" rx="12" ry="4" className="fill-none stroke-lime-brand stroke-1 opacity-50" />
+
+    {/* Rigid Wing Sail - airplane wing profile standing vertical */}
+    <path
+      d="M 200 170
+         L 200 30
+         L 202 25
+         L 205 22
+         L 210 20
+         L 218 20
+         L 235 25
+         L 245 35
+         L 250 50
+         L 250 140
+         L 248 150
+         L 240 158
+         L 225 165
+         L 210 170
+         L 200 170 Z"
+      className="stroke-lime-brand stroke-[1.5]"
+      fill="url(#saildroneWingGradient)"
+    />
+
+    {/* Wing sail internal spar */}
+    <line x1="200" y1="170" x2="200" y2="30" className="stroke-lime-brand stroke-1 opacity-40" />
+
+    {/* Wing trailing edge trim tab */}
+    <path
+      d="M 250 60 L 265 55 L 268 60 L 265 65 L 250 70"
+      className="fill-[#3d4852] stroke-lime-brand stroke-1"
+    />
+    <path
+      d="M 250 100 L 265 95 L 268 100 L 265 105 L 250 110"
+      className="fill-[#3d4852] stroke-lime-brand stroke-1"
+    />
+
+    {/* Sensor mast at wing top */}
+    <line x1="210" y1="20" x2="210" y2="8" className="stroke-lime-brand stroke-1" />
+    <circle cx="210" cy="5" r="4" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
+
+    {/* Solar panels on hull deck */}
+    <rect x="175" y="175" width="50" height="35" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
+    <line x1="185" y1="175" x2="185" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
+    <line x1="195" y1="175" x2="195" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
+    <line x1="205" y1="175" x2="205" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
+    <line x1="215" y1="175" x2="215" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
+
+    {/* Payload/sensor bays */}
+    <rect x="180" y="213" width="40" height="8" className="fill-none stroke-lime-brand stroke-1 opacity-50" strokeDasharray="2,2" />
+
+    {/* Wing rotation base */}
+    <circle cx="200" cy="170" r="6" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
+
+    {/* Status indicators */}
+    <circle cx="190" cy="190" r="2" className="fill-lime-brand opacity-60" />
+    <circle cx="200" cy="190" r="2" className="fill-lime-brand opacity-60" />
+    <circle cx="210" cy="190" r="2" className="fill-lime-brand opacity-60" />
   </svg>
 );
+
+// Legacy alias
+export const SailboatHull = SaildroneHull;
 
 // Ocean Aero Triton AUSV - Autonomous Underwater and Surface Vehicle
 // Wind and solar powered, can dive to avoid detection, stealth signature
@@ -1099,6 +1163,173 @@ export const TritonAUSVHull = ({ size = 200, className = "" }) => (
     <circle cx="225" cy="105" r="2" className="fill-lime-brand opacity-60" />
     <circle cx="225" cy="112" r="2" className="fill-lime-brand opacity-60" />
     <circle cx="225" cy="119" r="2" className="fill-lime-brand opacity-60" />
+  </svg>
+);
+
+// ============ UAV HULLS ============
+// Clean silhouette style - aircraft recognition approach
+
+// Boeing MQ-25 Stingray - Carrier-Based Aerial Refueling Drone
+// Blended wing-body with straight wings and V-tail
+export const MQ25StingrayHull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.6} viewBox="0 0 200 120" className={className}>
+    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
+      {/* Unified silhouette - blended wing body */}
+      <path
+        d="M 20 60
+           L 35 58
+           L 50 55
+           L 50 30
+           L 45 28
+           L 55 35
+           L 55 55
+           L 140 55
+           L 140 35
+           L 145 28
+           L 150 30
+           L 150 55
+           L 165 58
+           L 175 60
+           L 180 55
+           L 185 58
+           L 175 62
+           L 165 65
+           L 150 68
+           L 150 90
+           L 145 92
+           L 140 85
+           L 140 68
+           L 55 68
+           L 55 85
+           L 50 92
+           L 45 90
+           L 50 68
+           L 35 65
+           L 20 60 Z"
+        className="stroke-[2]"
+      />
+    </g>
+  </svg>
+);
+
+// General Atomics MQ-9 Reaper - Hunter-Killer MALE UAV
+// Distinctive plus-sign/cruciform shape
+export const MQ9ReaperHull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.8} viewBox="0 0 200 160" className={className}>
+    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
+      {/* Clean cruciform silhouette */}
+      <path
+        d="M 15 80
+           L 25 78
+           L 55 78
+           L 55 15
+           L 50 12
+           L 65 18
+           L 65 78
+           L 150 78
+           L 160 70
+           L 165 73
+           L 155 80
+           L 165 87
+           L 160 90
+           L 150 82
+           L 65 82
+           L 65 142
+           L 50 148
+           L 55 145
+           L 55 82
+           L 25 82
+           L 15 80 Z"
+        className="stroke-[2]"
+      />
+      {/* Propeller disc */}
+      <circle cx="175" cy="80" r="18" className="fill-none stroke-[1.5] opacity-50" />
+    </g>
+  </svg>
+);
+
+// Northrop Grumman MQ-4C Triton - HALE Maritime ISR
+// Very long wingspan, bulbous nose
+export const MQ4CTritonHull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.9} viewBox="0 0 200 180" className={className}>
+    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
+      {/* Clean silhouette - extreme wingspan */}
+      <path
+        d="M 15 90
+           C 15 85, 25 82, 35 82
+           L 50 82
+           L 50 20
+           L 45 15
+           L 55 22
+           L 55 82
+           L 145 82
+           L 160 75
+           L 165 78
+           L 150 85
+           L 150 90
+           L 150 95
+           L 165 102
+           L 160 105
+           L 145 98
+           L 55 98
+           L 55 158
+           L 45 165
+           L 50 160
+           L 50 98
+           L 35 98
+           C 25 98, 15 95, 15 90 Z"
+        className="stroke-[2]"
+      />
+      {/* Bulbous radome nose */}
+      <ellipse cx="22" cy="90" rx="10" ry="8" className="stroke-[1.5]" />
+    </g>
+  </svg>
+);
+
+// Northrop Grumman MQ-8C Fire Scout - Shipborne Rotary-Wing UAV
+// Helicopter silhouette with rotor disc
+export const MQ8FireScoutHull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.7} viewBox="0 0 200 140" className={className}>
+    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
+      {/* Main rotor disc */}
+      <ellipse cx="85" cy="35" rx="55" ry="12" className="fill-none stroke-[1.5] opacity-50" />
+
+      {/* Rotor hub */}
+      <circle cx="85" cy="35" r="6" className="stroke-[1.5]" />
+
+      {/* Fuselage silhouette */}
+      <path
+        d="M 45 50
+           L 40 55
+           L 35 70
+           L 40 85
+           L 50 90
+           L 125 90
+           L 125 75
+           L 170 75
+           L 175 70
+           L 175 80
+           L 170 85
+           L 125 85
+           L 125 95
+           L 50 95
+           L 35 90
+           L 30 75
+           L 30 65
+           L 35 55
+           L 45 50 Z"
+        className="stroke-[2]"
+      />
+
+      {/* Tail rotor */}
+      <circle cx="180" cy="77" r="12" className="fill-none stroke-[1.5] opacity-60" />
+
+      {/* Skids */}
+      <line x1="55" y1="100" x2="55" y2="115" className="stroke-[1.5]" />
+      <line x1="115" y1="100" x2="115" y2="115" className="stroke-[1.5]" />
+      <line x1="45" y1="115" x2="70" y2="115" className="stroke-[2]" />
+      <line x1="100" y1="115" x2="125" y2="115" className="stroke-[2]" />
+    </g>
   </svg>
 );
 

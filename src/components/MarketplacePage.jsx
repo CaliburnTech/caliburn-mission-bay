@@ -85,8 +85,8 @@ const MarketplacePage = () => {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
       {/* Header */}
-      <header className="bg-darker border-b border-lime-brand/20 py-6">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+      <header className="bg-darker border-b-2 border-lime-brand/30">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
           <div
             onClick={() => {
               setSelectedView('stacks');
@@ -94,14 +94,18 @@ const MarketplacePage = () => {
               setSelectedMountPoint(null);
               setSearchTerm('');
             }}
-            className="flex items-center gap-6 cursor-pointer"
+            className="flex items-center gap-8 cursor-pointer group"
           >
-            <img src={caliburnLogotype} alt="Caliburn" className="h-10 w-auto" />
-            <div className="text-left">
-              <h1 className="text-3xl font-bold text-lime-brand mb-2 tracking-tight">
+            <img
+              src={caliburnLogotype}
+              alt="Caliburn"
+              className="h-12 w-auto transition-transform group-hover:scale-105"
+            />
+            <div className="border-l border-gray-600/50 pl-8">
+              <h1 className="text-2xl font-bold text-lime-brand tracking-tight leading-none">
                 Mission Bay
               </h1>
-              <p className="text-base text-gray-400 m-0 font-normal">
+              <p className="text-sm text-gray-400 mt-1">
                 Pre-integrated capabilities ready for deployment on TempestOS
               </p>
             </div>
@@ -110,7 +114,7 @@ const MarketplacePage = () => {
           <div className="relative">
             <button
               onClick={() => setShowCart(!showCart)}
-              className="bg-transparent text-lime-brand border border-lime-brand p-3 rounded-lg cursor-pointer flex items-center transition-all duration-200 hover:bg-lime-brand/10"
+              className="bg-transparent text-lime-brand border border-lime-brand/50 p-3 rounded-lg cursor-pointer flex items-center transition-all duration-200 hover:bg-lime-brand/10 hover:border-lime-brand"
             >
               <Ship size={20} />
               {outfitterCart.length > 0 && (
@@ -136,20 +140,8 @@ const MarketplacePage = () => {
         <div className="mb-10 py-6 bg-transparent border-b border-gray-700/60">
           {/* Navigation Tabs and Search in flex container */}
           <div className="flex justify-between items-center gap-4 flex-wrap">
-            {/* Navigation Tabs */}
+            {/* Navigation Tabs - Fleet first */}
             <div className="flex gap-2 items-center flex-wrap">
-              <button
-                onClick={() => setSelectedView('stacks')}
-                className={`${selectedView === 'stacks' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
-              >
-                Engineering Stacks
-              </button>
-              <button
-                onClick={() => setSelectedView('capabilities')}
-                className={`${selectedView === 'capabilities' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
-              >
-                Individual Capabilities
-              </button>
               <button
                 onClick={() => {
                   setSelectedView('shipyard');
@@ -157,7 +149,13 @@ const MarketplacePage = () => {
                 }}
                 className={`${(selectedView === 'shipyard' || selectedView === 'outfitter') ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
               >
-                My Squadrons
+                Fleet
+              </button>
+              <button
+                onClick={() => setSelectedView('capabilities')}
+                className={`${selectedView === 'capabilities' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
+              >
+                Capabilities
               </button>
               <button
                 onClick={() => setSelectedView('squadron')}
@@ -170,11 +168,14 @@ const MarketplacePage = () => {
             {/* Global Search */}
             <GlobalSearch
               onNavigate={(view, data) => {
-                setSelectedView(view);
+                // Redirect stacks to capabilities
+                const targetView = view === 'stacks' ? 'capabilities' : view;
+                setSelectedView(targetView);
                 // Handle navigation to specific items
                 if (view === 'capabilities' && data) {
                   setSelectedCapabilityDetails(data);
                 } else if (view === 'stacks' && data) {
+                  // Stack search results now go to capabilities with stack expanded
                   setExpandedStack(data.name);
                 } else if (view === 'outfitter' && data) {
                   setSelectedHull(data);
@@ -186,8 +187,8 @@ const MarketplacePage = () => {
 
         {/* Main Content Layout */}
         <div className="flex gap-6">
-          {/* Left Sidebar - Filters (for stacks and capabilities views) */}
-          {(selectedView === 'stacks' || selectedView === 'capabilities') && (
+          {/* Left Sidebar - Filters (for capabilities view) */}
+          {selectedView === 'capabilities' && (
             <FilterSidebar
               selectedFilters={selectedFilters}
               selectedSecurityFilters={selectedSecurityFilters}
@@ -201,30 +202,19 @@ const MarketplacePage = () => {
           )}
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0 overflow-hidden">
-            {selectedView === 'stacks' && (
-              <StacksView
-                engineeringStacks={engineeringStacks}
-                getFilteredItems={getFilteredItems}
-                searchTerm={searchTerm}
-                selectedFilters={selectedFilters}
-                expandedStack={expandedStack}
-                setExpandedStack={setExpandedStack}
-                addToCart={addToOutfitterCart}
-                outfitterCart={outfitterCart}
-              />
-            )}
-
-
+          <div className="flex-1 min-w-0 overflow-x-clip">
             {selectedView === 'capabilities' && (
               <CapabilitiesView
                 individualCapabilities={individualCapabilities}
+                engineeringStacks={engineeringStacks}
                 getFilteredItems={getFilteredItems}
                 searchTerm={searchTerm}
                 selectedFilters={selectedFilters}
                 addToCart={addToOutfitterCart}
                 outfitterCart={outfitterCart}
                 setSelectedCapabilityDetails={setSelectedCapabilityDetails}
+                expandedStack={expandedStack}
+                setExpandedStack={setExpandedStack}
               />
             )}
 

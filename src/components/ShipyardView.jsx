@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight } from 'lucide-react';
-import { vesselHullComponents, vesselHullData } from '../data/vesselData';
+import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight, Plane, Anchor } from 'lucide-react';
+import { vesselHullComponents, vesselHullData, isAerialPlatform, isMaritimePlatform } from '../data/vesselData';
 import { squadronUnitConfigurations, activeDeployments } from '../data/fleetData';
 import useSquadronStore from '../store/squadronStore';
+import useNavigationStore from '../store/navigationStore';
 import { VariationBadge, ComparisonView } from './variations';
 
 const ShipyardView = ({
@@ -12,9 +13,12 @@ const ShipyardView = ({
   const [showHullPicker, setShowHullPicker] = useState(false);
   const [selectedSquadronId, setSelectedSquadronId] = useState(null);
 
+  // Fleet sub-tab state (hangar vs pier)
+  const { fleetSubTab, setFleetSubTab } = useNavigationStore();
+
   // Use dynamic squadron data from store
   const {
-    swarmSquadrons,
+    swarmSquadrons: allSquadrons,
     getResolvedSquadron,
     comparisonSquadronIds,
     addToComparison,
@@ -23,12 +27,36 @@ const ShipyardView = ({
     setComparisonViewOpen
   } = useSquadronStore();
 
-  // Auto-select first squadron if none selected
+  // Helper to get platformType from squadron's icon
+  const getSquadronPlatformType = (squadron) => {
+    const vessel = vesselHullData.find(v => v.icon === squadron.icon || v.name === squadron.icon);
+    return vessel?.platformType;
+  };
+
+  // Filter squadrons based on selected sub-tab
+  const swarmSquadrons = allSquadrons.filter(squadron => {
+    const platformType = getSquadronPlatformType(squadron);
+    if (fleetSubTab === 'hangar') {
+      return isAerialPlatform(platformType);
+    }
+    return isMaritimePlatform(platformType);
+  });
+
+  // Filter hull data for hull picker based on sub-tab
+  const filteredHullData = vesselHullData.filter(vessel => {
+    if (fleetSubTab === 'hangar') {
+      return isAerialPlatform(vessel.platformType);
+    }
+    return isMaritimePlatform(vessel.platformType);
+  });
+
+  // Auto-select first squadron if none selected or current selection not in filtered list
   React.useEffect(() => {
-    if (!selectedSquadronId && swarmSquadrons.length > 0) {
+    const currentInList = swarmSquadrons.some(s => s.id === selectedSquadronId);
+    if ((!selectedSquadronId || !currentInList) && swarmSquadrons.length > 0) {
       setSelectedSquadronId(swarmSquadrons[0].id);
     }
-  }, [selectedSquadronId, swarmSquadrons]);
+  }, [selectedSquadronId, swarmSquadrons, fleetSubTab]);
 
   // Get loadout configs for a squadron
   const getSquadronConfigs = (squadronId) => {
@@ -47,14 +75,28 @@ const ShipyardView = ({
 
   return (
     <div>
-      {/* Header */}
+      {/* Header with Hangar/Pier Toggle */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lime-brand font-bold text-3xl mb-1 tracking-tight">
-            FLEET INVENTORY
-          </h2>
+          {/* Sub-tab Toggle */}
+          <div className="toggle-group mb-3">
+            <button
+              onClick={() => setFleetSubTab('pier')}
+              className={`toggle-btn ${fleetSubTab === 'pier' ? 'toggle-btn-active' : ''}`}
+            >
+              <Anchor size={16} />
+              PIER
+            </button>
+            <button
+              onClick={() => setFleetSubTab('hangar')}
+              className={`toggle-btn ${fleetSubTab === 'hangar' ? 'toggle-btn-active' : ''}`}
+            >
+              <Plane size={16} />
+              HANGAR
+            </button>
+          </div>
           <p className="text-gray-400">
-            {swarmSquadrons.length} squadrons • {swarmSquadrons.reduce((sum, s) => sum + (s.totalUnits || 0), 0).toLocaleString()} autonomous vessels
+            {swarmSquadrons.length} squadrons • {swarmSquadrons.reduce((sum, s) => sum + (s.totalUnits || 0), 0).toLocaleString()} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'}
           </p>
         </div>
         <button
@@ -83,7 +125,7 @@ const ShipyardView = ({
           </div>
           <div className="p-6">
             <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
-              {vesselHullData.map((vessel) => {
+              {filteredHullData.map((vessel) => {
                 const HullComponent = vesselHullComponents[vessel.icon];
                 return (
                   <div
@@ -113,6 +155,34 @@ const ShipyardView = ({
 
       {/* Squadron Grid - Scalable for many squadrons */}
       <div className="mb-6">
+        {swarmSquadrons.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-8 bg-darker rounded-xl border border-gray-700/50">
+            {fleetSubTab === 'hangar' ? (
+              <>
+                <Plane size={48} className="text-gray-600 mb-4" />
+                <h3 className="text-gray-300 text-lg font-semibold mb-2">No Aircraft Configured</h3>
+                <p className="text-gray-500 text-sm text-center max-w-md mb-6">
+                  Add UAV platforms like MQ-9 Reaper, MQ-25 Stingray, or MQ-8C Fire Scout to your air wing.
+                </p>
+              </>
+            ) : (
+              <>
+                <Anchor size={48} className="text-gray-600 mb-4" />
+                <h3 className="text-gray-300 text-lg font-semibold mb-2">No Vessels Configured</h3>
+                <p className="text-gray-500 text-sm text-center max-w-md mb-6">
+                  Add maritime platforms like MetalShark patrol boats, Saildrone USVs, or autonomous UUVs to your fleet.
+                </p>
+              </>
+            )}
+            <button
+              onClick={() => setShowHullPicker(true)}
+              className="px-5 py-3 bg-lime-brand text-black rounded-lg font-bold flex items-center gap-2 hover:bg-lime-brand/90 transition-colors text-sm"
+            >
+              <Plus size={18} />
+              Add {fleetSubTab === 'hangar' ? 'Aircraft' : 'Vessel'}
+            </button>
+          </div>
+        ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
           {swarmSquadrons.map((rawSquadron) => {
             const squadron = getResolvedSquadron(rawSquadron.id) || rawSquadron;
@@ -158,9 +228,9 @@ const ShipyardView = ({
                     ? squadron.name.split(' ').slice(0, 2).join(' ')
                     : squadron.name}
                 </div>
-                {/* Vessel Count */}
+                {/* Unit Count */}
                 <div className="text-gray-500 text-[0.7rem] text-center mt-1">
-                  {totalUnits} vessels
+                  {totalUnits} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'}
                 </div>
                 {/* Selection indicator */}
                 {isSelected && (
@@ -176,6 +246,7 @@ const ShipyardView = ({
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Selected Squadron Detail Card */}
@@ -360,7 +431,7 @@ const ShipyardView = ({
                   {deployments.length > 0 && (
                     <span className="ml-auto text-blue-400 text-sm flex items-center gap-1.5">
                       <Rocket size={14} />
-                      {deployments.reduce((sum, d) => sum + d.vesselCount, 0)} vessels on mission
+                      {deployments.reduce((sum, d) => sum + d.vesselCount, 0)} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'} on mission
                     </span>
                   )}
                 </div>
@@ -381,7 +452,7 @@ const ShipyardView = ({
                             {config.name}
                           </div>
                           <div className="text-gray-500 text-sm mt-1">
-                            {config.count} vessels configured
+                            {config.count} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'} configured
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

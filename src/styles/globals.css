@@ -372,32 +372,84 @@
 }
 
 /* ===========================================
-   7. FORM ELEMENTS
+   7. TOGGLE BUTTON GROUP
+   Tailwind-aligned: uses same spacing/radius tokens
    =========================================== */
 
-/* Filter Tab/Chip */
+/* Container - inline-flex with small gap (gap-1) */
+.toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem; /* gap-1 */
+}
+
+/* Base toggle button - matches Tailwind button patterns */
+.toggle-btn {
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 600; /* font-semibold */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem;
+  cursor: pointer;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+  border: 1px solid rgb(55 65 81 / 0.5); /* border-gray-700/50 */
+  background-color: #1a2530; /* bg-darker */
+  color: rgb(156 163 175); /* text-gray-400 */
+}
+
+.toggle-btn:hover {
+  color: rgb(229 231 235); /* text-gray-200 */
+  border-color: rgb(75 85 99); /* border-gray-600 */
+}
+
+/* Active state - lime filled, no border */
+.toggle-btn-active {
+  background-color: #cbfd00; /* bg-lime-brand */
+  color: #000; /* text-black */
+  border-color: transparent;
+}
+
+.toggle-btn-active:hover {
+  background-color: #b8e600; /* hover:bg-lime-brand/90 equivalent */
+}
+
+/* ===========================================
+   8. FORM ELEMENTS
+   =========================================== */
+
+/* Filter Tab/Chip - Tailwind-aligned */
 .filter-tab {
-  padding: var(--space-sm) var(--space-md);
-  background-color: var(--caliburn-darkest);
-  border: 1px solid var(--caliburn-border);
-  border-radius: var(--radius-md);
-  color: var(--caliburn-text-muted);
-  font-size: var(--text-xs);
-  font-weight: 600;
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  background-color: #0f1419; /* bg-darkest */
+  border: 1px solid rgb(55 65 81 / 0.5); /* border-gray-700/50 */
+  border-radius: 0.5rem; /* rounded-lg */
+  color: rgb(107 114 128); /* text-gray-500 */
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600; /* font-semibold */
   text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
 }
 
 .filter-tab:hover {
-  border-color: var(--caliburn-text-secondary);
-  color: var(--caliburn-text-secondary);
+  border-color: rgb(107 114 128); /* border-gray-500 */
+  color: rgb(156 163 175); /* text-gray-400 */
 }
 
+/* Active state - lime filled, no border */
 .filter-tab-active {
-  background-color: var(--caliburn-primary-muted);
-  border-color: var(--caliburn-border-lime-strong);
-  color: var(--caliburn-primary);
+  background-color: #cbfd00; /* bg-lime-brand */
+  border-color: transparent;
+  color: #000; /* text-black */
+}
+
+.filter-tab-active:hover {
+  background-color: #b8e600;
 }
 
 /* Checkbox with lime accent */

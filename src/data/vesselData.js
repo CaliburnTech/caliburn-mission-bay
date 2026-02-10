@@ -13,8 +13,17 @@ import {
   StealthHull,
   CustomPlatformHull,
   MantaRayHull,
-  TritonAUSVHull
+  TritonAUSVHull,
+  MQ25StingrayHull,
+  MQ9ReaperHull,
+  MQ4CTritonHull,
+  MQ8FireScoutHull
 } from '../components/VesselHulls';
+
+// Platform type classification helpers
+export const isAerialPlatform = (platformType) => platformType?.includes('UAV');
+export const isMaritimePlatform = (platformType) =>
+  platformType?.includes('USV') || platformType?.includes('UUV') || platformType === 'Ship' || platformType === 'Submarine';
 
 // Global baselines for autonomous maritime vessels (used for bar graph positioning)
 // These represent "typical" values - bar midpoint = baseline
@@ -61,6 +70,7 @@ export const vesselHullData = [
   {
     name: "MetalShark",
     type: "Small USV",
+    platformType: "USV",
     displacement: "< 5 tons",
     description: "High-speed autonomous patrol boat for coastal and riverine operations",
     icon: "MetalShark",
@@ -78,6 +88,7 @@ export const vesselHullData = [
   {
     name: "Saildrone",
     type: "Small USV",
+    platformType: "USV",
     displacement: "< 2 tons",
     description: "Wind and solar powered autonomous surface vehicle for long-duration ISR missions",
     icon: "Saildrone",
@@ -94,6 +105,7 @@ export const vesselHullData = [
   {
     name: "SubSeaSail",
     type: "Small UUV",
+    platformType: "UUV",
     displacement: "< 1 ton",
     description: "Autonomous underwater glider for persistent subsurface surveillance",
     icon: "SubSeaSail",
@@ -110,6 +122,7 @@ export const vesselHullData = [
   {
     name: "Otter X",
     type: "Small USV",
+    platformType: "USV",
     displacement: "< 1 ton",
     description: "Maritime Robotics compact catamaran USV for hydrographic survey and reconnaissance",
     icon: "Otter X",
@@ -126,6 +139,7 @@ export const vesselHullData = [
   {
     name: "Mariner",
     type: "Small USV",
+    platformType: "USV",
     displacement: "< 3 tons",
     description: "Maritime Robotics multi-mission USV for patrol, survey, and autonomous operations",
     icon: "Mariner",
@@ -142,6 +156,7 @@ export const vesselHullData = [
   {
     name: "AEGIR-F",
     type: "Small USV (Kinetic)",
+    platformType: "USV",
     displacement: "< 0.5 tons",
     description: "SNC stealth USV designed for single-use kinetic missions in the final operational mile. Electric propulsion for quiet operation.",
     icon: "AEGIR-F",
@@ -183,6 +198,7 @@ export const vesselHullData = [
   {
     name: "AEGIR-W",
     type: "Medium USV",
+    platformType: "USV",
     displacement: "~5 tons",
     description: "SNC long-endurance combat USV for maritime defense operations. Supports autonomous or human-controlled missions with Digital Grid™ integration.",
     icon: "AEGIR-W",
@@ -223,6 +239,7 @@ export const vesselHullData = [
   {
     name: "MASC",
     type: "Medium USV",
+    platformType: "USV",
     displacement: "~50 tons",
     description: "Medium Autonomous Surface Craft for extended range autonomous missions",
     icon: "MASC",
@@ -239,6 +256,7 @@ export const vesselHullData = [
   {
     name: "AEGIR-H",
     type: "Large USV",
+    platformType: "USV",
     displacement: "~15 tons",
     description: "SNC 49-foot multi-role, multi-use platform with dual payload bays for diverse mission integration. Supports ISR, EW, offensive operations, and autonomous resupply.",
     icon: "AEGIR-H",
@@ -285,6 +303,7 @@ export const vesselHullData = [
   {
     name: "Triton",
     type: "AUSV (Surface/Subsurface)",
+    platformType: "USV/UUV",
     displacement: "~1.5 tons",
     description: "Ocean Aero autonomous underwater and surface vehicle. Wind and solar powered for unlimited range. Can dive to evade detection.",
     icon: "Triton",
@@ -334,6 +353,7 @@ export const vesselHullData = [
   {
     name: "Manta Ray",
     type: "Extra-Large UUV (XLUUV)",
+    platformType: "UUV",
     displacement: "Classified",
     description: "Northrop Grumman autonomous glider UUV for long-duration, long-range undersea missions with energy harvesting",
     icon: "Manta Ray",
@@ -347,10 +367,183 @@ export const vesselHullData = [
       totalPower: 200
     }
   },
+  // ============ UAV CATEGORY ============
+  {
+    name: "MQ-25 Stingray",
+    type: "Carrier-Based UAV",
+    platformType: "UAV",
+    displacement: "~20,000 lbs MTOW",
+    description: "Boeing carrier-based unmanned aerial refueling drone. First operational carrier-based UAV for the U.S. Navy, extending Super Hornet combat range.",
+    icon: "MQ-25 Stingray",
+    manufacturer: "Boeing",
+    specs: {
+      speed: 335,       // knots max
+      range: 500,       // nm operational refueling range (2500 nm ferry)
+      rcs: 0.5          // m² - stealth optimized
+    },
+    capacity: {
+      totalWeight: 6800,  // kg fuel offload capacity
+      totalPower: 50      // kW available for systems
+    },
+    detailedSpecs: {
+      length: "51 ft (15.5m)",
+      wingspan: "75 ft (22.9m) / 31.2 ft folded",
+      engine: "Rolls-Royce AE 3007N turbofan",
+      thrust: "10,000 lbf",
+      fuelCapacity: "15,000 lbs transferable",
+      serviceCeiling: "40,000 ft"
+    },
+    features: [
+      "Carrier deck operations (arrestor hook, folding wings)",
+      "V-tail configuration for reduced RCS",
+      "Flush inlet stealth design",
+      "Extends F/A-18 combat radius from 450 to 700+ nmi",
+      "Advanced composite airframe"
+    ],
+    applications: [
+      "Carrier strike group aerial refueling",
+      "Extended strike mission support",
+      "ISR (secondary capability)"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.boeing.com/defense/mq25"
+    }
+  },
+  {
+    name: "MQ-9 Reaper",
+    type: "Hunter-Killer UAV",
+    platformType: "UAV",
+    displacement: "~10,500 lbs MTOW",
+    description: "General Atomics medium-altitude long-endurance (MALE) UAV for persistent ISR and precision strike missions.",
+    icon: "MQ-9 Reaper",
+    manufacturer: "General Atomics",
+    specs: {
+      speed: 260,       // knots max
+      range: 1000,      // nm combat radius
+      rcs: 1.0          // m² estimated
+    },
+    capacity: {
+      totalWeight: 1724,  // kg external payload
+      totalPower: 75      // kW available
+    },
+    detailedSpecs: {
+      length: "36 ft (11m)",
+      wingspan: "66 ft (20m) / 79 ft extended range",
+      engine: "Honeywell TPE331-10GD turboprop",
+      power: "950 hp",
+      endurance: "27 hours (40+ extended range)",
+      serviceCeiling: "50,000 ft",
+      hardpoints: "7 (1500 lbs inboard, 600 lbs middle, 200 lbs outboard)"
+    },
+    features: [
+      "Multi-mission ISR and strike",
+      "MTS-B EO/IR targeting system",
+      "Lynx SAR radar",
+      "Automatic takeoff and landing",
+      "Satellite datalink"
+    ],
+    applications: [
+      "Persistent surveillance",
+      "Close air support",
+      "Precision strike",
+      "Combat search and rescue support"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.ga-asi.com/remotely-piloted-aircraft/mq-9a"
+    }
+  },
+  {
+    name: "MQ-4C Triton",
+    type: "HALE Maritime ISR",
+    platformType: "UAV",
+    displacement: "~32,250 lbs MTOW",
+    description: "Northrop Grumman high-altitude long-endurance maritime surveillance UAV. Complements P-8A Poseidon for persistent maritime domain awareness.",
+    icon: "MQ-4C Triton",
+    manufacturer: "Northrop Grumman",
+    specs: {
+      speed: 310,       // knots max
+      range: 7400,      // nm (8000+ with mission profile)
+      rcs: 0.8          // m² estimated
+    },
+    capacity: {
+      totalWeight: 1452,  // kg sensor payload
+      totalPower: 100     // kW available
+    },
+    detailedSpecs: {
+      length: "47.6 ft (14.5m)",
+      wingspan: "130.9 ft (39.9m)",
+      engine: "Rolls-Royce AE 3007H turbofan",
+      thrust: "9,660 lbf",
+      endurance: "24+ hours",
+      serviceCeiling: "56,000 ft"
+    },
+    features: [
+      "360° multi-INT sensor coverage",
+      "AN/ZPY-3 MFAS radar",
+      "EO/IR sensor suite",
+      "SIGINT capability",
+      "De-icing for sustained high-altitude ops",
+      "AIS receiver"
+    ],
+    applications: [
+      "Maritime surveillance",
+      "Signals intelligence",
+      "Search and rescue support",
+      "Port and coastal monitoring"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/triton"
+    }
+  },
+  {
+    name: "MQ-8C Fire Scout",
+    type: "Shipborne VTOL UAV",
+    platformType: "UAV",
+    displacement: "~6,000 lbs MTOW",
+    description: "Northrop Grumman autonomous helicopter for shipborne ISR operations. Based on Bell 407 airframe, operates from LCS and other surface combatants.",
+    icon: "MQ-8C Fire Scout",
+    manufacturer: "Northrop Grumman",
+    specs: {
+      speed: 115,       // knots max
+      range: 150,       // nm combat radius
+      rcs: 2.0          // m² - helicopter profile
+    },
+    capacity: {
+      totalWeight: 318,   // kg payload
+      totalPower: 25      // kW available
+    },
+    detailedSpecs: {
+      length: "41.4 ft (12.6m)",
+      rotorDiameter: "35 ft (10.7m)",
+      engine: "Rolls-Royce 250-C47E turboshaft",
+      power: "650 shp",
+      endurance: "12 hours",
+      serviceCeiling: "20,000 ft",
+      hardpoints: "2"
+    },
+    features: [
+      "Autonomous shipboard takeoff/landing",
+      "AN/ZPY-4(V)1 AESA radar",
+      "Brite Star II EO/IR",
+      "Link 16 datalink",
+      "Laser target designator"
+    ],
+    applications: [
+      "Surface vessel ISR",
+      "Target acquisition",
+      "Mine detection",
+      "ASW support",
+      "Communications relay"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/fire-scout"
+    }
+  },
   // ============ CREWED VESSELS ============
   {
     name: "Arleigh Burke",
     type: "Guided Missile Destroyer (DDG)",
+    platformType: "Ship",
     displacement: "9,200 tons",
     description: "Advanced destroyer with Aegis combat system and SPY-1 radar",
     icon: "Arleigh Burke",
@@ -367,6 +560,7 @@ export const vesselHullData = [
   {
     name: "Virginia Class",
     type: "Nuclear Attack Submarine",
+    platformType: "Submarine",
     displacement: "7,800 tons",
     description: "Fast attack submarine for deep water operations",
     icon: "Virginia Class",
@@ -378,6 +572,23 @@ export const vesselHullData = [
     capacity: {
       totalWeight: 100000,
       totalPower: 3000
+    }
+  },
+  {
+    name: "GARC",
+    type: "Research Vessel",
+    platformType: "Ship",
+    displacement: "Unknown",
+    description: "Global Autonomous Research Craft - advanced research platform",
+    icon: "GARC",
+    specs: {
+      speed: 15,
+      range: 5000,
+      rcs: 50
+    },
+    capacity: {
+      totalWeight: 50000,
+      totalPower: 1000
     }
   }
 ];
@@ -398,6 +609,11 @@ export const vesselHullComponents = {
   "Triton": TritonAUSVHull,
   // Large/XLUUV category
   "Manta Ray": MantaRayHull,
+  // UAV category
+  "MQ-25 Stingray": MQ25StingrayHull,
+  "MQ-9 Reaper": MQ9ReaperHull,
+  "MQ-4C Triton": MQ4CTritonHull,
+  "MQ-8C Fire Scout": MQ8FireScoutHull,
   // Crewed vessels
   "Arleigh Burke": ArleighBurkeHull,
   "Virginia Class": SubmarineHull,
@@ -478,3 +694,40 @@ export const vesselMountPoints = {
     "Landing Gear": { type: "UNMANNED SYSTEMS", x: 50, y: 75, category: "Landing Systems" }
   }
 };
+
+/**
+ * Slot capacity per vessel type for the Loadout Builder.
+ * Defines how many slots of each category a vessel can support.
+ * Categories: SENSORS, COMMS, WEAPONS, EW, NAV, AI, UTILITY, OTHER
+ */
+export const VESSEL_SLOT_CAPACITY = {
+  // Small USVs
+  "MetalShark": { SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "Saildrone": { SENSORS: 2, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, EW: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "Otter X": { SENSORS: 2, COMMS: 1, WEAPONS: 0, EW: 0, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
+  "Mariner": { SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  // SNC AEGIR Family
+  "AEGIR-F": { SENSORS: 1, COMMS: 1, WEAPONS: 1, EW: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "AEGIR-W": { SENSORS: 2, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "AEGIR-H": { SENSORS: 3, COMMS: 3, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 3, OTHER: 0 },
+  // Medium USVs
+  "MASC": { SENSORS: 3, COMMS: 3, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  // AUSV
+  "Triton": { SENSORS: 2, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  // Large UUV
+  "Manta Ray": { SENSORS: 3, COMMS: 2, WEAPONS: 1, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  // Crewed vessels
+  "Arleigh Burke": { SENSORS: 5, COMMS: 4, WEAPONS: 6, EW: 3, NAV: 2, AI: 4, UTILITY: 3, OTHER: 0 },
+  "Virginia Class": { SENSORS: 4, COMMS: 3, WEAPONS: 4, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  // Fallback
+  "Custom Platform": { SENSORS: 3, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 }
+};
+
+/** Default slot capacity for vessels not in VESSEL_SLOT_CAPACITY */
+export const DEFAULT_SLOT_CAPACITY = {
+  SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0
+};
+
+/** All loadout category keys */
+export const LOADOUT_CATEGORY_KEYS = ['SENSORS', 'COMMS', 'WEAPONS', 'EW', 'NAV', 'AI', 'UTILITY', 'OTHER'];

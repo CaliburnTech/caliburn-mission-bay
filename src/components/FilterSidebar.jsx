@@ -1,4 +1,3 @@
-import React from 'react';
 import { X } from 'lucide-react';
 
 const FilterSidebar = ({
@@ -93,9 +92,7 @@ const FilterSidebar = ({
           {['NSA-Approved Crypto', 'Zero Trust Architecture', 'DDIL Capable', 'End-to-End Encrypted'].map(securityLevel => (
             <label
               key={securityLevel}
-              className={`flex items-center gap-2 cursor-pointer text-[0.6875rem] ${selectedSecurityFilters.includes(securityLevel) ? 'text-lime-brand' : 'text-gray-400'} py-0.5 transition-colors duration-150`}
-              onMouseEnter={(e) => e.target.style.color = '#cbfd00'}
-              onMouseLeave={(e) => e.target.style.color = selectedSecurityFilters.includes(securityLevel) ? '#cbfd00' : '#9ca3af'}
+              className={`flex items-center gap-2 cursor-pointer text-[0.6875rem] py-0.5 transition-colors duration-150 hover:text-lime-brand ${selectedSecurityFilters.includes(securityLevel) ? 'text-lime-brand' : 'text-gray-400'}`}
             >
               <input
                 type="checkbox"

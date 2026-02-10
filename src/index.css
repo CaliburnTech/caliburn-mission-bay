@@ -51,15 +51,15 @@ h1 {
   line-height: 1.1;
 }
 
-/* Base button reset - don't override Tailwind classes */
+/* Base button reset - minimal, let Tailwind/components handle styling */
 button {
   font-family: inherit;
-  cursor: pointer;
 }
-button:focus,
+
+/* Focus ring - offset enough to not clash with button borders */
 button:focus-visible {
   outline: 2px solid var(--color-lime-brand);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 /* Light mode disabled - app is dark mode only */

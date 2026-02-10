@@ -155,6 +155,7 @@ export const individualCapabilities = [
       name: "TempestOS Core Platform",
       provider: "Caliburn",
       type: "Operating System",
+      platformTypes: ["USV", "UUV", "Ship"],
       description: "The only maritime operating system built on Boot-C with a read-only file system for maximum security. Based on AlmaLinux, TempestOS is a lightweight drop-in replacement for RedHat systems with native containerization support.",
       capabilities: [
         "Boot-C Read-Only File System",
@@ -314,6 +315,7 @@ export const individualCapabilities = [
       name: "Scion ESM Suite",
       provider: "Northrop Grumman",
       type: "Electronic Warfare",
+      platformTypes: ["USV", "Ship"],
       description: "Advanced electronic support measures for signal intelligence and threat detection with S-Band and X-Band RF detection capabilities.",
       capabilities: ["Signal Intercept", "Direction Finding", "Threat Classification", "RF Detection", "Maritime Surveillance"],
       trl: "TRL 9",
@@ -372,6 +374,7 @@ export const individualCapabilities = [
       name: "Advanced Towed Sonar",
       provider: "General Dynamics",
       type: "Sonar System",
+      platformTypes: ["USV", "UUV", "Ship"],
       description: "Long-range passive sonar system for submarine detection and tracking.",
       capabilities: ["Submarine Detection", "Acoustic Analysis", "Long-Range Tracking"],
       trl: "TRL 9",
@@ -570,6 +573,7 @@ export const individualCapabilities = [
       name: "Marine AI Navigation System",
       provider: "Marine AI",
       type: "Autonomous Navigation",
+      platformTypes: ["USV", "UUV"],
       description: "Intelligent maritime navigation system with AI-powered decision making for autonomous vessel operations.",
       capabilities: ["AI Navigation", "Autonomous Operations", "Maritime Intelligence"],
       trl: "TRL 9",
@@ -592,6 +596,7 @@ export const individualCapabilities = [
       name: "Advanced EO/IR Camera System",
       provider: "FLIR Systems",
       type: "Optical Sensor",
+      platformTypes: ["USV", "UUV", "UAV", "Ship"],
       description: "High-resolution electro-optical and infrared imaging system for surveillance and target identification.",
       capabilities: ["HD Video", "Thermal Imaging", "Target Tracking", "Day/Night Vision"],
       trl: "TRL 9",
@@ -1136,10 +1141,159 @@ export const individualCapabilities = [
       ],
       bannerImage: "https://www.sncorp.com/globalassets/what-we-do/c5isr/trax-command-and-control-gateway-1200x670.jpg"
     },
+    // ============ AERIAL CAPABILITIES ============
+    {
+      name: "AN/AAQ-30 Target Sight System",
+      provider: "Raytheon",
+      type: "Targeting Pod",
+      platformTypes: ["UAV"],
+      description: "Multi-spectral targeting system for UAVs providing high-definition EO/IR imagery, laser designation, and precision tracking for air-to-ground operations.",
+      capabilities: ["EO/IR Imaging", "Laser Designation", "Target Tracking", "Laser Rangefinding", "IR Marker"],
+      trl: "TRL 9",
+      icon: CameraIcon,
+      category: "EO/IR SENSORS",
+      swap: {
+        weight: 45,       // kg
+        power: 0.8,       // kW
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -1,
+        power: -4,
+        weight: 3,
+        range: 0,
+        stealth: -2       // Emits laser
+      },
+      specs: {
+        resolution: "HD 1080p",
+        laserPower: "Eye-safe designator",
+        trackingRange: "15+ km",
+        fieldOfView: "Wide and narrow FOV modes"
+      }
+    },
+    {
+      name: "Aerial Refueling Drogue System",
+      provider: "Cobham Mission Systems",
+      type: "Aerial Refueling",
+      platformTypes: ["UAV"],
+      description: "Probe-and-drogue aerial refueling system for MQ-25 and tanker UAVs. Enables carrier-based fighters to extend combat range.",
+      capabilities: ["Fuel Transfer", "Hose Extension", "Basket Stabilization", "Flow Control"],
+      trl: "TRL 9",
+      icon: BatteryIcon,
+      category: "LOGISTICS",
+      swap: {
+        weight: 120,      // kg system weight
+        power: 0.5,       // kW
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -2,
+        power: -3,
+        weight: 5,
+        range: 0,
+        stealth: -3
+      },
+      specs: {
+        fuelRate: "400 gal/min",
+        hoseLength: "80 ft",
+        fuelCapacity: "15,000 lbs transferable",
+        compatibility: "Probe-and-drogue receivers"
+      }
+    },
+    {
+      name: "AGM-114 Hellfire Integration Kit",
+      provider: "Lockheed Martin",
+      type: "Precision Strike Weapon",
+      platformTypes: ["UAV"],
+      description: "Hellfire missile integration kit for UAV hardpoints. Provides precision air-to-ground strike capability with multiple warhead options.",
+      capabilities: ["Precision Strike", "Laser Guidance", "Moving Target Engagement", "Low Collateral Damage"],
+      trl: "TRL 9",
+      icon: SM6MissileIcon,
+      category: "KINETIC WEAPONS",
+      swap: {
+        weight: 50,       // kg per missile
+        power: 0.2,       // kW - guidance/launcher
+        size: "small"
+      },
+      statImpacts: {
+        speed: -2,
+        power: -1,
+        weight: 4,
+        range: -3,
+        stealth: 0
+      },
+      specs: {
+        range: "8+ km",
+        guidance: "Semi-active laser",
+        warheadOptions: "HEAT, blast-frag, thermobaric",
+        weight: "100 lbs per missile"
+      }
+    },
+    {
+      name: "SIGINT Pod - Airborne",
+      provider: "Northrop Grumman",
+      type: "Signals Intelligence",
+      platformTypes: ["UAV"],
+      description: "Airborne SIGINT collection system for HALE UAVs. Provides wide-area signals intercept and geolocation from high altitude.",
+      capabilities: ["COMINT", "ELINT", "Signal Geolocation", "Wideband Collection", "Real-time Processing"],
+      trl: "TRL 9",
+      icon: ScionESMIcon,
+      category: "ELECTRONIC SUPPORT",
+      swap: {
+        weight: 180,      // kg
+        power: 2.0,       // kW
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -1,
+        power: -10,
+        weight: 6,
+        range: -5,
+        stealth: 0        // Passive collection
+      },
+      securityLevel: ["NSA-Approved", "TS/SCI Processing"],
+      securityIcons: ["nsa", "encrypted"],
+      specs: {
+        frequencyRange: "2 MHz - 40 GHz",
+        instantaneousBandwidth: "500 MHz",
+        geolocationAccuracy: "CEP < 100m",
+        altitude: "Optimized for 50,000+ ft"
+      }
+    },
+    {
+      name: "Maritime Search Radar - Airborne",
+      provider: "Leonardo",
+      type: "Maritime Surveillance Radar",
+      platformTypes: ["UAV"],
+      description: "Lightweight AESA maritime search radar for UAV platforms. Provides 360° surface vessel detection and tracking from altitude.",
+      capabilities: ["Surface Search", "SAR Imaging", "ISAR", "Weather Avoidance", "Small Target Detection"],
+      trl: "TRL 9",
+      icon: HiddenLevelRadarIcon,
+      category: "RADAR/RF",
+      swap: {
+        weight: 95,       // kg
+        power: 1.5,       // kW
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -1,
+        power: -8,
+        weight: 4,
+        range: -3,
+        stealth: -10      // Active radar emissions
+      },
+      specs: {
+        range: "200+ nm surface targets",
+        resolution: "0.3m SAR mode",
+        scanRate: "360° coverage",
+        modes: "Search, track, SAR, ISAR, weather"
+      }
+    },
     {
       name: "SNC Hippocamp",
       provider: "Sierra Nevada Corporation",
       type: "Universal Autonomy Retrofit",
+      platformTypes: ["USV", "Ship"],
       description: "Universal maritime autonomy kit that instantly converts any vessel—from sampan to container ship—into an autonomous asset. Backpack-ready installation with self-learning calibration in under one hour.",
       capabilities: [
         "Universal Vessel Retrofit",

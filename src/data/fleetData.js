@@ -44,15 +44,15 @@ export const swarmSquadrons = [
   {
     id: "sqdn_003",
     name: "MQ-9 Reaper Drone Wing",
-    type: "Strategic UAV",
+    type: "Hunter-Killer UAV",
     totalUnits: 168,
     status: {
       missionReady: 156,
       deployed: 8,
       maintenance: 4
     },
-    icon: "Saildrone",
-    description: "High-altitude long-endurance drone swarm for surveillance and strike missions",
+    icon: "MQ-9 Reaper",
+    description: "General Atomics medium-altitude long-endurance UAV for persistent ISR and precision strike missions",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -182,6 +182,58 @@ export const swarmSquadrons = [
     parentId: null,
     parentName: null,
     overrides: {}
+  },
+  // ============ UAV SQUADRONS ============
+  {
+    id: "sqdn_011",
+    name: "MQ-25 Stingray Tanker Wing",
+    type: "Carrier-Based Tanker UAV",
+    totalUnits: 12,
+    status: {
+      missionReady: 9,
+      deployed: 2,
+      maintenance: 1
+    },
+    icon: "MQ-25 Stingray",
+    description: "Boeing carrier-based aerial refueling UAVs extending Super Hornet combat range by 300+ nm",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_012",
+    name: "MQ-4C Triton HALE Squadron",
+    type: "HALE Maritime ISR",
+    totalUnits: 8,
+    status: {
+      missionReady: 5,
+      deployed: 3,
+      maintenance: 0
+    },
+    icon: "MQ-4C Triton",
+    description: "Northrop Grumman high-altitude long-endurance UAVs for persistent maritime domain awareness",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_013",
+    name: "MQ-8C Fire Scout Detachment",
+    type: "Shipborne VTOL UAV",
+    totalUnits: 24,
+    status: {
+      missionReady: 18,
+      deployed: 4,
+      maintenance: 2
+    },
+    icon: "MQ-8C Fire Scout",
+    description: "Northrop Grumman autonomous helicopters for shipborne ISR and targeting from LCS and frigates",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
   }
 ];
 
@@ -304,6 +356,60 @@ export const squadronUnitConfigurations = {
         name: "Autonomous Resupply Package",
         count: 4,
         capabilities: ["SNC Hippocamp", "SNC TRAX", "Cargo Bay", "Navigation Radar", "Encrypted Datalink", "Autonomous Docking"],
+        status: { missionReady: 3, deployed: 0, charging: 0, maintenance: 1 }
+      }
+    ]
+  },
+  "sqdn_011": { // MQ-25 Stingray Tanker Wing
+    outfits: [
+      {
+        name: "Standard Tanker Configuration",
+        count: 10,
+        capabilities: ["Aerial Refueling Drogue System", "SATCOM Data Link", "Carrier Ops Package"],
+        status: { missionReady: 8, deployed: 2, charging: 0, maintenance: 0 }
+      },
+      {
+        name: "ISR-Capable Tanker",
+        count: 2,
+        capabilities: ["Aerial Refueling Drogue System", "EO/IR Sensor Pod", "SATCOM Data Link"],
+        status: { missionReady: 1, deployed: 0, charging: 0, maintenance: 1 }
+      }
+    ]
+  },
+  "sqdn_012": { // MQ-4C Triton HALE Squadron
+    outfits: [
+      {
+        name: "Multi-INT Maritime Surveillance",
+        count: 5,
+        capabilities: ["AN/ZPY-3 MFAS Radar", "EO/IR Sensor", "SIGINT Pod", "AIS Receiver"],
+        status: { missionReady: 3, deployed: 2, charging: 0, maintenance: 0 }
+      },
+      {
+        name: "Extended Range ISR",
+        count: 3,
+        capabilities: ["Maritime Search Radar", "EO/IR Sensor", "Extended Fuel Tanks", "SATCOM"],
+        status: { missionReady: 2, deployed: 1, charging: 0, maintenance: 0 }
+      }
+    ]
+  },
+  "sqdn_013": { // MQ-8C Fire Scout Detachment
+    outfits: [
+      {
+        name: "Surface Search Package",
+        count: 12,
+        capabilities: ["AN/ZPY-4 AESA Radar", "Brite Star II EO/IR", "Link 16 Data Link"],
+        status: { missionReady: 10, deployed: 2, charging: 0, maintenance: 0 }
+      },
+      {
+        name: "Strike Ready Package",
+        count: 8,
+        capabilities: ["EO/IR Targeting", "Laser Designator", "Hellfire Capability", "Link 16"],
+        status: { missionReady: 5, deployed: 2, charging: 0, maintenance: 1 }
+      },
+      {
+        name: "Mine Countermeasures",
+        count: 4,
+        capabilities: ["Mine Detection Sonar", "MCM Sensors", "Data Link"],
         status: { missionReady: 3, deployed: 0, charging: 0, maintenance: 1 }
       }
     ]
