@@ -69,8 +69,9 @@ const SplashPageC = ({ onEnter }) => {
   ];
 
   // Bay items - 7 PIER, 7 HANGAR (Platform + Role naming)
+  // Deploy positions: AERIAL y<30, SURFACE y 40-60, SUBSURFACE y>70
   const pierItems = [
-    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 35 },
+    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
     { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'ASW' },
     { id: 'sd-isr', name: 'Saildrone ISR', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'ISR' },
     { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Anchor, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
@@ -80,7 +81,7 @@ const SplashPageC = ({ onEnter }) => {
   ];
 
   const hangarItems = [
-    { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel', targetDomain: 'AERIAL', deployX: 50, deployY: 65 },
+    { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel', targetDomain: 'AERIAL', deployX: 50, deployY: 18 },
     { id: 'mq9b-strike', name: 'MQ-9B Strike', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'Strike' },
     { id: 'mq4c-sigint', name: 'MQ-4C SIGINT', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'SIGINT' },
     { id: 'mq9b-isr', name: 'MQ-9B ISR', platform: 'MQ-9B', icon: Plane, status: 'CONFIGURING', progress: 88, cap: 'ISR' },
