@@ -62,7 +62,9 @@ const SplashPageC = ({ onEnter }) => {
   ];
 
   const subsurfaceMissions = [
-    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 40 },
+    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 35 },
+    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Radio, count: 12, cap: 'ISR', status: 'ACTIVE', x: 75, y: 55 },
+    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Waves, count: 8, cap: 'SIGINT', status: 'ACTIVE', x: 20, y: 65 },
   ];
 
   // Bay items - 7 PIER, 7 HANGAR (Platform + Role naming)
