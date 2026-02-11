@@ -119,8 +119,6 @@ const SplashPageC = ({ onEnter }) => {
             {mission.cap}
           </span>
         </div>
-        {/* Connection dot */}
-        <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full ${getStatusColor(mission.status)}`} />
       </div>
     );
   };
@@ -141,14 +139,11 @@ const SplashPageC = ({ onEnter }) => {
 
     return (
       <div className={`bg-gray-800/90 border border-gray-600/50 rounded-lg p-3 transition-all duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer hover:bg-gray-800' : ''}`}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-bold text-sm truncate">{item.name}</span>
-          <div className={`w-3 h-3 rounded-full ${getStatusColor(item.status)} flex-shrink-0`} />
-        </div>
         <div className="flex items-center gap-2 mb-2">
           <Icon size={14} className="text-lime-brand flex-shrink-0" />
-          <span className="text-gray-400 text-xs">{item.platform}</span>
+          <span className="text-white font-bold text-sm truncate">{item.name}</span>
         </div>
+        <div className="text-gray-400 text-xs mb-2">{item.platform}</div>
         {item.progress !== undefined ? (
           <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style={{ width: `${item.progress}%` }} />
