@@ -76,7 +76,7 @@ const SplashPageC = ({ onEnter }) => {
     { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Ship, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
     { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, status: 'READY', cap: 'ASW' },
     { id: 'sd-isr', name: 'Saildrone ISR', platform: 'Saildrone', icon: Ship, status: 'READY', cap: 'ISR' },
-    { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Ship, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
+    { id: 'aegir-kinetic', name: 'AEGIR-F Kinetic', platform: 'AEGIR-F', icon: Ship, status: 'READY', cap: 'Kinetic' },
     { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, status: 'READY', cap: 'SIGINT' },
     { id: 'ms-strike', name: 'MetalShark Strike', platform: 'MetalShark', icon: Ship, status: 'READY', cap: 'Strike' },
     { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Ship, status: 'READY', cap: 'Comms' },
@@ -86,7 +86,7 @@ const SplashPageC = ({ onEnter }) => {
     { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel', targetDomain: 'AERIAL', deployX: 50, deployY: 18 },
     { id: 'mq9b-strike', name: 'MQ-9B Strike', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'Strike' },
     { id: 'mq4c-sigint', name: 'MQ-4C SIGINT', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'SIGINT' },
-    { id: 'mq9b-isr', name: 'MQ-9B ISR', platform: 'MQ-9B', icon: Plane, status: 'CONFIGURING', progress: 88, cap: 'ISR' },
+    { id: 'mq9b-isr', name: 'MQ-9B ISR', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'ISR' },
     { id: 'mq8c-asw', name: 'MQ-8C ASW', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'ASW' },
     { id: 'mq4c-recon', name: 'MQ-4C Recon', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'Recon' },
     { id: 'mq8c-ew', name: 'MQ-8C EW', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'EW' },
@@ -112,10 +112,9 @@ const SplashPageC = ({ onEnter }) => {
         className={`absolute transition-all duration-700 ${isVisible || isNew ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
         style={{ left: `${mission.x}%`, top: `${mission.y}%`, transform: 'translate(-50%, -50%)' }}
       >
-        <div className={`bg-gray-900/90 backdrop-blur-sm border border-gray-600/50 rounded-lg p-3 min-w-[140px] ${isNew ? 'ring-2 ring-lime-brand shadow-lg shadow-lime-brand/20' : ''}`}>
-          <div className="flex items-center justify-between mb-2">
+        <div className={`bg-gray-900/90 backdrop-blur-sm border border-gray-600/50 rounded-lg p-3 min-w-[140px] relative ${isNew ? 'ring-2 ring-lime-brand shadow-lg shadow-lime-brand/20' : ''}`}>
+          <div className="mb-2">
             <span className="text-white font-bold text-sm">{mission.name}</span>
-            <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(mission.status)} ${mission.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
           </div>
           <div className="flex items-center gap-2 mb-2">
             <Icon size={14} className="text-lime-brand" />
@@ -124,6 +123,8 @@ const SplashPageC = ({ onEnter }) => {
           <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[10px]">
             {mission.cap}
           </span>
+          {/* Status dot at bottom center */}
+          <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${getStatusColor(mission.status)} ${mission.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
         </div>
       </div>
     );
@@ -144,19 +145,13 @@ const SplashPageC = ({ onEnter }) => {
     }
 
     return (
-      <div className={`bg-gray-800/90 border border-gray-600/50 rounded-lg p-3 transition-all duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer hover:bg-gray-800' : ''}`}>
+      <div className={`bg-gray-800/90 border border-gray-600/50 rounded-lg p-3 transition-all duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'} hover:border-lime-brand cursor-pointer hover:bg-gray-800`}>
         <div className="flex items-center gap-2 mb-2">
           <Icon size={14} className="text-lime-brand flex-shrink-0" />
           <span className="text-white font-bold text-sm truncate">{item.name}</span>
         </div>
         <div className="text-gray-400 text-xs mb-2">{item.platform}</div>
-        {item.progress !== undefined ? (
-          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style={{ width: `${item.progress}%` }} />
-          </div>
-        ) : (
-          <span className="inline-block px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-xs font-medium">{item.cap}</span>
-        )}
+        <span className="inline-block px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-xs font-medium">{item.cap}</span>
       </div>
     );
   };
