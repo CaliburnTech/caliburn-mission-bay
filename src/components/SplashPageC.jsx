@@ -1,193 +1,168 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Cpu, Layers, Ship, Anchor, Radio, Target, Shield, Plane, Waves, Zap } from 'lucide-react';
+import { ChevronRight, Cpu, Layers, Ship, Anchor, Radio, Target, Shield, Plane, Waves, Zap, Plus } from 'lucide-react';
 
 /**
  * Splash Page C: Platform Overview
- * Domain-oriented map with Mission Bay (Pier + Hangar)
- * Animated deployment story
+ * Proposal B: Domain bands with 2-column grids, larger readable cards
  */
 const SplashPageC = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
   const [visibleItems, setVisibleItems] = useState([]);
 
-  // Animation states for the story
-  const [deployingItem, setDeployingItem] = useState(null); // Item being deployed from bay
-  const [configuringItem, setConfiguringItem] = useState(null); // Item being configured
-  const [configProgress, setConfigProgress] = useState(0);
-  const [returningItem, setReturningItem] = useState(null); // Item returning to bay
-
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100);
 
-    // Stagger appearance of items
+    // Stagger appearance
     const timers = [];
-    for (let i = 0; i < 25; i++) {
-      timers.push(setTimeout(() => setVisibleItems(v => [...v, i]), 200 + i * 80));
+    for (let i = 0; i < 20; i++) {
+      timers.push(setTimeout(() => setVisibleItems(v => [...v, i]), 150 + i * 100));
     }
 
-    // Start the deployment story after items appear
-    const storyTimer = setTimeout(() => {
-      // Story 1: Deploy "Hammerhead" from Pier to Surface
-      setDeployingItem('hammerhead');
-
-      // Story 2: Configure "Nighthawk" and deploy it
-      setTimeout(() => {
-        setConfiguringItem('nighthawk');
-        let progress = 45;
-        const configInterval = setInterval(() => {
-          progress += 3;
-          setConfigProgress(progress);
-          if (progress >= 100) {
-            clearInterval(configInterval);
-            setTimeout(() => {
-              setConfiguringItem(null);
-              setDeployingItem('nighthawk');
-            }, 500);
-          }
-        }, 100);
-      }, 2000);
-
-      // Story 3: Return "ISR PATROL" from Surface to Pier
-      setTimeout(() => {
-        setReturningItem('isr-patrol');
-      }, 5000);
-
-    }, 3000);
-
-    return () => {
-      timers.forEach(clearTimeout);
-      clearTimeout(storyTimer);
-    };
+    return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Deployed assets organized by domain
-  const deployments = [
-    // AERIAL
-    { id: 'd0', mission: 'CONVOY ESCORT', platform: 'MQ-9', icon: Plane, count: 48, capabilities: ['Swarm', 'Strike'], status: 'ACTIVE', x: 18, y: 12 },
-    { id: 'd1', mission: 'OVERWATCH', platform: 'MQ-4C', icon: Plane, count: 12, capabilities: ['ISR', 'SIGINT'], status: 'ACTIVE', x: 72, y: 8 },
-    { id: 'd2', mission: 'RECON', platform: 'MQ-8C', icon: Plane, count: 6, capabilities: ['ISR'], status: 'ACTIVE', x: 45, y: 15 },
-    // SURFACE
-    { id: 'd3', mission: 'SEA DENIAL', platform: 'MetalShark', icon: Anchor, count: 280, capabilities: ['Guardian AI', 'Mesh'], status: 'ACTIVE', x: 15, y: 38 },
-    { id: 'd4', mission: 'ISR PATROL', platform: 'Saildrone', icon: Radio, count: 117, capabilities: ['EW', 'SIGINT'], status: 'ACTIVE', x: 78, y: 35, returning: true },
-    { id: 'd5', mission: 'REFIT', platform: 'AEGIR-F', icon: Anchor, count: 24, capabilities: ['Kinetic'], status: 'MAINTENANCE', x: 48, y: 42 },
-    // SUBSURFACE
-    { id: 'd6', mission: 'SIGINT OPS', platform: 'SubSeaSail', icon: Waves, count: 45, capabilities: ['ASW'], status: 'ACTIVE', x: 70, y: 62 },
-    { id: 'd7', mission: 'CABLE SURVEY', platform: 'Remus', icon: Waves, count: 8, capabilities: ['Sonar'], status: 'ACTIVE', x: 22, y: 58 },
+  // Deployments by domain
+  const aerialDeployments = [
+    { id: 0, mission: 'CONVOY ESCORT', platform: 'MQ-9', icon: Plane, count: 48, capabilities: ['Swarm', 'Strike'], status: 'ACTIVE' },
+    { id: 1, mission: 'OVERWATCH', platform: 'MQ-4C', icon: Plane, count: 12, capabilities: ['ISR', 'SIGINT'], status: 'ACTIVE' },
   ];
 
-  // Mission Bay - Pier (maritime) - more items!
+  const surfaceDeployments = [
+    { id: 2, mission: 'SEA DENIAL', platform: 'MetalShark', icon: Anchor, count: 280, capabilities: ['Guardian AI', 'Mesh'], status: 'ACTIVE' },
+    { id: 3, mission: 'REFIT', platform: 'AEGIR-F', icon: Anchor, count: 24, capabilities: ['Kinetic'], status: 'MAINTENANCE' },
+  ];
+
+  const subsurfaceDeployments = [
+    { id: 4, mission: 'SIGINT OPS', platform: 'SubSeaSail', icon: Waves, count: 45, capabilities: ['ASW', 'Acoustic'], status: 'ACTIVE' },
+    { id: 5, mission: 'CABLE SURVEY', platform: 'Remus', icon: Waves, count: 8, capabilities: ['Sonar', 'Mapping'], status: 'ACTIVE' },
+  ];
+
+  // Mission Bay items
   const pierItems = [
-    { id: 'p0', name: 'Black Widow', platform: 'MetalShark', icon: Anchor, status: 'READY', capabilities: ['Guardian AI'] },
-    { id: 'p1', name: 'Hammerhead', platform: 'AEGIR-W', icon: Anchor, status: 'READY', capabilities: ['Strike Pkg'], deployTarget: 'd-new' },
-    { id: 'p2', name: 'Deep Six', platform: 'SubSeaSail', icon: Waves, status: 'CONFIGURING', progress: 72, capabilities: ['ASW'] },
-    { id: 'p3', name: 'Tidehunter', platform: 'Saildrone', icon: Radio, status: 'QUEUED', capabilities: ['ISR'] },
-    { id: 'p4', name: 'Stingray', platform: 'Remus', icon: Waves, status: 'READY', capabilities: ['Sonar'] },
-    { id: 'p5', name: 'Barracuda', platform: 'AEGIR-F', icon: Anchor, status: 'CONFIGURING', progress: 35, capabilities: ['Kinetic'] },
+    { id: 6, name: 'Black Widow', platform: 'MetalShark', icon: Anchor, status: 'READY', capabilities: ['Guardian AI'] },
+    { id: 7, name: 'Deep Six', platform: 'SubSeaSail', icon: Waves, status: 'CONFIGURING', progress: 72, capabilities: ['ASW'] },
+    { id: 8, name: 'Tidehunter', platform: 'Saildrone', icon: Radio, status: 'READY', capabilities: ['ISR'] },
   ];
 
-  // Mission Bay - Hangar (aerial) - more items!
   const hangarItems = [
-    { id: 'h0', name: 'Phantom Wing', platform: 'MQ-25', icon: Plane, status: 'READY', capabilities: ['Tanker'] },
-    { id: 'h1', name: 'Viper Squad', platform: 'MQ-9B', icon: Plane, status: 'READY', capabilities: ['Strike'] },
-    { id: 'h2', name: 'Sentinel', platform: 'MQ-4C', icon: Plane, status: 'QUEUED', capabilities: ['SIGINT'] },
-    { id: 'h3', name: 'Nighthawk', platform: 'MQ-8C', icon: Plane, status: 'CONFIGURING', progress: 45, capabilities: ['Recon'], configTarget: true },
-    { id: 'h4', name: 'Raptor Eye', platform: 'MQ-9B', icon: Plane, status: 'READY', capabilities: ['ISR'] },
+    { id: 9, name: 'Phantom Wing', platform: 'MQ-25', icon: Plane, status: 'READY', capabilities: ['Tanker'] },
+    { id: 10, name: 'Viper Squad', platform: 'MQ-9B', icon: Plane, status: 'READY', capabilities: ['Strike'] },
+    { id: 11, name: 'Sentinel', platform: 'MQ-4C', icon: Plane, status: 'CONFIGURING', progress: 88, capabilities: ['SIGINT'] },
   ];
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return { dot: 'bg-green-500', border: 'border-green-500/40', bg: 'bg-green-500/10' };
-      case 'MAINTENANCE': return { dot: 'bg-orange-500', border: 'border-orange-500/40', bg: 'bg-orange-500/10' };
-      case 'CONFIGURING': return { dot: 'bg-blue-500', border: 'border-blue-500/40', bg: 'bg-blue-500/10' };
-      case 'READY': return { dot: 'bg-lime-brand', border: 'border-lime-brand/40', bg: 'bg-lime-brand/10' };
-      case 'QUEUED': return { dot: 'bg-gray-500', border: 'border-gray-500/40', bg: 'bg-gray-500/10' };
-      default: return { dot: 'bg-gray-500', border: 'border-gray-500/40', bg: 'bg-gray-500/10' };
+      case 'ACTIVE': return { dot: 'bg-green-500', border: 'border-green-500/50', text: 'text-green-400' };
+      case 'MAINTENANCE': return { dot: 'bg-orange-500', border: 'border-orange-500/50', text: 'text-orange-400' };
+      case 'CONFIGURING': return { dot: 'bg-blue-500', border: 'border-blue-500/50', text: 'text-blue-400' };
+      case 'READY': return { dot: 'bg-lime-brand', border: 'border-lime-brand/50', text: 'text-lime-brand' };
+      default: return { dot: 'bg-gray-500', border: 'border-gray-500/50', text: 'text-gray-400' };
     }
   };
 
-  // Compact tile used everywhere - uniform size (larger for readability)
-  const CompactTile = ({ item, isDeploying, isConfiguring, configProg }) => {
-    const Icon = item.icon;
-    const isVisible = visibleItems.includes(item.id) || visibleItems.length > 20;
-    const colors = getStatusColor(item.status);
-    const progress = isConfiguring ? configProg : item.progress;
-
-    // Handle deploying animation
-    if (isDeploying) {
-      return (
-        <div className="w-[115px] h-[58px] bg-lime-brand/20 border border-lime-brand/60 border-dashed rounded flex items-center justify-center">
-          <span className="text-lime-brand text-[9px] font-mono animate-pulse">DEPLOYING...</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className={`w-[115px] h-[58px] bg-gray-800/90 border ${colors.border} rounded p-2 transition-all duration-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1.5">
-            <Icon size={12} className="text-lime-brand" />
-            <span className="text-white text-[10px] font-bold truncate max-w-[60px]">{item.name}</span>
-          </div>
-          <div className={`w-2 h-2 rounded-full ${colors.dot} ${item.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
-        </div>
-
-        {progress !== undefined && (
-          <div className="mb-1">
-            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-1">
-          {item.capabilities.slice(0, 1).map(cap => (
-            <span key={cap} className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[8px]">{cap}</span>
-          ))}
-          <span className="text-gray-500 text-[8px] ml-auto">{item.platform}</span>
-        </div>
-      </div>
-    );
-  };
-
-  // Deployment card in domain zones - same size as bay tiles
-  const DeploymentTile = ({ dep, isReturning }) => {
+  // Large deployment card for domain grids
+  const DeploymentCard = ({ dep }) => {
     const Icon = dep.icon;
-    const isVisible = visibleItems.includes(dep.id) || visibleItems.length > 15;
+    const isVisible = visibleItems.includes(dep.id);
     const colors = getStatusColor(dep.status);
 
     return (
-      <div
-        className={`absolute transition-all duration-1000 ${isVisible && !isReturning ? 'opacity-100 scale-100' : isReturning ? 'opacity-50 scale-90' : 'opacity-0 scale-75'}`}
-        style={{ left: `${dep.x}%`, top: `${dep.y}%`, transform: 'translate(-50%, -50%)' }}
-      >
-        <div className={`w-[115px] bg-gray-900/95 border ${colors.border} rounded p-2 backdrop-blur-sm ${isReturning ? 'animate-pulse border-dashed' : ''}`}>
-          <div className="flex items-center gap-1.5 mb-1">
+      <div className={`bg-gray-800/90 border ${colors.border} rounded-lg p-3 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-bold text-sm">{dep.mission}</span>
+          <div className="flex items-center gap-1.5">
             <div className={`w-2 h-2 rounded-full ${colors.dot} ${dep.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
-            <span className="text-white font-bold text-[10px] truncate">{dep.mission}</span>
-          </div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <Icon size={11} className="text-lime-brand" />
-            <span className="text-gray-400 text-[9px]">{dep.platform} ×{dep.count}</span>
-          </div>
-          <div className="flex gap-1">
-            {dep.capabilities.map(cap => (
-              <span key={cap} className="px-1.5 py-0.5 bg-purple-500/15 border border-purple-500/25 rounded text-purple-300 text-[8px]">{cap}</span>
-            ))}
+            <span className={`text-xs font-mono ${colors.text}`}>{dep.status}</span>
           </div>
         </div>
-        {isReturning && (
-          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-cyan-400 font-mono whitespace-nowrap">← RETURNING</div>
-        )}
+        <div className="flex items-center gap-2 mb-2">
+          <Icon size={16} className="text-lime-brand" />
+          <span className="text-gray-300 text-sm">{dep.platform} ×{dep.count}</span>
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          {dep.capabilities.map(cap => (
+            <span key={cap} className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-xs">{cap}</span>
+          ))}
+        </div>
       </div>
     );
   };
 
-  const totalInBay = pierItems.length + hangarItems.length;
+  // Bay tile for Mission Bay
+  const BayTile = ({ item }) => {
+    const Icon = item.icon;
+    const isVisible = visibleItems.includes(item.id);
+    const colors = getStatusColor(item.status);
+
+    return (
+      <div className={`w-[140px] bg-gray-800/90 border ${colors.border} rounded-lg p-2.5 transition-all duration-500 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} hover:border-lime-brand cursor-pointer`}>
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2">
+            <Icon size={14} className="text-lime-brand" />
+            <span className="text-white text-xs font-bold truncate max-w-[80px]">{item.name}</span>
+          </div>
+          <div className={`w-2 h-2 rounded-full ${colors.dot}`} />
+        </div>
+        {item.progress !== undefined && (
+          <div className="mb-1.5">
+            <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-1000" style={{ width: `${item.progress}%` }} />
+            </div>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <span className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[10px]">{item.capabilities[0]}</span>
+          <span className="text-gray-500 text-[10px]">{item.platform}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // CTA tile
+  const ConfigureCTA = ({ onClick }) => (
+    <div
+      onClick={onClick}
+      className="w-[140px] bg-lime-brand/10 border-2 border-dashed border-lime-brand/50 rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-lime-brand/20 hover:border-lime-brand transition-all"
+    >
+      <div className="w-8 h-8 rounded-full bg-lime-brand/20 flex items-center justify-center">
+        <Plus size={18} className="text-lime-brand" />
+      </div>
+      <span className="text-lime-brand text-xs font-bold text-center">Configure Your Own</span>
+    </div>
+  );
+
+  // Domain band component
+  const DomainBand = ({ title, color, deployments, stats }) => (
+    <div className={`flex-1 ${color} border-b border-gray-700/50 p-3`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-mono text-gray-400 tracking-widest">{title}</span>
+        <div className="flex items-center gap-2">
+          {stats.active > 0 && (
+            <span className="flex items-center gap-1 text-green-400 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              {stats.active} Active
+            </span>
+          )}
+          {stats.maint > 0 && (
+            <span className="flex items-center gap-1 text-orange-400 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+              {stats.maint} Maint
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {deployments.map((dep, i) => (
+          <DeploymentCard key={dep.id} dep={dep} index={i} />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 bg-darkest flex overflow-hidden">
       {/* Left side - Messaging */}
-      <div className={`w-full lg:w-[38%] flex flex-col justify-center px-6 md:px-10 lg:px-10 transition-all duration-1000 ${showContent ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
+      <div className={`w-full lg:w-[35%] flex flex-col justify-center px-6 md:px-10 lg:px-10 transition-all duration-1000 ${showContent ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 bg-lime-brand rounded-lg flex items-center justify-center">
             <Ship size={20} className="text-black" />
@@ -245,137 +220,66 @@ const SplashPageC = ({ onEnter }) => {
         </div>
       </div>
 
-      {/* Right side - Domain map + Mission Bay */}
-      <div className={`hidden lg:flex w-[62%] flex-col relative transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Right side - Domain bands + Mission Bay */}
+      <div className={`hidden lg:flex w-[65%] flex-col transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
-        {/* Domain zones - dominant */}
-        <div className="h-[68%] relative">
-          <div className="absolute inset-0 flex flex-col">
-            <div className="flex-1 bg-gradient-to-b from-slate-900/80 to-slate-800/40 relative">
-              <div className="absolute top-2 left-3 text-[9px] font-mono text-slate-500 tracking-widest">AERIAL</div>
-            </div>
-            <div className="flex-1 bg-gradient-to-b from-cyan-950/30 to-cyan-900/20 relative border-t border-cyan-800/20">
-              <div className="absolute top-2 left-3 text-[9px] font-mono text-cyan-700/60 tracking-widest">SURFACE</div>
-            </div>
-            <div className="flex-1 bg-gradient-to-b from-blue-950/40 to-blue-950/60 relative border-t border-blue-800/20">
-              <div className="absolute top-2 left-3 text-[9px] font-mono text-blue-700/50 tracking-widest">SUBSURFACE</div>
-            </div>
-          </div>
-
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
-
-          <div className="absolute top-2 right-3 flex items-center gap-3 z-20">
-            <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-500" /><span className="text-green-400 text-[9px] font-mono">7 ACTIVE</span></div>
-            <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-orange-500" /><span className="text-orange-400 text-[9px] font-mono">1 MAINT</span></div>
-          </div>
-
-          {/* Deployment tiles */}
-          {deployments.map((dep) => (
-            <DeploymentTile
-              key={dep.id}
-              dep={dep}
-              isReturning={returningItem === 'isr-patrol' && dep.id === 'd4'}
-            />
-          ))}
-
-          {/* New deployment appearing (from Hammerhead) */}
-          {deployingItem === 'hammerhead' && (
-            <div className="absolute transition-all duration-1000 opacity-100 scale-100 animate-pulse" style={{ left: '55%', top: '45%', transform: 'translate(-50%, -50%)' }}>
-              <div className="w-[115px] bg-lime-brand/20 border border-lime-brand rounded p-2 backdrop-blur-sm">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-lime-brand animate-pulse" />
-                  <span className="text-lime-brand font-bold text-[10px]">STRIKE OPS</span>
-                </div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Anchor size={11} className="text-lime-brand" />
-                  <span className="text-gray-300 text-[9px]">AEGIR-W ×24</span>
-                </div>
-                <div className="flex gap-1">
-                  <span className="px-1.5 py-0.5 bg-lime-brand/20 border border-lime-brand/40 rounded text-lime-brand text-[8px]">Strike Pkg</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Nighthawk deploying */}
-          {deployingItem === 'nighthawk' && (
-            <div className="absolute transition-all duration-1000 opacity-100 scale-100 animate-pulse" style={{ left: '60%', top: '15%', transform: 'translate(-50%, -50%)' }}>
-              <div className="w-[115px] bg-lime-brand/20 border border-lime-brand rounded p-2 backdrop-blur-sm">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-lime-brand animate-pulse" />
-                  <span className="text-lime-brand font-bold text-[10px]">RECON OPS</span>
-                </div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Plane size={11} className="text-lime-brand" />
-                  <span className="text-gray-300 text-[9px]">MQ-8C ×8</span>
-                </div>
-                <div className="flex gap-1">
-                  <span className="px-1.5 py-0.5 bg-lime-brand/20 border border-lime-brand/40 rounded text-lime-brand text-[8px]">Recon</span>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Domain bands - stacked */}
+        <div className="flex-1 flex flex-col">
+          <DomainBand
+            title="AERIAL"
+            color="bg-gradient-to-r from-slate-900/60 to-slate-800/40"
+            deployments={aerialDeployments}
+            stats={{ active: 2, maint: 0 }}
+          />
+          <DomainBand
+            title="SURFACE"
+            color="bg-gradient-to-r from-cyan-950/40 to-cyan-900/20"
+            deployments={surfaceDeployments}
+            stats={{ active: 1, maint: 1 }}
+          />
+          <DomainBand
+            title="SUBSURFACE"
+            color="bg-gradient-to-r from-blue-950/50 to-blue-900/30"
+            deployments={subsurfaceDeployments}
+            stats={{ active: 2, maint: 0 }}
+          />
         </div>
 
-        {/* Mission Bay - compact strip at bottom */}
-        <div className="h-[32%] bg-gradient-to-t from-gray-900 via-gray-900/95 to-gray-800/80 border-t-2 border-lime-brand/40 relative overflow-hidden">
-          {/* Grid background */}
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: `linear-gradient(rgba(203,253,0,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(203,253,0,0.5) 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
-
-          {/* Bay header */}
-          <div className="absolute top-2 left-3 right-3 flex items-center justify-between">
+        {/* Mission Bay - compact row at bottom */}
+        <div className="h-[140px] bg-gray-900 border-t-2 border-lime-brand/50 p-3">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Zap size={12} className="text-lime-brand" />
-              <span className="text-lime-brand text-[10px] font-mono tracking-widest font-bold">MISSION BAY</span>
+              <Zap size={14} className="text-lime-brand" />
+              <span className="text-lime-brand text-sm font-mono tracking-wider font-bold">MISSION BAY</span>
             </div>
-            <span className="text-gray-500 text-[9px] font-mono">{totalInBay} READY TO DEPLOY</span>
+            <span className="text-gray-500 text-xs font-mono">6 READY TO DEPLOY</span>
           </div>
 
-          <div className="absolute top-9 left-3 right-3 bottom-2 flex gap-4">
-            {/* Pier section */}
-            <div className="flex-1 flex flex-col">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Anchor size={10} className="text-cyan-400" />
-                <span className="text-cyan-400 text-[9px] font-mono tracking-wider">PIER</span>
-                <span className="text-gray-600 text-[8px]">Maritime</span>
+          <div className="flex gap-6">
+            {/* Pier */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Anchor size={12} className="text-cyan-400" />
+                <span className="text-cyan-400 text-xs font-mono">PIER</span>
               </div>
-              <div className="flex-1 flex flex-wrap gap-1.5 content-start">
-                {pierItems.map(item => (
-                  <CompactTile
-                    key={item.id}
-                    item={item}
-                    isDeploying={deployingItem === 'hammerhead' && item.name === 'Hammerhead'}
-                  />
-                ))}
-                {/* Returning item placeholder */}
-                {returningItem === 'isr-patrol' && (
-                  <div className="w-[115px] h-[58px] bg-cyan-500/10 border border-cyan-500/40 border-dashed rounded flex items-center justify-center animate-pulse">
-                    <span className="text-cyan-400 text-[10px] font-mono">INCOMING...</span>
-                  </div>
-                )}
+              <div className="flex gap-2 overflow-x-auto">
+                {pierItems.map(item => <BayTile key={item.id} item={item} />)}
+                <ConfigureCTA onClick={() => onEnter('shipyard')} />
               </div>
             </div>
 
             {/* Divider */}
             <div className="w-px bg-gray-700/50" />
 
-            {/* Hangar section */}
-            <div className="w-[42%] flex flex-col">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Plane size={10} className="text-slate-400" />
-                <span className="text-slate-400 text-[9px] font-mono tracking-wider">HANGAR</span>
-                <span className="text-gray-600 text-[8px]">Aerial</span>
+            {/* Hangar */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Plane size={12} className="text-slate-400" />
+                <span className="text-slate-400 text-xs font-mono">HANGAR</span>
               </div>
-              <div className="flex-1 flex flex-wrap gap-1.5 content-start">
-                {hangarItems.map(item => (
-                  <CompactTile
-                    key={item.id}
-                    item={item}
-                    isDeploying={deployingItem === 'nighthawk' && item.name === 'Nighthawk'}
-                    isConfiguring={configuringItem === 'nighthawk' && item.name === 'Nighthawk'}
-                    configProg={configProgress}
-                  />
-                ))}
+              <div className="flex gap-2 overflow-x-auto">
+                {hangarItems.map(item => <BayTile key={item.id} item={item} />)}
+                <ConfigureCTA onClick={() => onEnter('shipyard')} />
               </div>
             </div>
           </div>
