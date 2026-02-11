@@ -1,30 +1,63 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Cpu, Layers, Navigation, Ship } from 'lucide-react';
+import { ChevronRight, Cpu, Layers, Navigation, Ship, Anchor, Radio, Target, Shield, Plane } from 'lucide-react';
 
 /**
  * Splash Page C: Platform Overview
- * Split hero with messaging and animated fleet graphic
+ * Split hero with messaging and live deployment status
  */
 const SplashPageC = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
-  const [activeVessel, setActiveVessel] = useState(0);
+  const [activeMission, setActiveMission] = useState(0);
 
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100);
 
-    // Cycle through vessels
+    // Cycle through active missions
     const interval = setInterval(() => {
-      setActiveVessel(v => (v + 1) % 4);
-    }, 2000);
+      setActiveMission(m => (m + 1) % 4);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const vessels = [
-    { name: 'MetalShark USV', type: 'Surface Patrol', x: 30, y: 40 },
-    { name: 'Saildrone', type: 'Long-Range ISR', x: 60, y: 25 },
-    { name: 'MQ-9 Reaper', type: 'Aerial Strike', x: 70, y: 60 },
-    { name: 'SubSeaSail UUV', type: 'Subsurface Recon', x: 40, y: 70 }
+  // Active deployments with real squadron/mission/stack data
+  const activeDeployments = [
+    {
+      squadron: 'MetalShark Patrol',
+      vessels: 280,
+      mission: 'Hormuz Sea Denial',
+      stack: 'Guardian AI Targeting',
+      status: 'ACTIVE',
+      icon: Anchor,
+      color: '#22c55e'
+    },
+    {
+      squadron: 'Saildrone Autonomous',
+      vessels: 117,
+      mission: 'Taiwan Strait ISR',
+      stack: 'Autonomous EW Nav Suite',
+      status: 'ACTIVE',
+      icon: Radio,
+      color: '#22c55e'
+    },
+    {
+      squadron: 'MQ-9 Strike Wing',
+      vessels: 48,
+      mission: 'Red Sea Convoy Guard',
+      stack: 'Swarm Coordination',
+      status: 'STANDBY',
+      icon: Plane,
+      color: '#eab308'
+    },
+    {
+      squadron: 'SubSeaSail UUV',
+      vessels: 45,
+      mission: 'SCS SIGINT Collection',
+      stack: 'ASW Detection Package',
+      status: 'ACTIVE',
+      icon: Navigation,
+      color: '#22c55e'
+    }
   ];
 
   return (
@@ -71,13 +104,13 @@ const SplashPageC = ({ onEnter }) => {
               <Cpu size={16} className="text-lime-brand" />
             </div>
             <div>
-              <div className="text-white font-medium text-sm">TempestOS Integration</div>
-              <div className="text-gray-500 text-xs">Pre-validated software stacks</div>
+              <div className="text-white font-medium text-sm">Engineering Stacks</div>
+              <div className="text-gray-500 text-xs">Pre-validated multi-vendor packages</div>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg bg-lime-brand/10 flex items-center justify-center flex-shrink-0">
-              <Navigation size={16} className="text-lime-brand" />
+              <Target size={16} className="text-lime-brand" />
             </div>
             <div>
               <div className="text-white font-medium text-sm">Mission Planning</div>
@@ -86,11 +119,11 @@ const SplashPageC = ({ onEnter }) => {
           </div>
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg bg-lime-brand/10 flex items-center justify-center flex-shrink-0">
-              <Ship size={16} className="text-lime-brand" />
+              <Shield size={16} className="text-lime-brand" />
             </div>
             <div>
               <div className="text-white font-medium text-sm">Fleet Management</div>
-              <div className="text-gray-500 text-xs">Squadron organization and deployment</div>
+              <div className="text-gray-500 text-xs">Squadron deployment and tracking</div>
             </div>
           </div>
         </div>
@@ -129,90 +162,115 @@ const SplashPageC = ({ onEnter }) => {
         </div>
       </div>
 
-      {/* Right side - Animated graphic */}
-      <div className={`hidden lg:flex w-1/2 relative bg-gradient-to-br from-gray-900 to-darkest items-center justify-center transition-all duration-1000 delay-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Right side - Active Deployments */}
+      <div className={`hidden lg:flex w-1/2 relative bg-gradient-to-br from-gray-900 to-darkest flex-col transition-all duration-1000 delay-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
         {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-20"
+        <div className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 50% 50%, rgba(203,253,0,0.1) 0%, transparent 50%),
-              linear-gradient(rgba(203,253,0,0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(203,253,0,0.05) 1px, transparent 1px)
+              linear-gradient(rgba(203,253,0,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(203,253,0,0.1) 1px, transparent 1px)
             `,
-            backgroundSize: '100% 100%, 40px 40px, 40px 40px'
+            backgroundSize: '40px 40px'
           }}
         />
 
-        {/* Animated vessels */}
-        <div className="relative w-full h-full max-w-lg max-h-lg">
-          {vessels.map((vessel, idx) => (
-            <div
-              key={vessel.name}
-              className={`absolute transition-all duration-700 ${activeVessel === idx ? 'scale-110' : 'scale-100'}`}
-              style={{ left: `${vessel.x}%`, top: `${vessel.y}%`, transform: 'translate(-50%, -50%)' }}
-            >
-              {/* Connection lines */}
-              {activeVessel === idx && (
-                <svg className="absolute -inset-20 w-40 h-40 pointer-events-none" style={{ left: '-80px', top: '-80px' }}>
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r="60"
-                    fill="none"
-                    stroke="rgba(203,253,0,0.2)"
-                    strokeWidth="1"
-                    strokeDasharray="4 4"
-                    className="animate-spin"
-                    style={{ animationDuration: '10s' }}
-                  />
-                </svg>
-              )}
-
-              {/* Vessel dot */}
-              <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                activeVessel === idx ? 'bg-lime-brand shadow-lg shadow-lime-brand/50' : 'bg-gray-600'
-              }`}
-              >
-                {activeVessel === idx && (
-                  <div className="absolute inset-0 rounded-full bg-lime-brand animate-ping opacity-50" />
-                )}
-              </div>
-
-              {/* Label */}
-              <div className={`absolute left-6 top-1/2 -translate-y-1/2 whitespace-nowrap transition-all duration-300 ${
-                activeVessel === idx ? 'opacity-100' : 'opacity-40'
-              }`}
-              >
-                <div className={`text-sm font-medium ${activeVessel === idx ? 'text-lime-brand' : 'text-gray-400'}`}>
-                  {vessel.name}
-                </div>
-                <div className="text-xs text-gray-500">{vessel.type}</div>
-              </div>
+        {/* Header */}
+        <div className="relative z-10 p-8 pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-gray-500 text-xs font-mono tracking-wider mb-1">LIVE FLEET STATUS</div>
+              <div className="text-white text-xl font-bold">Active Deployments</div>
             </div>
-          ))}
-
-          {/* Center hub */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="w-20 h-20 rounded-full border-2 border-lime-brand/30 flex items-center justify-center bg-darkest/80">
-              <div className="w-12 h-12 rounded-full border border-lime-brand/50 flex items-center justify-center">
-                <Cpu size={24} className="text-lime-brand" />
-              </div>
-            </div>
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <div className="text-lime-brand text-xs font-mono tracking-wider">TempestOS</div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-green-400 text-sm font-mono">4 MISSIONS ACTIVE</span>
             </div>
           </div>
         </div>
 
-        {/* Decorative elements */}
-        <div className="absolute top-8 right-8 text-right">
-          <div className="text-gray-600 text-xs font-mono">SYS.STATUS</div>
-          <div className="text-lime-brand text-sm font-mono">ONLINE</div>
+        {/* Deployment cards */}
+        <div className="relative z-10 flex-1 px-8 py-4 space-y-4 overflow-hidden">
+          {activeDeployments.map((deployment, idx) => {
+            const Icon = deployment.icon;
+            const isActive = activeMission === idx;
+
+            return (
+              <div
+                key={deployment.squadron}
+                className={`relative p-4 rounded-xl border transition-all duration-500 ${
+                  isActive
+                    ? 'bg-lime-brand/5 border-lime-brand/50 scale-[1.02]'
+                    : 'bg-gray-900/50 border-gray-700/50'
+                }`}
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <div className="absolute -left-px top-4 bottom-4 w-1 bg-lime-brand rounded-full" />
+                )}
+
+                <div className="flex items-start gap-4">
+                  {/* Icon */}
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                    isActive ? 'bg-lime-brand/20' : 'bg-gray-800'
+                  }`}
+                  >
+                    <Icon size={24} className={isActive ? 'text-lime-brand' : 'text-gray-500'} />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className={`font-bold transition-colors ${isActive ? 'text-lime-brand' : 'text-white'}`}>
+                        {deployment.squadron}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: deployment.color }}
+                        />
+                        <span
+                          className="text-xs font-mono"
+                          style={{ color: deployment.color }}
+                        >
+                          {deployment.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-gray-400 text-sm mb-2">
+                      {deployment.vessels} vessels • <span className="text-cyan-400">{deployment.mission}</span>
+                    </div>
+
+                    {/* Stack badge */}
+                    <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 border border-purple-500/30 rounded text-xs">
+                      <Cpu size={10} className="text-purple-400" />
+                      <span className="text-purple-300">{deployment.stack}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <div className="absolute bottom-8 right-8 text-right">
-          <div className="text-gray-600 text-xs font-mono">FLEET.READY</div>
-          <div className="text-lime-brand text-sm font-mono">100%</div>
+
+        {/* Bottom status */}
+        <div className="relative z-10 p-8 pt-4 border-t border-gray-800/50">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-4">
+              <span className="text-gray-600">TempestOS v2.4.1</span>
+              <span className="text-gray-600">|</span>
+              <span className="text-lime-brand">ALL SYSTEMS NOMINAL</span>
+            </div>
+            <div className="text-gray-500">
+              Last sync: <span className="text-gray-400">2s ago</span>
+            </div>
+          </div>
         </div>
+
+        {/* Decorative corner */}
+        <div className="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-lime-brand/20 rounded-tr-lg" />
+        <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-lime-brand/20 rounded-bl-lg" />
       </div>
     </div>
   );
