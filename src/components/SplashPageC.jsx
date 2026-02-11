@@ -1,77 +1,65 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Cpu, Layers, Navigation, Ship, Anchor, Radio, Target, Shield, Plane, Waves, Settings } from 'lucide-react';
+import { ChevronRight, Cpu, Layers, Ship, Anchor, Radio, Target, Shield, Plane, Waves } from 'lucide-react';
 
 /**
  * Splash Page C: Platform Overview
- * Mission-first cards showing configured deployments
+ * Map-style visualization with positioned deployment labels
  */
 const SplashPageC = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
-  const [visibleCards, setVisibleCards] = useState([]);
+  const [visibleDots, setVisibleDots] = useState([]);
 
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100);
 
-    // Stagger card appearance to show "assembling" feel
+    // Stagger dot appearance
     const timers = [
-      setTimeout(() => setVisibleCards(v => [...v, 0]), 400),
-      setTimeout(() => setVisibleCards(v => [...v, 1]), 700),
-      setTimeout(() => setVisibleCards(v => [...v, 2]), 1000),
-      setTimeout(() => setVisibleCards(v => [...v, 3]), 1300),
+      setTimeout(() => setVisibleDots(v => [...v, 0]), 500),
+      setTimeout(() => setVisibleDots(v => [...v, 1]), 800),
+      setTimeout(() => setVisibleDots(v => [...v, 2]), 1100),
+      setTimeout(() => setVisibleDots(v => [...v, 3]), 1400),
     ];
 
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Active missions with their configurations
-  const missions = [
+  // Deployed missions with map positions
+  const deployments = [
     {
-      name: 'SEA DENIAL',
-      region: 'Strait of Hormuz',
-      platform: { name: 'MetalShark USV', icon: Anchor, count: 280 },
-      capabilities: [
-        { name: 'Guardian AI', color: '#f59e0b' },
-        { name: 'Mesh Comms', color: '#8b5cf6' },
-        { name: 'Passive Radar', color: '#06b6d4' }
-      ],
-      configuredAgo: '2h',
-      status: 'ACTIVE'
+      mission: 'SEA DENIAL',
+      region: 'Hormuz',
+      platform: { name: 'MetalShark', icon: Anchor, count: 280 },
+      capabilities: ['Guardian AI', 'Mesh Comms'],
+      status: 'ACTIVE',
+      x: 18, y: 22,
+      labelSide: 'right'
     },
     {
-      name: 'ISR PATROL',
+      mission: 'ISR PATROL',
       region: 'Taiwan Strait',
-      platform: { name: 'Saildrone Explorer', icon: Radio, count: 117 },
-      capabilities: [
-        { name: 'EW Suite', color: '#ec4899' },
-        { name: 'SIGINT Array', color: '#06b6d4' },
-        { name: 'Sat Uplink', color: '#8b5cf6' }
-      ],
-      configuredAgo: '45m',
-      status: 'ACTIVE'
+      platform: { name: 'Saildrone', icon: Radio, count: 117 },
+      capabilities: ['EW Suite', 'SIGINT'],
+      status: 'ACTIVE',
+      x: 75, y: 18,
+      labelSide: 'left'
     },
     {
-      name: 'CONVOY ESCORT',
-      region: 'Red Sea Transit',
-      platform: { name: 'MQ-9 Reaper', icon: Plane, count: 48 },
-      capabilities: [
-        { name: 'Swarm Coord', color: '#f59e0b' },
-        { name: 'Strike Package', color: '#ef4444' },
-        { name: 'ISR Pod', color: '#06b6d4' }
-      ],
-      configuredAgo: '6h',
-      status: 'STANDBY'
+      mission: 'CONVOY ESCORT',
+      region: 'Red Sea',
+      platform: { name: 'MQ-9', icon: Plane, count: 48 },
+      capabilities: ['Swarm Coord', 'Strike Pkg'],
+      status: 'STANDBY',
+      x: 22, y: 68,
+      labelSide: 'right'
     },
     {
-      name: 'SIGINT COLLECTION',
+      mission: 'SIGINT OPS',
       region: 'South China Sea',
-      platform: { name: 'SubSeaSail UUV', icon: Waves, count: 45 },
-      capabilities: [
-        { name: 'ASW Package', color: '#06b6d4' },
-        { name: 'Acoustic Array', color: '#8b5cf6' },
-        { name: 'Covert Nav', color: '#22c55e' }
-      ],
-      configuredAgo: '12h',
-      status: 'ACTIVE'
+      platform: { name: 'SubSeaSail', icon: Waves, count: 45 },
+      capabilities: ['ASW Pkg', 'Acoustic'],
+      status: 'ACTIVE',
+      x: 72, y: 72,
+      labelSide: 'left'
     }
   ];
 
@@ -177,112 +165,134 @@ const SplashPageC = ({ onEnter }) => {
         </div>
       </div>
 
-      {/* Right side - Mission Cards */}
-      <div className={`hidden lg:flex w-1/2 relative bg-gradient-to-br from-gray-900/50 to-darkest flex-col transition-all duration-1000 delay-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Subtle grid */}
-        <div className="absolute inset-0 opacity-5"
+      {/* Right side - Map with deployment labels */}
+      <div className={`hidden lg:block w-1/2 relative bg-gradient-to-br from-gray-900/80 to-darkest transition-all duration-1000 delay-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Ocean/map texture */}
+        <div className="absolute inset-0 opacity-30"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+              radial-gradient(ellipse at 30% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 60%, rgba(6, 182, 212, 0.05) 0%, transparent 40%),
+              radial-gradient(ellipse at 50% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 45%)
+            `
+          }}
+        />
+
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(203,253,0,0.15) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(203,253,0,0.15) 1px, transparent 1px)
             `,
-            backgroundSize: '40px 40px'
+            backgroundSize: '60px 60px'
           }}
         />
 
         {/* Header */}
-        <div className="relative z-10 p-6 pb-2">
-          <div className="flex items-center justify-between">
-            <div className="text-gray-500 text-xs font-mono tracking-wider">ACTIVE MISSIONS</div>
-            <div className="flex items-center gap-2">
-              <Settings size={12} className="text-gray-600" />
-              <span className="text-gray-600 text-xs font-mono">LIVE CONFIG</span>
-            </div>
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+          <div className="text-gray-500 text-xs font-mono tracking-wider">OPERATIONAL THEATER</div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-green-400 text-xs font-mono">4 ACTIVE</span>
           </div>
         </div>
 
-        {/* Mission Cards */}
-        <div className="relative z-10 flex-1 px-6 py-2 space-y-3 overflow-hidden">
-          {missions.map((mission, idx) => {
-            const PlatformIcon = mission.platform.icon;
-            const isVisible = visibleCards.includes(idx);
+        {/* Deployment dots with labels */}
+        {deployments.map((dep, idx) => {
+          const PlatformIcon = dep.platform.icon;
+          const isVisible = visibleDots.includes(idx);
+          const isLeft = dep.labelSide === 'left';
 
-            return (
-              <div
-                key={mission.name}
-                className={`bg-gray-900/80 border border-gray-700/50 rounded-xl overflow-hidden transition-all duration-500 ${
-                  isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
-                }`}
+          return (
+            <div
+              key={dep.mission}
+              className={`absolute transition-all duration-700 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
+              style={{
+                left: `${dep.x}%`,
+                top: `${dep.y}%`,
+              }}
+            >
+              {/* Ping effect */}
+              <div className="absolute -inset-4 flex items-center justify-center">
+                <div
+                  className="w-12 h-12 rounded-full border border-lime-brand/20"
+                  style={{
+                    animation: isVisible ? 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite' : 'none',
+                    animationDelay: `${idx * 0.5}s`
+                  }}
+                />
+              </div>
+
+              {/* Dot */}
+              <div className={`relative w-4 h-4 rounded-full ${dep.status === 'ACTIVE' ? 'bg-lime-brand' : 'bg-yellow-500'} shadow-lg`}
+                style={{ boxShadow: dep.status === 'ACTIVE' ? '0 0 20px rgba(203,253,0,0.5)' : '0 0 20px rgba(234,179,8,0.5)' }}
               >
-                {/* Mission Header */}
-                <div className="px-4 py-3 border-b border-gray-700/30 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${mission.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                    <div>
-                      <div className="text-white font-bold text-sm tracking-wide">
-                        MISSION: {mission.name}
-                      </div>
-                      <div className="text-gray-500 text-xs">{mission.region}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-xs font-mono ${mission.status === 'ACTIVE' ? 'text-green-400' : 'text-yellow-400'}`}>
-                      {mission.status}
-                    </div>
-                  </div>
-                </div>
+                <div className={`absolute inset-0 rounded-full ${dep.status === 'ACTIVE' ? 'bg-lime-brand' : 'bg-yellow-500'} animate-ping opacity-30`} />
+              </div>
 
-                {/* Configuration */}
-                <div className="px-4 py-3">
-                  <div className="text-gray-600 text-[10px] uppercase tracking-wider mb-2">Configured with</div>
+              {/* Label card */}
+              <div
+                className={`absolute top-1/2 -translate-y-1/2 ${isLeft ? 'right-8' : 'left-8'}`}
+                style={{ width: '180px' }}
+              >
+                <div className="bg-gray-900/95 border border-gray-700/80 rounded-lg p-3 backdrop-blur-sm">
+                  {/* Mission name */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${dep.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                    <span className="text-white font-bold text-xs tracking-wide">{dep.mission}</span>
+                  </div>
 
-                  {/* Lego blocks row */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Platform block */}
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-800 border border-gray-600/50 rounded-lg">
+                  {/* Platform row */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded bg-gray-800 flex items-center justify-center">
                       <PlatformIcon size={14} className="text-lime-brand" />
-                      <span className="text-gray-300 text-xs font-medium">{mission.platform.name}</span>
-                      <span className="text-gray-500 text-xs">×{mission.platform.count}</span>
                     </div>
+                    <div>
+                      <div className="text-gray-300 text-[11px] font-medium">{dep.platform.name}</div>
+                      <div className="text-gray-500 text-[10px]">{dep.platform.count} vessels • {dep.region}</div>
+                    </div>
+                  </div>
 
-                    <span className="text-gray-600 text-xs">+</span>
-
-                    {/* Capability blocks */}
-                    {mission.capabilities.map((cap, capIdx) => (
-                      <div
-                        key={cap.name}
-                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium"
-                        style={{
-                          backgroundColor: `${cap.color}15`,
-                          borderWidth: 1,
-                          borderColor: `${cap.color}40`
-                        }}
+                  {/* Capability pills */}
+                  <div className="flex flex-wrap gap-1">
+                    {dep.capabilities.map(cap => (
+                      <span
+                        key={cap}
+                        className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[9px] font-medium"
                       >
-                        <div
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: cap.color }}
-                        />
-                        <span style={{ color: cap.color }}>{cap.name}</span>
-                      </div>
+                        {cap}
+                      </span>
                     ))}
                   </div>
-
-                  {/* Timestamp */}
-                  <div className="mt-2 text-gray-600 text-[10px]">
-                    Configured {mission.configuredAgo} ago
-                  </div>
                 </div>
+
+                {/* Connector line */}
+                <div
+                  className={`absolute top-1/2 ${isLeft ? '-right-4' : '-left-4'} w-4 h-px bg-gray-600`}
+                  style={{ transform: 'translateY(-50%)' }}
+                />
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
+
+        {/* Center TempestOS indicator */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="w-16 h-16 rounded-full border border-lime-brand/20 flex items-center justify-center bg-darkest/60">
+            <div className="w-10 h-10 rounded-full border border-lime-brand/40 flex items-center justify-center">
+              <Cpu size={20} className="text-lime-brand/70" />
+            </div>
+          </div>
+          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+            <span className="text-lime-brand/60 text-[10px] font-mono">TempestOS</span>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 p-6 pt-2 border-t border-gray-800/50">
-          <div className="flex items-center justify-between text-xs font-mono text-gray-600">
-            <span>Powered by TempestOS</span>
-            <span>4 missions • 490 vessels deployed</span>
-          </div>
+        <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-xs font-mono text-gray-600">
+          <span>Live configurations</span>
+          <span>490 vessels deployed</span>
         </div>
       </div>
     </div>
