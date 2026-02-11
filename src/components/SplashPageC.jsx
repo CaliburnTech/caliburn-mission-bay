@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Cpu, Layers, Ship, Anchor, Radio, Target, Shield, Plane, Waves, Zap, Plus } from 'lucide-react';
+import { ChevronRight, Cpu, Layers, Ship, Target, Shield, Plane, Waves, Zap, Plus } from 'lucide-react';
 
 /**
  * Splash Page C: Mission Control
@@ -52,32 +52,34 @@ const SplashPageC = ({ onEnter }) => {
 
   // Deployed missions with positions - these are MISSION TYPES
   // AERIAL: y 5-28%, SURFACE: y 38-62%, SUBSURFACE: y 72-95%
+  // Icons: Plane=UAV, Ship=USV, Waves=UUV
   const aerialMissions = [
     { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, cap: 'Strike', status: 'ACTIVE', x: 70, y: 12 },
     { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, cap: 'ISR', status: 'ACTIVE', x: 25, y: 20 },
   ];
 
   const surfaceMissions = [
-    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Anchor, count: 280, cap: 'Guardian AI', status: 'ACTIVE', x: 20, y: 42 },
-    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Anchor, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 65, y: 52 },
+    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Ship, count: 280, cap: 'Guardian AI', status: 'ACTIVE', x: 20, y: 42 },
+    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Ship, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 65, y: 52 },
   ];
 
   const subsurfaceMissions = [
-    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 75 },
-    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Radio, count: 12, cap: 'ISR', status: 'ACTIVE', x: 75, y: 82 },
-    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Waves, count: 8, cap: 'SIGINT', status: 'ACTIVE', x: 20, y: 88 },
+    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Ship, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 75 },
+    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Ship, count: 12, cap: 'ISR', status: 'ACTIVE', x: 75, y: 82 },
+    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Ship, count: 8, cap: 'SIGINT', status: 'ACTIVE', x: 20, y: 88 },
   ];
 
   // Bay items - 7 PIER, 7 HANGAR (Platform + Role naming)
   // Deploy positions: AERIAL y<30, SURFACE y 40-60, SUBSURFACE y>70
+  // Icons: Plane=UAV, Ship=USV, Waves=UUV
   const pierItems = [
-    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
-    { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'ASW' },
-    { id: 'sd-isr', name: 'Saildrone ISR', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'ISR' },
-    { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Anchor, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
-    { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'SIGINT' },
-    { id: 'ms-strike', name: 'MetalShark Strike', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Strike' },
-    { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'Comms' },
+    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Ship, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
+    { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, status: 'READY', cap: 'ASW' },
+    { id: 'sd-isr', name: 'Saildrone ISR', platform: 'Saildrone', icon: Ship, status: 'READY', cap: 'ISR' },
+    { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Ship, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
+    { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, status: 'READY', cap: 'SIGINT' },
+    { id: 'ms-strike', name: 'MetalShark Strike', platform: 'MetalShark', icon: Ship, status: 'READY', cap: 'Strike' },
+    { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Ship, status: 'READY', cap: 'Comms' },
   ];
 
   const hangarItems = [
@@ -267,7 +269,7 @@ const SplashPageC = ({ onEnter }) => {
           {/* SURFACE Domain */}
           <div className="absolute inset-x-0 top-[33%] h-[34%] bg-gradient-to-b from-cyan-950/50 via-cyan-900/30 to-cyan-950/50">
             <div className="absolute top-3 left-4 flex items-center gap-2">
-              <Anchor size={14} className="text-cyan-700" />
+              <Ship size={14} className="text-cyan-700" />
               <span className="text-cyan-700 text-xs font-mono tracking-widest">SURFACE</span>
             </div>
             <div className="absolute top-3 right-4 text-xs text-green-400 font-mono">
@@ -356,7 +358,7 @@ const SplashPageC = ({ onEnter }) => {
             {/* PIER */}
             <div className="flex-1 flex flex-col min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <Anchor size={14} className="text-cyan-400" />
+                <Ship size={14} className="text-cyan-400" />
                 <span className="text-cyan-400 text-sm font-bold font-mono">PIER</span>
                 <span className="text-gray-500 text-xs">→ Surface / Subsurface</span>
               </div>
