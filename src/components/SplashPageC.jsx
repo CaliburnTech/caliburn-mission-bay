@@ -28,15 +28,15 @@ const SplashPageC = ({ onEnter }) => {
 
     // Deployment story
     const deployTimer = setTimeout(() => {
-      setDeployingItem('black-widow');
+      setDeployingItem('ms-guardian');
       setTimeout(() => {
-        setDeployedItems(prev => [...prev, 'black-widow']);
+        setDeployedItems(prev => [...prev, 'ms-guardian']);
         setDeployingItem(null);
 
         setTimeout(() => {
-          setDeployingItem('raptor-1');
+          setDeployingItem('mq25-tanker');
           setTimeout(() => {
-            setDeployedItems(prev => [...prev, 'raptor-1']);
+            setDeployedItems(prev => [...prev, 'mq25-tanker']);
             setDeployingItem(null);
           }, 1800);
         }, 1500);
@@ -50,40 +50,40 @@ const SplashPageC = ({ onEnter }) => {
     };
   }, []);
 
-  // Deployed missions with positions
+  // Deployed missions with positions - these are MISSION TYPES
   const aerialMissions = [
-    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9', icon: Plane, count: 48, cap: 'Swarm', status: 'ACTIVE', x: 70, y: 25 },
-    { id: 1, name: 'OVERWATCH', platform: 'MQ-4C', icon: Plane, count: 12, cap: 'ISR', status: 'ACTIVE', x: 25, y: 45 },
+    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, cap: 'Strike', status: 'ACTIVE', x: 70, y: 25 },
+    { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, cap: 'ISR', status: 'ACTIVE', x: 25, y: 45 },
   ];
 
   const surfaceMissions = [
     { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Anchor, count: 280, cap: 'Guardian AI', status: 'ACTIVE', x: 20, y: 30 },
-    { id: 3, name: 'REFIT', platform: 'AEGIR-F', icon: Anchor, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 60, y: 55 },
+    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Anchor, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 60, y: 55 },
   ];
 
   const subsurfaceMissions = [
-    { id: 4, name: 'SIGINT OPS', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 40 },
+    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 40 },
   ];
 
-  // Bay items - 7 PIER, 7 HANGAR
+  // Bay items - 7 PIER, 7 HANGAR (Platform + Role naming)
   const pierItems = [
-    { id: 'black-widow', name: 'Black Widow', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 35 },
-    { id: 'deep-six', name: 'Deep Six', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'ASW' },
-    { id: 'tidehunter', name: 'Tidehunter', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'ISR' },
-    { id: 'storm-surge', name: 'Storm Surge', platform: 'AEGIR-F', icon: Anchor, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
-    { id: 'sea-ghost', name: 'Sea Ghost', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'SIGINT' },
-    { id: 'iron-wake', name: 'Iron Wake', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Strike' },
-    { id: 'triton', name: 'Triton', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'Comms' },
+    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 35 },
+    { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'ASW' },
+    { id: 'sd-isr', name: 'Saildrone ISR', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'ISR' },
+    { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Anchor, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
+    { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'SIGINT' },
+    { id: 'ms-strike', name: 'MetalShark Strike', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Strike' },
+    { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'Comms' },
   ];
 
   const hangarItems = [
-    { id: 'raptor-1', name: 'Raptor One', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Tanker', targetDomain: 'AERIAL', deployX: 50, deployY: 65 },
-    { id: 'viper-squad', name: 'Viper Squad', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'Strike' },
-    { id: 'sentinel', name: 'Sentinel', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'SIGINT' },
-    { id: 'shadow-wing', name: 'Shadow Wing', platform: 'MQ-9B', icon: Plane, status: 'CONFIGURING', progress: 88, cap: 'ISR' },
-    { id: 'thunderbird', name: 'Thunderbird', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'ASW' },
-    { id: 'hawk-eye', name: 'Hawk Eye', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'Recon' },
-    { id: 'phoenix', name: 'Phoenix', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel' },
+    { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel', targetDomain: 'AERIAL', deployX: 50, deployY: 65 },
+    { id: 'mq9b-strike', name: 'MQ-9B Strike', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'Strike' },
+    { id: 'mq4c-sigint', name: 'MQ-4C SIGINT', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'SIGINT' },
+    { id: 'mq9b-isr', name: 'MQ-9B ISR', platform: 'MQ-9B', icon: Plane, status: 'CONFIGURING', progress: 88, cap: 'ISR' },
+    { id: 'mq8c-asw', name: 'MQ-8C ASW', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'ASW' },
+    { id: 'mq4c-recon', name: 'MQ-4C Recon', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'Recon' },
+    { id: 'mq8c-ew', name: 'MQ-8C EW', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'EW' },
   ];
 
   const getStatusColor = (status) => {
@@ -155,12 +155,12 @@ const SplashPageC = ({ onEnter }) => {
     );
   };
 
-  // New deployments
+  // New deployments - show as missions with proper mission names
   const newAerial = hangarItems.filter(i => deployedItems.includes(i.id)).map(i => ({
-    ...i, id: `new-${i.id}`, name: i.name.toUpperCase(), count: 24, x: i.deployX, y: i.deployY, status: 'ACTIVE'
+    ...i, id: `new-${i.id}`, name: 'TANKER SUPPORT', count: 24, x: i.deployX, y: i.deployY, status: 'ACTIVE'
   }));
   const newSurface = pierItems.filter(i => deployedItems.includes(i.id) && i.targetDomain === 'SURFACE').map(i => ({
-    ...i, id: `new-${i.id}`, name: i.name.toUpperCase(), count: 48, x: i.deployX, y: i.deployY, status: 'ACTIVE'
+    ...i, id: `new-${i.id}`, name: 'HARBOR PATROL', count: 48, x: i.deployX, y: i.deployY, status: 'ACTIVE'
   }));
 
   const remainingPier = pierItems.filter(i => !deployedItems.includes(i.id));
