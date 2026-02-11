@@ -124,7 +124,7 @@ const SplashPageC = ({ onEnter }) => {
 
     if (isDeploying) {
       return (
-        <div className="w-[120px] h-[58px] bg-lime-brand/20 border-2 border-dashed border-lime-brand rounded-lg flex flex-col items-center justify-center animate-pulse flex-shrink-0">
+        <div className="w-[130px] h-[72px] bg-lime-brand/20 border-2 border-dashed border-lime-brand rounded-lg flex flex-col items-center justify-center animate-pulse flex-shrink-0">
           <div className="w-2.5 h-2.5 rounded-full bg-lime-brand animate-ping mb-1" />
           <span className="text-lime-brand text-[9px] font-mono">DEPLOYING</span>
         </div>
@@ -132,21 +132,21 @@ const SplashPageC = ({ onEnter }) => {
     }
 
     return (
-      <div className={`w-[120px] h-[58px] bg-gray-800/90 border border-gray-600/50 rounded-lg p-2 transition-all duration-500 flex-shrink-0 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-white font-bold text-[11px] truncate max-w-[80px]">{item.name}</span>
-          <div className={`w-2 h-2 rounded-full ${getStatusColor(item.status)}`} />
+      <div className={`w-[130px] h-[72px] bg-gray-800/90 border border-gray-600/50 rounded-lg p-2.5 transition-all duration-500 flex-shrink-0 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-white font-bold text-xs truncate max-w-[90px]">{item.name}</span>
+          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(item.status)}`} />
         </div>
-        <div className="flex items-center gap-1.5 mb-1">
-          <Icon size={10} className="text-lime-brand" />
-          <span className="text-gray-500 text-[9px]">{item.platform}</span>
+        <div className="flex items-center gap-1.5 mb-2">
+          <Icon size={12} className="text-lime-brand" />
+          <span className="text-gray-500 text-[10px]">{item.platform}</span>
         </div>
         {item.progress !== undefined ? (
-          <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style={{ width: `${item.progress}%` }} />
           </div>
         ) : (
-          <span className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[8px]">{item.cap}</span>
+          <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[9px]">{item.cap}</span>
         )}
       </div>
     );
@@ -228,7 +228,7 @@ const SplashPageC = ({ onEnter }) => {
       <div className={`hidden lg:flex w-[72%] flex-col transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
         {/* Theater of Operations */}
-        <div className="h-[calc(100%-130px)] relative overflow-hidden">
+        <div className="h-[calc(100%-170px)] relative overflow-hidden">
           {/* Scan line effect */}
           <div
             className="absolute inset-0 pointer-events-none z-10"
@@ -330,7 +330,7 @@ const SplashPageC = ({ onEnter }) => {
         </div>
 
         {/* MISSION BAY */}
-        <div className="h-[130px] bg-gray-900/95 border-t-2 border-lime-brand/60 px-4 py-3 relative">
+        <div className="h-[170px] bg-gray-900/95 border-t-2 border-lime-brand/60 px-4 py-4 relative">
           {/* Subtle glow */}
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-lime-brand/5 to-transparent pointer-events-none" />
 
@@ -345,7 +345,7 @@ const SplashPageC = ({ onEnter }) => {
             </span>
           </div>
 
-          <div className="flex gap-6 h-[calc(100%-32px)]">
+          <div className="flex gap-6 flex-1 min-h-0">
             {/* PIER */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1.5">
@@ -359,10 +359,10 @@ const SplashPageC = ({ onEnter }) => {
                 ))}
                 <div
                   onClick={() => onEnter('shipyard')}
-                  className="w-[120px] h-[58px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
+                  className="w-[130px] h-[72px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
                 >
-                  <Plus size={16} className="text-lime-brand/70" />
-                  <span className="text-lime-brand/70 text-[9px] font-bold">Configure</span>
+                  <Plus size={18} className="text-lime-brand/70" />
+                  <span className="text-lime-brand/70 text-[10px] font-bold">Configure</span>
                 </div>
               </div>
             </div>
@@ -382,10 +382,10 @@ const SplashPageC = ({ onEnter }) => {
                 ))}
                 <div
                   onClick={() => onEnter('shipyard')}
-                  className="w-[120px] h-[58px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
+                  className="w-[130px] h-[72px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
                 >
-                  <Plus size={16} className="text-lime-brand/70" />
-                  <span className="text-lime-brand/70 text-[9px] font-bold">Configure</span>
+                  <Plus size={18} className="text-lime-brand/70" />
+                  <span className="text-lime-brand/70 text-[10px] font-bold">Configure</span>
                 </div>
               </div>
             </div>
