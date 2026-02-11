@@ -1,62 +1,77 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Cpu, Layers, Navigation, Ship, Anchor, Radio, Target, Shield, Plane } from 'lucide-react';
+import { ChevronRight, Cpu, Layers, Navigation, Ship, Anchor, Radio, Target, Shield, Plane, Waves, Settings } from 'lucide-react';
 
 /**
  * Splash Page C: Platform Overview
- * Split hero with messaging and animated fleet visualization
+ * Mission-first cards showing configured deployments
  */
 const SplashPageC = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
-  const [activeDeployment, setActiveDeployment] = useState(0);
+  const [visibleCards, setVisibleCards] = useState([]);
 
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100);
 
-    // Cycle through deployments
-    const interval = setInterval(() => {
-      setActiveDeployment(d => (d + 1) % 4);
-    }, 3000);
+    // Stagger card appearance to show "assembling" feel
+    const timers = [
+      setTimeout(() => setVisibleCards(v => [...v, 0]), 400),
+      setTimeout(() => setVisibleCards(v => [...v, 1]), 700),
+      setTimeout(() => setVisibleCards(v => [...v, 2]), 1000),
+      setTimeout(() => setVisibleCards(v => [...v, 3]), 1300),
+    ];
 
-    return () => clearInterval(interval);
+    return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Deployed squadrons with positions on the visualization
-  const deployments = [
+  // Active missions with their configurations
+  const missions = [
     {
-      squadron: 'MetalShark Patrol',
-      vessels: 280,
-      mission: 'Hormuz Sea Denial',
-      stack: 'Guardian AI Targeting',
-      icon: Anchor,
-      x: 25,
-      y: 30
+      name: 'SEA DENIAL',
+      region: 'Strait of Hormuz',
+      platform: { name: 'MetalShark USV', icon: Anchor, count: 280 },
+      capabilities: [
+        { name: 'Guardian AI', color: '#f59e0b' },
+        { name: 'Mesh Comms', color: '#8b5cf6' },
+        { name: 'Passive Radar', color: '#06b6d4' }
+      ],
+      configuredAgo: '2h',
+      status: 'ACTIVE'
     },
     {
-      squadron: 'Saildrone Autonomous',
-      vessels: 117,
-      mission: 'Taiwan Strait ISR',
-      stack: 'Autonomous EW Nav Suite',
-      icon: Radio,
-      x: 70,
-      y: 25
+      name: 'ISR PATROL',
+      region: 'Taiwan Strait',
+      platform: { name: 'Saildrone Explorer', icon: Radio, count: 117 },
+      capabilities: [
+        { name: 'EW Suite', color: '#ec4899' },
+        { name: 'SIGINT Array', color: '#06b6d4' },
+        { name: 'Sat Uplink', color: '#8b5cf6' }
+      ],
+      configuredAgo: '45m',
+      status: 'ACTIVE'
     },
     {
-      squadron: 'MQ-9 Strike Wing',
-      vessels: 48,
-      mission: 'Red Sea Convoy Guard',
-      stack: 'Swarm Coordination',
-      icon: Plane,
-      x: 30,
-      y: 70
+      name: 'CONVOY ESCORT',
+      region: 'Red Sea Transit',
+      platform: { name: 'MQ-9 Reaper', icon: Plane, count: 48 },
+      capabilities: [
+        { name: 'Swarm Coord', color: '#f59e0b' },
+        { name: 'Strike Package', color: '#ef4444' },
+        { name: 'ISR Pod', color: '#06b6d4' }
+      ],
+      configuredAgo: '6h',
+      status: 'STANDBY'
     },
     {
-      squadron: 'SubSeaSail UUV',
-      vessels: 45,
-      mission: 'SCS SIGINT Collection',
-      stack: 'ASW Detection Package',
-      icon: Navigation,
-      x: 75,
-      y: 65
+      name: 'SIGINT COLLECTION',
+      region: 'South China Sea',
+      platform: { name: 'SubSeaSail UUV', icon: Waves, count: 45 },
+      capabilities: [
+        { name: 'ASW Package', color: '#06b6d4' },
+        { name: 'Acoustic Array', color: '#8b5cf6' },
+        { name: 'Covert Nav', color: '#22c55e' }
+      ],
+      configuredAgo: '12h',
+      status: 'ACTIVE'
     }
   ];
 
@@ -96,7 +111,7 @@ const SplashPageC = ({ onEnter }) => {
             </div>
             <div>
               <div className="text-white font-medium text-sm">Modular Capabilities</div>
-              <div className="text-gray-500 text-xs">Drag-and-drop payload configuration</div>
+              <div className="text-gray-500 text-xs">Mix-and-match payload configuration</div>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -162,126 +177,112 @@ const SplashPageC = ({ onEnter }) => {
         </div>
       </div>
 
-      {/* Right side - Animated fleet visualization */}
-      <div className={`hidden lg:flex w-1/2 relative bg-gradient-to-br from-gray-900 to-darkest items-center justify-center transition-all duration-1000 delay-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-20"
+      {/* Right side - Mission Cards */}
+      <div className={`hidden lg:flex w-1/2 relative bg-gradient-to-br from-gray-900/50 to-darkest flex-col transition-all duration-1000 delay-300 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-5"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 50% 50%, rgba(203,253,0,0.1) 0%, transparent 50%),
-              linear-gradient(rgba(203,253,0,0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(203,253,0,0.05) 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
             `,
-            backgroundSize: '100% 100%, 40px 40px, 40px 40px'
+            backgroundSize: '40px 40px'
           }}
         />
 
-        {/* Deployed squadrons as dots with metadata */}
-        <div className="relative w-full h-full">
-          {deployments.map((deployment, idx) => {
-            const Icon = deployment.icon;
-            const isActive = activeDeployment === idx;
+        {/* Header */}
+        <div className="relative z-10 p-6 pb-2">
+          <div className="flex items-center justify-between">
+            <div className="text-gray-500 text-xs font-mono tracking-wider">ACTIVE MISSIONS</div>
+            <div className="flex items-center gap-2">
+              <Settings size={12} className="text-gray-600" />
+              <span className="text-gray-600 text-xs font-mono">LIVE CONFIG</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mission Cards */}
+        <div className="relative z-10 flex-1 px-6 py-2 space-y-3 overflow-hidden">
+          {missions.map((mission, idx) => {
+            const PlatformIcon = mission.platform.icon;
+            const isVisible = visibleCards.includes(idx);
 
             return (
               <div
-                key={deployment.squadron}
-                className={`absolute transition-all duration-700 ${isActive ? 'z-20' : 'z-10'}`}
-                style={{
-                  left: `${deployment.x}%`,
-                  top: `${deployment.y}%`,
-                  transform: 'translate(-50%, -50%)'
-                }}
+                key={mission.name}
+                className={`bg-gray-900/80 border border-gray-700/50 rounded-xl overflow-hidden transition-all duration-500 ${
+                  isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                }`}
               >
-                {/* Radar ping effect for active */}
-                {isActive && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-32 h-32 rounded-full border border-lime-brand/30 animate-ping" style={{ animationDuration: '2s' }} />
+                {/* Mission Header */}
+                <div className="px-4 py-3 border-b border-gray-700/30 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${mission.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                    <div>
+                      <div className="text-white font-bold text-sm tracking-wide">
+                        MISSION: {mission.name}
+                      </div>
+                      <div className="text-gray-500 text-xs">{mission.region}</div>
+                    </div>
                   </div>
-                )}
-
-                {/* Orbit ring */}
-                <svg className="absolute w-24 h-24 -ml-12 -mt-12 pointer-events-none" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke={isActive ? 'rgba(203,253,0,0.3)' : 'rgba(255,255,255,0.1)'}
-                    strokeWidth="1"
-                    strokeDasharray="4 4"
-                    className={isActive ? 'animate-spin' : ''}
-                    style={{ animationDuration: '10s', transformOrigin: 'center' }}
-                  />
-                </svg>
-
-                {/* Main dot */}
-                <div className={`relative w-5 h-5 rounded-full transition-all duration-500 flex items-center justify-center ${
-                  isActive
-                    ? 'bg-lime-brand shadow-lg shadow-lime-brand/50 scale-125'
-                    : 'bg-gray-500'
-                }`}>
-                  {isActive && (
-                    <div className="absolute inset-0 rounded-full bg-lime-brand animate-ping opacity-40" />
-                  )}
+                  <div className="text-right">
+                    <div className={`text-xs font-mono ${mission.status === 'ACTIVE' ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {mission.status}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Metadata label */}
-                <div className={`absolute left-8 top-1/2 -translate-y-1/2 transition-all duration-500 ${
-                  isActive ? 'opacity-100 translate-x-0' : 'opacity-50 -translate-x-1'
-                }`}
-                style={{ width: '200px' }}
-                >
-                  {/* Squadron name */}
-                  <div className={`font-bold text-sm whitespace-nowrap transition-colors ${
-                    isActive ? 'text-lime-brand' : 'text-gray-400'
-                  }`}>
-                    {deployment.squadron}
-                  </div>
+                {/* Configuration */}
+                <div className="px-4 py-3">
+                  <div className="text-gray-600 text-[10px] uppercase tracking-wider mb-2">Configured with</div>
 
-                  {/* Vessel count + Mission */}
-                  <div className="text-xs text-gray-500 whitespace-nowrap">
-                    {deployment.vessels} vessels • <span className={isActive ? 'text-cyan-400' : 'text-gray-500'}>{deployment.mission}</span>
-                  </div>
-
-                  {/* Stack badge - only show when active */}
-                  {isActive && (
-                    <div className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-purple-500/20 border border-purple-500/40 rounded text-[10px]">
-                      <Cpu size={8} className="text-purple-400" />
-                      <span className="text-purple-300">{deployment.stack}</span>
+                  {/* Lego blocks row */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Platform block */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-800 border border-gray-600/50 rounded-lg">
+                      <PlatformIcon size={14} className="text-lime-brand" />
+                      <span className="text-gray-300 text-xs font-medium">{mission.platform.name}</span>
+                      <span className="text-gray-500 text-xs">×{mission.platform.count}</span>
                     </div>
-                  )}
+
+                    <span className="text-gray-600 text-xs">+</span>
+
+                    {/* Capability blocks */}
+                    {mission.capabilities.map((cap, capIdx) => (
+                      <div
+                        key={cap.name}
+                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium"
+                        style={{
+                          backgroundColor: `${cap.color}15`,
+                          borderWidth: 1,
+                          borderColor: `${cap.color}40`
+                        }}
+                      >
+                        <div
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: cap.color }}
+                        />
+                        <span style={{ color: cap.color }}>{cap.name}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Timestamp */}
+                  <div className="mt-2 text-gray-600 text-[10px]">
+                    Configured {mission.configuredAgo} ago
+                  </div>
                 </div>
               </div>
             );
           })}
-
-          {/* Center TempestOS hub */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="w-20 h-20 rounded-full border-2 border-lime-brand/30 flex items-center justify-center bg-darkest/80">
-              <div className="w-12 h-12 rounded-full border border-lime-brand/50 flex items-center justify-center">
-                <Cpu size={24} className="text-lime-brand" />
-              </div>
-            </div>
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <div className="text-lime-brand text-xs font-mono tracking-wider">TempestOS</div>
-            </div>
-          </div>
         </div>
 
-        {/* Status indicators */}
-        <div className="absolute top-8 right-8 text-right">
-          <div className="text-gray-600 text-xs font-mono">FLEET.STATUS</div>
-          <div className="text-lime-brand text-sm font-mono flex items-center justify-end gap-2">
-            <span className="w-2 h-2 rounded-full bg-lime-brand animate-pulse" />
-            OPERATIONAL
+        {/* Footer */}
+        <div className="relative z-10 p-6 pt-2 border-t border-gray-800/50">
+          <div className="flex items-center justify-between text-xs font-mono text-gray-600">
+            <span>Powered by TempestOS</span>
+            <span>4 missions • 490 vessels deployed</span>
           </div>
-        </div>
-        <div className="absolute bottom-8 right-8 text-right">
-          <div className="text-gray-600 text-xs font-mono">ACTIVE.MISSIONS</div>
-          <div className="text-white text-sm font-mono">4</div>
-        </div>
-        <div className="absolute bottom-8 left-8 text-left">
-          <div className="text-gray-600 text-xs font-mono">TempestOS v2.4.1</div>
         </div>
       </div>
     </div>
