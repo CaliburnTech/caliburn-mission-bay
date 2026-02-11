@@ -228,7 +228,7 @@ const SplashPageC = ({ onEnter }) => {
       <div className={`hidden lg:flex w-[72%] flex-col transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
         {/* Theater of Operations */}
-        <div className="flex-1 relative overflow-hidden">
+        <div className="h-[calc(100%-130px)] relative overflow-hidden">
           {/* Scan line effect */}
           <div
             className="absolute inset-0 pointer-events-none z-10"
@@ -330,7 +330,7 @@ const SplashPageC = ({ onEnter }) => {
         </div>
 
         {/* MISSION BAY */}
-        <div className="h-[125px] bg-gray-900/95 border-t-2 border-lime-brand/60 px-3 pt-2 pb-3 relative">
+        <div className="h-[130px] bg-gray-900/95 border-t-2 border-lime-brand/60 px-4 py-3 relative">
           {/* Subtle glow */}
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-lime-brand/5 to-transparent pointer-events-none" />
 
