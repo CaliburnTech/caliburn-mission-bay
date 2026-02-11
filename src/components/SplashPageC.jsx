@@ -53,43 +53,44 @@ const SplashPageC = ({ onEnter }) => {
   // Deployed missions with positions - these are MISSION TYPES
   // AERIAL: y 5-28%, SURFACE: y 38-62%, SUBSURFACE: y 72-95%
   // Icons: Plane=UAV, Ship=USV, Waves=UUV
+  // Each mission shows multiple capabilities (the whole point of modular payloads!)
   const aerialMissions = [
-    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, cap: 'Strike', status: 'ACTIVE', x: 70, y: 12 },
-    { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, cap: 'ISR', status: 'ACTIVE', x: 25, y: 20 },
+    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, caps: ['NGHTS Targeting', 'Jackal Missile', 'Lattice Mesh'], status: 'ACTIVE', x: 70, y: 12 },
+    { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, caps: ['Scion ESM', 'Hidden Level Radar', 'SeaFIND Nav'], status: 'ACTIVE', x: 25, y: 20 },
   ];
 
   const surfaceMissions = [
-    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Ship, count: 280, cap: 'Guardian AI', status: 'ACTIVE', x: 20, y: 42 },
-    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Ship, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 65, y: 52 },
+    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Ship, count: 280, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], status: 'ACTIVE', x: 20, y: 42 },
+    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Ship, count: 24, caps: ['DRAKE Counter-UAS', 'Scion ESM'], status: 'MAINTENANCE', x: 65, y: 52 },
   ];
 
   const subsurfaceMissions = [
-    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Ship, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 75 },
-    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Ship, count: 12, cap: 'ISR', status: 'ACTIVE', x: 75, y: 82 },
-    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Ship, count: 8, cap: 'SIGINT', status: 'ACTIVE', x: 20, y: 88 },
+    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Ship, count: 45, caps: ['Towed Sonar', 'SeaFIND Nav', 'Lattice Mesh'], status: 'ACTIVE', x: 45, y: 75 },
+    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Ship, count: 12, caps: ['Marine AI', 'Scion ESM'], status: 'ACTIVE', x: 75, y: 82 },
+    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Ship, count: 8, caps: ['Hidden Level Radar', 'Towed Sonar'], status: 'ACTIVE', x: 20, y: 88 },
   ];
 
-  // Bay items - 7 PIER, 7 HANGAR (Platform + Role naming)
+  // Bay items - 7 PIER, 7 HANGAR
+  // Each configuration has multiple capabilities - that's the whole point of modular payloads!
   // Deploy positions: AERIAL y<30, SURFACE y 40-60, SUBSURFACE y>70
-  // Icons: Plane=UAV, Ship=USV, Waves=UUV
   const pierItems = [
-    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Ship, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
-    { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, status: 'READY', cap: 'ASW' },
-    { id: 'sd-isr', name: 'Saildrone ISR', platform: 'Saildrone', icon: Ship, status: 'READY', cap: 'ISR' },
-    { id: 'aegir-kinetic', name: 'AEGIR-F Kinetic', platform: 'AEGIR-F', icon: Ship, status: 'READY', cap: 'Kinetic' },
-    { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, status: 'READY', cap: 'SIGINT' },
-    { id: 'ms-strike', name: 'MetalShark Strike', platform: 'MetalShark', icon: Ship, status: 'READY', cap: 'Strike' },
-    { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Ship, status: 'READY', cap: 'Comms' },
+    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Ship, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
+    { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, caps: ['Towed Sonar', 'SeaFIND Nav'] },
+    { id: 'sd-survey', name: 'Saildrone Survey', platform: 'Saildrone', icon: Ship, caps: ['Scion ESM', 'Marine AI'] },
+    { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Ship, caps: ['Jackal Missile', 'NGHTS Targeting', 'Lattice Mesh'] },
+    { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, caps: ['Hidden Level Radar', 'Scion ESM'] },
+    { id: 'ms-swarm', name: 'MetalShark Swarm', platform: 'MetalShark', icon: Ship, caps: ['Swarm Coordination', 'Guardian AI'] },
+    { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Ship, caps: ['Lattice Mesh', 'Marine AI'] },
   ];
 
   const hangarItems = [
-    { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel', targetDomain: 'AERIAL', deployX: 50, deployY: 18 },
-    { id: 'mq9b-strike', name: 'MQ-9B Strike', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'Strike' },
-    { id: 'mq4c-sigint', name: 'MQ-4C SIGINT', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'SIGINT' },
-    { id: 'mq9b-isr', name: 'MQ-9B ISR', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'ISR' },
-    { id: 'mq8c-asw', name: 'MQ-8C ASW', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'ASW' },
-    { id: 'mq4c-recon', name: 'MQ-4C Recon', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'Recon' },
-    { id: 'mq8c-ew', name: 'MQ-8C EW', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'EW' },
+    { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, caps: ['Refueling Drogue', 'SeaFIND Nav', 'Lattice Mesh'], targetDomain: 'AERIAL', deployX: 50, deployY: 18 },
+    { id: 'mq9b-strike', name: 'MQ-9B Strike', platform: 'MQ-9B', icon: Plane, caps: ['NGHTS Targeting', 'Jackal Missile', 'Scion ESM'] },
+    { id: 'mq4c-sigint', name: 'MQ-4C SIGINT', platform: 'MQ-4C', icon: Plane, caps: ['Scion ESM', 'Hidden Level Radar', 'SeaFIND Nav'] },
+    { id: 'mq9b-recon', name: 'MQ-9B Recon', platform: 'MQ-9B', icon: Plane, caps: ['Scion ESM', 'Marine AI', 'Lattice Mesh'] },
+    { id: 'mq8c-asw', name: 'MQ-8C ASW', platform: 'MQ-8C', icon: Plane, caps: ['Towed Sonar', 'SeaFIND Nav'] },
+    { id: 'mq4c-ew', name: 'MQ-4C EW', platform: 'MQ-4C', icon: Plane, caps: ['DRAKE Counter-UAS', 'Scion ESM'] },
+    { id: 'mq8c-mesh', name: 'MQ-8C Mesh Node', platform: 'MQ-8C', icon: Plane, caps: ['Lattice Mesh', 'Marine AI'] },
   ];
 
   const getStatusColor = (status) => {
@@ -120,9 +121,13 @@ const SplashPageC = ({ onEnter }) => {
             <Icon size={14} className="text-lime-brand" />
             <span className="text-gray-400 text-xs">{mission.platform} ×{mission.count}</span>
           </div>
-          <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[10px]">
-            {mission.cap}
-          </span>
+          <div className="flex flex-wrap gap-1">
+            {mission.caps.map((cap, i) => (
+              <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[9px]">
+                {cap}
+              </span>
+            ))}
+          </div>
           {/* Status dot at bottom center */}
           <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${getStatusColor(mission.status)} ${mission.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
         </div>
@@ -146,22 +151,28 @@ const SplashPageC = ({ onEnter }) => {
 
     return (
       <div className={`bg-gray-800/90 border border-gray-600/50 rounded-lg p-3 transition-all duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'} hover:border-lime-brand cursor-pointer hover:bg-gray-800`}>
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-1">
           <Icon size={14} className="text-lime-brand flex-shrink-0" />
           <span className="text-white font-bold text-sm truncate">{item.name}</span>
         </div>
         <div className="text-gray-400 text-xs mb-2">{item.platform}</div>
-        <span className="inline-block px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-xs font-medium">{item.cap}</span>
+        <div className="flex flex-wrap gap-1">
+          {item.caps.map((cap, i) => (
+            <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[9px]">
+              {cap}
+            </span>
+          ))}
+        </div>
       </div>
     );
   };
 
-  // New deployments - show as missions with proper mission names
+  // New deployments - show as missions with proper mission names, inherit caps from config
   const newAerial = hangarItems.filter(i => deployedItems.includes(i.id)).map(i => ({
-    ...i, id: `new-${i.id}`, name: 'TANKER SUPPORT', count: 24, x: i.deployX, y: i.deployY, status: 'ACTIVE'
+    ...i, id: `new-${i.id}`, name: 'TANKER SUPPORT', count: 24, x: i.deployX, y: i.deployY, status: 'ACTIVE', caps: i.caps
   }));
   const newSurface = pierItems.filter(i => deployedItems.includes(i.id) && i.targetDomain === 'SURFACE').map(i => ({
-    ...i, id: `new-${i.id}`, name: 'HARBOR PATROL', count: 48, x: i.deployX, y: i.deployY, status: 'ACTIVE'
+    ...i, id: `new-${i.id}`, name: 'HARBOR PATROL', count: 48, x: i.deployX, y: i.deployY, status: 'ACTIVE', caps: i.caps
   }));
 
   const remainingPier = pierItems.filter(i => !deployedItems.includes(i.id));
