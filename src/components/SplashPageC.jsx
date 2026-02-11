@@ -124,29 +124,29 @@ const SplashPageC = ({ onEnter }) => {
 
     if (isDeploying) {
       return (
-        <div className="w-[130px] h-[70px] bg-lime-brand/20 border-2 border-dashed border-lime-brand rounded-lg flex flex-col items-center justify-center animate-pulse flex-shrink-0">
-          <div className="w-3 h-3 rounded-full bg-lime-brand animate-ping mb-1" />
-          <span className="text-lime-brand text-[10px] font-mono">DEPLOYING</span>
+        <div className="w-[120px] h-[58px] bg-lime-brand/20 border-2 border-dashed border-lime-brand rounded-lg flex flex-col items-center justify-center animate-pulse flex-shrink-0">
+          <div className="w-2.5 h-2.5 rounded-full bg-lime-brand animate-ping mb-1" />
+          <span className="text-lime-brand text-[9px] font-mono">DEPLOYING</span>
         </div>
       );
     }
 
     return (
-      <div className={`w-[130px] bg-gray-800/90 border border-gray-600/50 rounded-lg p-2.5 transition-all duration-500 flex-shrink-0 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-white font-bold text-xs truncate max-w-[85px]">{item.name}</span>
+      <div className={`w-[120px] h-[58px] bg-gray-800/90 border border-gray-600/50 rounded-lg p-2 transition-all duration-500 flex-shrink-0 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-white font-bold text-[11px] truncate max-w-[80px]">{item.name}</span>
           <div className={`w-2 h-2 rounded-full ${getStatusColor(item.status)}`} />
         </div>
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Icon size={11} className="text-lime-brand" />
-          <span className="text-gray-500 text-[10px]">{item.platform}</span>
+        <div className="flex items-center gap-1.5 mb-1">
+          <Icon size={10} className="text-lime-brand" />
+          <span className="text-gray-500 text-[9px]">{item.platform}</span>
         </div>
         {item.progress !== undefined ? (
           <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style={{ width: `${item.progress}%` }} />
           </div>
         ) : (
-          <span className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[9px]">{item.cap}</span>
+          <span className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[8px]">{item.cap}</span>
         )}
       </div>
     );
@@ -330,30 +330,28 @@ const SplashPageC = ({ onEnter }) => {
         </div>
 
         {/* MISSION BAY */}
-        <div className="h-[145px] bg-gray-900/95 border-t-2 border-lime-brand/60 p-3 relative">
+        <div className="h-[125px] bg-gray-900/95 border-t-2 border-lime-brand/60 px-3 pt-2 pb-3 relative">
           {/* Subtle glow */}
           <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-lime-brand/5 to-transparent pointer-events-none" />
 
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Zap size={16} className="text-lime-brand" />
+              <Zap size={14} className="text-lime-brand" />
               <span className="text-lime-brand text-sm font-bold tracking-wider">MISSION BAY</span>
               <span className="text-gray-600 text-xs font-mono ml-2">STAGING</span>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-500 text-xs font-mono">
-                {remainingPier.filter(i => i.status === 'READY').length + remainingHangar.filter(i => i.status === 'READY').length} READY
-              </span>
-            </div>
+            <span className="text-gray-500 text-xs font-mono">
+              {remainingPier.filter(i => i.status === 'READY').length + remainingHangar.filter(i => i.status === 'READY').length} READY
+            </span>
           </div>
 
-          <div className="flex gap-6 h-[calc(100%-40px)]">
+          <div className="flex gap-6 h-[calc(100%-32px)]">
             {/* PIER */}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Anchor size={12} className="text-cyan-400" />
-                <span className="text-cyan-400 text-[11px] font-mono">PIER</span>
-                <span className="text-gray-600 text-[9px]">→ Surface / Subsurface</span>
+              <div className="flex items-center gap-2 mb-1.5">
+                <Anchor size={11} className="text-cyan-400" />
+                <span className="text-cyan-400 text-[10px] font-mono">PIER</span>
+                <span className="text-gray-600 text-[8px]">→ Surface / Subsurface</span>
               </div>
               <div className="flex gap-2">
                 {remainingPier.map(item => (
@@ -361,10 +359,10 @@ const SplashPageC = ({ onEnter }) => {
                 ))}
                 <div
                   onClick={() => onEnter('shipyard')}
-                  className="w-[130px] h-[70px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
+                  className="w-[120px] h-[58px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
                 >
-                  <Plus size={18} className="text-lime-brand/70" />
-                  <span className="text-lime-brand/70 text-[10px] font-bold">Configure</span>
+                  <Plus size={16} className="text-lime-brand/70" />
+                  <span className="text-lime-brand/70 text-[9px] font-bold">Configure</span>
                 </div>
               </div>
             </div>
@@ -373,10 +371,10 @@ const SplashPageC = ({ onEnter }) => {
 
             {/* HANGAR */}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Plane size={12} className="text-slate-400" />
-                <span className="text-slate-400 text-[11px] font-mono">HANGAR</span>
-                <span className="text-gray-600 text-[9px]">→ Aerial</span>
+              <div className="flex items-center gap-2 mb-1.5">
+                <Plane size={11} className="text-slate-400" />
+                <span className="text-slate-400 text-[10px] font-mono">HANGAR</span>
+                <span className="text-gray-600 text-[8px]">→ Aerial</span>
               </div>
               <div className="flex gap-2">
                 {remainingHangar.map(item => (
@@ -384,10 +382,10 @@ const SplashPageC = ({ onEnter }) => {
                 ))}
                 <div
                   onClick={() => onEnter('shipyard')}
-                  className="w-[130px] h-[70px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
+                  className="w-[120px] h-[58px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
                 >
-                  <Plus size={18} className="text-lime-brand/70" />
-                  <span className="text-lime-brand/70 text-[10px] font-bold">Configure</span>
+                  <Plus size={16} className="text-lime-brand/70" />
+                  <span className="text-lime-brand/70 text-[9px] font-bold">Configure</span>
                 </div>
               </div>
             </div>
