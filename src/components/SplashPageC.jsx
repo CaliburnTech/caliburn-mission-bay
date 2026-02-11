@@ -233,7 +233,7 @@ const SplashPageC = ({ onEnter }) => {
       </div>
 
       {/* Right side - Mission Control View (4 equal sections) */}
-      <div className={`hidden lg:flex w-[72%] flex-col transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`hidden lg:flex w-[72%] flex-col pb-[100px] transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
         {/* Theater of Operations - 75% */}
         <div className="h-[75%] relative overflow-hidden">
