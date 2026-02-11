@@ -17,8 +17,8 @@ const SplashPageC = ({ onEnter }) => {
 
     // Stagger card appearance
     const timers = [];
-    for (let i = 0; i < 15; i++) {
-      timers.push(setTimeout(() => setVisibleItems(v => [...v, i]), 300 + i * 150));
+    for (let i = 0; i < 20; i++) {
+      timers.push(setTimeout(() => setVisibleItems(v => [...v, i]), 300 + i * 100));
     }
 
     // Animated radar scan
@@ -34,9 +34,9 @@ const SplashPageC = ({ onEnter }) => {
         setDeployingItem(null);
 
         setTimeout(() => {
-          setDeployingItem('phantom-wing');
+          setDeployingItem('raptor-1');
           setTimeout(() => {
-            setDeployedItems(prev => [...prev, 'phantom-wing']);
+            setDeployedItems(prev => [...prev, 'raptor-1']);
             setDeployingItem(null);
           }, 1800);
         }, 1500);
@@ -65,17 +65,25 @@ const SplashPageC = ({ onEnter }) => {
     { id: 4, name: 'SIGINT OPS', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 40 },
   ];
 
-  // Bay items
+  // Bay items - 7 PIER, 7 HANGAR
   const pierItems = [
     { id: 'black-widow', name: 'Black Widow', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Guardian AI', targetDomain: 'SURFACE', deployX: 85, deployY: 35 },
-    { id: 'deep-six', name: 'Deep Six', platform: 'SubSeaSail', icon: Waves, status: 'CONFIGURING', progress: 72, cap: 'ASW' },
+    { id: 'deep-six', name: 'Deep Six', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'ASW' },
     { id: 'tidehunter', name: 'Tidehunter', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'ISR' },
+    { id: 'storm-surge', name: 'Storm Surge', platform: 'AEGIR-F', icon: Anchor, status: 'CONFIGURING', progress: 72, cap: 'Kinetic' },
+    { id: 'sea-ghost', name: 'Sea Ghost', platform: 'SubSeaSail', icon: Waves, status: 'READY', cap: 'SIGINT' },
+    { id: 'iron-wake', name: 'Iron Wake', platform: 'MetalShark', icon: Anchor, status: 'READY', cap: 'Strike' },
+    { id: 'triton', name: 'Triton', platform: 'Saildrone', icon: Radio, status: 'READY', cap: 'Comms' },
   ];
 
   const hangarItems = [
-    { id: 'phantom-wing', name: 'Phantom Wing', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Tanker', targetDomain: 'AERIAL', deployX: 50, deployY: 65 },
+    { id: 'raptor-1', name: 'Raptor One', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Tanker', targetDomain: 'AERIAL', deployX: 50, deployY: 65 },
     { id: 'viper-squad', name: 'Viper Squad', platform: 'MQ-9B', icon: Plane, status: 'READY', cap: 'Strike' },
-    { id: 'sentinel', name: 'Sentinel', platform: 'MQ-4C', icon: Plane, status: 'CONFIGURING', progress: 88, cap: 'SIGINT' },
+    { id: 'sentinel', name: 'Sentinel', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'SIGINT' },
+    { id: 'shadow-wing', name: 'Shadow Wing', platform: 'MQ-9B', icon: Plane, status: 'CONFIGURING', progress: 88, cap: 'ISR' },
+    { id: 'thunderbird', name: 'Thunderbird', platform: 'MQ-8C', icon: Plane, status: 'READY', cap: 'ASW' },
+    { id: 'hawk-eye', name: 'Hawk Eye', platform: 'MQ-4C', icon: Plane, status: 'READY', cap: 'Recon' },
+    { id: 'phoenix', name: 'Phoenix', platform: 'MQ-25', icon: Plane, status: 'READY', cap: 'Refuel' },
   ];
 
   const getStatusColor = (status) => {
@@ -117,36 +125,36 @@ const SplashPageC = ({ onEnter }) => {
     );
   };
 
-  // Bay tile
+  // Bay tile - BOLD version for admirals
   const BayTile = ({ item, isDeploying }) => {
     const Icon = item.icon;
-    const isVisible = visibleItems.includes(item.id) || visibleItems.length > 8;
+    const isVisible = visibleItems.includes(item.id) || visibleItems.length > 5;
 
     if (isDeploying) {
       return (
-        <div className="w-[130px] h-[72px] bg-lime-brand/20 border-2 border-dashed border-lime-brand rounded-lg flex flex-col items-center justify-center animate-pulse flex-shrink-0">
-          <div className="w-2.5 h-2.5 rounded-full bg-lime-brand animate-ping mb-1" />
-          <span className="text-lime-brand text-[9px] font-mono">DEPLOYING</span>
+        <div className="bg-lime-brand/20 border-2 border-dashed border-lime-brand rounded-lg flex flex-col items-center justify-center animate-pulse p-3">
+          <div className="w-3 h-3 rounded-full bg-lime-brand animate-ping mb-1" />
+          <span className="text-lime-brand text-xs font-mono font-bold">DEPLOYING</span>
         </div>
       );
     }
 
     return (
-      <div className={`w-[130px] h-[72px] bg-gray-800/90 border border-gray-600/50 rounded-lg p-2.5 transition-all duration-500 flex-shrink-0 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-white font-bold text-xs truncate max-w-[90px]">{item.name}</span>
-          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(item.status)}`} />
+      <div className={`bg-gray-800/90 border border-gray-600/50 rounded-lg p-3 transition-all duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer hover:bg-gray-800' : ''}`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-bold text-sm truncate">{item.name}</span>
+          <div className={`w-3 h-3 rounded-full ${getStatusColor(item.status)} flex-shrink-0`} />
         </div>
-        <div className="flex items-center gap-1.5 mb-2">
-          <Icon size={12} className="text-lime-brand" />
-          <span className="text-gray-500 text-[10px]">{item.platform}</span>
+        <div className="flex items-center gap-2 mb-2">
+          <Icon size={14} className="text-lime-brand flex-shrink-0" />
+          <span className="text-gray-400 text-xs">{item.platform}</span>
         </div>
         {item.progress !== undefined ? (
-          <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style={{ width: `${item.progress}%` }} />
           </div>
         ) : (
-          <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[9px]">{item.cap}</span>
+          <span className="inline-block px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-xs font-medium">{item.cap}</span>
         )}
       </div>
     );
@@ -224,11 +232,11 @@ const SplashPageC = ({ onEnter }) => {
         </div>
       </div>
 
-      {/* Right side - Mission Control View */}
+      {/* Right side - Mission Control View (4 equal sections) */}
       <div className={`hidden lg:flex w-[72%] flex-col transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
-        {/* Theater of Operations */}
-        <div className="h-[calc(100%-170px)] relative overflow-hidden">
+        {/* Theater of Operations - 75% */}
+        <div className="h-[75%] relative overflow-hidden">
           {/* Scan line effect */}
           <div
             className="absolute inset-0 pointer-events-none z-10"
@@ -329,63 +337,63 @@ const SplashPageC = ({ onEnter }) => {
           )}
         </div>
 
-        {/* MISSION BAY */}
-        <div className="h-[170px] bg-gray-900/95 border-t-2 border-lime-brand/60 px-4 py-4 relative">
+        {/* MISSION BAY - 25% (equal to each theater domain) */}
+        <div className="h-[25%] bg-gray-900/95 border-t-2 border-lime-brand/60 px-6 py-4 relative flex flex-col">
           {/* Subtle glow */}
-          <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-lime-brand/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-lime-brand/5 to-transparent pointer-events-none" />
 
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Zap size={14} className="text-lime-brand" />
-              <span className="text-lime-brand text-sm font-bold tracking-wider">MISSION BAY</span>
-              <span className="text-gray-600 text-xs font-mono ml-2">STAGING</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <Zap size={18} className="text-lime-brand" />
+              <span className="text-lime-brand text-lg font-bold tracking-wider">MISSION BAY</span>
+              <span className="text-gray-500 text-sm font-mono ml-2">STAGING AREA</span>
             </div>
-            <span className="text-gray-500 text-xs font-mono">
-              {remainingPier.filter(i => i.status === 'READY').length + remainingHangar.filter(i => i.status === 'READY').length} READY
+            <span className="text-gray-400 text-sm font-mono font-bold">
+              {remainingPier.filter(i => i.status === 'READY').length + remainingHangar.filter(i => i.status === 'READY').length} READY TO DEPLOY
             </span>
           </div>
 
-          <div className="flex gap-6 flex-1 min-h-0">
+          <div className="flex gap-8 flex-1 min-h-0">
             {/* PIER */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Anchor size={11} className="text-cyan-400" />
-                <span className="text-cyan-400 text-[10px] font-mono">PIER</span>
-                <span className="text-gray-600 text-[8px]">→ Surface / Subsurface</span>
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Anchor size={14} className="text-cyan-400" />
+                <span className="text-cyan-400 text-sm font-bold font-mono">PIER</span>
+                <span className="text-gray-500 text-xs">→ Surface / Subsurface</span>
               </div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-4 gap-2 flex-1">
                 {remainingPier.map(item => (
                   <BayTile key={item.id} item={item} isDeploying={deployingItem === item.id} />
                 ))}
                 <div
                   onClick={() => onEnter('shipyard')}
-                  className="w-[130px] h-[72px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
+                  className="bg-lime-brand/5 border-2 border-dashed border-lime-brand/40 rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand transition-all"
                 >
-                  <Plus size={18} className="text-lime-brand/70" />
-                  <span className="text-lime-brand/70 text-[10px] font-bold">Configure</span>
+                  <Plus size={24} className="text-lime-brand/80" />
+                  <span className="text-lime-brand/80 text-sm font-bold">Configure</span>
                 </div>
               </div>
             </div>
 
-            <div className="w-px bg-gray-700/30" />
+            <div className="w-px bg-gray-700/50" />
 
             {/* HANGAR */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Plane size={11} className="text-slate-400" />
-                <span className="text-slate-400 text-[10px] font-mono">HANGAR</span>
-                <span className="text-gray-600 text-[8px]">→ Aerial</span>
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Plane size={14} className="text-slate-400" />
+                <span className="text-slate-400 text-sm font-bold font-mono">HANGAR</span>
+                <span className="text-gray-500 text-xs">→ Aerial</span>
               </div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-4 gap-2 flex-1">
                 {remainingHangar.map(item => (
                   <BayTile key={item.id} item={item} isDeploying={deployingItem === item.id} />
                 ))}
                 <div
                   onClick={() => onEnter('shipyard')}
-                  className="w-[130px] h-[72px] bg-lime-brand/5 border-2 border-dashed border-lime-brand/30 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand/60 transition-all flex-shrink-0"
+                  className="bg-lime-brand/5 border-2 border-dashed border-lime-brand/40 rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-lime-brand/10 hover:border-lime-brand transition-all"
                 >
-                  <Plus size={18} className="text-lime-brand/70" />
-                  <span className="text-lime-brand/70 text-[10px] font-bold">Configure</span>
+                  <Plus size={24} className="text-lime-brand/80" />
+                  <span className="text-lime-brand/80 text-sm font-bold">Configure</span>
                 </div>
               </div>
             </div>
