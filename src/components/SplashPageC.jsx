@@ -51,20 +51,21 @@ const SplashPageC = ({ onEnter }) => {
   }, []);
 
   // Deployed missions with positions - these are MISSION TYPES
+  // AERIAL: y 5-28%, SURFACE: y 38-62%, SUBSURFACE: y 72-95%
   const aerialMissions = [
-    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, cap: 'Strike', status: 'ACTIVE', x: 70, y: 25 },
-    { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, cap: 'ISR', status: 'ACTIVE', x: 25, y: 45 },
+    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, cap: 'Strike', status: 'ACTIVE', x: 70, y: 12 },
+    { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, cap: 'ISR', status: 'ACTIVE', x: 25, y: 20 },
   ];
 
   const surfaceMissions = [
-    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Anchor, count: 280, cap: 'Guardian AI', status: 'ACTIVE', x: 20, y: 30 },
-    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Anchor, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 60, y: 55 },
+    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Anchor, count: 280, cap: 'Guardian AI', status: 'ACTIVE', x: 20, y: 42 },
+    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Anchor, count: 24, cap: 'Kinetic', status: 'MAINTENANCE', x: 65, y: 52 },
   ];
 
   const subsurfaceMissions = [
-    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 35 },
-    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Radio, count: 12, cap: 'ISR', status: 'ACTIVE', x: 75, y: 55 },
-    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Waves, count: 8, cap: 'SIGINT', status: 'ACTIVE', x: 20, y: 65 },
+    { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Waves, count: 45, cap: 'ASW', status: 'ACTIVE', x: 45, y: 75 },
+    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Radio, count: 12, cap: 'ISR', status: 'ACTIVE', x: 75, y: 82 },
+    { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Waves, count: 8, cap: 'SIGINT', status: 'ACTIVE', x: 20, y: 88 },
   ];
 
   // Bay items - 7 PIER, 7 HANGAR (Platform + Role naming)
