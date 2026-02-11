@@ -105,7 +105,7 @@ const SplashPageC = ({ onEnter }) => {
     }
   };
 
-  // Compact tile used everywhere - uniform size
+  // Compact tile used everywhere - uniform size (larger for readability)
   const CompactTile = ({ item, isDeploying, isConfiguring, configProg }) => {
     const Icon = item.icon;
     const isVisible = visibleItems.includes(item.id) || visibleItems.length > 20;
@@ -115,41 +115,41 @@ const SplashPageC = ({ onEnter }) => {
     // Handle deploying animation
     if (isDeploying) {
       return (
-        <div className="w-[90px] h-[52px] bg-lime-brand/20 border border-lime-brand/60 border-dashed rounded flex items-center justify-center">
-          <span className="text-lime-brand text-[8px] font-mono animate-pulse">DEPLOYING...</span>
+        <div className="w-[115px] h-[58px] bg-lime-brand/20 border border-lime-brand/60 border-dashed rounded flex items-center justify-center">
+          <span className="text-lime-brand text-[9px] font-mono animate-pulse">DEPLOYING...</span>
         </div>
       );
     }
 
     return (
-      <div className={`w-[90px] h-[52px] bg-gray-800/90 border ${colors.border} rounded p-1.5 transition-all duration-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
+      <div className={`w-[115px] h-[58px] bg-gray-800/90 border ${colors.border} rounded p-2 transition-all duration-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${item.status === 'READY' ? 'hover:border-lime-brand cursor-pointer' : ''}`}>
         <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1">
-            <Icon size={10} className="text-lime-brand" />
-            <span className="text-white text-[8px] font-bold truncate max-w-[50px]">{item.name}</span>
+          <div className="flex items-center gap-1.5">
+            <Icon size={12} className="text-lime-brand" />
+            <span className="text-white text-[10px] font-bold truncate max-w-[60px]">{item.name}</span>
           </div>
-          <div className={`w-1.5 h-1.5 rounded-full ${colors.dot} ${item.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
+          <div className={`w-2 h-2 rounded-full ${colors.dot} ${item.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
         </div>
 
         {progress !== undefined && (
           <div className="mb-1">
-            <div className="h-0.5 bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
           </div>
         )}
 
-        <div className="flex gap-0.5">
+        <div className="flex gap-1">
           {item.capabilities.slice(0, 1).map(cap => (
-            <span key={cap} className="px-1 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[6px]">{cap}</span>
+            <span key={cap} className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 text-[8px]">{cap}</span>
           ))}
-          <span className="text-gray-500 text-[6px] ml-auto">{item.platform}</span>
+          <span className="text-gray-500 text-[8px] ml-auto">{item.platform}</span>
         </div>
       </div>
     );
   };
 
-  // Deployment card in domain zones - same compact size
+  // Deployment card in domain zones - same size as bay tiles
   const DeploymentTile = ({ dep, isReturning }) => {
     const Icon = dep.icon;
     const isVisible = visibleItems.includes(dep.id) || visibleItems.length > 15;
@@ -160,23 +160,23 @@ const SplashPageC = ({ onEnter }) => {
         className={`absolute transition-all duration-1000 ${isVisible && !isReturning ? 'opacity-100 scale-100' : isReturning ? 'opacity-50 scale-90' : 'opacity-0 scale-75'}`}
         style={{ left: `${dep.x}%`, top: `${dep.y}%`, transform: 'translate(-50%, -50%)' }}
       >
-        <div className={`w-[100px] bg-gray-900/95 border ${colors.border} rounded p-1.5 backdrop-blur-sm ${isReturning ? 'animate-pulse border-dashed' : ''}`}>
-          <div className="flex items-center gap-1 mb-1">
-            <div className={`w-1.5 h-1.5 rounded-full ${colors.dot} ${dep.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
-            <span className="text-white font-bold text-[8px] truncate">{dep.mission}</span>
+        <div className={`w-[115px] bg-gray-900/95 border ${colors.border} rounded p-2 backdrop-blur-sm ${isReturning ? 'animate-pulse border-dashed' : ''}`}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className={`w-2 h-2 rounded-full ${colors.dot} ${dep.status === 'ACTIVE' ? 'animate-pulse' : ''}`} />
+            <span className="text-white font-bold text-[10px] truncate">{dep.mission}</span>
           </div>
-          <div className="flex items-center gap-1 mb-1">
-            <Icon size={9} className="text-lime-brand" />
-            <span className="text-gray-400 text-[7px]">{dep.platform} ×{dep.count}</span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <Icon size={11} className="text-lime-brand" />
+            <span className="text-gray-400 text-[9px]">{dep.platform} ×{dep.count}</span>
           </div>
-          <div className="flex gap-0.5">
+          <div className="flex gap-1">
             {dep.capabilities.map(cap => (
-              <span key={cap} className="px-1 py-0.5 bg-purple-500/15 border border-purple-500/25 rounded text-purple-300 text-[6px]">{cap}</span>
+              <span key={cap} className="px-1.5 py-0.5 bg-purple-500/15 border border-purple-500/25 rounded text-purple-300 text-[8px]">{cap}</span>
             ))}
           </div>
         </div>
         {isReturning && (
-          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[7px] text-cyan-400 font-mono whitespace-nowrap">← RETURNING</div>
+          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-cyan-400 font-mono whitespace-nowrap">← RETURNING</div>
         )}
       </div>
     );
@@ -248,8 +248,8 @@ const SplashPageC = ({ onEnter }) => {
       {/* Right side - Domain map + Mission Bay */}
       <div className={`hidden lg:flex w-[62%] flex-col relative transition-all duration-1000 delay-200 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
 
-        {/* Domain zones */}
-        <div className="h-[52%] relative">
+        {/* Domain zones - dominant */}
+        <div className="h-[68%] relative">
           <div className="absolute inset-0 flex flex-col">
             <div className="flex-1 bg-gradient-to-b from-slate-900/80 to-slate-800/40 relative">
               <div className="absolute top-2 left-3 text-[9px] font-mono text-slate-500 tracking-widest">AERIAL</div>
@@ -280,18 +280,18 @@ const SplashPageC = ({ onEnter }) => {
 
           {/* New deployment appearing (from Hammerhead) */}
           {deployingItem === 'hammerhead' && (
-            <div className="absolute transition-all duration-1000 opacity-100 scale-100 animate-pulse" style={{ left: '55%', top: '35%', transform: 'translate(-50%, -50%)' }}>
-              <div className="w-[100px] bg-lime-brand/20 border border-lime-brand rounded p-1.5 backdrop-blur-sm">
-                <div className="flex items-center gap-1 mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-lime-brand animate-pulse" />
-                  <span className="text-lime-brand font-bold text-[8px]">STRIKE OPS</span>
+            <div className="absolute transition-all duration-1000 opacity-100 scale-100 animate-pulse" style={{ left: '55%', top: '45%', transform: 'translate(-50%, -50%)' }}>
+              <div className="w-[115px] bg-lime-brand/20 border border-lime-brand rounded p-2 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-lime-brand animate-pulse" />
+                  <span className="text-lime-brand font-bold text-[10px]">STRIKE OPS</span>
                 </div>
-                <div className="flex items-center gap-1 mb-1">
-                  <Anchor size={9} className="text-lime-brand" />
-                  <span className="text-gray-300 text-[7px]">AEGIR-W ×24</span>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Anchor size={11} className="text-lime-brand" />
+                  <span className="text-gray-300 text-[9px]">AEGIR-W ×24</span>
                 </div>
-                <div className="flex gap-0.5">
-                  <span className="px-1 py-0.5 bg-lime-brand/20 border border-lime-brand/40 rounded text-lime-brand text-[6px]">Strike Pkg</span>
+                <div className="flex gap-1">
+                  <span className="px-1.5 py-0.5 bg-lime-brand/20 border border-lime-brand/40 rounded text-lime-brand text-[8px]">Strike Pkg</span>
                 </div>
               </div>
             </div>
@@ -299,26 +299,26 @@ const SplashPageC = ({ onEnter }) => {
 
           {/* Nighthawk deploying */}
           {deployingItem === 'nighthawk' && (
-            <div className="absolute transition-all duration-1000 opacity-100 scale-100 animate-pulse" style={{ left: '60%', top: '12%', transform: 'translate(-50%, -50%)' }}>
-              <div className="w-[100px] bg-lime-brand/20 border border-lime-brand rounded p-1.5 backdrop-blur-sm">
-                <div className="flex items-center gap-1 mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-lime-brand animate-pulse" />
-                  <span className="text-lime-brand font-bold text-[8px]">RECON OPS</span>
+            <div className="absolute transition-all duration-1000 opacity-100 scale-100 animate-pulse" style={{ left: '60%', top: '15%', transform: 'translate(-50%, -50%)' }}>
+              <div className="w-[115px] bg-lime-brand/20 border border-lime-brand rounded p-2 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-lime-brand animate-pulse" />
+                  <span className="text-lime-brand font-bold text-[10px]">RECON OPS</span>
                 </div>
-                <div className="flex items-center gap-1 mb-1">
-                  <Plane size={9} className="text-lime-brand" />
-                  <span className="text-gray-300 text-[7px]">MQ-8C ×8</span>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Plane size={11} className="text-lime-brand" />
+                  <span className="text-gray-300 text-[9px]">MQ-8C ×8</span>
                 </div>
-                <div className="flex gap-0.5">
-                  <span className="px-1 py-0.5 bg-lime-brand/20 border border-lime-brand/40 rounded text-lime-brand text-[6px]">Recon</span>
+                <div className="flex gap-1">
+                  <span className="px-1.5 py-0.5 bg-lime-brand/20 border border-lime-brand/40 rounded text-lime-brand text-[8px]">Recon</span>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Mission Bay */}
-        <div className="h-[48%] bg-gradient-to-t from-gray-900 via-gray-900/95 to-gray-800/80 border-t-2 border-lime-brand/40 relative overflow-hidden">
+        {/* Mission Bay - compact strip at bottom */}
+        <div className="h-[32%] bg-gradient-to-t from-gray-900 via-gray-900/95 to-gray-800/80 border-t-2 border-lime-brand/40 relative overflow-hidden">
           {/* Grid background */}
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: `linear-gradient(rgba(203,253,0,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(203,253,0,0.5) 1px, transparent 1px)`, backgroundSize: '30px 30px' }} />
 
@@ -349,8 +349,8 @@ const SplashPageC = ({ onEnter }) => {
                 ))}
                 {/* Returning item placeholder */}
                 {returningItem === 'isr-patrol' && (
-                  <div className="w-[90px] h-[52px] bg-cyan-500/10 border border-cyan-500/40 border-dashed rounded flex items-center justify-center animate-pulse">
-                    <span className="text-cyan-400 text-[8px] font-mono">INCOMING...</span>
+                  <div className="w-[115px] h-[58px] bg-cyan-500/10 border border-cyan-500/40 border-dashed rounded flex items-center justify-center animate-pulse">
+                    <span className="text-cyan-400 text-[10px] font-mono">INCOMING...</span>
                   </div>
                 )}
               </div>
