@@ -20,7 +20,7 @@ import CapabilityDetailsModal from './CapabilityDetailsModal';
 import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
 
-const MarketplacePage = () => {
+const MarketplacePage = ({ onLogoClick }) => {
   // Navigation store
   const { selectedView, setSelectedView } = useNavigationStore();
 
@@ -89,12 +89,17 @@ const MarketplacePage = () => {
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
           <div
             onClick={() => {
-              setSelectedView('stacks');
+              if (onLogoClick) {
+                onLogoClick();
+              } else {
+                setSelectedView('stacks');
+              }
               setSelectedHull(null);
               setSelectedMountPoint(null);
               setSearchTerm('');
             }}
             className="flex items-center gap-8 cursor-pointer group"
+            title="Return to Home"
           >
             <img
               src={caliburnLogotype}
