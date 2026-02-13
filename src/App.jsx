@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import MarketplacePage from './components/MarketplacePage'
 import SplashPageC from './components/SplashPageC'
+import SplashPageD from './components/SplashPageD'
+
+// Toggle between splash page concepts: 'C' = Mission Control, 'D' = The Transformation
+const SPLASH_VERSION = 'D'
 import useNavigationStore from './store/navigationStore'
 import './App.css'
 
@@ -47,7 +51,8 @@ function App() {
   }, [setSelectedView])
 
   if (showSplash) {
-    return <SplashPageC onEnter={handleEnter} />
+    const SplashPage = SPLASH_VERSION === 'D' ? SplashPageD : SplashPageC
+    return <SplashPage onEnter={handleEnter} />
   }
 
   return <MarketplacePage onLogoClick={handleReturnToSplash} />
