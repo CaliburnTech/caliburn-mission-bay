@@ -4,7 +4,7 @@ import SplashPageC from './components/SplashPageC'
 import SplashPageD from './components/SplashPageD'
 
 // Toggle between splash page concepts: 'C' = Mission Control, 'D' = The Transformation
-const SPLASH_VERSION = 'D'
+const SPLASH_VERSION = 'C'
 import useNavigationStore from './store/navigationStore'
 import './App.css'
 
