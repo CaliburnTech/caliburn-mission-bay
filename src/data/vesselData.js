@@ -17,7 +17,8 @@ import {
   MQ25StingrayHull,
   MQ9ReaperHull,
   MQ4CTritonHull,
-  MQ8FireScoutHull
+  MQ8FireScoutHull,
+  RQ21BlackjackHull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -61,6 +62,52 @@ export const globalBaselines = {
     baseline: 5,        // Typical small vessel RCS
     stealthyThreshold: 1,   // Below this = very stealthy
     highSignature: 50,      // Above this = easily detected
+  }
+};
+
+// Aerial platform baselines (used for AerialStatsDisplay)
+export const aerialBaselines = {
+  endurance: {
+    unit: 'hrs',
+    baseline: 12,       // Typical tactical UAV endurance
+    min: 0,
+    max: 36,            // High-endurance platforms (MQ-4C Triton)
+    criticalLow: 2,     // Below this severely limits missions
+  },
+  missionRadius: {
+    unit: 'nm',
+    baseline: 500,      // Typical operational radius
+    min: 0,
+    max: 2500,          // Extended range platforms
+    criticalLow: 25,    // Below this limits utility
+  },
+  payload: {
+    unit: 'lbs',
+    // Shows remaining capacity (capacity - used)
+    criticalLow: 0,     // At or below 0 = overloaded
+  },
+  datalink: {
+    // Tiered rating system for C2 quality
+    tiers: [
+      { level: 1, name: 'Basic', desc: 'LOS only, limited bandwidth', color: '#6b7280' },
+      { level: 2, name: 'Standard', desc: 'LOS + basic SATCOM', color: '#3b82f6' },
+      { level: 3, name: 'Advanced', desc: 'LOS + BLOS SATCOM, anti-jam', color: '#8b5cf6' },
+      { level: 4, name: 'Resilient', desc: 'Full spectrum, mesh, cyber-hardened', color: '#CBFD00' }
+    ]
+  },
+  burnRate: {
+    unit: '%',
+    // How much payload weight affects endurance
+    // effectiveEndurance = baseEndurance * (1 - (usedPayload/maxPayload) * burnRateFactor)
+    // Higher factor = more sensitive to payload weight
+    baseFactor: 0.3,    // 30% endurance reduction at max payload (default)
+    sensitivityByType: {
+      'Small UAS': 0.4,   // Small platforms more affected
+      'MALE': 0.25,       // Medium platforms moderately affected
+      'HALE': 0.15,       // High-endurance platforms less affected
+      'VTOL': 0.35,       // Helicopters moderately affected
+      'Tanker': 0.1       // Tankers designed for heavy loads
+    }
   }
 };
 
@@ -385,6 +432,14 @@ export const vesselHullData = [
       totalWeight: 6800,  // kg fuel offload capacity
       totalPower: 50      // kW available for systems
     },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 14,      // hours
+      missionRadius: 500, // nm (refueling radius)
+      ceiling: 40000,     // ft
+      datalinkTier: 3,    // Advanced (carrier integration)
+      burnRateType: 'Tanker'
+    },
     detailedSpecs: {
       length: "51 ft (15.5m)",
       wingspan: "75 ft (22.9m) / 31.2 ft folded",
@@ -425,6 +480,14 @@ export const vesselHullData = [
     capacity: {
       totalWeight: 1724,  // kg external payload
       totalPower: 75      // kW available
+    },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 27,       // hours (34 with ER variant)
+      missionRadius: 1000, // nm combat radius
+      ceiling: 50000,      // ft
+      datalinkTier: 3,     // Advanced (SATCOM, anti-jam)
+      burnRateType: 'MALE'
     },
     detailedSpecs: {
       length: "36 ft (11m)",
@@ -469,6 +532,14 @@ export const vesselHullData = [
       totalWeight: 1452,  // kg sensor payload
       totalPower: 100     // kW available
     },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 30,       // hours
+      missionRadius: 2000, // nm station radius
+      ceiling: 56000,      // ft
+      datalinkTier: 4,     // Resilient (full spectrum, SIGINT)
+      burnRateType: 'HALE'
+    },
     detailedSpecs: {
       length: "47.6 ft (14.5m)",
       wingspan: "130.9 ft (39.9m)",
@@ -512,6 +583,14 @@ export const vesselHullData = [
       totalWeight: 318,   // kg payload
       totalPower: 25      // kW available
     },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 12,      // hours
+      missionRadius: 150, // nm
+      ceiling: 20000,     // ft
+      datalinkTier: 3,    // Advanced (Link 16, ship integration)
+      burnRateType: 'VTOL'
+    },
     detailedSpecs: {
       length: "41.4 ft (12.6m)",
       rotorDiameter: "35 ft (10.7m)",
@@ -537,6 +616,60 @@ export const vesselHullData = [
     ],
     externalLinks: {
       manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/fire-scout"
+    }
+  },
+  {
+    name: "RQ-21A Blackjack",
+    type: "Small Tactical UAS",
+    platformType: "UAV",
+    displacement: "~135 lbs MTOW",
+    description: "Boeing/Insitu small tactical UAS for reconnaissance, surveillance, and target acquisition. Ship and expeditionary-capable with pneumatic launch and SkyHook recovery.",
+    icon: "RQ-21A Blackjack",
+    manufacturer: "Boeing/Insitu",
+    specs: {
+      speed: 55,        // knots cruise
+      range: 50,        // nm LOS radius
+      rcs: 0.1          // m² - small profile
+    },
+    capacity: {
+      totalWeight: 18,    // kg payload (39 lbs)
+      totalPower: 5       // kW available
+    },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 12,      // hours (can exceed 16)
+      missionRadius: 50,  // nm with LOS datalink
+      ceiling: 20000,     // ft
+      datalinkTier: 2,    // Standard (LOS + basic SATCOM)
+      burnRateType: 'Small UAS'
+    },
+    detailedSpecs: {
+      length: "8.2 ft (2.5m)",
+      wingspan: "16 ft (4.9m)",
+      engine: "Heavy fuel engine",
+      power: "8 hp",
+      endurance: "12-16 hours",
+      serviceCeiling: "20,000 ft",
+      launch: "Pneumatic SuperWedge launcher",
+      recovery: "SkyHook retrieval system"
+    },
+    features: [
+      "Ship and shore-based operations",
+      "Pneumatic launch - no runway required",
+      "SkyHook recovery system",
+      "Modular payload bay",
+      "Encrypted datalink beyond 50 nm",
+      "Heavy fuel capable"
+    ],
+    applications: [
+      "Tactical reconnaissance",
+      "Surveillance and target acquisition",
+      "Battle damage assessment",
+      "Communications relay",
+      "Route clearance support"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.insitu.com/products/rq21a"
     }
   },
   // ============ CREWED VESSELS ============
@@ -614,6 +747,7 @@ export const vesselHullComponents = {
   "MQ-9 Reaper": MQ9ReaperHull,
   "MQ-4C Triton": MQ4CTritonHull,
   "MQ-8C Fire Scout": MQ8FireScoutHull,
+  "RQ-21A Blackjack": RQ21BlackjackHull,
   // Crewed vessels
   "Arleigh Burke": ArleighBurkeHull,
   "Virginia Class": SubmarineHull,
@@ -717,6 +851,12 @@ export const VESSEL_SLOT_CAPACITY = {
   "Triton": { SENSORS: 2, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // Large UUV
   "Manta Ray": { SENSORS: 3, COMMS: 2, WEAPONS: 1, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  // UAV platforms
+  "MQ-25 Stingray": { SENSORS: 1, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "MQ-9 Reaper": { SENSORS: 3, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "MQ-4C Triton": { SENSORS: 4, COMMS: 3, WEAPONS: 0, EW: 3, NAV: 2, AI: 3, UTILITY: 1, OTHER: 0 },
+  "MQ-8C Fire Scout": { SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "RQ-21A Blackjack": { SENSORS: 1, COMMS: 1, WEAPONS: 0, EW: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   // Crewed vessels
   "Arleigh Burke": { SENSORS: 5, COMMS: 4, WEAPONS: 6, EW: 3, NAV: 2, AI: 4, UTILITY: 3, OTHER: 0 },
   "Virginia Class": { SENSORS: 4, COMMS: 3, WEAPONS: 4, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },

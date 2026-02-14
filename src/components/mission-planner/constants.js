@@ -1,17 +1,51 @@
 import {
   Target, Eye, Crosshair, Radio, Zap, User, CheckCircle,
   Wifi, Brain, Radar, Navigation, Settings2,
-  Shield, Ship, Ban
+  Shield, Ship, Ban, Plane, Fuel, Satellite, Users
 } from 'lucide-react';
 
-// Define the 6 key missions to show
-export const KEY_MISSIONS = [
-  { key: 'SEA_DENIAL', name: 'Sea Denial', icon: Ban, color: '#ef4444', description: 'Zone exclusion & elimination' },
-  { key: 'CONTESTED_LOGISTICS', name: 'Contested Logistics', icon: Ship, color: '#8b5cf6', description: 'Covert resupply operations' },
-  { key: 'ESCORT', name: 'Convoy Escort', icon: Shield, color: '#eab308', description: 'HVU convoy protection' },
-  { key: 'REFLEX_SWARM_ATTACK', name: 'Swarm Attack', icon: Crosshair, color: '#ef4444', description: 'Coordinated offensive strike' },
-  { key: 'ROBOT_DEFENSE_OODA', name: 'SIGINT Collection', icon: Radio, color: '#f97316', description: 'Persistent ELINT/COMINT surveillance' },
-  { key: 'RECONNAISSANCE', name: 'ISR Patrol', icon: Eye, color: '#06b6d4', description: 'Surveillance & reconnaissance' }
+// Mission domain types
+export const MISSION_DOMAINS = {
+  MARITIME: 'MARITIME',
+  AERIAL: 'AERIAL',
+  COMBINED: 'COMBINED'
+};
+
+// Define the 6 key MARITIME missions
+export const KEY_MARITIME_MISSIONS = [
+  { key: 'SEA_DENIAL', name: 'Sea Denial', icon: Ban, color: '#ef4444', description: 'Zone exclusion & elimination', domain: 'MARITIME' },
+  { key: 'CONTESTED_LOGISTICS', name: 'Contested Logistics', icon: Ship, color: '#8b5cf6', description: 'Covert resupply operations', domain: 'MARITIME' },
+  { key: 'ESCORT', name: 'Convoy Escort', icon: Shield, color: '#eab308', description: 'HVU convoy protection', domain: 'MARITIME' },
+  { key: 'REFLEX_SWARM_ATTACK', name: 'Swarm Attack', icon: Crosshair, color: '#ef4444', description: 'Coordinated offensive strike', domain: 'MARITIME' },
+  { key: 'ROBOT_DEFENSE_OODA', name: 'SIGINT Collection', icon: Radio, color: '#f97316', description: 'Persistent ELINT/COMINT surveillance', domain: 'MARITIME' },
+  { key: 'RECONNAISSANCE', name: 'ISR Patrol', icon: Eye, color: '#06b6d4', description: 'Surveillance & reconnaissance', domain: 'MARITIME' }
+];
+
+// Define the 5 key AERIAL missions
+export const KEY_AERIAL_MISSIONS = [
+  { key: 'AERIAL_ISR', name: 'Aerial ISR', icon: Eye, color: '#06b6d4', description: 'Intelligence, surveillance & reconnaissance', domain: 'AERIAL' },
+  { key: 'PERSISTENT_MDA', name: 'Persistent MDA', icon: Satellite, color: '#3b82f6', description: 'Maritime domain awareness from altitude', domain: 'AERIAL' },
+  { key: 'AERIAL_REFUELING', name: 'Aerial Refueling', icon: Fuel, color: '#10b981', description: 'Tanker support & range extension', domain: 'AERIAL' },
+  { key: 'TACTICAL_SUPPORT', name: 'Tactical Support', icon: Crosshair, color: '#f97316', description: 'Expeditionary & close air support', domain: 'AERIAL' },
+  { key: 'COMMS_RELAY', name: 'Comms Relay', icon: Wifi, color: '#8b5cf6', description: 'Network extension & data relay', domain: 'AERIAL' }
+];
+
+// Define COMBINED operations (aerial + maritime)
+export const KEY_COMBINED_MISSIONS = [
+  { key: 'COMBINED_ISR_DENIAL', name: 'ISR + Sea Denial', icon: Users, color: '#ef4444', description: 'Aerial overwatch with surface denial', domain: 'COMBINED' },
+  { key: 'COMBINED_ASW', name: 'Combined ASW', icon: Radar, color: '#06b6d4', description: 'Aerial & surface anti-submarine warfare', domain: 'COMBINED' },
+  { key: 'COMBINED_ESCORT', name: 'Combined Escort', icon: Shield, color: '#eab308', description: 'Aerial surveillance with surface protection', domain: 'COMBINED' },
+  { key: 'COMBINED_STRIKE', name: 'Strike Package', icon: Crosshair, color: '#ef4444', description: 'Coordinated aerial targeting & surface attack', domain: 'COMBINED' }
+];
+
+// Legacy export for backwards compatibility
+export const KEY_MISSIONS = KEY_MARITIME_MISSIONS;
+
+// All missions combined for filtering
+export const ALL_MISSIONS = [
+  ...KEY_MARITIME_MISSIONS,
+  ...KEY_AERIAL_MISSIONS,
+  ...KEY_COMBINED_MISSIONS
 ];
 
 // Node type configuration - primary nodes are bigger, decision nodes smaller
@@ -47,11 +81,25 @@ export const hierarchyPresets = {
 
 // Zone types based on mission
 export const zoneTypes = {
-  SEA_DENIAL: { label: 'Denial Zone', color: '#ef4444', fillOpacity: 0.3, geometryType: 'zone', description: 'Draw area to deny enemy access' },
-  ESCORT: { label: 'Convoy Route', color: '#eab308', fillOpacity: 0.2, geometryType: 'route', description: 'Set waypoints A→B→C for escort path' },
-  CONTESTED_LOGISTICS: { label: 'Supply Route', color: '#8b5cf6', fillOpacity: 0.2, geometryType: 'route', description: 'Define resupply route with waypoints' },
-  RECONNAISSANCE: { label: 'Patrol Area', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw patrol/surveillance area' },
-  REFLEX_SWARM_ATTACK: { label: 'Attack Targets', color: '#ef4444', fillOpacity: 0.35, geometryType: 'target', description: 'Mark target points and staging area' },
-  ROBOT_DEFENSE: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area - vessel patrols within this zone on racetrack/figure-8 pattern' },
-  ROBOT_DEFENSE_OODA: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area - vessel patrols within this zone on racetrack/figure-8 pattern' }
+  // Maritime missions
+  SEA_DENIAL: { label: 'Denial Zone', color: '#ef4444', fillOpacity: 0.3, geometryType: 'zone', description: 'Draw area to deny enemy access', domain: 'MARITIME' },
+  ESCORT: { label: 'Convoy Route', color: '#eab308', fillOpacity: 0.2, geometryType: 'route', description: 'Set waypoints A→B→C for escort path', domain: 'MARITIME' },
+  CONTESTED_LOGISTICS: { label: 'Supply Route', color: '#8b5cf6', fillOpacity: 0.2, geometryType: 'route', description: 'Define resupply route with waypoints', domain: 'MARITIME' },
+  RECONNAISSANCE: { label: 'Patrol Area', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw patrol/surveillance area', domain: 'MARITIME' },
+  REFLEX_SWARM_ATTACK: { label: 'Attack Targets', color: '#ef4444', fillOpacity: 0.35, geometryType: 'target', description: 'Mark target points and staging area', domain: 'MARITIME' },
+  ROBOT_DEFENSE: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area for SIGINT collection', domain: 'MARITIME' },
+  ROBOT_DEFENSE_OODA: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area for SIGINT collection', domain: 'MARITIME' },
+
+  // Aerial missions
+  AERIAL_ISR: { label: 'ISR Orbit', color: '#06b6d4', fillOpacity: 0.2, geometryType: 'orbit', description: 'Define orbit track for surveillance', domain: 'AERIAL' },
+  PERSISTENT_MDA: { label: 'MDA Station', color: '#3b82f6', fillOpacity: 0.15, geometryType: 'station', description: 'Set station-keeping point for persistent coverage', domain: 'AERIAL' },
+  AERIAL_REFUELING: { label: 'Tanker Track', color: '#10b981', fillOpacity: 0.2, geometryType: 'track', description: 'Define refueling anchor track', domain: 'AERIAL' },
+  TACTICAL_SUPPORT: { label: 'Support Zone', color: '#f97316', fillOpacity: 0.25, geometryType: 'zone', description: 'Define tactical support area', domain: 'AERIAL' },
+  COMMS_RELAY: { label: 'Relay Station', color: '#8b5cf6', fillOpacity: 0.15, geometryType: 'station', description: 'Set comms relay station point', domain: 'AERIAL' },
+
+  // Combined missions
+  COMBINED_ISR_DENIAL: { label: 'Combined AO', color: '#ef4444', fillOpacity: 0.25, geometryType: 'zone', description: 'Area for combined aerial/surface ops', domain: 'COMBINED' },
+  COMBINED_ASW: { label: 'ASW Zone', color: '#06b6d4', fillOpacity: 0.2, geometryType: 'zone', description: 'Anti-submarine warfare search area', domain: 'COMBINED' },
+  COMBINED_ESCORT: { label: 'Escort Corridor', color: '#eab308', fillOpacity: 0.2, geometryType: 'route', description: 'Convoy route with aerial overwatch', domain: 'COMBINED' },
+  COMBINED_STRIKE: { label: 'Strike Package', color: '#ef4444', fillOpacity: 0.3, geometryType: 'target', description: 'Coordinated strike target area', domain: 'COMBINED' }
 };

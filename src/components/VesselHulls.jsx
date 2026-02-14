@@ -1333,6 +1333,43 @@ export const MQ8FireScoutHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
+// Boeing/Insitu RQ-21A Blackjack - Small Tactical UAS
+// Twin-boom pusher configuration
+export const RQ21BlackjackHull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.7} viewBox="0 0 200 140" className={className}>
+    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
+      {/* Main wing - high aspect ratio */}
+      <path
+        d="M 30 60 L 100 55 L 170 60 L 170 65 L 100 60 L 30 65 Z"
+        className="stroke-[2]"
+      />
+
+      {/* Fuselage pod */}
+      <ellipse cx="100" cy="58" rx="25" ry="10" className="stroke-[2]" />
+
+      {/* Sensor ball under nose */}
+      <circle cx="75" cy="62" r="6" className="stroke-[1.5]" />
+
+      {/* Twin tail booms */}
+      <line x1="85" y1="60" x2="85" y2="105" className="stroke-[2]" />
+      <line x1="115" y1="60" x2="115" y2="105" className="stroke-[2]" />
+
+      {/* Horizontal stabilizer */}
+      <path
+        d="M 70 105 L 100 102 L 130 105 L 130 110 L 100 107 L 70 110 Z"
+        className="stroke-[1.5]"
+      />
+
+      {/* Vertical stabilizers (twin) */}
+      <path d="M 85 100 L 82 85 L 88 85 L 85 100" className="stroke-[1.5]" />
+      <path d="M 115 100 L 112 85 L 118 85 L 115 100" className="stroke-[1.5]" />
+
+      {/* Pusher prop */}
+      <circle cx="100" cy="75" r="12" className="fill-none stroke-[1.5] opacity-50" />
+    </g>
+  </svg>
+);
+
 // Custom Platform (Design from Scratch)
 export const CustomPlatformHull = ({ size = 200, className = "" }) => (
   <svg width={size} height={size * 0.6} viewBox="0 0 400 200" className={className}>
