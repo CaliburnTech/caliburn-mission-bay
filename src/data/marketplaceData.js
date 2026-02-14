@@ -1970,6 +1970,313 @@ export const missionFlowTemplates = {
       { from: 'arrived', to: 'screen', label: 'No' }
     ],
     loopBack: { from: 'screen', to: 'scan', label: 'Continuous Screening' }
+  },
+
+  // ============ AERIAL MISSIONS ============
+  AERIAL_ISR: {
+    name: "Aerial ISR",
+    category: "ISR",
+    nodes: [
+      { id: 'launch', type: 'trigger', label: 'Launch', position: { x: 50, y: 150 } },
+      { id: 'transit', type: 'action', label: 'Transit to AO', position: { x: 200, y: 150 } },
+      { id: 'orbit', type: 'action', label: 'Enter Orbit', position: { x: 350, y: 150 } },
+      { id: 'scan', type: 'sense', label: 'Sensor Scan', position: { x: 500, y: 150 } },
+      { id: 'detect', type: 'decision', label: 'Target Detected?', position: { x: 650, y: 150 } },
+      { id: 'classify', type: 'orient', label: 'Classify & Track', position: { x: 800, y: 100 } },
+      { id: 'report', type: 'action', label: 'Report Intel', position: { x: 950, y: 100 } },
+      { id: 'fuel', type: 'decision', label: 'Fuel State?', position: { x: 650, y: 280 } },
+      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 800, y: 280 } }
+    ],
+    connections: [
+      { from: 'launch', to: 'transit' },
+      { from: 'transit', to: 'orbit' },
+      { from: 'orbit', to: 'scan' },
+      { from: 'scan', to: 'detect' },
+      { from: 'detect', to: 'classify', label: 'Yes' },
+      { from: 'detect', to: 'fuel', label: 'No' },
+      { from: 'classify', to: 'report' },
+      { from: 'report', to: 'fuel' },
+      { from: 'fuel', to: 'scan', label: 'Good' },
+      { from: 'fuel', to: 'rtb', label: 'Bingo' }
+    ]
+  },
+  PERSISTENT_MDA: {
+    name: "Persistent MDA",
+    category: "ISR",
+    nodes: [
+      { id: 'deploy', type: 'trigger', label: 'Deploy to Station', position: { x: 50, y: 150 } },
+      { id: 'station', type: 'action', label: 'Hold Station', position: { x: 200, y: 150 } },
+      { id: 'radar', type: 'sense', label: 'Maritime Radar', position: { x: 350, y: 100 } },
+      { id: 'ais', type: 'sense', label: 'AIS Correlation', position: { x: 350, y: 200 } },
+      { id: 'fuse', type: 'orient', label: 'Fuse Data', position: { x: 500, y: 150 } },
+      { id: 'anomaly', type: 'decision', label: 'Anomaly?', position: { x: 650, y: 150 } },
+      { id: 'cue', type: 'action', label: 'Cue Surface Assets', position: { x: 800, y: 100 } },
+      { id: 'update', type: 'action', label: 'Update COP', position: { x: 800, y: 200 } },
+      { id: 'handoff', type: 'decision', label: 'Relief On Station?', position: { x: 950, y: 150 } },
+      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 1100, y: 150 } }
+    ],
+    connections: [
+      { from: 'deploy', to: 'station' },
+      { from: 'station', to: 'radar' },
+      { from: 'station', to: 'ais' },
+      { from: 'radar', to: 'fuse' },
+      { from: 'ais', to: 'fuse' },
+      { from: 'fuse', to: 'anomaly' },
+      { from: 'anomaly', to: 'cue', label: 'Yes' },
+      { from: 'anomaly', to: 'update', label: 'No' },
+      { from: 'cue', to: 'update' },
+      { from: 'update', to: 'handoff' },
+      { from: 'handoff', to: 'station', label: 'No' },
+      { from: 'handoff', to: 'rtb', label: 'Yes' }
+    ]
+  },
+  AERIAL_REFUELING: {
+    name: "Aerial Refueling",
+    category: "LOGISTICS",
+    nodes: [
+      { id: 'launch', type: 'trigger', label: 'Launch Tanker', position: { x: 50, y: 150 } },
+      { id: 'transit', type: 'action', label: 'Transit to Track', position: { x: 200, y: 150 } },
+      { id: 'anchor', type: 'action', label: 'Enter Anchor', position: { x: 350, y: 150 } },
+      { id: 'advertise', type: 'action', label: 'Broadcast Availability', position: { x: 500, y: 150 } },
+      { id: 'receiver', type: 'decision', label: 'Receiver Inbound?', position: { x: 650, y: 150 } },
+      { id: 'rendezvous', type: 'action', label: 'Rendezvous', position: { x: 800, y: 100 } },
+      { id: 'refuel', type: 'action', label: 'Transfer Fuel', position: { x: 950, y: 100 } },
+      { id: 'complete', type: 'decision', label: 'Transfer Complete?', position: { x: 1100, y: 100 } },
+      { id: 'fuel_state', type: 'decision', label: 'Offload Remaining?', position: { x: 650, y: 280 } },
+      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 800, y: 280 } }
+    ],
+    connections: [
+      { from: 'launch', to: 'transit' },
+      { from: 'transit', to: 'anchor' },
+      { from: 'anchor', to: 'advertise' },
+      { from: 'advertise', to: 'receiver' },
+      { from: 'receiver', to: 'rendezvous', label: 'Yes' },
+      { from: 'receiver', to: 'fuel_state', label: 'No' },
+      { from: 'rendezvous', to: 'refuel' },
+      { from: 'refuel', to: 'complete' },
+      { from: 'complete', to: 'fuel_state', label: 'Yes' },
+      { from: 'complete', to: 'refuel', label: 'No - Retry' },
+      { from: 'fuel_state', to: 'advertise', label: 'Yes' },
+      { from: 'fuel_state', to: 'rtb', label: 'No' }
+    ]
+  },
+  TACTICAL_SUPPORT: {
+    name: "Tactical Support",
+    category: "COMBAT",
+    nodes: [
+      { id: 'scramble', type: 'trigger', label: 'Scramble', position: { x: 50, y: 150 } },
+      { id: 'transit', type: 'action', label: 'Transit to AO', position: { x: 200, y: 150 } },
+      { id: 'checkin', type: 'action', label: 'Check-in with JTAC', position: { x: 350, y: 150 } },
+      { id: 'hold', type: 'action', label: 'Hold Pattern', position: { x: 500, y: 150 } },
+      { id: 'tasking', type: 'decision', label: 'Tasking Received?', position: { x: 650, y: 150 } },
+      { id: 'acquire', type: 'sense', label: 'Acquire Target', position: { x: 800, y: 100 } },
+      { id: 'confirm', type: 'decision', label: 'Target Confirmed?', position: { x: 950, y: 100 } },
+      { id: 'human', type: 'human_checkpoint', label: 'Weapons Release Auth', position: { x: 1100, y: 100 } },
+      { id: 'engage', type: 'action', label: 'Engage', position: { x: 1250, y: 100 } },
+      { id: 'bda', type: 'action', label: 'BDA Report', position: { x: 1400, y: 100 } },
+      { id: 'winchester', type: 'decision', label: 'Winchester?', position: { x: 650, y: 280 } },
+      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 800, y: 280 } }
+    ],
+    connections: [
+      { from: 'scramble', to: 'transit' },
+      { from: 'transit', to: 'checkin' },
+      { from: 'checkin', to: 'hold' },
+      { from: 'hold', to: 'tasking' },
+      { from: 'tasking', to: 'acquire', label: 'Yes' },
+      { from: 'tasking', to: 'winchester', label: 'No' },
+      { from: 'acquire', to: 'confirm' },
+      { from: 'confirm', to: 'human', label: 'Yes' },
+      { from: 'confirm', to: 'hold', label: 'No' },
+      { from: 'human', to: 'engage', label: 'Approved' },
+      { from: 'human', to: 'hold', label: 'Denied' },
+      { from: 'engage', to: 'bda' },
+      { from: 'bda', to: 'winchester' },
+      { from: 'winchester', to: 'hold', label: 'No' },
+      { from: 'winchester', to: 'rtb', label: 'Yes' }
+    ]
+  },
+  COMMS_RELAY: {
+    name: "Comms Relay",
+    category: "LOGISTICS",
+    nodes: [
+      { id: 'launch', type: 'trigger', label: 'Launch', position: { x: 50, y: 150 } },
+      { id: 'climb', type: 'action', label: 'Climb to Altitude', position: { x: 200, y: 150 } },
+      { id: 'station', type: 'action', label: 'Establish Station', position: { x: 350, y: 150 } },
+      { id: 'link', type: 'action', label: 'Establish Data Links', position: { x: 500, y: 150 } },
+      { id: 'monitor', type: 'sense', label: 'Monitor Link Health', position: { x: 650, y: 150 } },
+      { id: 'degraded', type: 'decision', label: 'Link Degraded?', position: { x: 800, y: 150 } },
+      { id: 'reposition', type: 'action', label: 'Reposition', position: { x: 950, y: 100 } },
+      { id: 'fuel', type: 'decision', label: 'Fuel State?', position: { x: 800, y: 280 } },
+      { id: 'handoff', type: 'action', label: 'Handoff to Relief', position: { x: 950, y: 280 } },
+      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 1100, y: 280 } }
+    ],
+    connections: [
+      { from: 'launch', to: 'climb' },
+      { from: 'climb', to: 'station' },
+      { from: 'station', to: 'link' },
+      { from: 'link', to: 'monitor' },
+      { from: 'monitor', to: 'degraded' },
+      { from: 'degraded', to: 'reposition', label: 'Yes' },
+      { from: 'degraded', to: 'fuel', label: 'No' },
+      { from: 'reposition', to: 'monitor' },
+      { from: 'fuel', to: 'monitor', label: 'Good' },
+      { from: 'fuel', to: 'handoff', label: 'Bingo' },
+      { from: 'handoff', to: 'rtb' }
+    ]
+  },
+
+  // ============ COMBINED MISSIONS ============
+  COMBINED_ISR_DENIAL: {
+    name: "Combined ISR + Sea Denial",
+    category: "SEA_CONTROL",
+    nodes: [
+      { id: 'deploy', type: 'trigger', label: 'Deploy Forces', position: { x: 50, y: 150 } },
+      { id: 'aerial_station', type: 'action', label: 'Aerial: Enter Orbit', position: { x: 200, y: 80 } },
+      { id: 'surface_patrol', type: 'action', label: 'Surface: Patrol Zone', position: { x: 200, y: 220 } },
+      { id: 'aerial_scan', type: 'sense', label: 'Wide Area Scan', position: { x: 400, y: 80 } },
+      { id: 'surface_scan', type: 'sense', label: 'Close-In Scan', position: { x: 400, y: 220 } },
+      { id: 'fuse', type: 'orient', label: 'Fuse Intel', position: { x: 550, y: 150 } },
+      { id: 'contact', type: 'decision', label: 'Hostile Contact?', position: { x: 700, y: 150 } },
+      { id: 'cue', type: 'action', label: 'Aerial Cues Surface', position: { x: 850, y: 100 } },
+      { id: 'intercept', type: 'action', label: 'Surface Intercept', position: { x: 1000, y: 100 } },
+      { id: 'engage', type: 'action', label: 'Coordinated Engage', position: { x: 1150, y: 100 } },
+      { id: 'bda', type: 'action', label: 'Aerial BDA', position: { x: 1300, y: 100 } },
+      { id: 'continue', type: 'decision', label: 'Continue Ops?', position: { x: 700, y: 280 } },
+      { id: 'complete', type: 'end', label: 'Mission Complete', position: { x: 850, y: 280 } }
+    ],
+    connections: [
+      { from: 'deploy', to: 'aerial_station' },
+      { from: 'deploy', to: 'surface_patrol' },
+      { from: 'aerial_station', to: 'aerial_scan' },
+      { from: 'surface_patrol', to: 'surface_scan' },
+      { from: 'aerial_scan', to: 'fuse' },
+      { from: 'surface_scan', to: 'fuse' },
+      { from: 'fuse', to: 'contact' },
+      { from: 'contact', to: 'cue', label: 'Yes' },
+      { from: 'contact', to: 'continue', label: 'No' },
+      { from: 'cue', to: 'intercept' },
+      { from: 'intercept', to: 'engage' },
+      { from: 'engage', to: 'bda' },
+      { from: 'bda', to: 'continue' },
+      { from: 'continue', to: 'aerial_scan', label: 'Yes' },
+      { from: 'continue', to: 'complete', label: 'No' }
+    ]
+  },
+  COMBINED_ASW: {
+    name: "Combined ASW",
+    category: "DEFENSE",
+    nodes: [
+      { id: 'deploy', type: 'trigger', label: 'Deploy ASW Package', position: { x: 50, y: 150 } },
+      { id: 'aerial_pattern', type: 'action', label: 'Aerial: Sonobuoy Pattern', position: { x: 200, y: 80 } },
+      { id: 'surface_search', type: 'action', label: 'Surface: Active Sonar', position: { x: 200, y: 220 } },
+      { id: 'aerial_listen', type: 'sense', label: 'Passive Acoustic', position: { x: 400, y: 80 } },
+      { id: 'surface_listen', type: 'sense', label: 'Hull/Towed Array', position: { x: 400, y: 220 } },
+      { id: 'correlate', type: 'orient', label: 'Correlate Contacts', position: { x: 550, y: 150 } },
+      { id: 'sub_contact', type: 'decision', label: 'Submarine Contact?', position: { x: 700, y: 150 } },
+      { id: 'localize', type: 'action', label: 'MAD/Dipping Sonar', position: { x: 850, y: 100 } },
+      { id: 'prosecute', type: 'decision', label: 'Prosecute?', position: { x: 1000, y: 100 } },
+      { id: 'human', type: 'human_checkpoint', label: 'Weapons Auth', position: { x: 1150, y: 100 } },
+      { id: 'attack', type: 'action', label: 'Torpedo Attack', position: { x: 1300, y: 100 } },
+      { id: 'reattack', type: 'decision', label: 'Kill Confirmed?', position: { x: 1450, y: 100 } },
+      { id: 'continue', type: 'decision', label: 'Continue Search?', position: { x: 700, y: 280 } },
+      { id: 'complete', type: 'end', label: 'Area Sanitized', position: { x: 850, y: 280 } }
+    ],
+    connections: [
+      { from: 'deploy', to: 'aerial_pattern' },
+      { from: 'deploy', to: 'surface_search' },
+      { from: 'aerial_pattern', to: 'aerial_listen' },
+      { from: 'surface_search', to: 'surface_listen' },
+      { from: 'aerial_listen', to: 'correlate' },
+      { from: 'surface_listen', to: 'correlate' },
+      { from: 'correlate', to: 'sub_contact' },
+      { from: 'sub_contact', to: 'localize', label: 'Yes' },
+      { from: 'sub_contact', to: 'continue', label: 'No' },
+      { from: 'localize', to: 'prosecute' },
+      { from: 'prosecute', to: 'human', label: 'Yes' },
+      { from: 'prosecute', to: 'continue', label: 'No - Lost' },
+      { from: 'human', to: 'attack', label: 'Approved' },
+      { from: 'human', to: 'continue', label: 'Denied' },
+      { from: 'attack', to: 'reattack' },
+      { from: 'reattack', to: 'continue', label: 'Yes' },
+      { from: 'reattack', to: 'localize', label: 'No' },
+      { from: 'continue', to: 'aerial_listen', label: 'Yes' },
+      { from: 'continue', to: 'complete', label: 'No' }
+    ]
+  },
+  COMBINED_ESCORT: {
+    name: "Combined Convoy Escort",
+    category: "ESCORT",
+    nodes: [
+      { id: 'form', type: 'trigger', label: 'Form Escort', position: { x: 50, y: 150 } },
+      { id: 'aerial_cap', type: 'action', label: 'Aerial: Establish CAP', position: { x: 200, y: 80 } },
+      { id: 'surface_screen', type: 'action', label: 'Surface: Form Screen', position: { x: 200, y: 220 } },
+      { id: 'aerial_scan', type: 'sense', label: 'Long-Range Scan', position: { x: 400, y: 80 } },
+      { id: 'surface_scan', type: 'sense', label: 'Close Screening', position: { x: 400, y: 220 } },
+      { id: 'threat', type: 'decision', label: 'Threat Detected?', position: { x: 550, y: 150 } },
+      { id: 'classify', type: 'orient', label: 'Classify Threat', position: { x: 700, y: 100 } },
+      { id: 'air_threat', type: 'decision', label: 'Air or Surface?', position: { x: 850, y: 100 } },
+      { id: 'aerial_intercept', type: 'action', label: 'Aerial Intercept', position: { x: 1000, y: 50 } },
+      { id: 'surface_intercept', type: 'action', label: 'Surface Intercept', position: { x: 1000, y: 150 } },
+      { id: 'neutralize', type: 'action', label: 'Neutralize', position: { x: 1150, y: 100 } },
+      { id: 'hvu_status', type: 'decision', label: 'HVU Status?', position: { x: 550, y: 280 } },
+      { id: 'arrived', type: 'decision', label: 'Destination?', position: { x: 400, y: 350 } },
+      { id: 'complete', type: 'end', label: 'Escort Complete', position: { x: 250, y: 350 } }
+    ],
+    connections: [
+      { from: 'form', to: 'aerial_cap' },
+      { from: 'form', to: 'surface_screen' },
+      { from: 'aerial_cap', to: 'aerial_scan' },
+      { from: 'surface_screen', to: 'surface_scan' },
+      { from: 'aerial_scan', to: 'threat' },
+      { from: 'surface_scan', to: 'threat' },
+      { from: 'threat', to: 'classify', label: 'Yes' },
+      { from: 'threat', to: 'hvu_status', label: 'No' },
+      { from: 'classify', to: 'air_threat' },
+      { from: 'air_threat', to: 'aerial_intercept', label: 'Air' },
+      { from: 'air_threat', to: 'surface_intercept', label: 'Surface' },
+      { from: 'aerial_intercept', to: 'neutralize' },
+      { from: 'surface_intercept', to: 'neutralize' },
+      { from: 'neutralize', to: 'hvu_status' },
+      { from: 'hvu_status', to: 'arrived', label: 'Safe' },
+      { from: 'arrived', to: 'aerial_scan', label: 'No' },
+      { from: 'arrived', to: 'complete', label: 'Yes' }
+    ]
+  },
+  COMBINED_STRIKE: {
+    name: "Strike Package",
+    category: "COMBAT",
+    nodes: [
+      { id: 'mission_brief', type: 'trigger', label: 'Mission Brief', position: { x: 50, y: 150 } },
+      { id: 'aerial_launch', type: 'action', label: 'Aerial: Launch Strike', position: { x: 200, y: 80 } },
+      { id: 'surface_position', type: 'action', label: 'Surface: Move to FP', position: { x: 200, y: 220 } },
+      { id: 'aerial_ingress', type: 'action', label: 'Ingress to Target', position: { x: 400, y: 80 } },
+      { id: 'surface_standby', type: 'action', label: 'Standby for BDA', position: { x: 400, y: 220 } },
+      { id: 'aerial_acquire', type: 'sense', label: 'Acquire Target', position: { x: 550, y: 80 } },
+      { id: 'confirm', type: 'decision', label: 'Target Confirmed?', position: { x: 700, y: 80 } },
+      { id: 'human', type: 'human_checkpoint', label: 'Strike Auth', position: { x: 850, y: 80 } },
+      { id: 'aerial_strike', type: 'action', label: 'Aerial Strike', position: { x: 1000, y: 80 } },
+      { id: 'bda', type: 'sense', label: 'Aerial BDA', position: { x: 1150, y: 80 } },
+      { id: 'effective', type: 'decision', label: 'Strike Effective?', position: { x: 1300, y: 150 } },
+      { id: 'surface_strike', type: 'action', label: 'Surface Follow-Up', position: { x: 1300, y: 280 } },
+      { id: 'complete', type: 'end', label: 'Target Destroyed', position: { x: 1450, y: 150 } }
+    ],
+    connections: [
+      { from: 'mission_brief', to: 'aerial_launch' },
+      { from: 'mission_brief', to: 'surface_position' },
+      { from: 'aerial_launch', to: 'aerial_ingress' },
+      { from: 'surface_position', to: 'surface_standby' },
+      { from: 'aerial_ingress', to: 'aerial_acquire' },
+      { from: 'aerial_acquire', to: 'confirm' },
+      { from: 'confirm', to: 'human', label: 'Yes' },
+      { from: 'confirm', to: 'aerial_ingress', label: 'No - Reacquire' },
+      { from: 'human', to: 'aerial_strike', label: 'Approved' },
+      { from: 'aerial_strike', to: 'bda' },
+      { from: 'bda', to: 'effective' },
+      { from: 'surface_standby', to: 'effective' },
+      { from: 'effective', to: 'complete', label: 'Yes' },
+      { from: 'effective', to: 'surface_strike', label: 'No' },
+      { from: 'surface_strike', to: 'complete' }
+    ]
   }
 };
 

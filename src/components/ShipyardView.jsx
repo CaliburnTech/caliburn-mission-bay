@@ -27,8 +27,11 @@ const ShipyardView = ({
     setComparisonViewOpen
   } = useSquadronStore();
 
-  // Helper to get platformType from squadron's icon
+  // Helper to get platformType from squadron
   const getSquadronPlatformType = (squadron) => {
+    // First check if squadron has platformType directly
+    if (squadron.platformType) return squadron.platformType;
+    // Fallback: look up by icon
     const vessel = vesselHullData.find(v => v.icon === squadron.icon || v.name === squadron.icon);
     return vessel?.platformType;
   };

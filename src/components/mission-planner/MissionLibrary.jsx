@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { History, FileText, Rocket, Play, Pause, Check, Archive, Edit2, Eye, Copy, Trash2, Plus, Target, Users } from 'lucide-react';
+import { History, FileText, Rocket, Play, Pause, Check, Archive, Edit2, Eye, Copy, Trash2, Plus, Target, Users, Ship, Plane } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
 import { squadrons } from '../../data/marketplaceData';
 import { getStatusColor, getStatusBg, formatMissionDate } from '../../utils/statusUtils';
-import { KEY_MISSIONS } from './constants';
+import { ALL_MISSIONS } from './constants';
+
+// Domain badge colors
+const domainStyles = {
+  MARITIME: { color: '#3b82f6', icon: Ship, label: 'Maritime' },
+  AERIAL: { color: '#06b6d4', icon: Plane, label: 'Aerial' },
+  COMBINED: { color: '#8b5cf6', icon: Users, label: 'Combined' }
+};
 
 // Mission Library Panel (Compact sidebar view)
 export const MissionLibrary = ({ onSelectMission, onCloneMission, currentMissionId }) => {
@@ -116,8 +123,13 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
   const [sortDir, setSortDir] = useState('desc');
 
   const getMissionTypeColor = (template) => {
-    const mission = KEY_MISSIONS.find(m => m.key === template);
+    const mission = ALL_MISSIONS.find(m => m.key === template);
     return mission?.color || '#6b7280';
+  };
+
+  const getMissionDomain = (template) => {
+    const mission = ALL_MISSIONS.find(m => m.key === template);
+    return mission?.domain || 'MARITIME';
   };
 
   const filteredMissions = missions
@@ -202,8 +214,11 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
             </div>
           ) : (
             filteredMissions.map((mission, idx) => {
-              const missionType = KEY_MISSIONS.find(m => m.key === mission.template);
+              const missionType = ALL_MISSIONS.find(m => m.key === mission.template);
               const MissionIcon = missionType?.icon || Target;
+              const domain = mission.domain || getMissionDomain(mission.template);
+              const domainStyle = domainStyles[domain] || domainStyles.MARITIME;
+              const DomainIcon = domainStyle.icon;
               return (
                 <div key={mission.id} onClick={() => onSelectMission(mission)} className={`data-table-row gap-sm ${idx % 2 === 1 ? 'data-table-row-alt' : ''}`} style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr 120px' }}>
                   <div className="flex items-center gap-md">
@@ -218,6 +233,7 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
                   <div className="flex items-center gap-sm">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getMissionTypeColor(mission.template) }} />
                     <span className="text-secondary text-xs">{missionType?.name || mission.template}</span>
+                    <DomainIcon size={10} style={{ color: domainStyle.color }} className="ml-1 opacity-60" />
                   </div>
                   <div>
                     <span className="badge-status" style={{ backgroundColor: getStatusBg(mission.status), color: getStatusColor(mission.status) }}>

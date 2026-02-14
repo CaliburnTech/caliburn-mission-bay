@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Layers, Save, Rocket } from 'lucide-react';
+import { ChevronLeft, Layers, Save, Rocket, Ship, Plane, Users } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
 import { missionFlowTemplates, squadrons } from '../../data/marketplaceData';
-import { KEY_MISSIONS, hierarchyPresets, nodeTypes, zoneTypes } from './constants';
+import {
+  KEY_MARITIME_MISSIONS,
+  KEY_AERIAL_MISSIONS,
+  KEY_COMBINED_MISSIONS,
+  ALL_MISSIONS,
+  MISSION_DOMAINS,
+  hierarchyPresets,
+  nodeTypes,
+  zoneTypes
+} from './constants';
 import FlowCanvas from './FlowCanvas';
 import MapZoneEditor from './MapZoneEditor';
 import SquadronAssignment from './SquadronAssignment';
@@ -51,6 +60,21 @@ const getDefaultZoneConfig = (missionKey) => {
   }
 };
 
+// Get mission domain from template key
+const getMissionDomain = (templateKey) => {
+  const mission = ALL_MISSIONS.find(m => m.key === templateKey);
+  return mission?.domain || 'MARITIME';
+};
+
+// Get missions for a specific domain
+const getMissionsForDomain = (domain) => {
+  switch (domain) {
+    case 'AERIAL': return KEY_AERIAL_MISSIONS;
+    case 'COMBINED': return KEY_COMBINED_MISSIONS;
+    default: return KEY_MARITIME_MISSIONS;
+  }
+};
+
 // Mission Configuration View (opened when clicking a mission or creating new)
 const MissionConfigView = ({ mission, onBack }) => {
   const {
@@ -61,6 +85,11 @@ const MissionConfigView = ({ mission, onBack }) => {
     saveMission,
     updateMission
   } = useMissionStore();
+
+  // Domain filter state - derive from existing mission or default to MARITIME
+  const [selectedDomain, setSelectedDomain] = useState(
+    mission?.domain || getMissionDomain(mission?.template) || 'MARITIME'
+  );
 
   // State-based autonomy hierarchies (keyed by node ID)
   const [stateHierarchies, setStateHierarchies] = useState(
@@ -94,8 +123,14 @@ const MissionConfigView = ({ mission, onBack }) => {
       : getDefaultZoneConfig(mission?.template || 'SEA_DENIAL');
   });
 
-  // Assigned squadrons for this mission (hierarchy: Vessels → Squadrons → Fleets)
-  const [assignedSquadrons, setAssignedSquadrons] = useState(mission?.assignedSquadrons || []);
+  // Assigned squadrons for this mission
+  // For COMBINED: { aerial: [], maritime: [] }
+  // For single-domain: []
+  const [assignedSquadrons, setAssignedSquadrons] = useState(() => {
+    if (mission?.assignedSquadrons) return mission.assignedSquadrons;
+    if (selectedDomain === 'COMBINED') return { aerial: [], maritime: [] };
+    return [];
+  });
 
   // Initialize from mission or load default
   useEffect(() => {
@@ -103,8 +138,9 @@ const MissionConfigView = ({ mission, onBack }) => {
       loadMissionTemplate(mission.template, missionFlowTemplates[mission.template]);
       setMissionPlannerConfig({ name: mission.name, duration: mission.duration });
     } else if (!selectedMissionTemplate) {
-      const defaultMission = KEY_MISSIONS[0];
-      const template = missionFlowTemplates[defaultMission.key];
+      const domainMissions = getMissionsForDomain(selectedDomain);
+      const defaultMission = domainMissions[0];
+      const template = missionFlowTemplates[defaultMission?.key];
       if (template) {
         loadMissionTemplate(defaultMission.key, template);
         setMissionPlannerConfig({ name: '' });
@@ -114,6 +150,8 @@ const MissionConfigView = ({ mission, onBack }) => {
 
   const selectMission = (missionKey) => {
     const template = missionFlowTemplates[missionKey];
+    const missionDomain = getMissionDomain(missionKey);
+
     if (template) {
       loadMissionTemplate(missionKey, template);
 
@@ -122,7 +160,7 @@ const MissionConfigView = ({ mission, onBack }) => {
         ? hierarchyPresets.OFFENSIVE
         : missionKey === 'CONTESTED_LOGISTICS'
         ? hierarchyPresets.EVASIVE
-        : missionKey === 'RECONNAISSANCE'
+        : missionKey === 'RECONNAISSANCE' || missionKey === 'AERIAL_ISR'
         ? hierarchyPresets.ISR
         : hierarchyPresets.DEFAULT;
 
@@ -136,6 +174,24 @@ const MissionConfigView = ({ mission, onBack }) => {
 
       // Reset zone config to match the new mission type's geometry
       setZoneConfig(getDefaultZoneConfig(missionKey));
+
+      // Reset assignedSquadrons if domain changed
+      if (missionDomain !== selectedDomain) {
+        setSelectedDomain(missionDomain);
+        setAssignedSquadrons(missionDomain === 'COMBINED' ? { aerial: [], maritime: [] } : []);
+      }
+    }
+  };
+
+  // Handle domain tab change
+  const handleDomainChange = (newDomain) => {
+    setSelectedDomain(newDomain);
+    // Reset assignedSquadrons format
+    setAssignedSquadrons(newDomain === 'COMBINED' ? { aerial: [], maritime: [] } : []);
+    // Select first mission in new domain
+    const domainMissions = getMissionsForDomain(newDomain);
+    if (domainMissions.length > 0) {
+      selectMission(domainMissions[0].key);
     }
   };
 
@@ -153,6 +209,7 @@ const MissionConfigView = ({ mission, onBack }) => {
       name: missionPlannerConfig.name,
       duration: missionPlannerConfig.duration,
       template: selectedMissionTemplate,
+      domain: selectedDomain,
       stateHierarchies,
       zoneConfig,
       assignedSquadrons,
@@ -168,8 +225,19 @@ const MissionConfigView = ({ mission, onBack }) => {
     onBack();
   };
 
+  // Get total assigned squadrons count (handles both formats)
+  const getAssignedCount = () => {
+    if (selectedDomain === 'COMBINED') {
+      const aerial = assignedSquadrons?.aerial?.length || 0;
+      const maritime = assignedSquadrons?.maritime?.length || 0;
+      return aerial + maritime;
+    }
+    return assignedSquadrons?.length || 0;
+  };
 
-  const currentMission = KEY_MISSIONS.find(m => m.key === selectedMissionTemplate);
+
+  const currentMission = ALL_MISSIONS.find(m => m.key === selectedMissionTemplate);
+  const domainMissions = getMissionsForDomain(selectedDomain);
   const configuredStates = Object.keys(stateHierarchies).length;
 
   // Auto-generate mission name
@@ -209,11 +277,37 @@ const MissionConfigView = ({ mission, onBack }) => {
         </div>
       </div>
 
-      {/* Mission Selector - Horizontal Cards */}
+      {/* Mission Selector - Domain Tabs + Horizontal Cards */}
       <div className="bg-darker rounded-lg border border-border-subtle p-4">
-        <h3 className="text-lime-brand text-[0.85rem] font-semibold mb-3">SELECT MISSION TYPE</h3>
-        <div className="grid grid-cols-6 gap-3">
-          {KEY_MISSIONS.map((m) => {
+        {/* Domain Tabs */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lime-brand text-[0.85rem] font-semibold">SELECT MISSION TYPE</h3>
+          <div className="flex gap-1 bg-darkest rounded-lg p-1">
+            {[
+              { key: 'MARITIME', label: 'Maritime', icon: Ship, color: '#3b82f6' },
+              { key: 'AERIAL', label: 'Aerial', icon: Plane, color: '#06b6d4' },
+              { key: 'COMBINED', label: 'Combined', icon: Users, color: '#8b5cf6' }
+            ].map(({ key, label, icon: Icon, color }) => (
+              <button
+                key={key}
+                onClick={() => handleDomainChange(key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.65rem] font-semibold transition-all ${
+                  selectedDomain === key
+                    ? 'text-white'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+                style={selectedDomain === key ? { backgroundColor: `${color}30`, color } : {}}
+              >
+                <Icon size={12} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mission Cards */}
+        <div className={`grid gap-3 ${domainMissions.length <= 4 ? 'grid-cols-4' : domainMissions.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'}`}>
+          {domainMissions.map((m) => {
             const Icon = m.icon;
             const isSelected = selectedMissionTemplate === m.key;
             return (
@@ -325,6 +419,7 @@ const MissionConfigView = ({ mission, onBack }) => {
               assignedSquadrons={assignedSquadrons}
               setAssignedSquadrons={setAssignedSquadrons}
               availableSquadrons={squadrons}
+              missionDomain={selectedDomain}
             />
           </div>
 
@@ -367,15 +462,15 @@ const MissionConfigView = ({ mission, onBack }) => {
               </button>
               <button
                 onClick={() => handleSave(false)}
-                disabled={!missionPlannerConfig.name || !selectedMissionTemplate || assignedSquadrons.length === 0}
+                disabled={!missionPlannerConfig.name || !selectedMissionTemplate || getAssignedCount() === 0}
                 className={`flex-1 flex items-center justify-center gap-1 py-1.5 border-0 rounded text-[0.65rem] font-semibold ${
-                  missionPlannerConfig.name && selectedMissionTemplate && assignedSquadrons.length > 0
+                  missionPlannerConfig.name && selectedMissionTemplate && getAssignedCount() > 0
                     ? 'bg-lime-brand text-black cursor-pointer'
                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                 }`}
               >
                 <Rocket size={12} />
-                Deploy ({assignedSquadrons.length} sqdn)
+                Deploy ({getAssignedCount()} sqdn)
               </button>
             </div>
           </div>

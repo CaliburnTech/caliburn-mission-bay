@@ -145,7 +145,7 @@ const MarketplacePage = ({ onLogoClick }) => {
         <div className="mb-10 py-6 bg-transparent border-b border-gray-700/60">
           {/* Navigation Tabs and Search in flex container */}
           <div className="flex justify-between items-center gap-4 flex-wrap">
-            {/* Navigation Tabs - Fleet first */}
+            {/* Navigation Tabs - Squadrons first */}
             <div className="flex gap-2 items-center flex-wrap">
               <button
                 onClick={() => {
@@ -154,7 +154,7 @@ const MarketplacePage = ({ onLogoClick }) => {
                 }}
                 className={`${(selectedView === 'shipyard' || selectedView === 'outfitter') ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
               >
-                Fleet
+                Squadrons
               </button>
               <button
                 onClick={() => setSelectedView('capabilities')}

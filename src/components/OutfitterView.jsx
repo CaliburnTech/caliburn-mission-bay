@@ -1,11 +1,12 @@
 import React from 'react';
 import { Ship, X, Target, Settings, ChevronLeft, Plus, Minus, Grid3X3, Maximize2, Move } from 'lucide-react';
-import { vesselHullComponents, vesselHullData, vesselMountPoints } from '../data/vesselData';
+import { vesselHullComponents, vesselHullData, vesselMountPoints, isAerialPlatform } from '../data/vesselData';
 import { individualCapabilities, capabilityCategories } from '../data/marketplaceData';
 import { getSecurityLevel, STATUS_COLORS, BRAND_COLORS } from '../constants/colors';
 import useOutfitterStore from '../store/outfitterStore';
 import useMountPointDragDrop from '../hooks/useMountPointDragDrop';
 import VesselStatsDisplay from './VesselStatsDisplay';
+import AerialStatsDisplay from './AerialStatsDisplay';
 import MountPointNode from './MountPointNode';
 
 const OutfitterView = ({ onBackToShipyard }) => {
@@ -775,10 +776,14 @@ const OutfitterView = ({ onBackToShipyard }) => {
             </div>
           </div>
 
-          {/* Right Panel - Vessel Performance Stats */}
+          {/* Right Panel - Platform Performance Stats */}
           <div className="w-[320px] flex-shrink-0">
             <div className="sticky top-6">
-              <VesselStatsDisplay />
+              {isAerialPlatform(selectedHull?.platformType) ? (
+                <AerialStatsDisplay />
+              ) : (
+                <VesselStatsDisplay />
+              )}
             </div>
           </div>
         </div>

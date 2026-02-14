@@ -4,11 +4,27 @@
 let squadronIdCounter = 100;
 export const generateSquadronId = () => `sqdn_${++squadronIdCounter}`;
 
+// Domain classification helpers for squadrons
+export const getSquadronDomain = (squadron) => {
+  if (!squadron) return null;
+  const pt = squadron.platformType;
+  if (pt === 'UAV') return 'AERIAL';
+  if (pt === 'USV' || pt === 'UUV') return 'MARITIME';
+  // Fallback: check type string
+  const type = squadron.type?.toLowerCase() || '';
+  if (type.includes('uav') || type.includes('drone') || type.includes('aerial')) return 'AERIAL';
+  return 'MARITIME';
+};
+
+export const isAerialSquadron = (squadron) => getSquadronDomain(squadron) === 'AERIAL';
+export const isMaritimeSquadron = (squadron) => getSquadronDomain(squadron) === 'MARITIME';
+
 export const swarmSquadrons = [
   {
     id: "sqdn_001",
     name: "MetalShark Patrol Drones",
     type: "High-Speed USV",
+    platformType: "USV",
     totalUnits: 280,
     status: {
       missionReady: 247,
@@ -28,6 +44,7 @@ export const swarmSquadrons = [
     id: "sqdn_002",
     name: "Saildrone Autonomous Fleet",
     type: "Wind-Powered USV",
+    platformType: "USV",
     totalUnits: 117,
     status: {
       missionReady: 89,
@@ -45,6 +62,7 @@ export const swarmSquadrons = [
     id: "sqdn_003",
     name: "MQ-9 Reaper Drone Wing",
     type: "Hunter-Killer UAV",
+    platformType: "UAV",
     totalUnits: 168,
     status: {
       missionReady: 156,
@@ -62,6 +80,7 @@ export const swarmSquadrons = [
     id: "sqdn_004",
     name: "SubSeaSail UUV Squadron",
     type: "Autonomous UUV",
+    platformType: "UUV",
     totalUnits: 45,
     status: {
       missionReady: 38,
@@ -80,6 +99,7 @@ export const swarmSquadrons = [
     id: "sqdn_005",
     name: "Switchblade Loitering Munition Arsenal",
     type: "Tactical UAV",
+    platformType: "UAV",
     totalUnits: 892,
     status: {
       missionReady: 856,
@@ -97,6 +117,7 @@ export const swarmSquadrons = [
     id: "sqdn_006",
     name: "Black Widow Micro-Drone Swarm",
     type: "Micro UAV",
+    platformType: "UAV",
     totalUnits: 1247,
     status: {
       missionReady: 1198,
@@ -115,6 +136,7 @@ export const swarmSquadrons = [
     id: "sqdn_007",
     name: "GARC",
     type: "Research Vessel",
+    platformType: "USV",
     totalUnits: 1,
     status: {
       missionReady: 1,
@@ -133,6 +155,7 @@ export const swarmSquadrons = [
     id: "sqdn_008",
     name: "AEGIR-F Kinetic Strike Swarm",
     type: "Kinetic USV",
+    platformType: "USV",
     totalUnits: 48,
     status: {
       missionReady: 42,
@@ -151,6 +174,7 @@ export const swarmSquadrons = [
     id: "sqdn_009",
     name: "AEGIR-W Combat Squadron",
     type: "Combat USV",
+    platformType: "USV",
     totalUnits: 24,
     status: {
       missionReady: 18,
@@ -169,6 +193,7 @@ export const swarmSquadrons = [
     id: "sqdn_010",
     name: "AEGIR-H Multi-Role Flotilla",
     type: "Multi-Role USV",
+    platformType: "USV",
     totalUnits: 8,
     status: {
       missionReady: 5,
@@ -188,6 +213,7 @@ export const swarmSquadrons = [
     id: "sqdn_011",
     name: "MQ-25 Stingray Tanker Wing",
     type: "Carrier-Based Tanker UAV",
+    platformType: "UAV",
     totalUnits: 12,
     status: {
       missionReady: 9,
@@ -205,6 +231,7 @@ export const swarmSquadrons = [
     id: "sqdn_012",
     name: "MQ-4C Triton HALE Squadron",
     type: "HALE Maritime ISR",
+    platformType: "UAV",
     totalUnits: 8,
     status: {
       missionReady: 5,
@@ -222,6 +249,7 @@ export const swarmSquadrons = [
     id: "sqdn_013",
     name: "MQ-8C Fire Scout Detachment",
     type: "Shipborne VTOL UAV",
+    platformType: "UAV",
     totalUnits: 24,
     status: {
       missionReady: 18,
@@ -230,6 +258,24 @@ export const swarmSquadrons = [
     },
     icon: "MQ-8C Fire Scout",
     description: "Northrop Grumman autonomous helicopters for shipborne ISR and targeting from LCS and frigates",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_014",
+    name: "RQ-21A Blackjack Flight",
+    type: "Small Tactical UAS",
+    platformType: "UAV",
+    totalUnits: 36,
+    status: {
+      missionReady: 28,
+      deployed: 6,
+      maintenance: 2
+    },
+    icon: "RQ-21A Blackjack",
+    description: "Boeing/Insitu small tactical UAS for ship-based reconnaissance and surveillance missions",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -411,6 +457,22 @@ export const squadronUnitConfigurations = {
         count: 4,
         capabilities: ["Mine Detection Sonar", "MCM Sensors", "Data Link"],
         status: { missionReady: 3, deployed: 0, charging: 0, maintenance: 1 }
+      }
+    ]
+  },
+  "sqdn_014": { // RQ-21A Blackjack Flight
+    outfits: [
+      {
+        name: "Ship-Based ISR Package",
+        count: 20,
+        capabilities: ["EO/IR Camera", "Laser Range Finder", "CDL Data Link"],
+        status: { missionReady: 16, deployed: 4, charging: 0, maintenance: 0 }
+      },
+      {
+        name: "Tactical Recon Package",
+        count: 16,
+        capabilities: ["EO/IR Camera", "Comms Relay", "GPS Targeting"],
+        status: { missionReady: 12, deployed: 2, charging: 0, maintenance: 2 }
       }
     ]
   }
