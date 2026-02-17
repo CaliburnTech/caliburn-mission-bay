@@ -18,7 +18,14 @@ import {
   MQ9ReaperHull,
   MQ4CTritonHull,
   MQ8FireScoutHull,
-  RQ21BlackjackHull
+  RQ21BlackjackHull,
+  GARCHull,
+  SubSeaSailHull,
+  AEGIRFHull,
+  AEGIRWHull,
+  AEGIRHHull,
+  BlackWidowHull,
+  SwitchbladeHull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -730,14 +737,14 @@ export const vesselHullComponents = {
   // Small USV category
   "MetalShark": MetalSharkHull,
   "Saildrone": SailboatHull,
-  "SubSeaSail": UUVHull,
+  "SubSeaSail": SubSeaSailHull,
   "Otter X": SmallUSVHull,
   "Mariner": SmallUSVHull,
-  "AEGIR-F": StealthHull,       // SNC small kinetic USV (stealth profile)
+  "AEGIR-F": AEGIRFHull,        // SNC small kinetic USV
   // Medium USV category
   "MASC": MediumUSVHull,
-  "AEGIR-W": MediumUSVHull,     // SNC medium combat USV
-  "AEGIR-H": MediumUSVHull,     // SNC large 49ft multi-role USV
+  "AEGIR-W": AEGIRWHull,        // SNC medium combat USV
+  "AEGIR-H": AEGIRHHull,        // SNC large 49ft multi-role USV
   // AUSV category
   "Triton": TritonAUSVHull,
   // Large/XLUUV category
@@ -748,6 +755,8 @@ export const vesselHullComponents = {
   "MQ-4C Triton": MQ4CTritonHull,
   "MQ-8C Fire Scout": MQ8FireScoutHull,
   "RQ-21A Blackjack": RQ21BlackjackHull,
+  "Black Widow": BlackWidowHull,
+  "Switchblade": SwitchbladeHull,
   // Crewed vessels
   "Arleigh Burke": ArleighBurkeHull,
   "Virginia Class": SubmarineHull,
@@ -758,7 +767,7 @@ export const vesselHullComponents = {
   "Virginia": SubmarineHull,
   "USV Patrol Boat": SmallUSVHull,
   "Oliver Hazard Perry Class": FreedomLCSHull,
-  "GARC": StealthHull,
+  "GARC": GARCHull,
   "Custom Platform": CustomPlatformHull
 };
 

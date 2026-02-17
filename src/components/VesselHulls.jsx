@@ -787,94 +787,18 @@ export const CatamaranHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-// MetalShark Autonomous Patrol Boat - Angular V-hull with flat transom
+// MetalShark Autonomous Patrol Boat - Image
+import metalSharkImg from '../assets/images/MetalShark.png';
+
 export const MetalSharkHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.5} viewBox="0 0 450 180" className={className}>
-    <defs>
-      <linearGradient id="metalsharkGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#4a5568" />
-        <stop offset="100%" stopColor="#2d3748" />
-      </linearGradient>
-    </defs>
-
-    {/* V-hull with sharp bow and flat transom stern - classic patrol boat shape */}
-    <path
-      d="M 30 90
-         L 60 80
-         L 100 72
-         L 150 66
-         L 200 62
-         L 280 60
-         L 360 60
-         L 400 60
-         L 400 120
-         L 360 120
-         L 280 120
-         L 200 118
-         L 150 114
-         L 100 108
-         L 60 100
-         L 30 90 Z"
-      className="stroke-lime-brand stroke-[1.5]"
-      fill="url(#metalsharkGradient)"
-    />
-
-    {/* Flat transom stern */}
-    <line x1="400" y1="60" x2="400" y2="120" className="stroke-lime-brand stroke-2" />
-
-    {/* V-hull chine lines from bow */}
-    <path d="M 30 90 L 150 75 L 280 68" className="stroke-lime-brand stroke-1 opacity-50" />
-    <path d="M 30 90 L 150 105 L 280 112" className="stroke-lime-brand stroke-1 opacity-50" />
-
-    {/* Center keel line */}
-    <line x1="30" y1="90" x2="400" y2="90" className="stroke-lime-brand stroke-[0.5] opacity-30" />
-
-    {/* Angular pilothouse/cabin - forward position */}
-    <path
-      d="M 140 62 L 140 42 L 150 34 L 220 34 L 230 42 L 230 62"
-      className="fill-[#3d4852] stroke-lime-brand stroke-[1.5]"
-    />
-    {/* Angled windscreen */}
-    <path
-      d="M 145 44 L 152 36 L 218 36 L 225 44"
-      className="fill-[#1a202c] stroke-lime-brand stroke-1"
-    />
-
-    {/* Sensor mast */}
-    <line x1="185" y1="34" x2="185" y2="14" className="stroke-lime-brand stroke-[1.5]" />
-    <rect x="178" y="10" width="14" height="8" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
-    <circle cx="185" cy="8" r="4" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
-
-    {/* Forward weapon/sensor mount on bow */}
-    <path
-      d="M 80 82 L 80 75 L 90 70 L 110 70 L 120 75 L 120 82"
-      className="fill-[#3d4852] stroke-lime-brand stroke-1"
-    />
-    <circle cx="100" cy="78" r="8" className="fill-none stroke-lime-brand stroke-1" strokeDasharray="2,2" />
-
-    {/* Open aft deck - work area */}
-    <rect x="250" y="68" width="140" height="44" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
-
-    {/* Outboard motor mounts on transom */}
-    <rect x="405" y="70" width="15" height="16" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
-    <rect x="405" y="94" width="15" height="16" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
-    <ellipse cx="425" cy="78" rx="6" ry="4" className="fill-none stroke-lime-brand stroke-1" />
-    <ellipse cx="425" cy="102" rx="6" ry="4" className="fill-none stroke-lime-brand stroke-1" />
-
-    {/* Gunwale/rail lines */}
-    <path d="M 100 66 L 280 60 L 400 60" className="stroke-lime-brand stroke-[0.5] opacity-40" />
-    <path d="M 100 114 L 280 120 L 400 120" className="stroke-lime-brand stroke-[0.5] opacity-40" />
-
-    {/* Component mounting areas on aft deck */}
-    <rect x="260" y="72" width="50" height="36" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="2,2" />
-    <rect x="320" y="72" width="50" height="36" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="2,2" />
-
-    {/* Autonomous systems indicators */}
-    <circle cx="160" cy="40" r="2" className="fill-lime-brand opacity-60" />
-    <circle cx="175" cy="40" r="2" className="fill-lime-brand opacity-60" />
-    <circle cx="195" cy="40" r="2" className="fill-lime-brand opacity-60" />
-    <circle cx="210" cy="40" r="2" className="fill-lime-brand opacity-60" />
-  </svg>
+  <img
+    src={metalSharkImg}
+    alt="MetalShark Patrol Boat"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', filter: 'brightness(0.8)', clipPath: 'inset(5% 10% 10% 5% round 12px)' }}
+  />
 );
 
 export const RIBHull = MetalSharkHull;
@@ -961,97 +885,25 @@ export const CorvetteHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-// Saildrone USV - Rigid Wing Sail Design (NOT fabric sail)
-export const SaildroneHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.7} viewBox="0 0 400 280" className={className}>
-    <defs>
-      <linearGradient id="saildroneWingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#4a5568" />
-        <stop offset="100%" stopColor="#2d3748" />
-      </linearGradient>
-    </defs>
+// Saildrone USV - Image
+import saildroneImg from '../assets/images/Saildrone.png';
 
-    {/* Narrow hull - elongated kayak-like shape */}
-    <path
-      d="M 180 220
-         L 170 215
-         L 165 200
-         L 165 180
-         L 170 170
-         L 230 170
-         L 235 180
-         L 235 200
-         L 230 215
-         L 220 220
-         L 200 225
-         L 180 220 Z"
-      className="fill-[#3d4852] stroke-lime-brand stroke-[1.5]"
+export const SaildroneHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={saildroneImg}
+      alt="Saildrone"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
     />
-
-    {/* Deep keel fin */}
-    <path
-      d="M 200 225 L 200 260 L 195 265 L 205 265 L 200 260"
-      className="fill-[#2d3748] stroke-lime-brand stroke-1"
-    />
-    <ellipse cx="200" cy="268" rx="12" ry="4" className="fill-none stroke-lime-brand stroke-1 opacity-50" />
-
-    {/* Rigid Wing Sail - airplane wing profile standing vertical */}
-    <path
-      d="M 200 170
-         L 200 30
-         L 202 25
-         L 205 22
-         L 210 20
-         L 218 20
-         L 235 25
-         L 245 35
-         L 250 50
-         L 250 140
-         L 248 150
-         L 240 158
-         L 225 165
-         L 210 170
-         L 200 170 Z"
-      className="stroke-lime-brand stroke-[1.5]"
-      fill="url(#saildroneWingGradient)"
-    />
-
-    {/* Wing sail internal spar */}
-    <line x1="200" y1="170" x2="200" y2="30" className="stroke-lime-brand stroke-1 opacity-40" />
-
-    {/* Wing trailing edge trim tab */}
-    <path
-      d="M 250 60 L 265 55 L 268 60 L 265 65 L 250 70"
-      className="fill-[#3d4852] stroke-lime-brand stroke-1"
-    />
-    <path
-      d="M 250 100 L 265 95 L 268 100 L 265 105 L 250 110"
-      className="fill-[#3d4852] stroke-lime-brand stroke-1"
-    />
-
-    {/* Sensor mast at wing top */}
-    <line x1="210" y1="20" x2="210" y2="8" className="stroke-lime-brand stroke-1" />
-    <circle cx="210" cy="5" r="4" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
-
-    {/* Solar panels on hull deck */}
-    <rect x="175" y="175" width="50" height="35" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
-    <line x1="185" y1="175" x2="185" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
-    <line x1="195" y1="175" x2="195" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
-    <line x1="205" y1="175" x2="205" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
-    <line x1="215" y1="175" x2="215" y2="210" className="stroke-lime-brand stroke-[0.5] opacity-40" />
-
-    {/* Payload/sensor bays */}
-    <rect x="180" y="213" width="40" height="8" className="fill-none stroke-lime-brand stroke-1 opacity-50" strokeDasharray="2,2" />
-
-    {/* Wing rotation base */}
-    <circle cx="200" cy="170" r="6" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
-
-    {/* Status indicators */}
-    <circle cx="190" cy="190" r="2" className="fill-lime-brand opacity-60" />
-    <circle cx="200" cy="190" r="2" className="fill-lime-brand opacity-60" />
-    <circle cx="210" cy="190" r="2" className="fill-lime-brand opacity-60" />
-  </svg>
-);
+  );
+};
 
 // Legacy alias
 export const SailboatHull = SaildroneHull;
@@ -1213,40 +1065,65 @@ export const MQ25StingrayHull = ({ size = 200, className = "" }) => (
 );
 
 // General Atomics MQ-9 Reaper - Hunter-Killer MALE UAV
-// Distinctive plus-sign/cruciform shape
-export const MQ9ReaperHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.8} viewBox="0 0 200 160" className={className}>
-    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
-      {/* Clean cruciform silhouette */}
-      <path
-        d="M 15 80
-           L 25 78
-           L 55 78
-           L 55 15
-           L 50 12
-           L 65 18
-           L 65 78
-           L 150 78
-           L 160 70
-           L 165 73
-           L 155 80
-           L 165 87
-           L 160 90
-           L 150 82
-           L 65 82
-           L 65 142
-           L 50 148
-           L 55 145
-           L 55 82
-           L 25 82
-           L 15 80 Z"
-        className="stroke-[2]"
-      />
-      {/* Propeller disc */}
-      <circle cx="175" cy="80" r="18" className="fill-none stroke-[1.5] opacity-50" />
-    </g>
-  </svg>
-);
+// MQ-9 Reaper - Image
+import mq9ReaperImg from '../assets/images/MQ9Reaper.png';
+
+export const MQ9ReaperHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={mq9ReaperImg}
+      alt="MQ-9 Reaper"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.38)', clipPath: 'inset(8% 12% 12% 8% round 20px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
+
+// Black Widow Micro-Drone - Image
+import blackWidowImg from '../assets/images/BlackWidow.png';
+
+export const BlackWidowHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={blackWidowImg}
+      alt="Black Widow Micro-Drone"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
+
+// Switchblade Loitering Munition - Image
+import switchbladeImg from '../assets/images/Switchblade.png';
+
+export const SwitchbladeHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={switchbladeImg}
+      alt="Switchblade Loitering Munition"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
 
 // Northrop Grumman MQ-4C Triton - HALE Maritime ISR
 // Very long wingspan, bulbous nose
@@ -1385,5 +1262,101 @@ export const CustomPlatformHull = ({ size = 200, className = "" }) => (
     </g>
   </svg>
 );
+
+// SubSeaSail UUV - Image
+import subSeaSailImg from '../assets/images/SubSeaSail.png';
+
+export const SubSeaSailHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={subSeaSailImg}
+      alt="SubSeaSail UUV"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(0.77)', filter: 'brightness(1.5)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
+
+// AEGIR Family - Images
+import aegirFImg from '../assets/images/AEGIR-F.png';
+import aegirWImg from '../assets/images/AEGIR-W.png';
+import aegirHImg from '../assets/images/AEGIR-H.png';
+
+export const AEGIRFHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={aegirFImg}
+      alt="AEGIR-F Kinetic USV"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(0.96)', filter: 'brightness(1.5)', clipPath: 'inset(3% 1% 10% 1% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
+
+export const AEGIRWHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={aegirWImg}
+      alt="AEGIR-W Combat USV"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
+
+export const AEGIRHHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={aegirHImg}
+      alt="AEGIR-H Multi-Role USV"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
+
+// GARC Research Vessel - Image
+import garcImg from '../assets/images/GARC.png';
+
+export const GARCHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={garcImg}
+      alt="GARC Research Vessel"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.22)', clipPath: 'inset(3% 4% 10% 3% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
 
 // Note: Vessel data and mappings have been moved to src/data/vesselData.js to fix fast refresh violations

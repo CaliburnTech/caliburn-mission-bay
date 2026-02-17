@@ -106,7 +106,7 @@ export const swarmSquadrons = [
       deployed: 24,
       maintenance: 12
     },
-    icon: "MetalShark",
+    icon: "Switchblade",
     description: "Precision strike loitering munition swarm for tactical engagement",
     isVariation: false,
     parentId: null,
@@ -125,7 +125,7 @@ export const swarmSquadrons = [
       deployed: 15,
       maintenance: 2
     },
-    icon: "Saildrone",
+    icon: "Black Widow",
     description: "Ultra-small reconnaissance drone swarm for urban and confined operations",
     isVariation: false,
     parentId: null,
