@@ -1022,47 +1022,25 @@ export const TritonAUSVHull = ({ size = 200, className = "" }) => (
 // Clean silhouette style - aircraft recognition approach
 
 // Boeing MQ-25 Stingray - Carrier-Based Aerial Refueling Drone
-// Blended wing-body with straight wings and V-tail
-export const MQ25StingrayHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.6} viewBox="0 0 200 120" className={className}>
-    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
-      {/* Unified silhouette - blended wing body */}
-      <path
-        d="M 20 60
-           L 35 58
-           L 50 55
-           L 50 30
-           L 45 28
-           L 55 35
-           L 55 55
-           L 140 55
-           L 140 35
-           L 145 28
-           L 150 30
-           L 150 55
-           L 165 58
-           L 175 60
-           L 180 55
-           L 185 58
-           L 175 62
-           L 165 65
-           L 150 68
-           L 150 90
-           L 145 92
-           L 140 85
-           L 140 68
-           L 55 68
-           L 55 85
-           L 50 92
-           L 45 90
-           L 50 68
-           L 35 65
-           L 20 60 Z"
-        className="stroke-[2]"
-      />
-    </g>
-  </svg>
-);
+// MQ-25 Stingray - Image
+import mq25Img from '../assets/images/MQ25 Stingray.png';
+
+export const MQ25StingrayHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={mq25Img}
+      alt="MQ-25 Stingray"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.1)', clipPath: 'inset(3% 3% 3% 3% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
 
 // General Atomics MQ-9 Reaper - Hunter-Killer MALE UAV
 // MQ-9 Reaper - Image
@@ -1126,126 +1104,67 @@ export const SwitchbladeHull = ({ size = 200, className = "" }) => {
 };
 
 // Northrop Grumman MQ-4C Triton - HALE Maritime ISR
-// Very long wingspan, bulbous nose
-export const MQ4CTritonHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.9} viewBox="0 0 200 180" className={className}>
-    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
-      {/* Clean silhouette - extreme wingspan */}
-      <path
-        d="M 15 90
-           C 15 85, 25 82, 35 82
-           L 50 82
-           L 50 20
-           L 45 15
-           L 55 22
-           L 55 82
-           L 145 82
-           L 160 75
-           L 165 78
-           L 150 85
-           L 150 90
-           L 150 95
-           L 165 102
-           L 160 105
-           L 145 98
-           L 55 98
-           L 55 158
-           L 45 165
-           L 50 160
-           L 50 98
-           L 35 98
-           C 25 98, 15 95, 15 90 Z"
-        className="stroke-[2]"
-      />
-      {/* Bulbous radome nose */}
-      <ellipse cx="22" cy="90" rx="10" ry="8" className="stroke-[1.5]" />
-    </g>
-  </svg>
-);
+// MQ-4C Triton - Image
+import mq4cTritonImg from '../assets/images/MQ4C Triton.png';
+
+export const MQ4CTritonHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={mq4cTritonImg}
+      alt="MQ-4C Triton"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.1)', clipPath: 'inset(3% 3% 3% 3% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
 
 // Northrop Grumman MQ-8C Fire Scout - Shipborne Rotary-Wing UAV
-// Helicopter silhouette with rotor disc
-export const MQ8FireScoutHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.7} viewBox="0 0 200 140" className={className}>
-    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
-      {/* Main rotor disc */}
-      <ellipse cx="85" cy="35" rx="55" ry="12" className="fill-none stroke-[1.5] opacity-50" />
+// MQ-8C Fire Scout - Image
+import mq8cFireScoutImg from '../assets/images/MQ8C Fire.png';
 
-      {/* Rotor hub */}
-      <circle cx="85" cy="35" r="6" className="stroke-[1.5]" />
-
-      {/* Fuselage silhouette */}
-      <path
-        d="M 45 50
-           L 40 55
-           L 35 70
-           L 40 85
-           L 50 90
-           L 125 90
-           L 125 75
-           L 170 75
-           L 175 70
-           L 175 80
-           L 170 85
-           L 125 85
-           L 125 95
-           L 50 95
-           L 35 90
-           L 30 75
-           L 30 65
-           L 35 55
-           L 45 50 Z"
-        className="stroke-[2]"
-      />
-
-      {/* Tail rotor */}
-      <circle cx="180" cy="77" r="12" className="fill-none stroke-[1.5] opacity-60" />
-
-      {/* Skids */}
-      <line x1="55" y1="100" x2="55" y2="115" className="stroke-[1.5]" />
-      <line x1="115" y1="100" x2="115" y2="115" className="stroke-[1.5]" />
-      <line x1="45" y1="115" x2="70" y2="115" className="stroke-[2]" />
-      <line x1="100" y1="115" x2="125" y2="115" className="stroke-[2]" />
-    </g>
-  </svg>
-);
+export const MQ8FireScoutHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={mq8cFireScoutImg}
+      alt="MQ-8C Fire Scout"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.38)', clipPath: 'inset(8% 12% 12% 8% round 20px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
 
 // Boeing/Insitu RQ-21A Blackjack - Small Tactical UAS
-// Twin-boom pusher configuration
-export const RQ21BlackjackHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.7} viewBox="0 0 200 140" className={className}>
-    <g className="stroke-lime-brand fill-[#3d4852] opacity-70">
-      {/* Main wing - high aspect ratio */}
-      <path
-        d="M 30 60 L 100 55 L 170 60 L 170 65 L 100 60 L 30 65 Z"
-        className="stroke-[2]"
-      />
+// RQ-21A Blackjack - Image
+import rq21aBlackjackImg from '../assets/images/RQ21A Blackjack.png';
 
-      {/* Fuselage pod */}
-      <ellipse cx="100" cy="58" rx="25" ry="10" className="stroke-[2]" />
-
-      {/* Sensor ball under nose */}
-      <circle cx="75" cy="62" r="6" className="stroke-[1.5]" />
-
-      {/* Twin tail booms */}
-      <line x1="85" y1="60" x2="85" y2="105" className="stroke-[2]" />
-      <line x1="115" y1="60" x2="115" y2="105" className="stroke-[2]" />
-
-      {/* Horizontal stabilizer */}
-      <path
-        d="M 70 105 L 100 102 L 130 105 L 130 110 L 100 107 L 70 110 Z"
-        className="stroke-[1.5]"
-      />
-
-      {/* Vertical stabilizers (twin) */}
-      <path d="M 85 100 L 82 85 L 88 85 L 85 100" className="stroke-[1.5]" />
-      <path d="M 115 100 L 112 85 L 118 85 L 115 100" className="stroke-[1.5]" />
-
-      {/* Pusher prop */}
-      <circle cx="100" cy="75" r="12" className="fill-none stroke-[1.5] opacity-50" />
-    </g>
-  </svg>
-);
+export const RQ21BlackjackHull = ({ size = 200, className = "" }) => {
+  const isSmall = size < 100;
+  const mask = isSmall
+    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
+    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  return (
+    <img
+      src={rq21aBlackjackImg}
+      alt="RQ-21A Blackjack"
+      width={size}
+      height={size * 0.6}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.1)', clipPath: 'inset(3% 3% 3% 3% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+    />
+  );
+};
 
 // Custom Platform (Design from Scratch)
 export const CustomPlatformHull = ({ size = 200, className = "" }) => (
