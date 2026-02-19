@@ -2221,6 +2221,99 @@ export const missionFlowTemplates = {
     loopBack: { from: 'screen', to: 'scan', label: 'Continuous Screening' }
   },
 
+  // ============ CNO PRIORITY MISSIONS ============
+  SURVEY: {
+    name: "Survey & Mapping",
+    category: "SURVEY",
+    nodes: [
+      { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
+      { id: 'transit', type: 'action', label: 'Transit to Area', position: { x: 200, y: 150 } },
+      { id: 'survey', type: 'action', label: 'Survey Track', position: { x: 350, y: 150 } },
+      { id: 'scan', type: 'sense', label: 'MBES Scan', position: { x: 500, y: 150 } },
+      { id: 'anomaly', type: 'decision', label: 'Anomaly?', position: { x: 650, y: 150 } },
+      { id: 'investigate', type: 'action', label: 'Investigate', position: { x: 650, y: 280 } },
+      { id: 'log', type: 'orient', label: 'Log & Report', position: { x: 800, y: 150 } },
+      { id: 'complete', type: 'decision', label: 'Track Complete?', position: { x: 950, y: 150 } },
+      { id: 'end', type: 'end', label: 'Survey Complete', position: { x: 1100, y: 150 } }
+    ],
+    connections: [
+      { from: 'deploy', to: 'transit' },
+      { from: 'transit', to: 'survey' },
+      { from: 'survey', to: 'scan' },
+      { from: 'scan', to: 'anomaly' },
+      { from: 'anomaly', to: 'log', label: 'No' },
+      { from: 'anomaly', to: 'investigate', label: 'Yes' },
+      { from: 'investigate', to: 'log' },
+      { from: 'log', to: 'complete' },
+      { from: 'complete', to: 'end', label: 'Yes' },
+      { from: 'complete', to: 'survey', label: 'No' }
+    ],
+    loopBack: { from: 'survey', to: 'scan', label: 'Continue Survey' }
+  },
+
+  MCM: {
+    name: "Mine Countermeasures",
+    category: "MCM",
+    nodes: [
+      { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
+      { id: 'search', type: 'action', label: 'Search Pattern', position: { x: 200, y: 150 } },
+      { id: 'scan', type: 'sense', label: 'Side-Scan', position: { x: 350, y: 150 } },
+      { id: 'contact', type: 'decision', label: 'Contact?', position: { x: 500, y: 150 } },
+      { id: 'classify', type: 'orient', label: 'Classify Target', position: { x: 650, y: 150 } },
+      { id: 'mine_check', type: 'decision', label: 'Mine?', position: { x: 800, y: 150 } },
+      { id: 'mark', type: 'action', label: 'Mark & Report', position: { x: 950, y: 100 } },
+      { id: 'continue', type: 'action', label: 'Log & Continue', position: { x: 950, y: 200 } },
+      { id: 'area_check', type: 'decision', label: 'Area Clear?', position: { x: 1100, y: 150 } },
+      { id: 'end', type: 'end', label: 'MCM Complete', position: { x: 1250, y: 150 } }
+    ],
+    connections: [
+      { from: 'deploy', to: 'search' },
+      { from: 'search', to: 'scan' },
+      { from: 'scan', to: 'contact' },
+      { from: 'contact', to: 'classify', label: 'Yes' },
+      { from: 'contact', to: 'area_check', label: 'No' },
+      { from: 'classify', to: 'mine_check' },
+      { from: 'mine_check', to: 'mark', label: 'Yes' },
+      { from: 'mine_check', to: 'continue', label: 'No' },
+      { from: 'mark', to: 'area_check' },
+      { from: 'continue', to: 'area_check' },
+      { from: 'area_check', to: 'end', label: 'Yes' },
+      { from: 'area_check', to: 'search', label: 'No' }
+    ],
+    loopBack: { from: 'search', to: 'scan', label: 'Continue Search' }
+  },
+
+  ASW: {
+    name: "Anti-Submarine Warfare",
+    category: "ASW",
+    nodes: [
+      { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
+      { id: 'patrol', type: 'action', label: 'Patrol Zone', position: { x: 200, y: 150 } },
+      { id: 'listen', type: 'sense', label: 'Passive Scan', position: { x: 350, y: 150 } },
+      { id: 'contact', type: 'decision', label: 'Contact in Zone?', position: { x: 500, y: 150 } },
+      { id: 'active', type: 'action', label: 'Active Scan', position: { x: 650, y: 200 } },
+      { id: 'classify', type: 'orient', label: 'Classify Target', position: { x: 650, y: 100 } },
+      { id: 'hostile', type: 'decision', label: 'Hostile/Violation?', position: { x: 800, y: 150 } },
+      { id: 'track', type: 'action', label: 'Track & Report', position: { x: 950, y: 100 } },
+      { id: 'log', type: 'action', label: 'Log & Resume', position: { x: 950, y: 200 } },
+      { id: 'end', type: 'end', label: 'Contact Tracked', position: { x: 1100, y: 100 } }
+    ],
+    connections: [
+      { from: 'deploy', to: 'patrol' },
+      { from: 'patrol', to: 'listen' },
+      { from: 'listen', to: 'contact' },
+      { from: 'contact', to: 'classify', label: 'Yes' },
+      { from: 'contact', to: 'patrol', label: 'No' },
+      { from: 'classify', to: 'active' },
+      { from: 'active', to: 'hostile' },
+      { from: 'hostile', to: 'track', label: 'Yes' },
+      { from: 'hostile', to: 'log', label: 'No - Friendly' },
+      { from: 'track', to: 'end' },
+      { from: 'log', to: 'patrol' }
+    ],
+    loopBack: { from: 'patrol', to: 'listen', label: 'Continuous Monitoring' }
+  },
+
   // ============ AERIAL MISSIONS ============
   AERIAL_ISR: {
     name: "Aerial ISR",
