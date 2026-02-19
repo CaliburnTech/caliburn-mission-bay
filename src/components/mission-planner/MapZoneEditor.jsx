@@ -132,7 +132,21 @@ const MapZoneEditor = ({ zoneConfig, setZoneConfig, missionType }) => {
   const fileInputRef = useRef(null);
 
   const zoneStyle = zoneTypes[missionType] || zoneTypes.SEA_DENIAL;
-  const geometryType = zoneStyle.geometryType || 'zone';
+  // Normalize aerial geometry types to existing handlers
+  // orbit/track → route (waypoint-based paths)
+  // station → perimeter (single point with radius)
+  const rawGeometryType = zoneStyle.geometryType || 'zone';
+  const geometryType = (() => {
+    switch (rawGeometryType) {
+      case 'orbit':
+      case 'track':
+        return 'route'; // Use waypoint-based drawing
+      case 'station':
+        return 'perimeter'; // Use center+radius drawing
+      default:
+        return rawGeometryType;
+    }
+  })();
 
   // Default data based on geometry type
   const getDefaultConfig = () => {

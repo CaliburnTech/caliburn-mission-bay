@@ -42,6 +42,9 @@ const useNavigationStore = create((set) => ({
   // Fleet sub-tab: 'hangar' (aerial) or 'pier' (maritime)
   fleetSubTab: getInitialFleetSubTab(),
 
+  // Selected squadron ID (persists across view changes for "back" navigation)
+  selectedSquadronId: null,
+
   setSelectedView: (view) => {
     set({ selectedView: view });
     if (typeof window !== 'undefined') {
@@ -55,6 +58,10 @@ const useNavigationStore = create((set) => ({
     if (typeof window !== 'undefined') {
       safeLocalStorage.setItem('caliburn-fleet-subtab', subTab);
     }
+  },
+
+  setSelectedSquadronId: (squadronId) => {
+    set({ selectedSquadronId: squadronId });
   }
 }));
 

@@ -12,10 +12,9 @@ const ShipyardView = ({
   onSelectHull
 }) => {
   const [showHullPicker, setShowHullPicker] = useState(false);
-  const [selectedSquadronId, setSelectedSquadronId] = useState(null);
 
-  // Fleet sub-tab state (hangar vs pier)
-  const { fleetSubTab, setFleetSubTab, setSelectedView } = useNavigationStore();
+  // Fleet sub-tab state (hangar vs pier) and selected squadron (persisted for back navigation)
+  const { fleetSubTab, setFleetSubTab, setSelectedView, selectedSquadronId, setSelectedSquadronId } = useNavigationStore();
 
   // Outfitter store for loading saved configurations
   const { loadSavedConfiguration } = useOutfitterStore();
