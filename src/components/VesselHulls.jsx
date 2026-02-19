@@ -1278,4 +1278,105 @@ export const GARCHull = ({ size = 200, className = "" }) => {
   );
 };
 
+// ZeroUSV Oceanus17 - 17m Electric USV for ASW/Survey missions
+export const ZeroUSVOceanus17Hull = ({ size = 200, className = "" }) => (
+  <svg width={size} height={size * 0.35} viewBox="0 0 500 175" className={className}>
+    <defs>
+      <linearGradient id="zeroGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#4a5568" />
+        <stop offset="100%" stopColor="#2d3748" />
+      </linearGradient>
+      <linearGradient id="zeroDeckGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#3d4852" />
+        <stop offset="100%" stopColor="#2a3441" />
+      </linearGradient>
+    </defs>
+
+    {/* Main hull - Longer workboat-style for 17m */}
+    <path
+      d="M 15 105
+         L 25 88
+         L 50 78
+         L 90 72
+         L 420 72
+         L 455 76
+         L 475 85
+         L 490 100
+         L 485 118
+         L 470 130
+         L 440 138
+         L 90 138
+         L 50 134
+         L 30 125
+         L 18 115
+         L 15 105 Z"
+      className="fill-[#3d4852] stroke-lime-brand stroke-2"
+    />
+
+    {/* Waterline */}
+    <path d="M 22 120 L 482 120" className="stroke-lime-brand stroke-1 opacity-50" strokeDasharray="4,2" />
+
+    {/* Forward bow sensor dome */}
+    <g>
+      <ellipse cx="55" cy="85" rx="18" ry="12" className="fill-[#2d3748] stroke-lime-brand stroke-[1.5]" />
+      <circle cx="55" cy="85" r="6" className="fill-[#1a202c] stroke-lime-brand stroke-1 opacity-70" />
+    </g>
+
+    {/* Forward work deck - Glider deployment area */}
+    <rect x="85" y="55" width="80" height="20" rx="2" className="stroke-lime-brand stroke-[1.5]" fill="url(#zeroDeckGradient)" strokeDasharray="4,2" />
+    <text x="125" y="68" textAnchor="middle" className="fill-lime-brand text-[8px] opacity-60">GLIDER</text>
+
+    {/* Main autonomy/control module */}
+    <g>
+      <rect x="175" y="42" width="90" height="35" rx="3" className="stroke-lime-brand stroke-[1.5]" fill="url(#zeroGradient)" />
+      <rect x="185" y="50" width="70" height="10" className="fill-[#1a202c] stroke-lime-brand stroke-[0.5] opacity-80" />
+      {/* Status indicators */}
+      <circle cx="195" cy="68" r="3" className="fill-lime-brand opacity-70" />
+      <circle cx="208" cy="68" r="3" className="fill-lime-brand opacity-70" />
+      <circle cx="245" cy="68" r="3" className="fill-lime-brand opacity-70" />
+    </g>
+
+    {/* Main mast with comms array */}
+    <g>
+      <line x1="220" y1="42" x2="220" y2="15" className="stroke-lime-brand stroke-2" />
+      <rect x="212" y="10" width="16" height="8" className="fill-[#4a5568] stroke-lime-brand stroke-1" />
+      <line x1="210" y1="25" x2="230" y2="25" className="stroke-lime-brand stroke-1" />
+      <circle cx="220" cy="6" r="4" className="fill-none stroke-lime-brand stroke-1" />
+    </g>
+
+    {/* Sonobuoy launcher bay */}
+    <rect x="280" y="48" width="55" height="30" rx="2" className="stroke-lime-brand stroke-[1.5]" fill="url(#zeroDeckGradient)" />
+    <g>
+      <circle cx="295" cy="63" r="5" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
+      <circle cx="308" cy="63" r="5" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
+      <circle cx="321" cy="63" r="5" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
+    </g>
+
+    {/* MBES/Survey equipment bay */}
+    <rect x="350" y="55" width="50" height="22" rx="2" className="fill-[#2d3748] stroke-lime-brand stroke-[1.5]" />
+    <path d="M 360 70 L 375 82 L 390 70" className="stroke-lime-brand stroke-1 fill-none opacity-60" />
+
+    {/* Towed array winch housing */}
+    <g>
+      <rect x="415" y="50" width="35" height="28" rx="2" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
+      <ellipse cx="432" cy="64" rx="10" ry="10" className="fill-[#2d3748] stroke-lime-brand stroke-1" />
+      <circle cx="432" cy="64" r="4" className="fill-lime-brand opacity-40" />
+    </g>
+
+    {/* Twin electric stern drives */}
+    <g>
+      <ellipse cx="460" cy="105" rx="6" ry="4" className="fill-none stroke-lime-brand stroke-1 opacity-60" strokeDasharray="2,1" />
+      <ellipse cx="475" cy="105" rx="6" ry="4" className="fill-none stroke-lime-brand stroke-1 opacity-60" strokeDasharray="2,1" />
+    </g>
+
+    {/* Component mounting areas */}
+    <rect x="95" y="85" width="50" height="30" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
+    <rect x="200" y="85" width="60" height="30" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
+    <rect x="350" y="85" width="55" height="30" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
+
+    {/* "ZERO" hull marking */}
+    <text x="250" y="130" textAnchor="middle" className="fill-lime-brand text-[10px] opacity-40 font-bold tracking-widest">ZERO</text>
+  </svg>
+);
+
 // Note: Vessel data and mappings have been moved to src/data/vesselData.js to fix fast refresh violations

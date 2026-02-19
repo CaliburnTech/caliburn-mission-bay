@@ -1,12 +1,222 @@
 import { useMemo } from 'react';
-import { Zap, Navigation, Ship, Rocket, Check, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Zap, Navigation, Ship, Rocket, Check, AlertCircle, CheckCircle2, Clock, Radio, Package, Fuel } from 'lucide-react';
 import { CATEGORY_COLORS } from '../../constants/colors';
+import { isAerialPlatform, aerialBaselines } from '../../data/vesselData';
 
 /**
- * Mario Kart style stat bars showing vessel performance metrics.
- * Updates in real-time as capabilities are added/removed.
+ * Shared stat bar component with Mario Kart style segments
  */
-export const LoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => {
+const StatBar = ({ label, icon: Icon, value, maxValue, unit, color, previewDelta, isCapacity, isLowerBetter }) => {
+  const basePercent = Math.min(100, (value / maxValue) * 100);
+  const deltaPercent = previewDelta ? Math.min(100 - basePercent, Math.max(-basePercent, (Math.abs(previewDelta) / maxValue) * 100)) : 0;
+  const isPositive = previewDelta > 0;
+  const isNegative = previewDelta < 0;
+
+  // For capacity stats (power/payload), negative delta means using more = bad
+  // For isLowerBetter stats (burn rate), higher = bad
+  const showWarning = isCapacity ? (value - (previewDelta || 0)) < 0 : false;
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-6 flex justify-center">
+        <Icon size={14} style={{ color }} />
+      </div>
+      <div className="w-16 text-gray-400 text-xs font-medium">{label}</div>
+      <div className="flex-1 h-3 bg-gray-800/80 rounded-full overflow-hidden flex relative">
+        {/* Base bar */}
+        <div
+          className="h-full rounded-full transition-all duration-300 relative z-10"
+          style={{
+            width: `${basePercent}%`,
+            backgroundColor: color,
+            boxShadow: `0 0 8px ${color}40`
+          }}
+        />
+        {/* Preview delta overlay */}
+        {previewDelta !== 0 && previewDelta && (
+          <div
+            className={`h-full absolute transition-all duration-300 ${isPositive ? 'rounded-r-full' : 'rounded-l-full'}`}
+            style={{
+              width: `${deltaPercent}%`,
+              left: isNegative ? `${basePercent - deltaPercent}%` : `${basePercent}%`,
+              backgroundColor: isCapacity
+                ? (isNegative ? '#ef4444' : '#22c55e')
+                : isLowerBetter
+                  ? (isPositive ? '#ef4444' : '#22c55e')
+                  : (isPositive ? '#22c55e' : '#ef4444'),
+              opacity: 0.8,
+              animation: 'pulse 1s ease-in-out infinite'
+            }}
+          />
+        )}
+        {/* Segment lines for Mario Kart feel */}
+        <div className="absolute inset-0 flex">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="flex-1 border-r border-gray-700/30 last:border-0" />
+          ))}
+        </div>
+      </div>
+      <div className="w-20 text-right">
+        <span className={`text-sm font-bold ${showWarning ? 'text-red-400' : 'text-gray-200'}`}>
+          {isCapacity ? `${value}` : typeof value === 'number' ? value.toFixed(1) : value}
+        </span>
+        {previewDelta !== 0 && previewDelta && (
+          <span className={`text-xs ml-1 font-semibold ${
+            isCapacity
+              ? (previewDelta < 0 ? 'text-red-400' : 'text-green-400')
+              : isLowerBetter
+                ? (previewDelta > 0 ? 'text-red-400' : 'text-green-400')
+                : (previewDelta > 0 ? 'text-green-400' : 'text-red-400')
+          }`}
+          >
+            {previewDelta > 0 ? '+' : ''}{isCapacity ? -previewDelta : previewDelta.toFixed(1)}
+          </span>
+        )}
+        <span className="text-gray-500 text-xs ml-1">{unit}</span>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Aerial-specific stats display for UAV platforms.
+ * Shows endurance, mission radius, payload usage, and burn rate.
+ */
+const AerialLoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => {
+  const currentStats = useMemo(() => {
+    let weightUsed = 0;
+
+    Object.values(loadout).forEach(categoryItems => {
+      categoryItems.forEach(cap => {
+        if (cap?.swap) {
+          weightUsed += cap.swap.weight || 0;
+        }
+      });
+    });
+
+    const aerialSpecs = vessel?.aerialSpecs || {};
+    const baseEndurance = aerialSpecs.endurance || 12;
+    const missionRadius = aerialSpecs.missionRadius || 500;
+    const weightCapacityKg = vessel?.capacity?.totalWeight || 500;
+    const weightCapacityLbs = weightCapacityKg * 2.205;
+    const weightUsedLbs = weightUsed * 2.205;
+    const payloadPercent = weightCapacityLbs > 0 ? (weightUsedLbs / weightCapacityLbs) * 100 : 0;
+
+    // Calculate burn rate effect on endurance
+    const burnRateType = aerialSpecs.burnRateType || 'MALE';
+    const burnFactor = aerialBaselines.burnRate.sensitivityByType[burnRateType] || aerialBaselines.burnRate.baseFactor;
+    const burnRatePercent = payloadPercent * burnFactor;
+
+    // Effective endurance = base * (1 - burnRate/100)
+    const effectiveEndurance = baseEndurance * (1 - burnRatePercent / 100);
+    const datalinkTier = aerialSpecs.datalinkTier || 2;
+
+    return {
+      endurance: effectiveEndurance,
+      baseEndurance,
+      enduranceLoss: baseEndurance - effectiveEndurance,
+      missionRadius,
+      payloadUsedLbs: weightUsedLbs,
+      payloadCapacityLbs: weightCapacityLbs,
+      payloadRemaining: weightCapacityLbs - weightUsedLbs,
+      payloadPercent,
+      burnRate: burnRatePercent,
+      burnFactor,
+      datalinkTier,
+      datalinkInfo: aerialBaselines.datalink.tiers[datalinkTier - 1] || aerialBaselines.datalink.tiers[1]
+    };
+  }, [vessel, loadout]);
+
+  // Calculate preview deltas if hovering a capability
+  const previewDeltas = useMemo(() => {
+    if (!previewCapability) return null;
+
+    const swap = previewCapability.swap || {};
+    const weightDelta = (swap.weight || 0) * 2.205; // Convert to lbs
+    const newPayloadPercent = currentStats.payloadCapacityLbs > 0
+      ? ((currentStats.payloadUsedLbs + weightDelta) / currentStats.payloadCapacityLbs) * 100
+      : 0;
+    const newBurnRate = newPayloadPercent * currentStats.burnFactor;
+    const newEndurance = currentStats.baseEndurance * (1 - newBurnRate / 100);
+
+    return {
+      endurance: newEndurance - currentStats.endurance,
+      payload: weightDelta,
+      burnRate: newBurnRate - currentStats.burnRate
+    };
+  }, [previewCapability, currentStats]);
+
+  return (
+    <div className="bg-darker/50 rounded-xl p-4 space-y-2.5">
+      <StatBar
+        label="ENDUR"
+        icon={Clock}
+        value={currentStats.endurance}
+        maxValue={aerialBaselines.endurance.max}
+        unit="hrs"
+        color="#10b981"
+        previewDelta={previewDeltas?.endurance}
+      />
+      <StatBar
+        label="RADIUS"
+        icon={Navigation}
+        value={currentStats.missionRadius}
+        maxValue={aerialBaselines.missionRadius.max}
+        unit="nm"
+        color="#3b82f6"
+      />
+      <StatBar
+        label="PAYLOAD"
+        icon={Package}
+        value={Math.round(currentStats.payloadRemaining)}
+        maxValue={Math.round(currentStats.payloadCapacityLbs)}
+        unit="lbs"
+        color="#8b5cf6"
+        previewDelta={previewDeltas?.payload ? -previewDeltas.payload : null}
+        isCapacity
+      />
+      <StatBar
+        label="BURN"
+        icon={Fuel}
+        value={currentStats.burnRate}
+        maxValue={50}
+        unit="%"
+        color="#f59e0b"
+        previewDelta={previewDeltas?.burnRate}
+        isLowerBetter
+      />
+      {/* Datalink Tier */}
+      <div className="flex items-center gap-3 pt-1 border-t border-gray-700/30">
+        <div className="w-6 flex justify-center">
+          <Radio size={14} style={{ color: currentStats.datalinkInfo.color }} />
+        </div>
+        <div className="w-16 text-gray-400 text-xs font-medium">C2</div>
+        <div className="flex-1 flex gap-1">
+          {aerialBaselines.datalink.tiers.map((tier, i) => (
+            <div
+              key={tier.level}
+              className="flex-1 h-3 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: i < currentStats.datalinkTier ? tier.color : '#1e293b'
+              }}
+            />
+          ))}
+        </div>
+        <div className="w-20 text-right">
+          <span className="text-sm font-bold" style={{ color: currentStats.datalinkInfo.color }}>
+            {currentStats.datalinkInfo.name}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Maritime-specific stats display for USV/UUV/Ship platforms.
+ * Shows speed, range, power, and payload.
+ */
+const MaritimeLoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => {
   // Calculate current totals from loadout
   const currentStats = useMemo(() => {
     let powerUsed = 0;
@@ -63,74 +273,6 @@ export const LoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => {
     };
   }, [previewCapability]);
 
-  // Stat bar with Mario Kart style segments
-  const StatBar = ({ label, icon: Icon, value, maxValue, unit, color, previewDelta, isCapacity }) => {
-    const basePercent = Math.min(100, (value / maxValue) * 100);
-    const deltaPercent = previewDelta ? Math.min(100 - basePercent, Math.max(-basePercent, (Math.abs(previewDelta) / maxValue) * 100)) : 0;
-    const isPositive = previewDelta > 0;
-    const isNegative = previewDelta < 0;
-
-    // For capacity stats (power/payload), negative delta means using more = bad
-    const showWarning = isCapacity ? (value - (previewDelta || 0)) < 0 : false;
-
-    return (
-      <div className="flex items-center gap-3">
-        <div className="w-6 flex justify-center">
-          <Icon size={14} style={{ color }} />
-        </div>
-        <div className="w-16 text-gray-400 text-xs font-medium">{label}</div>
-        <div className="flex-1 h-3 bg-gray-800/80 rounded-full overflow-hidden flex relative">
-          {/* Base bar */}
-          <div
-            className="h-full rounded-full transition-all duration-300 relative z-10"
-            style={{
-              width: `${basePercent}%`,
-              backgroundColor: color,
-              boxShadow: `0 0 8px ${color}40`
-            }}
-          />
-          {/* Preview delta overlay */}
-          {previewDelta !== 0 && previewDelta && (
-            <div
-              className={`h-full absolute transition-all duration-300 ${isPositive ? 'rounded-r-full' : 'rounded-l-full'}`}
-              style={{
-                width: `${deltaPercent}%`,
-                left: isNegative ? `${basePercent - deltaPercent}%` : `${basePercent}%`,
-                backgroundColor: isCapacity
-                  ? (isNegative ? '#ef4444' : '#22c55e')
-                  : (isPositive ? '#22c55e' : '#ef4444'),
-                opacity: 0.8,
-                animation: 'pulse 1s ease-in-out infinite'
-              }}
-            />
-          )}
-          {/* Segment lines for Mario Kart feel */}
-          <div className="absolute inset-0 flex">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex-1 border-r border-gray-700/30 last:border-0" />
-            ))}
-          </div>
-        </div>
-        <div className="w-20 text-right">
-          <span className={`text-sm font-bold ${showWarning ? 'text-red-400' : 'text-gray-200'}`}>
-            {isCapacity ? `${value}` : value}
-          </span>
-          {previewDelta !== 0 && previewDelta && (
-            <span className={`text-xs ml-1 font-semibold ${
-              isCapacity
-                ? (previewDelta < 0 ? 'text-red-400' : 'text-green-400')
-                : (previewDelta > 0 ? 'text-green-400' : 'text-red-400')
-            }`}
-            >
-              {previewDelta > 0 ? '+' : ''}{isCapacity ? -previewDelta : previewDelta}
-            </span>
-          )}
-          <span className="text-gray-500 text-xs ml-1">{unit}</span>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="bg-darker/50 rounded-xl p-4 space-y-2.5">
       <StatBar
@@ -173,6 +315,22 @@ export const LoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => {
       />
     </div>
   );
+};
+
+/**
+ * Main stats display component - automatically chooses aerial or maritime based on vessel type.
+ * Mario Kart style stat bars showing vessel performance metrics.
+ * Updates in real-time as capabilities are added/removed.
+ */
+export const LoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => {
+  // Determine if vessel is aerial (UAV) or maritime (USV/UUV/Ship)
+  const isAerial = isAerialPlatform(vessel?.platformType);
+
+  if (isAerial) {
+    return <AerialLoadoutStatsDisplay vessel={vessel} loadout={loadout} previewCapability={previewCapability} />;
+  }
+
+  return <MaritimeLoadoutStatsDisplay vessel={vessel} loadout={loadout} previewCapability={previewCapability} />;
 };
 
 /**

@@ -1353,6 +1353,247 @@ export const individualCapabilities = [
         }
       ],
       bannerImage: "https://www.sncorp.com/globalassets/what-we-do/unmanned-systems/unmanned-systems-hero-1920x600.jpg"
+    },
+    // ============ ZeroUSV REPMUS 2026 Payloads ============
+    {
+      name: "Teledyne Webb Slocum Glider",
+      provider: "Teledyne Marine",
+      type: "Underwater Glider",
+      platformTypes: ["USV", "Ship"],
+      description: "Long-endurance autonomous underwater glider for persistent ocean monitoring. Uses buoyancy-driven propulsion for extended missions up to 18 months. Ideal for ASW, oceanographic survey, and environmental monitoring.",
+      capabilities: [
+        "Buoyancy-Driven Propulsion",
+        "18-Month Endurance",
+        "1000m Depth Rating",
+        "Autonomous Navigation",
+        "Multi-Sensor Payload",
+        "Satellite Data Relay"
+      ],
+      trl: "TRL 9",
+      icon: Waves,
+      category: "ACOUSTIC/SONAR",
+      swap: {
+        weight: 65,       // 55-70 kg typical
+        power: 0.05,      // Very low power - buoyancy driven
+        size: "medium"
+      },
+      statImpacts: {
+        speed: 0,         // Deployed separately
+        power: 0,
+        weight: 3,
+        range: 0,
+        stealth: 5        // Very quiet operation
+      },
+      securityLevel: ["Encrypted Data", "Tamper Resistant"],
+      securityIcons: ["encrypted"],
+      specs: {
+        length: "1.5m (4.9 ft)",
+        diameter: "22 cm (8.7 in)",
+        weight: "55-70 kg",
+        depthRating: "200-1000m",
+        endurance: "Up to 18 months",
+        speed: "0.68 knots average",
+        range: "3000+ nm per deployment",
+        sensors: "CTD, acoustic, optical payloads",
+        communication: "Iridium satellite when surfaced"
+      },
+      detailedDescription: "The Teledyne Webb Slocum Glider is an autonomous underwater vehicle (AUV) that uses changes in buoyancy to glide through the water column. This energy-efficient propulsion method enables missions lasting up to 18 months on a single battery.\n\nThe glider can carry various sensor payloads including CTD (Conductivity, Temperature, Depth), passive acoustic monitoring arrays, and optical sensors. It surfaces periodically to transmit data via Iridium satellite and receive updated mission commands.\n\nFor ASW applications, gliders equipped with passive acoustic arrays can conduct persistent wide-area submarine monitoring. Multiple gliders can be coordinated to create distributed sensor networks covering large ocean areas.",
+      keyFeatures: [
+        "18-month autonomous endurance",
+        "Buoyancy-driven propulsion - nearly silent",
+        "1000m depth capability",
+        "Modular sensor payloads",
+        "Iridium satellite data relay",
+        "Proven Navy deployment history",
+        "Deployable from USV platforms"
+      ],
+      integrationNotes: "Can be deployed and recovered from ZeroUSV Oceanus17 and similar medium/large USVs. Gliders operate independently once deployed, with data relayed to host vessel or shore via satellite.",
+      applications: [
+        "Persistent submarine monitoring",
+        "Oceanographic survey",
+        "Environmental monitoring",
+        "Mine countermeasures support",
+        "Undersea warfare support"
+      ]
+    },
+    {
+      name: "Sonobuoy Launcher System",
+      provider: "Multiple Vendors",
+      type: "ASW Deployment System",
+      platformTypes: ["USV", "Ship", "UAV"],
+      description: "Multi-tube sonobuoy deployment system for anti-submarine warfare operations. Launches A-size sonobuoys for acoustic surveillance and submarine detection from surface or aerial platforms.",
+      capabilities: [
+        "Multi-Tube Deployment",
+        "A-Size Sonobuoy Compatible",
+        "Remote Triggering",
+        "Pattern Deployment",
+        "Integrated Fire Control",
+        "DIFAR/DICASS Support"
+      ],
+      trl: "TRL 9",
+      icon: Waves,
+      category: "ACOUSTIC/SONAR",
+      swap: {
+        weight: 85,       // Launcher + tubes + controls
+        power: 0.2,       // kW - control systems
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -1,
+        power: -1,
+        weight: 4,
+        range: -2,
+        stealth: 0
+      },
+      securityLevel: ["Encrypted Control", "NATO Compatible"],
+      securityIcons: ["encrypted", "nato"],
+      specs: {
+        tubeCount: "3-12 tubes configurable",
+        buoySize: "A-size (5.5\" x 48\")",
+        buoyWeight: "18 kg (40 lbs) each",
+        launchMethod: "Pneumatic/gravity",
+        patterns: "Barrier, field, tracking",
+        sonobuoyTypes: "DIFAR, DICASS, VLAD, bathythermograph",
+        controlRange: "Line-of-sight or satellite relay"
+      },
+      detailedDescription: "The Sonobuoy Launcher System enables autonomous surface vessels to conduct anti-submarine warfare (ASW) operations by deploying expendable sonobuoys. The system supports various sonobuoy types including passive DIFAR (Directional Frequency Analysis and Recording) and active DICASS (Directional Command Activated Sonobuoy System).\n\nSonobuoys are deployed in coordinated patterns to establish acoustic barriers or search fields. Once deployed, sonobuoys transmit acoustic data via VHF radio to the host platform or nearby aircraft for processing and analysis.\n\nThe launcher integrates with shipboard or autonomous fire control systems to optimize deployment timing and patterns based on tactical situation.",
+      keyFeatures: [
+        "Configurable 3-12 tube launcher",
+        "Standard A-size sonobuoy compatible",
+        "Automated pattern deployment",
+        "Remote command triggering",
+        "NATO standard interface",
+        "Integrated with ASW analytics"
+      ],
+      integrationNotes: "Integrates with TempestOS for autonomous deployment control. Data from deployed sonobuoys can be processed by IBM Watson X ASW Analytics or similar systems.",
+      applications: [
+        "Anti-submarine warfare",
+        "Acoustic surveillance",
+        "Submarine tracking",
+        "Wide-area search",
+        "Barrier operations"
+      ]
+    },
+    {
+      name: "Thin-Line Towed Array",
+      provider: "Multiple Vendors",
+      type: "Passive Sonar",
+      platformTypes: ["USV", "UUV", "Ship"],
+      description: "Compact passive towed sonar array optimized for USV deployment. Sub-50mm diameter array provides long-range submarine detection capability for autonomous ASW missions.",
+      capabilities: [
+        "Passive Acoustic Detection",
+        "Long-Range Submarine Detection",
+        "Low-Frequency Coverage",
+        "Bearing Determination",
+        "Compact USV-Compatible Design",
+        "Real-Time Processing"
+      ],
+      trl: "TRL 8",
+      icon: TowedSonarIcon,
+      category: "ACOUSTIC/SONAR",
+      swap: {
+        weight: 120,      // Array + winch + processor
+        power: 0.6,       // kW - processing and winch
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -3,        // Towing limits speed
+        power: -3,
+        weight: 5,
+        range: -3,
+        stealth: 4        // Passive only - quiet operation
+      },
+      securityLevel: ["Encrypted Processing", "COMSEC"],
+      securityIcons: ["encrypted"],
+      specs: {
+        arrayDiameter: "< 50mm (2 in)",
+        arrayLength: "100-500m configurable",
+        frequencyRange: "10-100 Hz (low frequency)",
+        detectionRange: "Tens of kilometers",
+        towSpeed: "3-8 knots optimal",
+        deploymentDepth: "Variable, 20-200m",
+        winchCapacity: "500m array storage",
+        processing: "Real-time bearing estimation"
+      },
+      detailedDescription: "The Thin-Line Towed Array is a passive sonar system designed specifically for deployment from unmanned surface vessels. The compact sub-50mm diameter array provides excellent low-frequency acoustic coverage while remaining deployable from medium USVs like the ZeroUSV Oceanus17.\n\nThe array detects low-frequency sound emissions from submarines at ranges of tens of kilometers. Advanced signal processing provides bearing estimation to detected contacts, enabling tracking and localization when combined with multiple platforms or maneuvers.\n\nUnlike traditional towed arrays designed for large warships, thin-line arrays sacrifice some acoustic aperture for deployability from smaller platforms, making persistent autonomous ASW patrols practical.",
+      keyFeatures: [
+        "Sub-50mm compact diameter",
+        "100-500m configurable length",
+        "10-100 Hz low-frequency coverage",
+        "Real-time bearing estimation",
+        "Autonomous deployment/recovery",
+        "USV-compatible winch system",
+        "DDIL-resilient processing"
+      ],
+      integrationNotes: "Designed for integration with ZeroUSV Oceanus17 and similar medium USVs. Acoustic data processed onboard with bearing tracks transmitted via SATCOM to shore or command ship.",
+      applications: [
+        "Autonomous ASW patrol",
+        "Submarine detection",
+        "Undersea surveillance",
+        "Acoustic intelligence",
+        "Wide-area monitoring"
+      ]
+    },
+    {
+      name: "Multibeam Echo Sounder (MBES)",
+      provider: "Multiple Vendors",
+      type: "Bathymetric Survey",
+      platformTypes: ["USV", "UUV", "Ship"],
+      description: "High-resolution multibeam sonar for seabed mapping and bathymetric survey. Provides detailed 3D seafloor imagery for navigation, mine countermeasures, and oceanographic research.",
+      capabilities: [
+        "High-Resolution Bathymetry",
+        "Seafloor Imaging",
+        "Real-Time 3D Mapping",
+        "Water Column Imaging",
+        "Object Detection",
+        "Survey-Grade Accuracy"
+      ],
+      trl: "TRL 9",
+      icon: Waves,
+      category: "ACOUSTIC/SONAR",
+      swap: {
+        weight: 45,       // Transducer + processor
+        power: 0.4,       // kW
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -2,
+        weight: 2,
+        range: -1,
+        stealth: -3       // Active sonar emissions
+      },
+      securityLevel: ["IHO S-44 Compliant"],
+      securityIcons: [],
+      specs: {
+        swathWidth: "120-150 degrees",
+        beamCount: "256-512 beams",
+        frequency: "200-400 kHz (shallow) / 12-50 kHz (deep)",
+        depthRange: "0.5m to 7000m (frequency dependent)",
+        resolution: "cm-level in shallow water",
+        accuracy: "IHO S-44 Order 1a capable",
+        dataRate: "High-density point cloud",
+        integration: "Standard hydrographic formats"
+      },
+      detailedDescription: "The Multibeam Echo Sounder (MBES) uses multiple acoustic beams to create detailed 3D maps of the seafloor. The system transmits a fan-shaped acoustic pulse and measures the return time and angle of echoes to build a swath of depth measurements with each ping.\n\nModern MBES systems provide survey-grade bathymetric data suitable for nautical charting, mine countermeasures, and undersea infrastructure inspection. Water column imaging mode can detect objects suspended in the water column, useful for fish schools, gas seeps, or mine detection.\n\nFor autonomous survey missions, MBES data is processed in real-time to build complete seabed maps. Integration with positioning systems (GPS/INS) provides georeferenced survey products.",
+      keyFeatures: [
+        "120-150 degree swath coverage",
+        "256-512 simultaneous beams",
+        "Centimeter-level resolution",
+        "IHO S-44 survey compliance",
+        "Real-time 3D seafloor mapping",
+        "Water column imaging",
+        "Standard hydrographic output formats"
+      ],
+      integrationNotes: "Hull-mounted or pole-mounted installation on USVs. Integrates with TempestOS for autonomous survey mission execution. Data products compatible with standard GIS and hydrographic software.",
+      applications: [
+        "Bathymetric survey",
+        "Nautical charting",
+        "Mine countermeasures",
+        "Pipeline/cable inspection",
+        "Habitat mapping",
+        "Search and salvage"
+      ]
     }
   ];
 export const capabilityCategories = {

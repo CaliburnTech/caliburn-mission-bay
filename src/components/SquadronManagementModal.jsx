@@ -19,7 +19,7 @@ const SquadronManagementModal = () => {
   } = useSquadronStore();
 
   const { setSelectedView } = useNavigationStore();
-  const { setSelectedHull } = useOutfitterStore();
+  const { setSelectedHull, loadSavedConfiguration } = useOutfitterStore();
 
   const [showCreateVariation, setShowCreateVariation] = useState(false);
   const [showSpinOutConfirm, setShowSpinOutConfirm] = useState(false);
@@ -44,6 +44,15 @@ const SquadronManagementModal = () => {
     closeSquadronManagement();
     setSelectedHull(squadronHull);
     setSelectedView('outfitter');
+  };
+
+  // Edit a saved configuration - loads it into the outfitter with capabilities pre-populated
+  const handleEditConfiguration = (outfit) => {
+    const success = loadSavedConfiguration(squadron, outfit);
+    if (success) {
+      closeSquadronManagement();
+      setSelectedView('outfitter');
+    }
   };
 
   const handleDeployMission = () => {
@@ -145,7 +154,7 @@ const SquadronManagementModal = () => {
             </h3>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
               {unitConfigs?.outfits.map((outfit) => (
-                <div key={outfit.name} className="bg-darker border border-gray-700/50 rounded-lg p-4 hover:border-lime-brand/30 transition-colors">
+                <div key={outfit.name} className="bg-darker border border-gray-700/50 rounded-lg p-4 hover:border-lime-brand/30 transition-colors group">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-white font-semibold text-sm">
                       {outfit.name}
@@ -158,7 +167,7 @@ const SquadronManagementModal = () => {
                   <div className="text-[0.7rem] text-gray-500 uppercase mb-2">
                     Capabilities:
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mb-3">
                     {outfit.capabilities.map((capability, capIdx) => (
                       <span
                         key={capability}
@@ -169,6 +178,15 @@ const SquadronManagementModal = () => {
                       </span>
                     ))}
                   </div>
+
+                  {/* Edit Configuration Button */}
+                  <button
+                    onClick={() => handleEditConfiguration(outfit)}
+                    className="w-full py-2 px-3 bg-lime-brand/10 border border-lime-brand/30 rounded-lg text-lime-brand text-xs font-semibold hover:bg-lime-brand/20 transition-colors flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100"
+                  >
+                    <Settings size={14} />
+                    Edit Configuration
+                  </button>
                 </div>
               ))}
             </div>

@@ -208,6 +208,25 @@ export const swarmSquadrons = [
     parentName: null,
     overrides: {}
   },
+  {
+    id: "sqdn_015",
+    name: "ZeroUSV Oceanus17 ASW Flotilla",
+    type: "ASW/Survey USV",
+    platformType: "USV",
+    totalUnits: 4,
+    status: {
+      missionReady: 2,
+      deployed: 2,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "ZeroUSV Oceanus17",
+    description: "ZeroUSV 17m electric USVs configured for REPMUS 2026. 50+ day endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
   // ============ UAV SQUADRONS ============
   {
     id: "sqdn_011",
@@ -403,6 +422,22 @@ export const squadronUnitConfigurations = {
         count: 4,
         capabilities: ["SNC Hippocamp", "SNC TRAX", "Cargo Bay", "Navigation Radar", "Encrypted Datalink", "Autonomous Docking"],
         status: { missionReady: 3, deployed: 0, charging: 0, maintenance: 1 }
+      }
+    ]
+  },
+  "sqdn_015": { // ZeroUSV Oceanus17 ASW Flotilla
+    outfits: [
+      {
+        name: "REPMUS ASW Package",
+        count: 2,
+        capabilities: ["Teledyne Webb Slocum Glider", "Thin-Line Towed Array", "Sonobuoy Launcher System", "SATCOM Data Link"],
+        status: { missionReady: 1, deployed: 1, charging: 0, maintenance: 0 }
+      },
+      {
+        name: "Survey/Bathymetric Package",
+        count: 2,
+        capabilities: ["Multibeam Echo Sounder (MBES)", "Teledyne Webb Slocum Glider", "Navigation Suite", "SATCOM Data Link"],
+        status: { missionReady: 1, deployed: 1, charging: 0, maintenance: 0 }
       }
     ]
   },

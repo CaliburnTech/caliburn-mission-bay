@@ -25,7 +25,8 @@ import {
   AEGIRWHull,
   AEGIRHHull,
   BlackWidowHull,
-  SwitchbladeHull
+  SwitchbladeHull,
+  ZeroUSVOceanus17Hull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -249,6 +250,56 @@ export const vesselHullData = [
     }
   },
   // ============ MEDIUM USV CATEGORY ============
+  {
+    name: "ZeroUSV Oceanus17",
+    type: "Medium USV",
+    platformType: "USV",
+    displacement: "~17.7 tons",
+    description: "ZeroUSV 17-meter electric autonomous surface vehicle designed for extended endurance maritime operations. Twin 40kW electric stern drives with 50+ day endurance for persistent surveillance and ASW missions.",
+    icon: "ZeroUSV Oceanus17",
+    manufacturer: "ZeroUSV",
+    specs: {
+      speed: 12,        // knots sprint (7kt cruise)
+      range: 2000,      // nm (50+ days at cruise)
+      rcs: 8            // m² (medium signature)
+    },
+    capacity: {
+      totalWeight: 2000,  // kg payload capacity
+      totalPower: 80      // kW available for payloads
+    },
+    detailedSpecs: {
+      length: "17m (55.8 ft)",
+      displacement: "17.7 tonnes",
+      propulsion: "Twin 40kW electric stern drives",
+      cruiseSpeed: "7 knots",
+      sprintSpeed: "12 knots",
+      endurance: "50+ days",
+      seaState: "Sea State 4 operations",
+      autonomy: "Level 4 autonomous operations",
+      certifications: "DNV-GL certification pending"
+    },
+    features: [
+      "50+ day autonomous endurance",
+      "Electric propulsion for quiet operations",
+      "Sea State 4 capable",
+      "Modular payload bay integration",
+      "Teledyne Webb Glider deployment capability",
+      "Sonobuoy launcher integration",
+      "Thin-line towed array compatible",
+      "MBES bathymetric survey ready"
+    ],
+    applications: [
+      "Persistent maritime surveillance",
+      "Anti-submarine warfare support",
+      "Oceanographic survey",
+      "Bathymetric mapping",
+      "Underwater glider deployment",
+      "ISR operations"
+    ],
+    externalLinks: {
+      manufacturer: "https://zerousv.com"
+    }
+  },
   {
     name: "AEGIR-W",
     type: "Medium USV",
@@ -742,6 +793,7 @@ export const vesselHullComponents = {
   "Mariner": SmallUSVHull,
   "AEGIR-F": AEGIRFHull,        // SNC small kinetic USV
   // Medium USV category
+  "ZeroUSV Oceanus17": ZeroUSVOceanus17Hull, // ZeroUSV 17m electric USV
   "MASC": MediumUSVHull,
   "AEGIR-W": AEGIRWHull,        // SNC medium combat USV
   "AEGIR-H": AEGIRHHull,        // SNC large 49ft multi-role USV
@@ -855,6 +907,7 @@ export const VESSEL_SLOT_CAPACITY = {
   "AEGIR-W": { SENSORS: 2, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
   "AEGIR-H": { SENSORS: 3, COMMS: 3, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 3, OTHER: 0 },
   // Medium USVs
+  "ZeroUSV Oceanus17": { SENSORS: 3, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
   "MASC": { SENSORS: 3, COMMS: 3, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   // AUSV
   "Triton": { SENSORS: 2, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },

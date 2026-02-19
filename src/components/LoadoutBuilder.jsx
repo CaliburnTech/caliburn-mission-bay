@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import useOutfitterStore from '../store/outfitterStore';
 import useNavigationStore from '../store/navigationStore';
+import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
 import { vesselHullComponents, VESSEL_SLOT_CAPACITY, DEFAULT_SLOT_CAPACITY, LOADOUT_CATEGORY_KEYS } from '../data/vesselData';
 import { individualCapabilities, engineeringStacks } from '../data/marketplaceData';
 import { CATEGORY_COLORS, BRAND_COLORS } from '../constants/colors';
@@ -93,29 +94,64 @@ const ALL_CATEGORY = {
 const LoadoutBuilder = ({ onBackToShipyard }) => {
   const { selectedHull } = useOutfitterStore();
 
-  // Local loadout state (category -> array of equipped capabilities)
-  const [loadout, setLoadout] = useState({
-    SENSORS: [],
-    COMMS: [],
-    WEAPONS: [],
-    EW: [],
-    NAV: [],
-    AI: [],
-    UTILITY: [],
-    OTHER: []
-  });
+  // Configuration store - unified state management
+  const {
+    activeConfig,
+    startNewConfiguration,
+    setSlotCapability,
+    addSlot,
+    removeSlot,
+    saveActiveConfiguration,
+    closeActiveConfiguration
+  } = useConfigurationStore();
 
-  // Extra slots state (beyond base capacity)
-  const [extraSlots, setExtraSlots] = useState({
-    SENSORS: 0,
-    COMMS: 0,
-    WEAPONS: 0,
-    EW: 0,
-    NAV: 0,
-    AI: 0,
-    UTILITY: 0,
-    OTHER: 0
-  });
+  // Derive loadout from activeConfig for display (convert names to objects)
+  const loadout = useMemo(() => {
+    if (!activeConfig?.slots) {
+      return {
+        SENSORS: [],
+        COMMS: [],
+        WEAPONS: [],
+        EW: [],
+        NAV: [],
+        AI: [],
+        UTILITY: [],
+        OTHER: []
+      };
+    }
+
+    const result = {};
+    CATEGORY_KEYS.forEach(category => {
+      const slotNames = activeConfig.slots[category] || [];
+      result[category] = slotNames.map(name => name ? getCapabilityByName(name) : null);
+    });
+    return result;
+  }, [activeConfig]);
+
+  // Extra slots are now tracked in activeConfig.slots (length beyond base capacity)
+  const extraSlots = useMemo(() => {
+    if (!activeConfig?.slots) {
+      return {
+        SENSORS: 0,
+        COMMS: 0,
+        WEAPONS: 0,
+        EW: 0,
+        NAV: 0,
+        AI: 0,
+        UTILITY: 0,
+        OTHER: 0
+      };
+    }
+
+    const baseCapacity = VESSEL_SLOT_CAPACITY[activeConfig.hullName] || DEFAULT_SLOT_CAPACITY;
+    const result = {};
+    CATEGORY_KEYS.forEach(category => {
+      const currentSlots = activeConfig.slots[category]?.length || 0;
+      const baseSlots = baseCapacity[category] || 0;
+      result[category] = Math.max(0, currentSlots - baseSlots);
+    });
+    return result;
+  }, [activeConfig]);
 
   // Visible categories state (which categories are shown)
   const [visibleCategories, setVisibleCategories] = useState({
@@ -167,39 +203,14 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
     return result.slice(0, capacity);
   };
 
-  // Add extra slot to a category
+  // Add extra slot to a category - uses store action
   const handleAddSlot = (categoryKey) => {
-    setExtraSlots(prev => ({
-      ...prev,
-      [categoryKey]: (prev[categoryKey] || 0) + 1
-    }));
+    addSlot(categoryKey);
   };
 
-  // Remove extra slot from a category (only if empty)
+  // Remove extra slot from a category - uses store action
   const handleRemoveSlot = (categoryKey) => {
-    const currentExtra = extraSlots[categoryKey] || 0;
-    if (currentExtra <= 0) return;
-
-    // Check if the last slot is empty before removing
-    const equipped = loadout[categoryKey] || [];
-    const totalCapacity = getTotalCapacity(categoryKey);
-    const lastSlotIndex = totalCapacity - 1;
-
-    if (equipped[lastSlotIndex]) {
-      // Last slot has a capability, can't remove
-      return;
-    }
-
-    setExtraSlots(prev => ({
-      ...prev,
-      [categoryKey]: Math.max(0, (prev[categoryKey] || 0) - 1)
-    }));
-
-    // Also trim the loadout if needed
-    setLoadout(prev => ({
-      ...prev,
-      [categoryKey]: (prev[categoryKey] || []).slice(0, totalCapacity - 1)
-    }));
+    removeSlot(categoryKey);
   };
 
   // Hide a category
@@ -308,32 +319,25 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
       .map(ref => individualCapabilities.find(cap => cap.name === ref))
       .filter(Boolean);
 
-    // Create new loadout with stack capabilities
-    const newLoadout = {
-      SENSORS: [],
-      COMMS: [],
-      WEAPONS: [],
-      EW: [],
-      NAV: [],
-      AI: [],
-      UTILITY: [],
-      OTHER: []
-    };
-
-    // Place each capability in the appropriate category
+    // Place each capability in the appropriate category using store actions
     stackCapabilities.forEach(cap => {
       for (const [key, cat] of Object.entries(LOADOUT_CATEGORIES)) {
         if (cat.types && cat.types.includes(cap.category)) {
           const capacity = getTotalCapacity(key);
-          if (newLoadout[key].length < capacity) {
-            newLoadout[key].push(cap);
+          const currentSlots = activeConfig?.slots?.[key] || [];
+          // Find first empty slot
+          const emptyIndex = currentSlots.findIndex(s => s === null);
+          if (emptyIndex !== -1) {
+            setSlotCapability(key, emptyIndex, cap.name);
+            break;
+          } else if (currentSlots.length < capacity) {
+            setSlotCapability(key, currentSlots.length, cap.name);
+            break;
           }
-          break;
         }
       }
     });
 
-    setLoadout(newLoadout);
     setQuickApplyOpen(false);
   };
 
@@ -359,47 +363,35 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
       if (cat.types && cat.types.includes(capability.category)) {
         // Check if there's an empty slot
         const capacity = getTotalCapacity(key);
-        const equipped = loadout[key] || [];
-        const emptyIndex = equipped.findIndex(item => !item);
+        const currentSlots = activeConfig?.slots?.[key] || [];
+        const emptyIndex = currentSlots.findIndex(item => item === null);
         if (emptyIndex !== -1) return { category: key, index: emptyIndex };
-        if (equipped.length < capacity) return { category: key, index: equipped.length };
+        if (currentSlots.length < capacity) return { category: key, index: currentSlots.length };
       }
     }
     return null;
   };
 
-  // Handle capability selection
+  // Handle capability selection - stores capability NAME, not object
   const handleSelectCapability = (capability) => {
     // If in global search mode, find appropriate slot
     if (isGlobalSearchMode) {
       const slot = findSlotForCapability(capability);
       if (slot) {
-        setLoadout(prev => {
-          const newCategoryItems = [...(prev[slot.category] || [])];
-          newCategoryItems[slot.index] = capability;
-          return { ...prev, [slot.category]: newCategoryItems };
-        });
+        setSlotCapability(slot.category, slot.index, capability.name);
       }
     } else if (selectedSlotIndex) {
       const { category, index } = selectedSlotIndex;
-      setLoadout(prev => {
-        const newCategoryItems = [...(prev[category] || [])];
-        newCategoryItems[index] = capability;
-        return { ...prev, [category]: newCategoryItems };
-      });
+      setSlotCapability(category, index, capability.name);
     }
     setBrowserOpen(false);
     setSelectedSlotIndex(null);
     setPreviewCapability(null);
   };
 
-  // Handle remove capability
+  // Handle remove capability - uses store action
   const handleRemove = (categoryKey, index) => {
-    setLoadout(prev => {
-      const newCategoryItems = [...(prev[categoryKey] || [])];
-      newCategoryItems[index] = null;
-      return { ...prev, [categoryKey]: newCategoryItems };
-    });
+    setSlotCapability(categoryKey, index, null);
   };
 
   // Close browser
@@ -411,15 +403,37 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
     setGlobalSearchTerm('');
   };
 
+  // Handle save configuration
+  const handleSave = () => {
+    const configId = saveActiveConfiguration();
+    if (configId) {
+      console.log('Configuration saved:', configId);
+      // Could show a toast notification here
+    }
+  };
+
+  // Handle back to shipyard - close active config
+  const handleBackToShipyard = () => {
+    closeActiveConfiguration();
+    onBackToShipyard();
+  };
+
   // Get vessel hull component
   const VesselHull = selectedHull ? vesselHullComponents[selectedHull.icon] || vesselHullComponents[selectedHull.name] : null;
 
-  // Auto-redirect to shipyard if no hull selected
+  // Initialize configuration when component mounts
   useEffect(() => {
     if (!selectedHull) {
       onBackToShipyard();
+      return;
     }
-  }, [selectedHull, onBackToShipyard]);
+
+    // Only start a new config if there's no active config at all
+    // If activeConfig exists (e.g., loaded from "Edit Configuration"), keep it
+    if (!activeConfig) {
+      startNewConfiguration(selectedHull.name);
+    }
+  }, [selectedHull, onBackToShipyard, activeConfig, startNewConfiguration]);
 
   // Don't render anything while redirecting
   if (!selectedHull) {
@@ -432,7 +446,7 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            onClick={onBackToShipyard}
+            onClick={handleBackToShipyard}
             className="px-3 py-2 bg-transparent border border-lime-brand/50 text-lime-brand rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-lime-brand/10 transition-colors"
           >
             <ChevronLeft size={18} />
@@ -458,10 +472,15 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
             )}
           </div>
           <button
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-bold flex items-center gap-2 transition-colors"
+            onClick={handleSave}
+            className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-colors ${
+              activeConfig?.isDirty
+                ? 'bg-lime-brand hover:bg-lime-brand/90 text-black'
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+            }`}
           >
             <Check size={18} />
-            Save Draft
+            {activeConfig?.isDirty ? 'Save Configuration' : 'Saved'}
           </button>
         </div>
       </div>

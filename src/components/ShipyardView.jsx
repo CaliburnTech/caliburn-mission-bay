@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight, Plane, Anchor } from 'lucide-react';
+import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight, Plane, Anchor, Edit3 } from 'lucide-react';
 import { vesselHullComponents, vesselHullData, isAerialPlatform, isMaritimePlatform } from '../data/vesselData';
 import { squadronUnitConfigurations, activeDeployments } from '../data/fleetData';
 import useSquadronStore from '../store/squadronStore';
 import useNavigationStore from '../store/navigationStore';
+import useOutfitterStore from '../store/outfitterStore';
 import { VariationBadge, ComparisonView } from './variations';
 
 const ShipyardView = ({
@@ -14,7 +15,10 @@ const ShipyardView = ({
   const [selectedSquadronId, setSelectedSquadronId] = useState(null);
 
   // Fleet sub-tab state (hangar vs pier)
-  const { fleetSubTab, setFleetSubTab } = useNavigationStore();
+  const { fleetSubTab, setFleetSubTab, setSelectedView } = useNavigationStore();
+
+  // Outfitter store for loading saved configurations
+  const { loadSavedConfiguration } = useOutfitterStore();
 
   // Use dynamic squadron data from store
   const {
@@ -69,6 +73,14 @@ const ShipyardView = ({
   // Get active deployments for a squadron
   const getSquadronDeployments = (squadronId) => {
     return activeDeployments.filter(d => d.squadronId === squadronId);
+  };
+
+  // Handle direct edit of a saved configuration
+  const handleEditConfig = (squadron, config) => {
+    const success = loadSavedConfiguration(squadron, config);
+    if (success) {
+      setSelectedView('outfitter');
+    }
   };
 
   // Get the selected squadron data
@@ -447,28 +459,45 @@ const ShipyardView = ({
                     return (
                       <div
                         key={idx}
-                        onClick={() => openSquadronManagement(squadron, idx)}
-                        className="flex items-center justify-between p-4 bg-darkest rounded-xl border border-gray-700/40 hover:border-lime-brand/40 cursor-pointer transition-all hover:bg-lime-brand/5 group"
+                        className="flex flex-col p-4 bg-darkest rounded-xl border border-gray-700/40 hover:border-lime-brand/40 transition-all hover:bg-lime-brand/5 group"
                       >
-                        <div>
-                          <div className="text-gray-100 font-semibold group-hover:text-lime-brand transition-colors">
-                            {config.name}
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="text-gray-100 font-semibold group-hover:text-lime-brand transition-colors">
+                              {config.name}
+                            </div>
+                            <div className="text-gray-500 text-sm mt-1">
+                              {config.count} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'} configured
+                            </div>
                           </div>
-                          <div className="text-gray-500 text-sm mt-1">
-                            {config.count} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'} configured
+                          <div className="flex items-center gap-2">
+                            {configDeployed > 0 && (
+                              <span className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-blue-500/10 text-blue-400 rounded-lg">
+                                <Rocket size={12} /> {configDeployed}
+                              </span>
+                            )}
+                            {configReady > 0 && (
+                              <span className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-green-500/10 text-green-400 rounded-lg">
+                                <Check size={12} /> {configReady}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {configDeployed > 0 && (
-                            <span className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-blue-500/10 text-blue-400 rounded-lg">
-                              <Rocket size={12} /> {configDeployed}
-                            </span>
-                          )}
-                          {configReady > 0 && (
-                            <span className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-green-500/10 text-green-400 rounded-lg">
-                              <Check size={12} /> {configReady}
-                            </span>
-                          )}
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-auto">
+                          <button
+                            onClick={() => handleEditConfig(squadron, config)}
+                            className="flex-1 py-2 px-3 bg-lime-brand text-black rounded-lg text-xs font-bold hover:bg-lime-brand/90 transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <Edit3 size={14} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => openSquadronManagement(squadron, idx)}
+                            className="py-2 px-3 bg-gray-700/50 text-gray-300 rounded-lg text-xs font-semibold hover:bg-gray-700 transition-colors"
+                          >
+                            Details
+                          </button>
                         </div>
                       </div>
                     );

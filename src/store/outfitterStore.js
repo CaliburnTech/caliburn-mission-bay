@@ -1,11 +1,41 @@
 import { create } from 'zustand';
 import { engineeringStacks, individualCapabilities } from '../data/marketplaceData';
 import { vesselHullData, vesselMountPoints, globalBaselines } from '../data/vesselData';
+import useConfigurationStore from './configurationStore';
 
 const useOutfitterStore = create((set, get) => ({
   // Hull selection
   selectedHull: null,
   setSelectedHull: (hull) => set({ selectedHull: hull }),
+
+  // Load a saved configuration into the outfitter
+  // Takes a squadron and configuration object, sets up the hull and pre-populates capabilities
+  // This now uses the unified configurationStore for LoadoutBuilder compatibility
+  loadSavedConfiguration: (squadron, configOutfit) => {
+    // Find the actual vessel from vesselHullData using squadron icon
+    const vessel = vesselHullData.find(v =>
+      v.name === squadron.icon || v.icon === squadron.icon
+    );
+
+    if (!vessel) {
+      console.warn('Could not find vessel for squadron:', squadron.icon);
+      return false;
+    }
+
+    // Use the unified configuration store to load the configuration
+    // This ensures LoadoutBuilder will have access to the capabilities
+    const configStore = useConfigurationStore.getState();
+    configStore.loadFromFleetData(squadron, configOutfit);
+
+    // Also set the selectedHull in outfitterStore for navigation
+    set({
+      selectedHull: vessel,
+      selectedMountPoint: null,
+      selectedCategory: null
+    });
+
+    return true;
+  },
 
   // Mount point selection
   selectedMountPoint: null,
