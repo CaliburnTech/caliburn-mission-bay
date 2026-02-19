@@ -316,6 +316,7 @@ export const individualCapabilities = [
       provider: "Northrop Grumman",
       type: "Electronic Warfare",
       platformTypes: ["USV", "Ship"],
+      missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ROBOT_DEFENSE_OODA"],
       description: "Advanced electronic support measures for signal intelligence and threat detection with S-Band and X-Band RF detection capabilities.",
       capabilities: ["Signal Intercept", "Direction Finding", "Threat Classification", "RF Detection", "Maritime Surveillance"],
       trl: "TRL 9",
@@ -375,6 +376,7 @@ export const individualCapabilities = [
       provider: "General Dynamics",
       type: "Sonar System",
       platformTypes: ["USV", "UUV", "Ship"],
+      missionTags: ["SEA_DENIAL", "ASW", "RECONNAISSANCE"],
       description: "Long-range passive sonar system for submarine detection and tracking.",
       capabilities: ["Submarine Detection", "Acoustic Analysis", "Long-Range Tracking"],
       trl: "TRL 9",
@@ -574,6 +576,7 @@ export const individualCapabilities = [
       provider: "Marine AI",
       type: "Autonomous Navigation",
       platformTypes: ["USV", "UUV"],
+      missionTags: ["SEA_DENIAL", "SURVEY", "MCM", "ASW", "RECONNAISSANCE", "ESCORT", "CONTESTED_LOGISTICS"],
       description: "Intelligent maritime navigation system with AI-powered decision making for autonomous vessel operations.",
       capabilities: ["AI Navigation", "Autonomous Operations", "Maritime Intelligence"],
       trl: "TRL 9",
@@ -597,6 +600,7 @@ export const individualCapabilities = [
       provider: "FLIR Systems",
       type: "Optical Sensor",
       platformTypes: ["USV", "UUV", "UAV", "Ship"],
+      missionTags: ["RECONNAISSANCE", "SEA_DENIAL", "ESCORT", "MCM"],
       description: "High-resolution electro-optical and infrared imaging system for surveillance and target identification.",
       capabilities: ["HD Video", "Thermal Imaging", "Target Tracking", "Day/Night Vision"],
       trl: "TRL 9",
@@ -1360,6 +1364,7 @@ export const individualCapabilities = [
       provider: "Teledyne Marine",
       type: "Underwater Glider",
       platformTypes: ["USV", "Ship"],
+      missionTags: ["SEA_DENIAL", "ASW", "SURVEY", "RECONNAISSANCE"],
       description: "Long-endurance autonomous underwater glider for persistent ocean monitoring. Uses buoyancy-driven propulsion for extended missions up to 18 months. Ideal for ASW, oceanographic survey, and environmental monitoring.",
       capabilities: [
         "Buoyancy-Driven Propulsion",
@@ -1421,6 +1426,7 @@ export const individualCapabilities = [
       provider: "Multiple Vendors",
       type: "ASW Deployment System",
       platformTypes: ["USV", "Ship", "UAV"],
+      missionTags: ["SEA_DENIAL", "ASW", "RECONNAISSANCE"],
       description: "Multi-tube sonobuoy deployment system for anti-submarine warfare operations. Launches A-size sonobuoys for acoustic surveillance and submarine detection from surface or aerial platforms.",
       capabilities: [
         "Multi-Tube Deployment",
@@ -1479,6 +1485,7 @@ export const individualCapabilities = [
       provider: "Multiple Vendors",
       type: "Passive Sonar",
       platformTypes: ["USV", "UUV", "Ship"],
+      missionTags: ["SEA_DENIAL", "ASW", "RECONNAISSANCE"],
       description: "Compact passive towed sonar array optimized for USV deployment. Sub-50mm diameter array provides long-range submarine detection capability for autonomous ASW missions.",
       capabilities: [
         "Passive Acoustic Detection",
@@ -1539,6 +1546,7 @@ export const individualCapabilities = [
       provider: "Multiple Vendors",
       type: "Bathymetric Survey",
       platformTypes: ["USV", "UUV", "Ship"],
+      missionTags: ["SURVEY", "MCM", "RECONNAISSANCE"],
       description: "High-resolution multibeam sonar for seabed mapping and bathymetric survey. Provides detailed 3D seafloor imagery for navigation, mine countermeasures, and oceanographic research.",
       capabilities: [
         "High-Resolution Bathymetry",

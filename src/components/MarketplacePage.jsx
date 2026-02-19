@@ -9,6 +9,7 @@ import useSquadronStore from '../store/squadronStore';
 import caliburnLogotype from '../assets/Caliburn Logotype Dark Mode.png';
 import ShipyardView from './ShipyardView';
 import MissionPlanner from './MissionPlanner';
+import MissionMatrix from './MissionMatrix';
 import GlobalSearch from './GlobalSearch';
 import StacksView from './StacksView';
 import CapabilitiesView from './CapabilitiesView';
@@ -163,6 +164,12 @@ const MarketplacePage = ({ onLogoClick }) => {
                 Capabilities
               </button>
               <button
+                onClick={() => setSelectedView('matrix')}
+                className={`${selectedView === 'matrix' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
+              >
+                Mission Matrix
+              </button>
+              <button
                 onClick={() => setSelectedView('squadron')}
                 className={`${selectedView === 'squadron' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
               >
@@ -242,6 +249,11 @@ const MarketplacePage = ({ onLogoClick }) => {
               />
             )}
             
+            {/* Mission Matrix */}
+            {selectedView === 'matrix' && (
+              <MissionMatrix />
+            )}
+
             {/* Mission Planner */}
             {selectedView === 'squadron' && (
               <MissionPlanner />

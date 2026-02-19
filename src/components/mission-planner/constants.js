@@ -1,7 +1,7 @@
 import {
   Target, Eye, Crosshair, Radio, Zap, User, CheckCircle,
   Wifi, Brain, Radar, Navigation, Settings2,
-  Shield, Ship, Ban, Plane, Fuel, Satellite, Users
+  Shield, Ship, Ban, Plane, Fuel, Satellite, Users, Waves
 } from 'lucide-react';
 
 // Mission domain types
@@ -11,14 +11,19 @@ export const MISSION_DOMAINS = {
   COMBINED: 'COMBINED'
 };
 
-// Define the 6 key MARITIME missions
+// Define the 9 key MARITIME missions (including CNO priorities)
 export const KEY_MARITIME_MISSIONS = [
-  { key: 'SEA_DENIAL', name: 'Sea Denial', icon: Ban, color: '#ef4444', description: 'Zone exclusion & elimination', domain: 'MARITIME' },
+  // CNO Priority Missions (Water Space Denial, Survey, Mine Warfare)
+  { key: 'SEA_DENIAL', name: 'Water Space Denial', icon: Ban, color: '#ef4444', description: 'Clear threats from large ocean areas', domain: 'MARITIME' },
+  { key: 'SURVEY', name: 'Survey & Mapping', icon: Radar, color: '#3b82f6', description: 'Bathymetric & seabed characterization', domain: 'MARITIME' },
+  { key: 'MCM', name: 'Mine Countermeasures', icon: Target, color: '#f97316', description: 'Detect & neutralize naval mines', domain: 'MARITIME' },
+  // Other Maritime Missions
   { key: 'CONTESTED_LOGISTICS', name: 'Contested Logistics', icon: Ship, color: '#8b5cf6', description: 'Covert resupply operations', domain: 'MARITIME' },
   { key: 'ESCORT', name: 'Convoy Escort', icon: Shield, color: '#eab308', description: 'HVU convoy protection', domain: 'MARITIME' },
   { key: 'REFLEX_SWARM_ATTACK', name: 'Swarm Attack', icon: Crosshair, color: '#ef4444', description: 'Coordinated offensive strike', domain: 'MARITIME' },
   { key: 'ROBOT_DEFENSE_OODA', name: 'SIGINT Collection', icon: Radio, color: '#f97316', description: 'Persistent ELINT/COMINT surveillance', domain: 'MARITIME' },
-  { key: 'RECONNAISSANCE', name: 'ISR Patrol', icon: Eye, color: '#06b6d4', description: 'Surveillance & reconnaissance', domain: 'MARITIME' }
+  { key: 'RECONNAISSANCE', name: 'ISR Patrol', icon: Eye, color: '#06b6d4', description: 'Surveillance & reconnaissance', domain: 'MARITIME' },
+  { key: 'ASW', name: 'Anti-Submarine Warfare', icon: Waves, color: '#06b6d4', description: 'Detect & track hostile submarines', domain: 'MARITIME' }
 ];
 
 // Define the 5 key AERIAL missions
@@ -81,8 +86,12 @@ export const hierarchyPresets = {
 
 // Zone types based on mission
 export const zoneTypes = {
-  // Maritime missions
-  SEA_DENIAL: { label: 'Denial Zone', color: '#ef4444', fillOpacity: 0.3, geometryType: 'zone', description: 'Draw area to deny enemy access', domain: 'MARITIME' },
+  // Maritime missions - CNO Priorities
+  SEA_DENIAL: { label: 'Denial Zone', color: '#ef4444', fillOpacity: 0.3, geometryType: 'zone', description: 'Draw area to clear of threats', domain: 'MARITIME' },
+  SURVEY: { label: 'Survey Track', color: '#3b82f6', fillOpacity: 0.2, geometryType: 'route', description: 'Define survey track with waypoints', domain: 'MARITIME' },
+  MCM: { label: 'MCM Area', color: '#f97316', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw mine countermeasures search area', domain: 'MARITIME' },
+  ASW: { label: 'ASW Box', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw anti-submarine search area', domain: 'MARITIME' },
+  // Other Maritime missions
   ESCORT: { label: 'Convoy Route', color: '#eab308', fillOpacity: 0.2, geometryType: 'route', description: 'Set waypoints A→B→C for escort path', domain: 'MARITIME' },
   CONTESTED_LOGISTICS: { label: 'Supply Route', color: '#8b5cf6', fillOpacity: 0.2, geometryType: 'route', description: 'Define resupply route with waypoints', domain: 'MARITIME' },
   RECONNAISSANCE: { label: 'Patrol Area', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw patrol/surveillance area', domain: 'MARITIME' },
