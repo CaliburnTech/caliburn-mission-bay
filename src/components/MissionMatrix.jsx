@@ -1,22 +1,26 @@
 import { useState, useMemo } from 'react';
-import { X, ChevronRight, ExternalLink, Filter, Eye, EyeOff } from 'lucide-react';
+import { X, ChevronRight, ExternalLink, Eye, EyeOff, Ship, Plus, Check } from 'lucide-react';
 import { individualCapabilities } from '../data/marketplaceData';
+import { vesselHullData, vesselHullComponents } from '../data/vesselData';
 import { KEY_MARITIME_MISSIONS, KEY_AERIAL_MISSIONS, ALL_MISSIONS } from './mission-planner/constants';
 import { CATEGORY_COLORS } from '../constants/colors';
 import useNavigationStore from '../store/navigationStore';
+import useOutfitterStore from '../store/outfitterStore';
+import useSquadronStore from '../store/squadronStore';
 
-// Platform types for rows
-const PLATFORM_TYPES = [
-  { key: 'USV', name: 'USV', description: 'Unmanned Surface Vessel', color: '#3b82f6' },
-  { key: 'UUV', name: 'UUV', description: 'Unmanned Underwater Vehicle', color: '#06b6d4' },
-  { key: 'UAV', name: 'UAV', description: 'Unmanned Aerial Vehicle', color: '#8b5cf6' },
-  { key: 'Ship', name: 'Ship', description: 'Crewed Surface Vessel', color: '#64748b' }
-];
+// Platform type colors
+const PLATFORM_COLORS = {
+  USV: '#3b82f6',
+  UUV: '#06b6d4',
+  UAV: '#8b5cf6',
+  Ship: '#64748b'
+};
 
-// Get capabilities for a platform × mission intersection
-const getCapabilitiesForCell = (platformType, missionKey) => {
+// Get capabilities for a vessel × mission intersection
+const getCapabilitiesForCell = (vessel, missionKey) => {
   return individualCapabilities.filter(cap => {
-    const platformMatch = cap.platformTypes?.includes(platformType);
+    // Check if capability supports this vessel's platform type
+    const platformMatch = cap.platformTypes?.includes(vessel.platformType);
     const missionMatch = cap.missionTags?.includes(missionKey);
     return platformMatch && missionMatch;
   });
@@ -157,30 +161,64 @@ const CapabilityModal = ({ capability, onClose }) => {
   );
 };
 
-// Cell Detail Panel (shows when clicking a cell)
-const CellDetailPanel = ({ platformType, mission, capabilities, onClose, onSelectCapability }) => {
-  const platform = PLATFORM_TYPES.find(p => p.key === platformType);
+// Cell Detail Modal (shows when clicking a cell)
+const CellDetailModal = ({ vessel, mission, capabilities = [], onClose, existingSquadrons = [], onViewSquadrons, onNewConfiguration }) => {
+  const [selectedByCategory, setSelectedByCategory] = useState({});
+
+  const platformColor = PLATFORM_COLORS[vessel?.platformType] || '#64748b';
+  const VesselIcon = vessel ? (vesselHullComponents[vessel.icon] || vesselHullComponents[vessel.name]) : null;
+
+  // Calculate totals from selected capabilities
+  const selectedCaps = Object.values(selectedByCategory);
+  const totalWeight = selectedCaps.reduce((sum, cap) => sum + (cap?.swap?.weight || 0), 0);
+  const totalPower = selectedCaps.reduce((sum, cap) => sum + (cap?.swap?.power || 0), 0);
+
+  const maxWeight = vessel?.capacity?.totalWeight || 0;
+  const maxPower = vessel?.capacity?.totalPower || 0;
+
+  const weightOverflow = maxWeight > 0 && totalWeight > maxWeight;
+  const powerOverflow = maxPower > 0 && totalPower > maxPower;
+
+  const toggleCapability = (category, cap) => {
+    setSelectedByCategory(prev => {
+      if (prev[category]?.name === cap.name) {
+        // Deselect
+        const next = { ...prev };
+        delete next[category];
+        return next;
+      }
+      // Select (replaces any existing selection in this category)
+      return { ...prev, [category]: cap };
+    });
+  };
 
   return (
-    <div className="bg-darker border border-gray-700/50 rounded-xl p-4 mt-4">
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-darker border border-gray-700 rounded-xl p-5 max-w-lg w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-            style={{ backgroundColor: platform?.color || '#64748b' }}
-          >
-            {platformType}
+          <div className="w-16 h-10 flex items-center justify-center overflow-hidden rounded-lg bg-gray-800/50">
+            {VesselIcon ? (
+              <VesselIcon size={64} className="opacity-80" />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-white font-bold text-xs"
+                style={{ backgroundColor: platformColor }}
+              >
+                {vessel?.platformType || '?'}
+              </div>
+            )}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-semibold">{platform?.name}</span>
-              <span className="text-gray-500">×</span>
-              <span style={{ color: mission.color }} className="font-semibold">{mission.name}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-white font-semibold">{vessel?.name || 'Unknown'}</span>
+              <span className="text-gray-500">for</span>
+              <span style={{ color: mission?.color || '#888' }} className="font-semibold">{mission?.name || 'Unknown'}</span>
             </div>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-400 text-sm mt-1">
               {capabilities.length === 0
-                ? 'No payloads available - capability gap'
-                : `${capabilities.length} payload${capabilities.length > 1 ? 's' : ''} available`}
+                ? 'No compatible payloads in marketplace'
+                : `${capabilities.length} payload options across ${Object.keys(capabilities.reduce((g, c) => ({ ...g, [c.category || 'OTHER']: true }), {})).length} categories`}
             </p>
           </div>
         </div>
@@ -192,44 +230,159 @@ const CellDetailPanel = ({ platformType, mission, capabilities, onClose, onSelec
         </button>
       </div>
 
-      {capabilities.length > 0 ? (
-        <div className="space-y-2">
-          {capabilities.map(cap => {
-            const categoryColor = CATEGORY_COLORS[cap.category?.replace(/[^A-Z]/g, '')]?.hex || '#64748b';
-            return (
-              <button
-                key={cap.name}
-                onClick={() => onSelectCapability(cap)}
-                className="w-full p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-left transition-colors group"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-white font-medium group-hover:text-lime-brand transition-colors">
-                      {cap.name}
-                    </div>
-                    <div className="text-gray-500 text-sm">{cap.provider}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="px-2 py-0.5 rounded text-xs"
-                      style={{ backgroundColor: `${categoryColor}20`, color: categoryColor }}
-                    >
-                      {cap.category}
-                    </span>
-                    <ChevronRight size={16} className="text-gray-500 group-hover:text-lime-brand transition-colors" />
-                  </div>
+      {/* Vessel Specs Bar with Running Totals */}
+      {vessel?.capacity && (
+        <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <div className="text-gray-500 text-xs uppercase">Payload</div>
+              <div className={`font-semibold ${weightOverflow ? 'text-red-400' : totalWeight > 0 ? 'text-lime-brand' : 'text-white'}`}>
+                {totalWeight > 0 ? `${totalWeight} / ${maxWeight}` : maxWeight} kg
+              </div>
+              {maxWeight > 0 && (
+                <div className="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${weightOverflow ? 'bg-red-400' : 'bg-lime-brand'}`}
+                    style={{ width: `${Math.min((totalWeight / maxWeight) * 100, 100)}%` }}
+                  />
                 </div>
-              </button>
+              )}
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs uppercase">Power</div>
+              <div className={`font-semibold ${powerOverflow ? 'text-red-400' : totalPower > 0 ? 'text-yellow-400' : 'text-white'}`}>
+                {totalPower > 0 ? `${totalPower} / ${maxPower}` : maxPower} kW
+              </div>
+              {maxPower > 0 && (
+                <div className="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${powerOverflow ? 'bg-red-400' : 'bg-yellow-400'}`}
+                    style={{ width: `${Math.min((totalPower / maxPower) * 100, 100)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs uppercase">Range</div>
+              <div className="text-white font-semibold">{vessel.specs?.range || '—'} nm</div>
+            </div>
+          </div>
+          {selectedCaps.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-700/50 text-xs text-gray-400 text-center">
+              {selectedCaps.length} payload{selectedCaps.length > 1 ? 's' : ''} selected
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Navigation buttons */}
+      <div className="flex gap-2 mb-4">
+        {existingSquadrons.length > 0 && (
+          <button
+            onClick={onViewSquadrons}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-sm transition-colors"
+          >
+            <Ship size={16} />
+            View {existingSquadrons.length} Existing
+          </button>
+        )}
+        <button
+          onClick={onNewConfiguration}
+          disabled={weightOverflow || powerOverflow}
+          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            weightOverflow || powerOverflow
+              ? 'bg-red-500/20 text-red-400 cursor-not-allowed'
+              : selectedCaps.length > 0
+                ? 'bg-lime-brand hover:bg-lime-brand/90 text-black'
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+          }`}
+        >
+          {weightOverflow || powerOverflow ? (
+            <>Exceeds Capacity</>
+          ) : selectedCaps.length > 0 ? (
+            <>
+              <Check size={16} />
+              Create with {selectedCaps.length} Payload{selectedCaps.length > 1 ? 's' : ''}
+            </>
+          ) : (
+            <>
+              <Plus size={16} />
+              Configure {vessel?.name || 'Vessel'}
+            </>
+          )}
+        </button>
+      </div>
+
+      {capabilities.length > 0 ? (
+        <div className="space-y-4">
+          <div className="text-xs text-gray-400 mb-2">
+            Build a loadout by selecting from each category:
+          </div>
+          {/* Group capabilities by category */}
+          {Object.entries(
+            capabilities.reduce((groups, cap) => {
+              const category = cap.category || 'OTHER';
+              if (!groups[category]) groups[category] = [];
+              groups[category].push(cap);
+              return groups;
+            }, {})
+          ).map(([category, caps]) => {
+            const categoryColor = CATEGORY_COLORS[category?.replace(/[^A-Z]/g, '')]?.hex || '#64748b';
+            return (
+              <div key={category} className="border border-gray-700/50 rounded-lg overflow-hidden">
+                <div
+                  className="px-3 py-2 text-xs font-semibold uppercase tracking-wide flex items-center justify-between"
+                  style={{ backgroundColor: `${categoryColor}15`, color: categoryColor }}
+                >
+                  <span>{category}</span>
+                  <span className="text-gray-500 font-normal">pick 1 of {caps.length}</span>
+                </div>
+                <div className="divide-y divide-gray-700/30">
+                  {caps.map(cap => {
+                    const isSelected = selectedByCategory[category]?.name === cap.name;
+                    return (
+                      <button
+                        key={cap.name}
+                        onClick={() => toggleCapability(category, cap)}
+                        className={`w-full p-3 text-left transition-colors group ${isSelected ? 'bg-lime-brand/10' : 'hover:bg-gray-800/50'}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'border-lime-brand bg-lime-brand' : 'border-gray-600'}`}>
+                              {isSelected && <Check size={10} className="text-black" />}
+                            </div>
+                            <div className="min-w-0">
+                              <div className={`font-medium text-sm truncate transition-colors ${isSelected ? 'text-lime-brand' : 'text-white group-hover:text-lime-brand'}`}>
+                                {cap.name}
+                              </div>
+                              <div className="text-gray-500 text-xs">{cap.provider}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs shrink-0">
+                            {cap.swap?.weight > 0 && (
+                              <span className="text-gray-400">{cap.swap.weight}kg</span>
+                            )}
+                            {cap.swap?.power > 0 && (
+                              <span className="text-yellow-500">{cap.swap.power}kW</span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
       ) : (
         <div className="text-center py-6 text-gray-500">
           <div className="text-4xl mb-2">○</div>
-          <p>No payloads support this platform × mission combination</p>
-          <p className="text-sm mt-1">This represents a capability gap</p>
+          <p>No payloads in the marketplace support this combination</p>
+          <p className="text-sm mt-1 text-amber-500">Capability gap - contact vendors for solutions</p>
         </div>
       )}
+      </div>
     </div>
   );
 };
@@ -242,6 +395,8 @@ const MissionMatrix = () => {
   const [domainFilter, setDomainFilter] = useState('MARITIME'); // MARITIME, AERIAL, ALL
 
   const { setSelectedView } = useNavigationStore();
+  const { setSelectedHull, setSelectedMountPoint, setVesselConfiguration } = useOutfitterStore();
+  const { squadrons } = useSquadronStore();
 
   // Get missions based on domain filter
   const missions = useMemo(() => {
@@ -255,14 +410,27 @@ const MissionMatrix = () => {
     }
   }, [domainFilter]);
 
+  // Filter vessels based on domain
+  const vessels = useMemo(() => {
+    return vesselHullData.filter(vessel => {
+      if (domainFilter === 'MARITIME') {
+        return vessel.platformType === 'USV' || vessel.platformType === 'UUV' || vessel.platformType === 'Ship';
+      }
+      if (domainFilter === 'AERIAL') {
+        return vessel.platformType === 'UAV';
+      }
+      return true; // ALL
+    });
+  }, [domainFilter]);
+
   // Build matrix data
   const matrixData = useMemo(() => {
     const data = {};
-    PLATFORM_TYPES.forEach(platform => {
-      data[platform.key] = {};
+    vessels.forEach(vessel => {
+      data[vessel.name] = {};
       missions.forEach(mission => {
-        const capabilities = getCapabilitiesForCell(platform.key, mission.key);
-        data[platform.key][mission.key] = {
+        const capabilities = getCapabilitiesForCell(vessel, mission.key);
+        data[vessel.name][mission.key] = {
           capabilities,
           count: capabilities.length,
           status: getCellStatus(capabilities.length)
@@ -270,7 +438,7 @@ const MissionMatrix = () => {
       });
     });
     return data;
-  }, [missions]);
+  }, [missions, vessels]);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -278,24 +446,43 @@ const MissionMatrix = () => {
     let totalLimited = 0;
     let totalAvailable = 0;
 
-    PLATFORM_TYPES.forEach(platform => {
+    vessels.forEach(vessel => {
       missions.forEach(mission => {
-        const cell = matrixData[platform.key]?.[mission.key];
-        if (cell?.status.status === 'gap') totalGaps++;
-        else if (cell?.status.status === 'limited') totalLimited++;
+        const cell = matrixData[vessel.name]?.[mission.key];
+        if (cell?.status?.status === 'gap') totalGaps++;
+        else if (cell?.status?.status === 'limited') totalLimited++;
         else totalAvailable++;
       });
     });
 
     return { totalGaps, totalLimited, totalAvailable };
-  }, [matrixData, missions]);
+  }, [matrixData, missions, vessels]);
 
-  const handleCellClick = (platformKey, missionKey) => {
-    if (selectedCell?.platform === platformKey && selectedCell?.mission === missionKey) {
+  const handleCellClick = (vesselName, missionKey) => {
+    if (selectedCell?.vessel === vesselName && selectedCell?.mission === missionKey) {
       setSelectedCell(null);
     } else {
-      setSelectedCell({ platform: platformKey, mission: missionKey });
+      const vessel = vessels.find(v => v.name === vesselName);
+      setSelectedCell({ vessel: vesselName, vesselData: vessel, mission: missionKey });
     }
+  };
+
+  // Get existing squadrons for a vessel
+  const getSquadronsForVessel = (vesselName) => {
+    return (squadrons || []).filter(s => s.hullName === vesselName || s.platformName === vesselName);
+  };
+
+  // Navigate to view existing squadrons
+  const handleViewSquadrons = () => {
+    setSelectedView('shipyard');
+  };
+
+  // Navigate to create new configuration
+  const handleNewConfiguration = (vessel) => {
+    setSelectedHull(vessel);
+    setSelectedMountPoint(null);
+    setVesselConfiguration({});
+    setSelectedView('outfitter');
   };
 
   return (
@@ -352,87 +539,110 @@ const MissionMatrix = () => {
       {/* Matrix Grid */}
       <div className="bg-darker rounded-xl border border-gray-700/50 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead>
               <tr className="border-b border-gray-700/50">
-                <th className="p-3 text-left text-gray-400 text-sm font-medium w-24">Platform</th>
+                <th className="p-3 text-left text-gray-400 text-sm font-medium w-48">Platform</th>
                 {missions.map(mission => (
                   <th
                     key={mission.key}
-                    className="p-3 text-center text-sm font-medium min-w-[100px]"
+                    className="p-2 text-center text-sm font-medium"
                     style={{ color: mission.color }}
                   >
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-center justify-center gap-1">
                       {mission.icon && <mission.icon size={16} />}
-                      <span className="text-xs">{mission.name}</span>
+                      <span className="text-xs leading-tight">{mission.name}</span>
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {PLATFORM_TYPES.map(platform => (
-                <tr key={platform.key} className="border-b border-gray-700/30 last:border-0">
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-8 h-8 rounded flex items-center justify-center text-white text-xs font-bold"
-                        style={{ backgroundColor: platform.color }}
+              {vessels.map(vessel => {
+                const platformColor = PLATFORM_COLORS[vessel.platformType] || '#64748b';
+                const VesselIcon = vesselHullComponents[vessel.icon] || vesselHullComponents[vessel.name];
+                return (
+                  <tr key={vessel.name} className="border-b border-gray-700/30 last:border-0">
+                    <td className="p-2 w-48">
+                      <button
+                        onClick={() => handleNewConfiguration(vessel)}
+                        className="flex items-center gap-2 w-full text-left group cursor-pointer hover:bg-gray-800/50 rounded-lg p-1 -m-1 transition-colors"
+                        title={`Configure ${vessel.name}`}
                       >
-                        {platform.key}
-                      </div>
-                      <span className="text-gray-300 text-sm hidden sm:inline">{platform.description}</span>
-                    </div>
-                  </td>
-                  {missions.map(mission => {
-                    const cell = matrixData[platform.key]?.[mission.key];
-                    const isSelected = selectedCell?.platform === platform.key && selectedCell?.mission === mission.key;
-                    const isGap = cell?.status.status === 'gap';
+                        <div className="w-10 h-7 flex-shrink-0 flex items-center justify-center overflow-hidden rounded bg-gray-800/50 group-hover:bg-gray-700/50 transition-colors">
+                          {VesselIcon ? (
+                            <VesselIcon size={40} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+                          ) : (
+                            <div
+                              className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold"
+                              style={{ backgroundColor: platformColor }}
+                            >
+                              {vessel.platformType}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-gray-200 text-sm font-medium truncate group-hover:text-lime-brand transition-colors">{vessel.name}</span>
+                          <span className="text-gray-500 text-xs">{vessel.platformType}</span>
+                        </div>
+                      </button>
+                    </td>
+                    {missions.map(mission => {
+                      const cell = matrixData[vessel.name]?.[mission.key];
+                      const isSelected = selectedCell?.vessel === vessel.name && selectedCell?.mission === mission.key;
+                      const isGap = cell?.status?.status === 'gap';
 
-                    if (showGapsOnly && !isGap) {
+                      if (showGapsOnly && !isGap) {
+                        return (
+                          <td key={mission.key} className="p-2">
+                            <div className="flex justify-center">
+                              <div className="w-12 h-12 flex items-center justify-center text-gray-700">—</div>
+                            </div>
+                          </td>
+                        );
+                      }
+
                       return (
-                        <td key={mission.key} className="p-3 text-center">
-                          <div className="text-gray-700">—</div>
+                        <td key={mission.key} className="p-2">
+                          <div className="flex justify-center">
+                            <button
+                              onClick={() => handleCellClick(vessel.name, mission.key)}
+                              className={`w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer transition-all border ${cell?.status?.bg} ${
+                                isSelected
+                                  ? 'ring-2 ring-lime-brand scale-110 border-lime-brand'
+                                  : 'border-transparent hover:scale-110 hover:border-gray-500 hover:shadow-lg hover:shadow-black/20'
+                              }`}
+                              title={`Click to view ${cell?.count || 0} payloads for ${vessel.name} × ${mission.name}`}
+                            >
+                              <span
+                                className="text-xl font-semibold"
+                                style={{ color: cell?.status?.color }}
+                              >
+                                {cell?.count || '○'}
+                              </span>
+                            </button>
+                          </div>
                         </td>
                       );
-                    }
-
-                    return (
-                      <td key={mission.key} className="p-3 text-center">
-                        <button
-                          onClick={() => handleCellClick(platform.key, mission.key)}
-                          className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all ${cell?.status.bg} ${
-                            isSelected
-                              ? 'ring-2 ring-lime-brand scale-110'
-                              : 'hover:scale-105 hover:ring-1 hover:ring-gray-500'
-                          }`}
-                          title={`${platform.key} × ${mission.name}: ${cell?.count || 0} payloads`}
-                        >
-                          <span
-                            className="text-2xl"
-                            style={{ color: cell?.status.color }}
-                          >
-                            {cell?.count || '○'}
-                          </span>
-                        </button>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Selected Cell Detail */}
+      {/* Selected Cell Detail Modal */}
       {selectedCell && (
-        <CellDetailPanel
-          platformType={selectedCell.platform}
+        <CellDetailModal
+          vessel={selectedCell.vesselData}
           mission={missions.find(m => m.key === selectedCell.mission)}
-          capabilities={matrixData[selectedCell.platform]?.[selectedCell.mission]?.capabilities || []}
+          capabilities={matrixData[selectedCell.vessel]?.[selectedCell.mission]?.capabilities || []}
           onClose={() => setSelectedCell(null)}
-          onSelectCapability={setSelectedCapability}
+          existingSquadrons={getSquadronsForVessel(selectedCell.vessel)}
+          onViewSquadrons={handleViewSquadrons}
+          onNewConfiguration={() => handleNewConfiguration(selectedCell.vesselData)}
         />
       )}
 

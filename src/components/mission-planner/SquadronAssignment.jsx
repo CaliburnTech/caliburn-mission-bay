@@ -1,6 +1,7 @@
-import React from 'react';
-import { Users, Check, Plane, Ship } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Users, Check, Plane, Ship, Radar, Target, Radio, Gauge, Zap, AlertTriangle } from 'lucide-react';
 import { isAerialSquadron, isMaritimeSquadron } from '../../data/fleetData';
+import { vesselHullData } from '../../data/vesselData';
 
 // For COMBINED missions, we use a structured format: { aerial: [], maritime: [] }
 // For single-domain missions, we use a flat array: []
@@ -81,6 +82,172 @@ const SquadronAssignment = ({
       return (aerialAssigned.length || 0) + (maritimeAssigned.length || 0);
     }
     return assignedSquadrons?.length || 0;
+  };
+
+  // Calculate combined fleet stats based on selected squadrons
+  const combinedStats = useMemo(() => {
+    const getAllSelectedIds = () => {
+      if (isCombined) {
+        return [...(aerialAssigned || []), ...(maritimeAssigned || [])];
+      }
+      return assignedSquadrons || [];
+    };
+
+    const selectedIds = getAllSelectedIds();
+    const selectedSquadrons = availableSquadrons.filter(s => selectedIds.includes(s.id));
+
+    if (selectedSquadrons.length === 0) {
+      return null;
+    }
+
+    // Calculate totals
+    let totalUnits = 0;
+    let totalReadyUnits = 0;
+    let sensorCount = 0;
+    let weaponCount = 0;
+    let commsCount = 0;
+    let minRange = Infinity;
+    let minEndurance = Infinity;
+    let aerialUnits = 0;
+    let maritimeUnits = 0;
+
+    selectedSquadrons.forEach(squadron => {
+      const units = squadron.totalUnits || squadron.units || 0;
+      const readyUnits = squadron.status?.missionReady || 0;
+      totalUnits += units;
+      totalReadyUnits += readyUnits;
+
+      if (isAerialSquadron(squadron)) {
+        aerialUnits += readyUnits;
+      } else {
+        maritimeUnits += readyUnits;
+      }
+
+      // Get vessel specs for range calculation
+      const hullData = vesselHullData.find(v => v.name === squadron.icon || v.icon === squadron.icon);
+      if (hullData?.specs?.range) {
+        minRange = Math.min(minRange, hullData.specs.range);
+      }
+      if (hullData?.aerialSpecs?.endurance) {
+        minEndurance = Math.min(minEndurance, hullData.aerialSpecs.endurance);
+      }
+
+      // Count capabilities from squadron configuration if available
+      const config = squadron.configuration || squadron.outfits || [];
+      if (Array.isArray(config)) {
+        config.forEach(slot => {
+          const cat = slot?.category?.toUpperCase() || '';
+          if (cat.includes('SENSOR') || cat.includes('EO/IR') || cat.includes('RADAR')) {
+            sensorCount++;
+          } else if (cat.includes('WEAPON') || cat.includes('KINETIC')) {
+            weaponCount++;
+          } else if (cat.includes('COMM') || cat.includes('SATCOM')) {
+            commsCount++;
+          }
+        });
+      }
+    });
+
+    return {
+      totalUnits,
+      totalReadyUnits,
+      sensorCount,
+      weaponCount,
+      commsCount,
+      minRange: minRange === Infinity ? null : minRange,
+      minEndurance: minEndurance === Infinity ? null : minEndurance,
+      aerialUnits,
+      maritimeUnits,
+      squadronCount: selectedSquadrons.length
+    };
+  }, [isCombined, aerialAssigned, maritimeAssigned, assignedSquadrons, availableSquadrons]);
+
+  // Combined Stats Display Component
+  const CombinedStatsPanel = () => {
+    if (!combinedStats) return null;
+
+    return (
+      <div className="bg-darkest rounded border border-lime-brand/30 p-2 mb-2">
+        <div className="text-lime-brand text-[0.5rem] font-semibold mb-1.5 flex items-center gap-1">
+          <Zap size={10} />
+          COMBINED FLEET STATS
+        </div>
+
+        {/* Primary Stats Row */}
+        <div className="grid grid-cols-3 gap-1.5 mb-1.5">
+          <div className="bg-darker rounded p-1.5 text-center">
+            <div className="text-lime-brand text-[0.75rem] font-bold">{combinedStats.totalReadyUnits}</div>
+            <div className="text-gray-500 text-[0.4rem] uppercase">Ready Units</div>
+          </div>
+          <div className="bg-darker rounded p-1.5 text-center">
+            <div className="text-cyan-400 text-[0.75rem] font-bold">{combinedStats.squadronCount}</div>
+            <div className="text-gray-500 text-[0.4rem] uppercase">Squadrons</div>
+          </div>
+          <div className="bg-darker rounded p-1.5 text-center">
+            <div className="text-yellow-400 text-[0.75rem] font-bold">
+              {combinedStats.minRange ? `${combinedStats.minRange}nm` : '—'}
+            </div>
+            <div className="text-gray-500 text-[0.4rem] uppercase">Fleet Range</div>
+          </div>
+        </div>
+
+        {/* Domain Breakdown (for combined missions) */}
+        {isCombined && (combinedStats.aerialUnits > 0 || combinedStats.maritimeUnits > 0) && (
+          <div className="flex gap-1.5 mb-1.5">
+            {combinedStats.aerialUnits > 0 && (
+              <div className="flex-1 flex items-center gap-1 bg-cyan-500/10 rounded px-1.5 py-0.5">
+                <Plane size={8} className="text-cyan-400" />
+                <span className="text-cyan-400 text-[0.45rem] font-semibold">{combinedStats.aerialUnits}</span>
+                <span className="text-gray-500 text-[0.4rem]">air</span>
+              </div>
+            )}
+            {combinedStats.maritimeUnits > 0 && (
+              <div className="flex-1 flex items-center gap-1 bg-blue-500/10 rounded px-1.5 py-0.5">
+                <Ship size={8} className="text-blue-400" />
+                <span className="text-blue-400 text-[0.45rem] font-semibold">{combinedStats.maritimeUnits}</span>
+                <span className="text-gray-500 text-[0.4rem]">surface</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Capability Icons */}
+        <div className="flex gap-2 justify-center">
+          {combinedStats.sensorCount > 0 && (
+            <div className="flex items-center gap-0.5" title="Sensor Systems">
+              <Radar size={10} className="text-cyan-400" />
+              <span className="text-cyan-400 text-[0.5rem]">{combinedStats.sensorCount}</span>
+            </div>
+          )}
+          {combinedStats.weaponCount > 0 && (
+            <div className="flex items-center gap-0.5" title="Weapon Systems">
+              <Target size={10} className="text-red-400" />
+              <span className="text-red-400 text-[0.5rem]">{combinedStats.weaponCount}</span>
+            </div>
+          )}
+          {combinedStats.commsCount > 0 && (
+            <div className="flex items-center gap-0.5" title="Comms Systems">
+              <Radio size={10} className="text-green-400" />
+              <span className="text-green-400 text-[0.5rem]">{combinedStats.commsCount}</span>
+            </div>
+          )}
+          {combinedStats.minEndurance && (
+            <div className="flex items-center gap-0.5" title="Min Endurance">
+              <Gauge size={10} className="text-yellow-400" />
+              <span className="text-yellow-400 text-[0.5rem]">{combinedStats.minEndurance}h</span>
+            </div>
+          )}
+        </div>
+
+        {/* Fleet Range Warning */}
+        {combinedStats.minRange && combinedStats.minRange < 100 && (
+          <div className="flex items-center gap-1 mt-1.5 text-orange-400 text-[0.4rem] bg-orange-500/10 rounded px-1.5 py-0.5">
+            <AlertTriangle size={8} />
+            <span>Limited fleet range ({combinedStats.minRange}nm) - consider logistics support</span>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderSquadronButton = (squadron, isSelected, domain) => (
@@ -243,6 +410,8 @@ const SquadronAssignment = ({
           {getTotalSelected()} selected
         </span>
       </div>
+
+      <CombinedStatsPanel />
 
       {isCombined ? renderCombinedView() : renderSingleDomainView()}
     </div>

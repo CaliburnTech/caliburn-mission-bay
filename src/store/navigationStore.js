@@ -35,9 +35,12 @@ const getInitialFleetSubTab = () => {
   return saved || 'pier'; // Default to pier (maritime)
 };
 
-const useNavigationStore = create((set) => ({
+const useNavigationStore = create((set, get) => ({
   // Current view
   selectedView: getInitialView(),
+
+  // Navigation history stack for back functionality
+  viewHistory: [],
 
   // Fleet sub-tab: 'hangar' (aerial) or 'pier' (maritime)
   fleetSubTab: getInitialFleetSubTab(),
@@ -45,12 +48,57 @@ const useNavigationStore = create((set) => ({
   // Selected squadron ID (persists across view changes for "back" navigation)
   selectedSquadronId: null,
 
-  setSelectedView: (view) => {
-    set({ selectedView: view });
+  // Navigate to a view, pushing current view to history
+  setSelectedView: (view, { skipHistory = false } = {}) => {
+    const currentView = get().selectedView;
+
+    // Don't push to history if navigating to same view or if skipHistory is true
+    if (view === currentView) return;
+
+    set((state) => ({
+      selectedView: view,
+      // Only push to history if not skipping (e.g., when going back)
+      viewHistory: skipHistory ? state.viewHistory : [...state.viewHistory, currentView]
+    }));
+
     if (typeof window !== 'undefined') {
       safeLocalStorage.setItem('caliburn-marketplace-view', view);
       window.history.replaceState(null, '', `#${view}`);
     }
+  },
+
+  // Go back to previous view
+  goBack: (fallbackView = 'shipyard') => {
+    const { viewHistory } = get();
+
+    if (viewHistory.length > 0) {
+      const previousView = viewHistory[viewHistory.length - 1];
+      set((state) => ({
+        selectedView: previousView,
+        viewHistory: state.viewHistory.slice(0, -1)
+      }));
+
+      if (typeof window !== 'undefined') {
+        safeLocalStorage.setItem('caliburn-marketplace-view', previousView);
+        window.history.replaceState(null, '', `#${previousView}`);
+      }
+    } else {
+      // No history, go to fallback
+      set({ selectedView: fallbackView });
+      if (typeof window !== 'undefined') {
+        safeLocalStorage.setItem('caliburn-marketplace-view', fallbackView);
+        window.history.replaceState(null, '', `#${fallbackView}`);
+      }
+    }
+  },
+
+  // Check if we can go back
+  canGoBack: () => get().viewHistory.length > 0,
+
+  // Get previous view name (for display purposes)
+  getPreviousView: () => {
+    const { viewHistory } = get();
+    return viewHistory.length > 0 ? viewHistory[viewHistory.length - 1] : null;
   },
 
   setFleetSubTab: (subTab) => {

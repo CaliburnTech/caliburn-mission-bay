@@ -153,7 +153,7 @@ const SquadronManagementModal = () => {
               Unit Configurations
             </h3>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-              {unitConfigs?.outfits.map((outfit) => (
+              {unitConfigs?.outfits?.map((outfit) => (
                 <div key={outfit.name} className="bg-darker border border-gray-700/50 rounded-lg p-4 hover:border-lime-brand/30 transition-colors group">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-white font-semibold text-sm">
@@ -168,13 +168,13 @@ const SquadronManagementModal = () => {
                     Capabilities:
                   </div>
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {outfit.capabilities.map((capability, capIdx) => (
+                    {outfit.capabilities?.map((capability, capIdx) => (
                       <span
                         key={capability}
                         onClick={() => navigateToCapability(capability)}
                         className="text-blue-400 text-xs cursor-pointer hover:text-blue-300 underline"
                       >
-                        {capability}{capIdx < outfit.capabilities.length - 1 ? ',' : ''}
+                        {capability}{capIdx < (outfit.capabilities?.length || 0) - 1 ? ',' : ''}
                       </span>
                     ))}
                   </div>

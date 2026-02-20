@@ -1,11 +1,66 @@
+import { useMemo } from 'react';
 import { jsPDF } from 'jspdf';
-import { X, FileText, File, Download } from 'lucide-react';
+import { X, FileText, File, Download, Ship, Check, AlertTriangle, Zap, Scale, Anchor, Plane } from 'lucide-react';
+import { vesselHullData, vesselHullComponents, isAerialPlatform } from '../data/vesselData';
 
 const CapabilityDetailsModal = ({
   selectedCapabilityDetails,
   setSelectedCapabilityDetails,
   addToOutfitterCart
 }) => {
+  // Calculate compatible vessels based on SWaP requirements
+  const compatibleVessels = useMemo(() => {
+    if (!selectedCapabilityDetails?.swap) return { fits: vesselHullData, tooSmall: [] };
+
+    const capWeight = selectedCapabilityDetails.swap.weight || 0;
+    const capPower = selectedCapabilityDetails.swap.power || 0;
+
+    const fits = [];
+    const tooSmall = [];
+
+    vesselHullData.forEach(vessel => {
+      const capacity = vessel.capacity;
+      if (!capacity) {
+        // No capacity data - assume it fits
+        fits.push({ vessel, headroom: null });
+        return;
+      }
+
+      const weightFits = capacity.totalWeight >= capWeight;
+      const powerFits = capacity.totalPower >= capPower;
+
+      if (weightFits && powerFits) {
+        fits.push({
+          vessel,
+          headroom: {
+            weight: capacity.totalWeight - capWeight,
+            power: capacity.totalPower - capPower,
+            weightPercent: Math.round(((capacity.totalWeight - capWeight) / capacity.totalWeight) * 100),
+            powerPercent: Math.round(((capacity.totalPower - capPower) / capacity.totalPower) * 100)
+          }
+        });
+      } else {
+        tooSmall.push({
+          vessel,
+          reason: !weightFits && !powerFits
+            ? 'Exceeds weight and power'
+            : !weightFits
+            ? `Needs ${capWeight}kg, has ${capacity.totalWeight}kg`
+            : `Needs ${capPower}kW, has ${capacity.totalPower}kW`
+        });
+      }
+    });
+
+    // Sort fits by remaining headroom
+    fits.sort((a, b) => {
+      if (!a.headroom) return 1;
+      if (!b.headroom) return -1;
+      return b.headroom.weightPercent - a.headroom.weightPercent;
+    });
+
+    return { fits, tooSmall };
+  }, [selectedCapabilityDetails]);
+
   if (!selectedCapabilityDetails) return null;
 
   return (
@@ -344,6 +399,115 @@ const CapabilityDetailsModal = ({
                     {selectedCapabilityDetails.integrationNotes}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* Compatible Vessels Section */}
+            {selectedCapabilityDetails.swap && (
+              <div className="mb-8">
+                <h4 className="text-lime-brand text-lg font-bold mb-4 flex items-center gap-2">
+                  <Ship size={20} />
+                  Compatible Platforms
+                </h4>
+
+                {/* SWaP Requirements */}
+                <div className="flex gap-4 mb-4 p-4 bg-darkest rounded-lg border border-lime-brand/20">
+                  <div className="flex items-center gap-2">
+                    <Scale size={16} className="text-cyan-400" />
+                    <span className="text-gray-400 text-sm">Weight:</span>
+                    <span className="text-white font-semibold">{selectedCapabilityDetails.swap.weight || 0}kg</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Zap size={16} className="text-yellow-400" />
+                    <span className="text-gray-400 text-sm">Power:</span>
+                    <span className="text-white font-semibold">{selectedCapabilityDetails.swap.power || 0}kW</span>
+                  </div>
+                </div>
+
+                {/* Compatible Vessels */}
+                {compatibleVessels.fits.length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Check size={16} className="text-green-400" />
+                      <span className="text-green-400 text-sm font-semibold">
+                        {compatibleVessels.fits.length} Compatible Platforms
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+                      {compatibleVessels.fits.slice(0, 8).map(({ vessel, headroom }) => {
+                        const HullComponent = vesselHullComponents[vessel.icon];
+                        const isAerial = isAerialPlatform(vessel.platformType);
+                        return (
+                          <div
+                            key={vessel.name}
+                            className="p-3 bg-darkest rounded-lg border border-green-500/20 hover:border-green-500/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-12 h-10 flex items-center justify-center opacity-60">
+                                {HullComponent ? (
+                                  <HullComponent size={35} />
+                                ) : isAerial ? (
+                                  <Plane size={24} className="text-cyan-400" />
+                                ) : (
+                                  <Anchor size={24} className="text-blue-400" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-white text-sm font-semibold truncate">{vessel.name}</div>
+                                <div className="text-gray-500 text-xs">{vessel.type}</div>
+                              </div>
+                            </div>
+                            {headroom && (
+                              <div className="flex gap-2">
+                                <div className="flex-1 text-center px-2 py-1 bg-cyan-500/10 rounded text-xs">
+                                  <span className="text-cyan-400">{headroom.weight}kg</span>
+                                  <span className="text-gray-500"> left</span>
+                                </div>
+                                <div className="flex-1 text-center px-2 py-1 bg-yellow-500/10 rounded text-xs">
+                                  <span className="text-yellow-400">{headroom.power}kW</span>
+                                  <span className="text-gray-500"> left</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {compatibleVessels.fits.length > 8 && (
+                      <div className="mt-2 text-gray-500 text-sm text-center">
+                        +{compatibleVessels.fits.length - 8} more platforms
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Incompatible Vessels */}
+                {compatibleVessels.tooSmall.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle size={16} className="text-red-400" />
+                      <span className="text-red-400 text-sm font-semibold">
+                        {compatibleVessels.tooSmall.length} Too Small
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {compatibleVessels.tooSmall.slice(0, 6).map(({ vessel, reason }) => (
+                        <div
+                          key={vessel.name}
+                          className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded text-xs text-gray-400"
+                          title={reason}
+                        >
+                          {vessel.name}
+                        </div>
+                      ))}
+                      {compatibleVessels.tooSmall.length > 6 && (
+                        <div className="px-3 py-1.5 text-gray-500 text-xs">
+                          +{compatibleVessels.tooSmall.length - 6} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

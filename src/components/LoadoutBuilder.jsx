@@ -89,10 +89,20 @@ const ALL_CATEGORY = {
   description: 'Search all capabilities'
 };
 
+// View name mapping for back button display
+const VIEW_NAMES = {
+  'matrix': 'Mission Matrix',
+  'shipyard': 'Squadrons',
+  'capabilities': 'Capabilities',
+  'squadron': 'Mission Planner',
+  'stacks': 'Stacks'
+};
+
 // Slot capacity and category keys imported from ../data/vesselData.js
 // Main Loadout Builder Component
-const LoadoutBuilder = ({ onBackToShipyard }) => {
+const LoadoutBuilder = () => {
   const { selectedHull } = useOutfitterStore();
+  const { goBack, getPreviousView } = useNavigationStore();
 
   // Configuration store - unified state management
   const {
@@ -412,11 +422,15 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
     }
   };
 
-  // Handle back to shipyard - close active config
-  const handleBackToShipyard = () => {
+  // Handle back navigation - close active config and go to previous view
+  const handleBack = () => {
     closeActiveConfiguration();
-    onBackToShipyard();
+    goBack('shipyard');
   };
+
+  // Get the display name for the back button
+  const previousView = getPreviousView();
+  const backButtonText = previousView ? `Back to ${VIEW_NAMES[previousView] || previousView}` : 'Back';
 
   // Get vessel hull component
   const VesselHull = selectedHull ? vesselHullComponents[selectedHull.icon] || vesselHullComponents[selectedHull.name] : null;
@@ -424,7 +438,7 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
   // Initialize configuration when component mounts
   useEffect(() => {
     if (!selectedHull) {
-      onBackToShipyard();
+      goBack('shipyard');
       return;
     }
 
@@ -433,7 +447,7 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
     if (!activeConfig) {
       startNewConfiguration(selectedHull.name);
     }
-  }, [selectedHull, onBackToShipyard, activeConfig, startNewConfiguration]);
+  }, [selectedHull, goBack, activeConfig, startNewConfiguration]);
 
   // Don't render anything while redirecting
   if (!selectedHull) {
@@ -446,11 +460,11 @@ const LoadoutBuilder = ({ onBackToShipyard }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            onClick={handleBackToShipyard}
+            onClick={handleBack}
             className="px-3 py-2 bg-transparent border border-lime-brand/50 text-lime-brand rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-lime-brand/10 transition-colors"
           >
             <ChevronLeft size={18} />
-            Back to Platforms
+            {backButtonText}
           </button>
           <div>
             <h1 className="text-gray-100 text-2xl font-bold">{selectedHull.name.toUpperCase()}</h1>

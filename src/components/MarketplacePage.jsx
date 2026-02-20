@@ -232,7 +232,7 @@ const MarketplacePage = ({ onLogoClick }) => {
 
 
             {selectedView === 'outfitter' && (
-              <LoadoutBuilder onBackToShipyard={() => setSelectedView('shipyard')} />
+              <LoadoutBuilder />
             )}
 
             {selectedView === 'shipyard' && (

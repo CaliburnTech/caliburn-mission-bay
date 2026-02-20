@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight, Plane, Anchor, Edit3 } from 'lucide-react';
+import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight, Plane, Anchor, Edit3, Target, Radio, Eye, Shield, AlertTriangle } from 'lucide-react';
 import { vesselHullComponents, vesselHullData, isAerialPlatform, isMaritimePlatform } from '../data/vesselData';
 import { squadronUnitConfigurations, activeDeployments } from '../data/fleetData';
 import useSquadronStore from '../store/squadronStore';
@@ -72,6 +72,46 @@ const ShipyardView = ({
   // Get active deployments for a squadron
   const getSquadronDeployments = (squadronId) => {
     return activeDeployments.filter(d => d.squadronId === squadronId);
+  };
+
+  // Calculate mission readiness percentage
+  const getMissionReadiness = (squadron) => {
+    const status = squadron.status || {};
+    const missionReady = status.missionReady || 0;
+    const total = squadron.totalUnits || 1;
+    return Math.round((missionReady / total) * 100);
+  };
+
+  // Get capability indicators for a squadron based on its configurations
+  const getCapabilityIndicators = (squadronId) => {
+    const configs = getSquadronConfigs(squadronId);
+    const capabilities = {
+      hasSensors: false,
+      hasWeapons: false,
+      hasComms: false,
+      hasEW: false
+    };
+
+    configs.forEach(config => {
+      const capList = config.capabilities || [];
+      capList.forEach(cap => {
+        const capLower = (cap || '').toLowerCase();
+        if (capLower.includes('sensor') || capLower.includes('radar') || capLower.includes('sonar') || capLower.includes('camera')) {
+          capabilities.hasSensors = true;
+        }
+        if (capLower.includes('weapon') || capLower.includes('missile') || capLower.includes('torpedo') || capLower.includes('gun')) {
+          capabilities.hasWeapons = true;
+        }
+        if (capLower.includes('comm') || capLower.includes('satcom') || capLower.includes('link')) {
+          capabilities.hasComms = true;
+        }
+        if (capLower.includes('ew') || capLower.includes('electronic') || capLower.includes('esm') || capLower.includes('jam')) {
+          capabilities.hasEW = true;
+        }
+      });
+    });
+
+    return capabilities;
   };
 
   // Handle direct edit of a saved configuration
@@ -206,12 +246,15 @@ const ShipyardView = ({
             const totalUnits = squadron.totalUnits || 0;
             const deployments = getSquadronDeployments(squadron.id);
             const deployedCount = deployments.reduce((sum, d) => sum + d.vesselCount, 0);
+            const readinessPercent = getMissionReadiness(squadron);
+            const caps = getCapabilityIndicators(squadron.id);
+            const missionReady = squadron.status?.missionReady || 0;
 
             return (
               <button
                 key={squadron.id}
                 onClick={() => setSelectedSquadronId(squadron.id)}
-                className={`relative p-3 rounded-xl border-2 transition-all h-[160px] flex flex-col items-center justify-center ${
+                className={`relative p-3 rounded-xl border-2 transition-all h-[180px] flex flex-col items-center justify-between ${
                   isSelected
                     ? 'bg-lime-brand/10 border-lime-brand shadow-[0_0_20px_rgba(203,253,0,0.15)]'
                     : isInComparison
@@ -219,33 +262,88 @@ const ShipyardView = ({
                     : 'bg-darker border-gray-700/50 hover:border-gray-600 hover:bg-darker/80'
                 }`}
               >
-                {/* Hull Thumbnail */}
-                <div className="relative mb-2 h-[70px] flex items-center justify-center">
-                  {HullComponent ? (
-                    <HullComponent size={65} />
-                  ) : (
-                    <Ship size={50} className="text-gray-600" />
-                  )}
-                  {/* Deployed indicator */}
-                  {deployedCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Rocket size={10} className="text-white" />
-                    </div>
-                  )}
+                {/* Top Section: Hull + Status */}
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  {/* Hull Thumbnail */}
+                  <div className="relative mb-2 h-[60px] flex items-center justify-center">
+                    {HullComponent ? (
+                      <HullComponent size={55} />
+                    ) : (
+                      <Ship size={45} className="text-gray-600" />
+                    )}
+                    {/* Deployed indicator */}
+                    {deployedCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <Rocket size={10} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Squadron Name */}
+                  <div
+                    className={`text-xs font-semibold text-center truncate w-full px-1 ${
+                      isSelected ? 'text-lime-brand' : 'text-gray-300'
+                    }`}
+                  >
+                    {squadron.name.length > 20
+                      ? squadron.name.split(' ').slice(0, 2).join(' ')
+                      : squadron.name}
+                  </div>
+                  {/* Unit Count */}
+                  <div className="text-gray-500 text-[0.65rem] text-center">
+                    {totalUnits} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'}
+                  </div>
                 </div>
-                {/* Squadron Name */}
-                <div className={`text-xs font-semibold text-center truncate w-full px-1 ${
-                  isSelected ? 'text-lime-brand' : 'text-gray-300'
-                }`}
-                >
-                  {squadron.name.length > 20
-                    ? squadron.name.split(' ').slice(0, 2).join(' ')
-                    : squadron.name}
+
+                {/* Mission Readiness Bar */}
+                <div className="w-full px-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span
+                      className={`text-[0.55rem] font-semibold ${
+                        readinessPercent >= 80 ? 'text-green-400' :
+                        readinessPercent >= 50 ? 'text-yellow-400' : 'text-red-400'
+                      }`}
+                    >
+                      {missionReady} READY
+                    </span>
+                    <span className="text-gray-500 text-[0.5rem]">{readinessPercent}%</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        readinessPercent >= 80 ? 'bg-green-500' :
+                        readinessPercent >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${readinessPercent}%` }}
+                    />
+                  </div>
                 </div>
-                {/* Unit Count */}
-                <div className="text-gray-500 text-[0.7rem] text-center mt-1">
-                  {totalUnits} {fleetSubTab === 'hangar' ? 'aircraft' : 'vessels'}
-                </div>
+
+                {/* Capability Icons */}
+                {(caps.hasSensors || caps.hasWeapons || caps.hasComms || caps.hasEW) && (
+                  <div className="flex items-center justify-center gap-1.5 mt-1.5">
+                    {caps.hasSensors && (
+                      <div className="w-4 h-4 rounded bg-cyan-500/20 flex items-center justify-center" title="Sensors">
+                        <Eye size={10} className="text-cyan-400" />
+                      </div>
+                    )}
+                    {caps.hasWeapons && (
+                      <div className="w-4 h-4 rounded bg-red-500/20 flex items-center justify-center" title="Weapons">
+                        <Target size={10} className="text-red-400" />
+                      </div>
+                    )}
+                    {caps.hasComms && (
+                      <div className="w-4 h-4 rounded bg-green-500/20 flex items-center justify-center" title="Comms">
+                        <Radio size={10} className="text-green-400" />
+                      </div>
+                    )}
+                    {caps.hasEW && (
+                      <div className="w-4 h-4 rounded bg-purple-500/20 flex items-center justify-center" title="EW">
+                        <Shield size={10} className="text-purple-400" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Selection indicator */}
                 {isSelected && (
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-lime-brand" />
@@ -254,6 +352,12 @@ const ShipyardView = ({
                 {isInComparison && !isSelected && (
                   <div className="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded flex items-center justify-center">
                     <Check size={10} className="text-white" />
+                  </div>
+                )}
+                {/* Low readiness warning */}
+                {readinessPercent < 30 && readinessPercent > 0 && (
+                  <div className="absolute top-2 left-2">
+                    <AlertTriangle size={12} className="text-red-400" />
                   </div>
                 )}
               </button>
