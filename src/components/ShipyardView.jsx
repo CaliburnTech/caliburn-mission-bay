@@ -207,6 +207,35 @@ const ShipyardView = ({
         </div>
       )}
 
+      {/* Capability Legend */}
+      <div className="flex items-center justify-end gap-4 mb-3 text-[0.65rem]">
+        <span className="text-gray-500 uppercase tracking-wide">Capabilities:</span>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-cyan-500/20 flex items-center justify-center">
+            <Eye size={8} className="text-cyan-400" />
+          </div>
+          <span className="text-gray-400">Sensors</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-red-500/20 flex items-center justify-center">
+            <Target size={8} className="text-red-400" />
+          </div>
+          <span className="text-gray-400">Weapons</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-green-500/20 flex items-center justify-center">
+            <Radio size={8} className="text-green-400" />
+          </div>
+          <span className="text-gray-400">Comms</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-purple-500/20 flex items-center justify-center">
+            <Shield size={8} className="text-purple-400" />
+          </div>
+          <span className="text-gray-400">EW</span>
+        </div>
+      </div>
+
       {/* Squadron Grid - Scalable for many squadrons */}
       <div className="mb-6">
         {swarmSquadrons.length === 0 ? (
@@ -322,22 +351,22 @@ const ShipyardView = ({
                 {(caps.hasSensors || caps.hasWeapons || caps.hasComms || caps.hasEW) && (
                   <div className="flex items-center justify-center gap-1.5 mt-1.5">
                     {caps.hasSensors && (
-                      <div className="w-4 h-4 rounded bg-cyan-500/20 flex items-center justify-center" title="Sensors">
+                      <div className="w-4 h-4 rounded bg-cyan-500/20 flex items-center justify-center cursor-help hover:bg-cyan-500/40 transition-colors" title="Sensors: Cameras, Radar, Sonar">
                         <Eye size={10} className="text-cyan-400" />
                       </div>
                     )}
                     {caps.hasWeapons && (
-                      <div className="w-4 h-4 rounded bg-red-500/20 flex items-center justify-center" title="Weapons">
+                      <div className="w-4 h-4 rounded bg-red-500/20 flex items-center justify-center cursor-help hover:bg-red-500/40 transition-colors" title="Weapons: Missiles, Torpedoes, Guns">
                         <Target size={10} className="text-red-400" />
                       </div>
                     )}
                     {caps.hasComms && (
-                      <div className="w-4 h-4 rounded bg-green-500/20 flex items-center justify-center" title="Comms">
+                      <div className="w-4 h-4 rounded bg-green-500/20 flex items-center justify-center cursor-help hover:bg-green-500/40 transition-colors" title="Comms: SATCOM, Data Links">
                         <Radio size={10} className="text-green-400" />
                       </div>
                     )}
                     {caps.hasEW && (
-                      <div className="w-4 h-4 rounded bg-purple-500/20 flex items-center justify-center" title="EW">
+                      <div className="w-4 h-4 rounded bg-purple-500/20 flex items-center justify-center cursor-help hover:bg-purple-500/40 transition-colors" title="Electronic Warfare: ESM, Jamming">
                         <Shield size={10} className="text-purple-400" />
                       </div>
                     )}
