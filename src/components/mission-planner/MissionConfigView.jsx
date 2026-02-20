@@ -414,12 +414,13 @@ const MissionConfigView = ({ mission, onBack }) => {
           </div>
 
           {/* Squadron Assignment */}
-          <div className="h-[180px]">
+          <div className="flex-1 min-h-[200px]">
             <SquadronAssignment
               assignedSquadrons={assignedSquadrons}
               setAssignedSquadrons={setAssignedSquadrons}
               availableSquadrons={squadrons}
               missionDomain={selectedDomain}
+              missionType={selectedMissionTemplate}
             />
           </div>
 
