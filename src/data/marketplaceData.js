@@ -1705,6 +1705,54 @@ export const individualCapabilities = [
         "Habitat mapping",
         "Search and salvage"
       ]
+    },
+    {
+      name: "MYSTIC",
+      provider: "Absentia",
+      description: "Real-time video enhancement across five degradation types using specialized AI agents. GHOST handles fog and haze, SPECTER handles low-light, SPIRIT handles distortion and stabilization, SHADE handles light pollution and glare, and PHANTOM handles detection and anomaly identification. Real time, hardware agnostic, fully local processing with no data exfiltration.",
+      category: "EO/IR SENSORS",
+      trl: "TRL 7",
+      icon: Eye,
+      platformTypes: ["USV", "UUV", "UAV", "Ship", "Submarine"],
+      missionTags: ["RECONNAISSANCE", "FORCE_PROTECTION", "SEA_CONTROL", "ANTI_SUBMARINE_WARFARE"],
+      swap: {
+        weight: 0,       // Software-only, no additional hardware weight
+        power: 0.038,    // kW average (15–60W range depending on load)
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -1,
+        weight: 0,
+        range: 0,
+        stealth: 2       // Enhanced detection without active emissions
+      },
+      capabilities: [
+        "Fog & Haze Removal (GHOST)",
+        "Low-Light Enhancement (SPECTER)",
+        "Distortion Correction & Stabilization (SPIRIT)",
+        "Glare & Light Pollution Reduction (SHADE)",
+        "Anomaly Detection (PHANTOM)"
+      ],
+      keyFeatures: [
+        "Five specialized AI agents covering all major video degradation types",
+        "Real-time processing with no perceptible latency",
+        "Hardware agnostic — runs on existing onboard compute",
+        "Fully local processing with zero data exfiltration",
+        "Modular agent activation — deploy only what the mission needs"
+      ],
+      detailedDescription: "MYSTIC is a modular AI video enhancement suite developed by Absentia. It deploys five specialized sub-agents, each trained to address a distinct class of video degradation. GHOST corrects fog and haze through atmospheric scattering compensation. SPECTER amplifies low-light imagery using learned noise models. SPIRIT applies real-time stabilization and optical distortion correction. SHADE suppresses light pollution and glare artifacts. PHANTOM performs continuous detection and anomaly flagging across the enhanced feed.\n\nAll processing runs locally on existing platform hardware with no outbound data connections, making MYSTIC suitable for air-gapped and DDIL environments. The modular design allows individual agents to be activated or suspended based on mission profile and available compute budget.",
+      integrationNotes: "MYSTIC runs as a software layer between the raw video feed and downstream systems (operators, recorders, targeting). Compatible with standard RTSP/RTMP streams and MIPI/USB camera interfaces. No additional hardware required. Validated on NVIDIA Jetson, Intel NUC, and standard x86 edge compute. Integration with TempestOS and compatible EO/IR payloads is supported.",
+      specs: {
+        processingLatency: "< 33ms (real-time at 30fps)",
+        powerDraw: "15–60W depending on active agents and resolution",
+        hardwareRequirements: "Existing onboard compute (GPU-accelerated recommended)",
+        dataPolicy: "Fully local — no exfiltration, no cloud dependency",
+        agents: "GHOST, SPECTER, SPIRIT, SHADE, PHANTOM",
+        compatibility: "RTSP, RTMP, MIPI, USB; NVIDIA Jetson, Intel NUC, x86 edge"
+      },
+      securityLevel: ["Zero Data Exfiltration", "Air-Gap Compatible", "DDIL Resilient"],
+      securityIcons: ["ddil", "encrypted"]
     }
   ];
 export const capabilityCategories = {
