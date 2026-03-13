@@ -973,7 +973,7 @@ export const individualCapabilities = [
     },
     {
       name: "PhantomNAV",
-      provider: "Victus Technologies",
+      provider: "VICTUS Technologies",
       type: "CONTESTED AUTONOMY",
       description: "Mission autonomy software that turns any platform into a GPS-independent teammate. Synthetic GPS enables true contested autonomy across all domains—from orbit to seabed—with 5-meter precision and 20x drift reduction versus legacy systems.",
       capabilities: ["Synthetic GPS", "Swarm Control", "Hardware-Agnostic", "Sim2Real ML", "GPS-Denied Navigation"],
@@ -1014,11 +1014,11 @@ export const individualCapabilities = [
         "5-meter precision with 20x drift reduction",
         "Scales from 2-10 humans per platform to 1 human per 100+ platforms"
       ],
-      detailedDescription: "Victus is building the autonomy layer for the 2025-2035 Autonomy Decade. In contested spectrum environments where GPS is jammed, spoofed, or unavailable, platforms fail. Victus Synthetic GPS uses Sim2Real machine learning to model system components and train navigation AI that operates without GPS dependency. The result: true contested autonomy that works in denied, austere, and maritime environments from orbit to the seabed. Selected for Palantir Fellowship 001 (1 of 12 leading startups) and NATO DIANA 2026 Maritime Cohort (1 of 15 companies from 3,700+ applicants). Integrates directly with Palantir ecosystem tools already deployed by Department of Defense.",
+      detailedDescription: "VICTUS is building the autonomy layer for the 2025-2035 Autonomy Decade. In contested spectrum environments where GPS is jammed, spoofed, or unavailable, platforms fail. VICTUS Synthetic GPS uses Sim2Real machine learning to model system components and train navigation AI that operates without GPS dependency. The result: true contested autonomy that works in denied, austere, and maritime environments from orbit to the seabed. Selected for Palantir Fellowship 001 (1 of 12 leading startups) and NATO DIANA 2026 Maritime Cohort (1 of 15 companies from 3,700+ applicants). Integrates directly with Palantir ecosystem tools already deployed by Department of Defense.",
       integrationNotes: "Hardware-agnostic software deployment. Supports MAVLink protocol bridge. Integrates with Palantir Foundry and existing DoD C2 systems.",
       documents: [
         {
-          name: "Victus Customer Deck",
+          name: "VICTUS Customer Deck",
           type: "PDF",
           size: "1.3 MB",
           description: "Capability overview and technical specifications",
