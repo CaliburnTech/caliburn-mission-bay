@@ -972,51 +972,58 @@ export const individualCapabilities = [
       bannerImage: "https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/what-we-do/navigation-systems/seafind-navigation-hero.jpg"
     },
     {
-      name: "Victus PNT",
-      provider: "TrustPoint",
-      type: "Resilient Navigation",
-      description: "GPS-independent positioning system using advanced inertial navigation and alternative timing sources for assured PNT in contested and GPS-denied environments.",
-      capabilities: ["GPS-Denied Navigation", "Assured Timing", "Anti-Jam/Anti-Spoof", "Multi-Source Fusion"],
-      trl: "TRL 8",
+      name: "Victus Synthetic GPS",
+      provider: "Victus Technologies",
+      type: "CONTESTED AUTONOMY",
+      description: "Mission autonomy software that turns any platform into a GPS-independent teammate. Synthetic GPS enables true contested autonomy across all domains—from orbit to seabed—with 5-meter precision and 20x drift reduction versus legacy systems.",
+      capabilities: ["Synthetic GPS", "Swarm Control", "Hardware-Agnostic", "Sim2Real ML", "GPS-Denied Navigation"],
+      trl: "TRL 7",
       icon: Compass,
       category: "RESILIENT PNT",
       platformTypes: ["USV", "UUV", "UAV", "Ship"],
-      missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ANTI_SUBMARINE_WARFARE", "ELECTRONIC_WARFARE"],
+      missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ANTI_SUBMARINE_WARFARE", "ELECTRONIC_WARFARE", "SWARM_ORCHESTRATION"],
       swap: {
-        weight: 8,
-        power: 0.15,
+        weight: 2,
+        power: 0.1,
         size: "small"
       },
       statImpacts: {
-        speed: 1,
+        speed: 2,
         power: -1,
-        weight: 1,
-        range: 4,
-        stealth: 4
+        weight: 0,
+        range: 5,
+        stealth: 5
       },
       specs: {
-        technology: "Multi-source PNT fusion",
-        gpsIndependence: "Full GPS-denied operation",
-        timing: "Chip-scale atomic clock",
-        integration: "MIL-STD interfaces"
+        accuracy: "<10m CEP @ 60 min",
+        precision: "5 meter",
+        driftReduction: "~20x vs legacy systems",
+        domains: "Orbit-to-Seabed",
+        environments: "Denied, Austere, Maritime",
+        platformRatio: "1 Human : >100 platforms"
       },
-      securityLevel: ["NSA-Approved Crypto", "Anti-Spoofing"],
-      securityIcons: ["nsa", "hardened"],
+      securityLevel: ["Palantir Integrated", "NATO DIANA"],
+      securityIcons: ["hardened", "mosa"],
       keyFeatures: [
-        "Operates without GPS signals",
-        "Chip-scale atomic clock for precise timing",
-        "Multi-source navigation fusion",
-        "Hardened against jamming and spoofing"
+        "Synthetic GPS enables true GPS-independent operation",
+        "Hardware-agnostic: deploys on any autonomous platform",
+        "Swarm control for multi-platform coordination",
+        "Sim2Real ML training for rapid deployment",
+        "5-meter precision with 20x drift reduction",
+        "Scales from 2-10 humans per platform to 1 human per 100+ platforms"
       ],
+      detailedDescription: "Victus is building the autonomy layer for the 2025-2035 Autonomy Decade. In contested spectrum environments where GPS is jammed, spoofed, or unavailable, platforms fail. Victus Synthetic GPS uses Sim2Real machine learning to model system components and train navigation AI that operates without GPS dependency. The result: true contested autonomy that works in denied, austere, and maritime environments from orbit to the seabed. Selected for Palantir Fellowship 001 (1 of 12 leading startups) and NATO DIANA 2026 Maritime Cohort (1 of 15 companies from 3,700+ applicants). Integrates directly with Palantir ecosystem tools already deployed by Department of Defense.",
+      integrationNotes: "Hardware-agnostic software deployment. Supports MAVLink protocol bridge. Integrates with Palantir Foundry and existing DoD C2 systems.",
       documents: [
         {
-          name: "Victus PNT Technical Overview",
+          name: "Victus Customer Deck",
           type: "PDF",
-          size: "2.4 MB",
-          description: "System specifications and integration guide",
+          size: "1.3 MB",
+          description: "Capability overview and technical specifications",
           url: "#"
         }
-      ]
+      ],
+      bannerImage: "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920"
     },
     {
       name: "SeaFinder",
