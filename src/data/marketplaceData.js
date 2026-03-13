@@ -983,18 +983,20 @@ export const individualCapabilities = [
       platformTypes: ["USV", "UUV", "UAV", "Ship"],
       missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ANTI_SUBMARINE_WARFARE", "ELECTRONIC_WARFARE", "SWARM_ORCHESTRATION"],
       swap: {
-        weight: 2,
-        power: 0.1,
+        weight: 0,
+        power: 0.005,
         size: "small"
       },
       statImpacts: {
         speed: 2,
-        power: -1,
+        power: 0,
         weight: 0,
         range: 5,
         stealth: 5
       },
       specs: {
+        deployment: "Pure software",
+        hardware: "Raspberry Pi 4 or equivalent",
         accuracy: "<10m CEP @ 60 min",
         precision: "5 meter",
         driftReduction: "~20x vs legacy systems",
