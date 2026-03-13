@@ -152,7 +152,7 @@ const CapabilityDetailsModal = ({
 
           {/* Documents Downloads Section */}
           {selectedCapabilityDetails.documents && selectedCapabilityDetails.documents.length > 0 && (
-            <div className="bg-darkest p-6 px-8 border-b border-lime-brand/10">
+            <div className="bg-darkest py-6 px-12 border-b border-lime-brand/10">
               <h4 className="text-lime-brand text-lg font-bold mb-4 flex items-center gap-2">
                 <Download size={20} />
                 Available Documents
@@ -339,7 +339,7 @@ const CapabilityDetailsModal = ({
           </div>
 
           {/* Content Sections */}
-          <div className="p-8">
+          <div className="py-8 px-12">
 
             {/* Rich Description Section */}
             <div className="mb-8">
