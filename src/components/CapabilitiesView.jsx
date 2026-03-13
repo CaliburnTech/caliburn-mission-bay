@@ -109,7 +109,7 @@ const CapabilitiesView = ({
         <div className="flex items-center gap-2 mb-3">
           <Ship size={18} className="text-lime-brand" />
           <span className="text-lime-brand font-semibold text-sm">WILL IT FIT?</span>
-          <span className="text-gray-500 text-xs ml-2">Select a vessel to check capability compatibility</span>
+          <span className="text-gray-500 text-xs ml-2">Select a platform to check capability compatibility</span>
         </div>
 
         <div className="flex gap-3 items-start">
@@ -123,7 +123,7 @@ const CapabilitiesView = ({
               }}
               className="w-full bg-darkest border border-border-subtle rounded px-3 py-2 text-white text-sm"
             >
-              <option value="">Select a vessel...</option>
+              <option value="">Select a platform...</option>
               <optgroup label="Small USV">
                 {vesselHullData.filter(v => v.type?.includes('Small USV')).map(v => (
                   <option key={v.name} value={v.name}>{v.name}</option>
