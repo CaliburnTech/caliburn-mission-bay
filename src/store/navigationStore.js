@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 
+// Whitelist of valid view names — reject any hash not in this set
+const VALID_VIEWS = new Set([
+  'shipyard', 'outfitter', 'capabilities', 'stacks',
+  'matrix', 'squadron', 'loadout', 'splash'
+]);
+
+const DEFAULT_VIEW = 'shipyard';
+
+const isValidView = (view) => VALID_VIEWS.has(view);
+
 // Safe localStorage wrapper (handles private browsing mode)
 const safeLocalStorage = {
   getItem: (key) => {
@@ -20,12 +30,13 @@ const safeLocalStorage = {
 
 // Initialize view from URL hash or localStorage, with fallback
 const getInitialView = () => {
-  if (typeof window === 'undefined') return 'shipyard';
+  if (typeof window === 'undefined') return DEFAULT_VIEW;
   const hash = window.location.hash.replace('#', '');
   const saved = safeLocalStorage.getItem('caliburn-marketplace-view');
-  // Redirect legacy 'stacks' view to 'capabilities'
-  const view = hash || saved || 'shipyard';
-  return view === 'stacks' ? 'capabilities' : view;
+  const candidate = hash || saved || DEFAULT_VIEW;
+  // Reject invalid views, redirect legacy 'stacks' to 'capabilities'
+  if (!isValidView(candidate)) return DEFAULT_VIEW;
+  return candidate === 'stacks' ? 'capabilities' : candidate;
 };
 
 // Initialize fleet sub-tab (hangar vs pier)
@@ -50,6 +61,9 @@ const useNavigationStore = create((set, get) => ({
 
   // Navigate to a view, pushing current view to history
   setSelectedView: (view, { skipHistory = false } = {}) => {
+    // Reject invalid view names
+    if (!isValidView(view)) return;
+
     const currentView = get().selectedView;
 
     // Don't push to history if navigating to same view or if skipHistory is true
@@ -113,4 +127,5 @@ const useNavigationStore = create((set, get) => ({
   }
 }));
 
+export { isValidView, VALID_VIEWS, DEFAULT_VIEW };
 export default useNavigationStore;

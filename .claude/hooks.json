@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/isaiahmcpeak/caliburn-missionbay/caliburn-marketplace && npx eslint --no-error-on-unmatched-pattern $CLAUDE_FILE_PATHS 2>&1 | tail -20",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "PreCommit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/isaiahmcpeak/caliburn-missionbay/caliburn-marketplace && npm run lint && npm run typecheck",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}

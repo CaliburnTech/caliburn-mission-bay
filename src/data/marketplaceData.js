@@ -972,6 +972,100 @@ export const individualCapabilities = [
       bannerImage: "https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/what-we-do/navigation-systems/seafind-navigation-hero.jpg"
     },
     {
+      name: "Victus PNT",
+      provider: "TrustPoint",
+      type: "Resilient Navigation",
+      description: "GPS-independent positioning system using advanced inertial navigation and alternative timing sources for assured PNT in contested and GPS-denied environments.",
+      capabilities: ["GPS-Denied Navigation", "Assured Timing", "Anti-Jam/Anti-Spoof", "Multi-Source Fusion"],
+      trl: "TRL 8",
+      icon: Compass,
+      category: "RESILIENT PNT",
+      platformTypes: ["USV", "UUV", "UAV", "Ship"],
+      missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ANTI_SUBMARINE_WARFARE", "ELECTRONIC_WARFARE"],
+      swap: {
+        weight: 8,
+        power: 0.15,
+        size: "small"
+      },
+      statImpacts: {
+        speed: 1,
+        power: -1,
+        weight: 1,
+        range: 4,
+        stealth: 4
+      },
+      specs: {
+        technology: "Multi-source PNT fusion",
+        gpsIndependence: "Full GPS-denied operation",
+        timing: "Chip-scale atomic clock",
+        integration: "MIL-STD interfaces"
+      },
+      securityLevel: ["NSA-Approved Crypto", "Anti-Spoofing"],
+      securityIcons: ["nsa", "hardened"],
+      keyFeatures: [
+        "Operates without GPS signals",
+        "Chip-scale atomic clock for precise timing",
+        "Multi-source navigation fusion",
+        "Hardened against jamming and spoofing"
+      ],
+      documents: [
+        {
+          name: "Victus PNT Technical Overview",
+          type: "PDF",
+          size: "2.4 MB",
+          description: "System specifications and integration guide",
+          url: "#"
+        }
+      ]
+    },
+    {
+      name: "SeaFinder",
+      provider: "Sonardyne",
+      type: "Underwater Positioning",
+      description: "Acoustic positioning and navigation system providing precise underwater localization for UUVs and subsea operations in GPS-denied environments.",
+      capabilities: ["Acoustic Positioning", "USBL/LBL Navigation", "Deep Water Operations", "INS Integration"],
+      trl: "TRL 9",
+      icon: Compass,
+      category: "RESILIENT PNT",
+      platformTypes: ["UUV", "Ship"],
+      missionTags: ["ANTI_SUBMARINE_WARFARE", "MINE_COUNTERMEASURES", "RECONNAISSANCE"],
+      swap: {
+        weight: 12,
+        power: 0.2,
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -2,
+        weight: 1,
+        range: 5,
+        stealth: 2
+      },
+      specs: {
+        technology: "USBL + INS Fusion",
+        depthRating: "6000m",
+        accuracy: "0.1% slant range",
+        updateRate: "Up to 10Hz"
+      },
+      securityLevel: ["End-to-End Encrypted"],
+      securityIcons: ["encrypted"],
+      keyFeatures: [
+        "Centimeter-level positioning accuracy",
+        "Full ocean depth rated",
+        "Seamless INS integration",
+        "Multi-vehicle tracking capability"
+      ],
+      documents: [
+        {
+          name: "SeaFinder System Datasheet",
+          type: "PDF",
+          size: "1.9 MB",
+          description: "Technical specifications and deployment guide",
+          url: "#"
+        }
+      ]
+    },
+    {
       name: "DRAKE Counter-UAS System",
       provider: "Northrop Grumman",
       type: "Counter-UAS Platform",
@@ -1644,6 +1738,11 @@ export const capabilityCategories = {
     icon: Satellite,
     description: "Sensors, radar, and detection systems",
     subcategories: ["SENSORS & DETECTION", "RADAR", "SONAR", "IMAGING"]
+  },
+  "RESILIENT PNT": {
+    icon: Compass,
+    description: "Position, Navigation, and Timing systems for GPS-denied environments",
+    subcategories: ["RESILIENT PNT", "NAVIGATION", "TIMING"]
   }
 };
 

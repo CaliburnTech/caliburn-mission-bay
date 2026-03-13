@@ -1,5 +1,16 @@
 import { useMemo } from 'react';
 import { jsPDF } from 'jspdf';
+
+// Validate URLs to prevent javascript:/data: injection in CSS url()
+const isSafeImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
 import { X, FileText, File, Download, Ship, Check, AlertTriangle, Zap, Scale, Anchor, Plane } from 'lucide-react';
 import { vesselHullData, vesselHullComponents, isAerialPlatform } from '../data/vesselData';
 
@@ -309,8 +320,8 @@ const CapabilityDetailsModal = ({
           <div
             className="h-[300px] bg-darkest relative flex items-center justify-center border-b border-lime-brand/10 bg-cover bg-center bg-no-repeat"
             style={{
-              background: selectedCapabilityDetails.bannerImage
-                ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${selectedCapabilityDetails.bannerImage})`
+              background: isSafeImageUrl(selectedCapabilityDetails.bannerImage)
+                ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${encodeURI(selectedCapabilityDetails.bannerImage)})`
                 : 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',

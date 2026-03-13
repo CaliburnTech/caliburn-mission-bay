@@ -61,7 +61,7 @@ const MarketplacePage = ({ onLogoClick }) => {
     window.history.replaceState(null, '', `#${selectedView}`);
   }, [selectedView]);
 
-  // Handle browser back/forward navigation
+  // Handle browser back/forward navigation (setSelectedView validates the view)
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');

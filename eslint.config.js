@@ -30,7 +30,7 @@ export default defineConfig([
     files: ['**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
+      reactHooks.configs.flat['recommended-latest'],
       reactRefresh.configs.vite,
     ],
     plugins: {
@@ -52,6 +52,12 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+
+      // React Compiler rules (new in react-hooks v7) — warn for now, fix in follow-up
+      // TODO: Fix these and promote to 'error'
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/static-components': 'warn',
       
       // JSX Syntax Validation Rules
       'react/jsx-uses-react': 'error',

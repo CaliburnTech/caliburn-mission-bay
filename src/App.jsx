@@ -5,16 +5,17 @@ import SplashPageD from './components/SplashPageD'
 
 // Toggle between splash page concepts: 'C' = Mission Control, 'D' = The Transformation
 const SPLASH_VERSION = 'C'
-import useNavigationStore from './store/navigationStore'
+import useNavigationStore, { isValidView } from './store/navigationStore'
 import './App.css'
 
 function App() {
   const { setSelectedView } = useNavigationStore()
 
-  // Initialize from URL hash - #splash or empty = splash, anything else = app
+  // Initialize from URL hash - #splash or empty = splash, valid view = app
   const getInitialSplashState = () => {
     const hash = window.location.hash.replace('#', '')
-    return !hash || hash === 'splash'
+    if (!hash || hash === 'splash') return true
+    return !isValidView(hash)
   }
 
   const [showSplash, setShowSplash] = useState(getInitialSplashState)
@@ -40,7 +41,7 @@ function App() {
       const hash = window.location.hash.replace('#', '')
       if (hash === 'splash' || !hash) {
         setShowSplash(true)
-      } else {
+      } else if (isValidView(hash)) {
         setShowSplash(false)
         setSelectedView(hash)
       }
