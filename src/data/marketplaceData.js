@@ -972,7 +972,7 @@ export const individualCapabilities = [
       bannerImage: "https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/what-we-do/navigation-systems/seafind-navigation-hero.jpg"
     },
     {
-      name: "Victus Synthetic GPS",
+      name: "PhantomNAV",
       provider: "Victus Technologies",
       type: "CONTESTED AUTONOMY",
       description: "Mission autonomy software that turns any platform into a GPS-independent teammate. Synthetic GPS enables true contested autonomy across all domains—from orbit to seabed—with 5-meter precision and 20x drift reduction versus legacy systems.",
