@@ -328,11 +328,11 @@ const CapabilityDetailsModal = ({
               backgroundRepeat: 'no-repeat'
             }}
           >
-            <div className="relative z-[1] text-center text-white">
+            <div className="relative z-[1] text-center text-white px-12">
               <h3 className="text-[2rem] font-bold m-0 mb-4 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">
                 {selectedCapabilityDetails.name}
               </h3>
-              <p className="text-lg m-0 opacity-90 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">
+              <p className="text-lg m-0 opacity-90 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] max-w-4xl mx-auto">
                 {selectedCapabilityDetails.description}
               </p>
             </div>
