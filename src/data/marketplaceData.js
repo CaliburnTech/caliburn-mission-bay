@@ -155,7 +155,6 @@ export const individualCapabilities = [
       name: "TempestOS Core Platform",
       provider: "Caliburn",
       type: "Operating System",
-      platformTypes: ["USV", "UUV", "Ship"],
       description: "The only maritime operating system built on Boot-C with a read-only file system for maximum security. Based on AlmaLinux, TempestOS is a lightweight drop-in replacement for RedHat systems with native containerization support.",
       capabilities: [
         "Boot-C Read-Only File System",
@@ -315,8 +314,6 @@ export const individualCapabilities = [
       name: "Scion ESM Suite",
       provider: "Northrop Grumman",
       type: "Electronic Warfare",
-      platformTypes: ["USV", "Ship"],
-      missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ROBOT_DEFENSE_OODA"],
       description: "Advanced electronic support measures for signal intelligence and threat detection with S-Band and X-Band RF detection capabilities.",
       capabilities: ["Signal Intercept", "Direction Finding", "Threat Classification", "RF Detection", "Maritime Surveillance"],
       trl: "TRL 9",
@@ -375,8 +372,6 @@ export const individualCapabilities = [
       name: "Advanced Towed Sonar",
       provider: "General Dynamics",
       type: "Sonar System",
-      platformTypes: ["USV", "UUV", "Ship"],
-      missionTags: ["SEA_DENIAL", "ASW", "RECONNAISSANCE"],
       description: "Long-range passive sonar system for submarine detection and tracking.",
       capabilities: ["Submarine Detection", "Acoustic Analysis", "Long-Range Tracking"],
       trl: "TRL 9",
@@ -575,8 +570,6 @@ export const individualCapabilities = [
       name: "Marine AI Navigation System",
       provider: "Marine AI",
       type: "Autonomous Navigation",
-      platformTypes: ["USV", "UUV"],
-      missionTags: ["SEA_DENIAL", "SURVEY", "MCM", "ASW", "RECONNAISSANCE", "ESCORT", "CONTESTED_LOGISTICS"],
       description: "Intelligent maritime navigation system with AI-powered decision making for autonomous vessel operations.",
       capabilities: ["AI Navigation", "Autonomous Operations", "Maritime Intelligence"],
       trl: "TRL 9",
@@ -599,8 +592,6 @@ export const individualCapabilities = [
       name: "Advanced EO/IR Camera System",
       provider: "FLIR Systems",
       type: "Optical Sensor",
-      platformTypes: ["USV", "UUV", "UAV", "Ship"],
-      missionTags: ["RECONNAISSANCE", "SEA_DENIAL", "ESCORT", "MCM"],
       description: "High-resolution electro-optical and infrared imaging system for surveillance and target identification.",
       capabilities: ["HD Video", "Thermal Imaging", "Target Tracking", "Day/Night Vision"],
       trl: "TRL 9",
@@ -972,109 +963,6 @@ export const individualCapabilities = [
       bannerImage: "https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/what-we-do/navigation-systems/seafind-navigation-hero.jpg"
     },
     {
-      name: "PhantomNAV",
-      provider: "VICTUS Technologies",
-      type: "CONTESTED AUTONOMY",
-      description: "Mission autonomy software that turns any platform into a GPS-independent teammate. Synthetic GPS enables true contested autonomy across all domains—from orbit to seabed—with 5-meter precision and 20x drift reduction versus legacy systems.",
-      capabilities: ["Synthetic GPS", "Swarm Control", "Hardware-Agnostic", "Sim2Real ML", "GPS-Denied Navigation"],
-      trl: "TRL 7",
-      icon: Compass,
-      category: "RESILIENT PNT",
-      platformTypes: ["USV", "UUV", "UAV", "Ship"],
-      missionTags: ["SEA_DENIAL", "RECONNAISSANCE", "ANTI_SUBMARINE_WARFARE", "ELECTRONIC_WARFARE", "SWARM_ORCHESTRATION"],
-      swap: {
-        weight: 0,
-        power: 0.005,
-        size: "small"
-      },
-      statImpacts: {
-        speed: 2,
-        power: 0,
-        weight: 0,
-        range: 5,
-        stealth: 5
-      },
-      specs: {
-        deployment: "Pure software",
-        hardware: "Raspberry Pi 4 or equivalent",
-        accuracy: "<10m CEP @ 60 min",
-        precision: "5 meter",
-        driftReduction: "~20x vs legacy systems",
-        domains: "Orbit-to-Seabed",
-        environments: "Denied, Austere, Maritime",
-        platformRatio: "1 Human : >100 platforms"
-      },
-      securityLevel: ["Palantir Integrated", "NATO DIANA"],
-      securityIcons: ["hardened", "mosa"],
-      keyFeatures: [
-        "Synthetic GPS enables true GPS-independent operation",
-        "Hardware-agnostic: deploys on any autonomous platform",
-        "Swarm control for multi-platform coordination",
-        "Sim2Real ML training for rapid deployment",
-        "5-meter precision with 20x drift reduction",
-        "Scales from 2-10 humans per platform to 1 human per 100+ platforms"
-      ],
-      detailedDescription: "VICTUS is building the autonomy layer for the 2025-2035 Autonomy Decade. In contested spectrum environments where GPS is jammed, spoofed, or unavailable, platforms fail. VICTUS Synthetic GPS uses Sim2Real machine learning to model system components and train navigation AI that operates without GPS dependency. The result: true contested autonomy that works in denied, austere, and maritime environments from orbit to the seabed. Selected for Palantir Fellowship 001 (1 of 12 leading startups) and NATO DIANA 2026 Maritime Cohort (1 of 15 companies from 3,700+ applicants). Integrates directly with Palantir ecosystem tools already deployed by Department of Defense.",
-      integrationNotes: "Hardware-agnostic software deployment. Supports MAVLink protocol bridge. Integrates with Palantir Foundry and existing DoD C2 systems.",
-      documents: [
-        {
-          name: "VICTUS Customer Deck",
-          type: "PDF",
-          size: "1.3 MB",
-          description: "Capability overview and technical specifications",
-          url: "#"
-        }
-      ],
-      bannerImage: "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920"
-    },
-    {
-      name: "SeaFinder",
-      provider: "Sonardyne",
-      type: "Underwater Positioning",
-      description: "Acoustic positioning and navigation system providing precise underwater localization for UUVs and subsea operations in GPS-denied environments.",
-      capabilities: ["Acoustic Positioning", "USBL/LBL Navigation", "Deep Water Operations", "INS Integration"],
-      trl: "TRL 9",
-      icon: Compass,
-      category: "RESILIENT PNT",
-      platformTypes: ["UUV", "Ship"],
-      missionTags: ["ANTI_SUBMARINE_WARFARE", "MINE_COUNTERMEASURES", "RECONNAISSANCE"],
-      swap: {
-        weight: 12,
-        power: 0.2,
-        size: "small"
-      },
-      statImpacts: {
-        speed: 0,
-        power: -2,
-        weight: 1,
-        range: 5,
-        stealth: 2
-      },
-      specs: {
-        technology: "USBL + INS Fusion",
-        depthRating: "6000m",
-        accuracy: "0.1% slant range",
-        updateRate: "Up to 10Hz"
-      },
-      securityLevel: ["End-to-End Encrypted"],
-      securityIcons: ["encrypted"],
-      keyFeatures: [
-        "Centimeter-level positioning accuracy",
-        "Full ocean depth rated",
-        "Seamless INS integration",
-        "Multi-vehicle tracking capability"
-      ],
-      documents: [
-        {
-          name: "SeaFinder System Datasheet",
-          type: "PDF",
-          size: "1.9 MB",
-          description: "Technical specifications and deployment guide",
-          url: "#"
-        }
-      ]
-    },
-    {
       name: "DRAKE Counter-UAS System",
       provider: "Northrop Grumman",
       type: "Counter-UAS Platform",
@@ -1248,159 +1136,10 @@ export const individualCapabilities = [
       ],
       bannerImage: "https://www.sncorp.com/globalassets/what-we-do/c5isr/trax-command-and-control-gateway-1200x670.jpg"
     },
-    // ============ AERIAL CAPABILITIES ============
-    {
-      name: "AN/AAQ-30 Target Sight System",
-      provider: "Raytheon",
-      type: "Targeting Pod",
-      platformTypes: ["UAV"],
-      description: "Multi-spectral targeting system for UAVs providing high-definition EO/IR imagery, laser designation, and precision tracking for air-to-ground operations.",
-      capabilities: ["EO/IR Imaging", "Laser Designation", "Target Tracking", "Laser Rangefinding", "IR Marker"],
-      trl: "TRL 9",
-      icon: CameraIcon,
-      category: "EO/IR SENSORS",
-      swap: {
-        weight: 45,       // kg
-        power: 0.8,       // kW
-        size: "medium"
-      },
-      statImpacts: {
-        speed: -1,
-        power: -4,
-        weight: 3,
-        range: 0,
-        stealth: -2       // Emits laser
-      },
-      specs: {
-        resolution: "HD 1080p",
-        laserPower: "Eye-safe designator",
-        trackingRange: "15+ km",
-        fieldOfView: "Wide and narrow FOV modes"
-      }
-    },
-    {
-      name: "Aerial Refueling Drogue System",
-      provider: "Cobham Mission Systems",
-      type: "Aerial Refueling",
-      platformTypes: ["UAV"],
-      description: "Probe-and-drogue aerial refueling system for MQ-25 and tanker UAVs. Enables carrier-based fighters to extend combat range.",
-      capabilities: ["Fuel Transfer", "Hose Extension", "Basket Stabilization", "Flow Control"],
-      trl: "TRL 9",
-      icon: BatteryIcon,
-      category: "LOGISTICS",
-      swap: {
-        weight: 120,      // kg system weight
-        power: 0.5,       // kW
-        size: "medium"
-      },
-      statImpacts: {
-        speed: -2,
-        power: -3,
-        weight: 5,
-        range: 0,
-        stealth: -3
-      },
-      specs: {
-        fuelRate: "400 gal/min",
-        hoseLength: "80 ft",
-        fuelCapacity: "15,000 lbs transferable",
-        compatibility: "Probe-and-drogue receivers"
-      }
-    },
-    {
-      name: "AGM-114 Hellfire Integration Kit",
-      provider: "Lockheed Martin",
-      type: "Precision Strike Weapon",
-      platformTypes: ["UAV"],
-      description: "Hellfire missile integration kit for UAV hardpoints. Provides precision air-to-ground strike capability with multiple warhead options.",
-      capabilities: ["Precision Strike", "Laser Guidance", "Moving Target Engagement", "Low Collateral Damage"],
-      trl: "TRL 9",
-      icon: SM6MissileIcon,
-      category: "KINETIC WEAPONS",
-      swap: {
-        weight: 50,       // kg per missile
-        power: 0.2,       // kW - guidance/launcher
-        size: "small"
-      },
-      statImpacts: {
-        speed: -2,
-        power: -1,
-        weight: 4,
-        range: -3,
-        stealth: 0
-      },
-      specs: {
-        range: "8+ km",
-        guidance: "Semi-active laser",
-        warheadOptions: "HEAT, blast-frag, thermobaric",
-        weight: "100 lbs per missile"
-      }
-    },
-    {
-      name: "SIGINT Pod - Airborne",
-      provider: "Northrop Grumman",
-      type: "Signals Intelligence",
-      platformTypes: ["UAV"],
-      description: "Airborne SIGINT collection system for HALE UAVs. Provides wide-area signals intercept and geolocation from high altitude.",
-      capabilities: ["COMINT", "ELINT", "Signal Geolocation", "Wideband Collection", "Real-time Processing"],
-      trl: "TRL 9",
-      icon: ScionESMIcon,
-      category: "ELECTRONIC SUPPORT",
-      swap: {
-        weight: 180,      // kg
-        power: 2.0,       // kW
-        size: "medium"
-      },
-      statImpacts: {
-        speed: -1,
-        power: -10,
-        weight: 6,
-        range: -5,
-        stealth: 0        // Passive collection
-      },
-      securityLevel: ["NSA-Approved", "TS/SCI Processing"],
-      securityIcons: ["nsa", "encrypted"],
-      specs: {
-        frequencyRange: "2 MHz - 40 GHz",
-        instantaneousBandwidth: "500 MHz",
-        geolocationAccuracy: "CEP < 100m",
-        altitude: "Optimized for 50,000+ ft"
-      }
-    },
-    {
-      name: "Maritime Search Radar - Airborne",
-      provider: "Leonardo",
-      type: "Maritime Surveillance Radar",
-      platformTypes: ["UAV"],
-      description: "Lightweight AESA maritime search radar for UAV platforms. Provides 360° surface vessel detection and tracking from altitude.",
-      capabilities: ["Surface Search", "SAR Imaging", "ISAR", "Weather Avoidance", "Small Target Detection"],
-      trl: "TRL 9",
-      icon: HiddenLevelRadarIcon,
-      category: "RADAR/RF",
-      swap: {
-        weight: 95,       // kg
-        power: 1.5,       // kW
-        size: "medium"
-      },
-      statImpacts: {
-        speed: -1,
-        power: -8,
-        weight: 4,
-        range: -3,
-        stealth: -10      // Active radar emissions
-      },
-      specs: {
-        range: "200+ nm surface targets",
-        resolution: "0.3m SAR mode",
-        scanRate: "360° coverage",
-        modes: "Search, track, SAR, ISAR, weather"
-      }
-    },
     {
       name: "SNC Hippocamp",
       provider: "Sierra Nevada Corporation",
       type: "Universal Autonomy Retrofit",
-      platformTypes: ["USV", "Ship"],
       description: "Universal maritime autonomy kit that instantly converts any vessel—from sampan to container ship—into an autonomous asset. Backpack-ready installation with self-learning calibration in under one hour.",
       capabilities: [
         "Universal Vessel Retrofit",
@@ -1461,263 +1200,25 @@ export const individualCapabilities = [
       ],
       bannerImage: "https://www.sncorp.com/globalassets/what-we-do/unmanned-systems/unmanned-systems-hero-1920x600.jpg"
     },
-    // ============ ZeroUSV REPMUS 2026 Payloads ============
     {
-      name: "Teledyne Webb Slocum Glider",
-      provider: "Teledyne Marine",
-      type: "Underwater Glider",
-      platformTypes: ["USV", "Ship"],
-      missionTags: ["SEA_DENIAL", "ASW", "SURVEY", "RECONNAISSANCE"],
-      description: "Long-endurance autonomous underwater glider for persistent ocean monitoring. Uses buoyancy-driven propulsion for extended missions up to 18 months. Ideal for ASW, oceanographic survey, and environmental monitoring.",
+      name: "MYSTIC Vision Enhancement",
+      provider: "Absentia Technologies",
+      type: "AI Software",
+      description: "Physics-informed AI software for real-time enhancement of degraded visual sensor feeds (EO, IR, thermal, SAR).",
       capabilities: [
-        "Buoyancy-Driven Propulsion",
-        "18-Month Endurance",
-        "1000m Depth Rating",
-        "Autonomous Navigation",
-        "Multi-Sensor Payload",
-        "Satellite Data Relay"
-      ],
-      trl: "TRL 9",
-      icon: Waves,
-      category: "ACOUSTIC/SONAR",
-      swap: {
-        weight: 65,       // 55-70 kg typical
-        power: 0.05,      // Very low power - buoyancy driven
-        size: "medium"
-      },
-      statImpacts: {
-        speed: 0,         // Deployed separately
-        power: 0,
-        weight: 3,
-        range: 0,
-        stealth: 5        // Very quiet operation
-      },
-      securityLevel: ["Encrypted Data", "Tamper Resistant"],
-      securityIcons: ["encrypted"],
-      specs: {
-        length: "1.5m (4.9 ft)",
-        diameter: "22 cm (8.7 in)",
-        weight: "55-70 kg",
-        depthRating: "200-1000m",
-        endurance: "Up to 18 months",
-        speed: "0.68 knots average",
-        range: "3000+ nm per deployment",
-        sensors: "CTD, acoustic, optical payloads",
-        communication: "Iridium satellite when surfaced"
-      },
-      detailedDescription: "The Teledyne Webb Slocum Glider is an autonomous underwater vehicle (AUV) that uses changes in buoyancy to glide through the water column. This energy-efficient propulsion method enables missions lasting up to 18 months on a single battery.\n\nThe glider can carry various sensor payloads including CTD (Conductivity, Temperature, Depth), passive acoustic monitoring arrays, and optical sensors. It surfaces periodically to transmit data via Iridium satellite and receive updated mission commands.\n\nFor ASW applications, gliders equipped with passive acoustic arrays can conduct persistent wide-area submarine monitoring. Multiple gliders can be coordinated to create distributed sensor networks covering large ocean areas.",
-      keyFeatures: [
-        "18-month autonomous endurance",
-        "Buoyancy-driven propulsion - nearly silent",
-        "1000m depth capability",
-        "Modular sensor payloads",
-        "Iridium satellite data relay",
-        "Proven Navy deployment history",
-        "Deployable from USV platforms"
-      ],
-      integrationNotes: "Can be deployed and recovered from ZeroUSV Oceanus17 and similar medium/large USVs. Gliders operate independently once deployed, with data relayed to host vessel or shore via satellite.",
-      applications: [
-        "Persistent submarine monitoring",
-        "Oceanographic survey",
-        "Environmental monitoring",
-        "Mine countermeasures support",
-        "Undersea warfare support"
-      ]
-    },
-    {
-      name: "Sonobuoy Launcher System",
-      provider: "Multiple Vendors",
-      type: "ASW Deployment System",
-      platformTypes: ["USV", "Ship", "UAV"],
-      missionTags: ["SEA_DENIAL", "ASW", "RECONNAISSANCE"],
-      description: "Multi-tube sonobuoy deployment system for anti-submarine warfare operations. Launches A-size sonobuoys for acoustic surveillance and submarine detection from surface or aerial platforms.",
-      capabilities: [
-        "Multi-Tube Deployment",
-        "A-Size Sonobuoy Compatible",
-        "Remote Triggering",
-        "Pattern Deployment",
-        "Integrated Fire Control",
-        "DIFAR/DICASS Support"
-      ],
-      trl: "TRL 9",
-      icon: Waves,
-      category: "ACOUSTIC/SONAR",
-      swap: {
-        weight: 85,       // Launcher + tubes + controls
-        power: 0.2,       // kW - control systems
-        size: "medium"
-      },
-      statImpacts: {
-        speed: -1,
-        power: -1,
-        weight: 4,
-        range: -2,
-        stealth: 0
-      },
-      securityLevel: ["Encrypted Control", "NATO Compatible"],
-      securityIcons: ["encrypted", "nato"],
-      specs: {
-        tubeCount: "3-12 tubes configurable",
-        buoySize: "A-size (5.5\" x 48\")",
-        buoyWeight: "18 kg (40 lbs) each",
-        launchMethod: "Pneumatic/gravity",
-        patterns: "Barrier, field, tracking",
-        sonobuoyTypes: "DIFAR, DICASS, VLAD, bathythermograph",
-        controlRange: "Line-of-sight or satellite relay"
-      },
-      detailedDescription: "The Sonobuoy Launcher System enables autonomous surface vessels to conduct anti-submarine warfare (ASW) operations by deploying expendable sonobuoys. The system supports various sonobuoy types including passive DIFAR (Directional Frequency Analysis and Recording) and active DICASS (Directional Command Activated Sonobuoy System).\n\nSonobuoys are deployed in coordinated patterns to establish acoustic barriers or search fields. Once deployed, sonobuoys transmit acoustic data via VHF radio to the host platform or nearby aircraft for processing and analysis.\n\nThe launcher integrates with shipboard or autonomous fire control systems to optimize deployment timing and patterns based on tactical situation.",
-      keyFeatures: [
-        "Configurable 3-12 tube launcher",
-        "Standard A-size sonobuoy compatible",
-        "Automated pattern deployment",
-        "Remote command triggering",
-        "NATO standard interface",
-        "Integrated with ASW analytics"
-      ],
-      integrationNotes: "Integrates with TempestOS for autonomous deployment control. Data from deployed sonobuoys can be processed by IBM Watson X ASW Analytics or similar systems.",
-      applications: [
-        "Anti-submarine warfare",
-        "Acoustic surveillance",
-        "Submarine tracking",
-        "Wide-area search",
-        "Barrier operations"
-      ]
-    },
-    {
-      name: "Thin-Line Towed Array",
-      provider: "Multiple Vendors",
-      type: "Passive Sonar",
-      platformTypes: ["USV", "UUV", "Ship"],
-      missionTags: ["SEA_DENIAL", "ASW", "RECONNAISSANCE"],
-      description: "Compact passive towed sonar array optimized for USV deployment. Sub-50mm diameter array provides long-range submarine detection capability for autonomous ASW missions.",
-      capabilities: [
-        "Passive Acoustic Detection",
-        "Long-Range Submarine Detection",
-        "Low-Frequency Coverage",
-        "Bearing Determination",
-        "Compact USV-Compatible Design",
-        "Real-Time Processing"
-      ],
-      trl: "TRL 8",
-      icon: TowedSonarIcon,
-      category: "ACOUSTIC/SONAR",
-      swap: {
-        weight: 120,      // Array + winch + processor
-        power: 0.6,       // kW - processing and winch
-        size: "medium"
-      },
-      statImpacts: {
-        speed: -3,        // Towing limits speed
-        power: -3,
-        weight: 5,
-        range: -3,
-        stealth: 4        // Passive only - quiet operation
-      },
-      securityLevel: ["Encrypted Processing", "COMSEC"],
-      securityIcons: ["encrypted"],
-      specs: {
-        arrayDiameter: "< 50mm (2 in)",
-        arrayLength: "100-500m configurable",
-        frequencyRange: "10-100 Hz (low frequency)",
-        detectionRange: "Tens of kilometers",
-        towSpeed: "3-8 knots optimal",
-        deploymentDepth: "Variable, 20-200m",
-        winchCapacity: "500m array storage",
-        processing: "Real-time bearing estimation"
-      },
-      detailedDescription: "The Thin-Line Towed Array is a passive sonar system designed specifically for deployment from unmanned surface vessels. The compact sub-50mm diameter array provides excellent low-frequency acoustic coverage while remaining deployable from medium USVs like the ZeroUSV Oceanus17.\n\nThe array detects low-frequency sound emissions from submarines at ranges of tens of kilometers. Advanced signal processing provides bearing estimation to detected contacts, enabling tracking and localization when combined with multiple platforms or maneuvers.\n\nUnlike traditional towed arrays designed for large warships, thin-line arrays sacrifice some acoustic aperture for deployability from smaller platforms, making persistent autonomous ASW patrols practical.",
-      keyFeatures: [
-        "Sub-50mm compact diameter",
-        "100-500m configurable length",
-        "10-100 Hz low-frequency coverage",
-        "Real-time bearing estimation",
-        "Autonomous deployment/recovery",
-        "USV-compatible winch system",
-        "DDIL-resilient processing"
-      ],
-      integrationNotes: "Designed for integration with ZeroUSV Oceanus17 and similar medium USVs. Acoustic data processed onboard with bearing tracks transmitted via SATCOM to shore or command ship.",
-      applications: [
-        "Autonomous ASW patrol",
-        "Submarine detection",
-        "Undersea surveillance",
-        "Acoustic intelligence",
-        "Wide-area monitoring"
-      ]
-    },
-    {
-      name: "Multibeam Echo Sounder (MBES)",
-      provider: "Multiple Vendors",
-      type: "Bathymetric Survey",
-      platformTypes: ["USV", "UUV", "Ship"],
-      missionTags: ["SURVEY", "MCM", "RECONNAISSANCE"],
-      description: "High-resolution multibeam sonar for seabed mapping and bathymetric survey. Provides detailed 3D seafloor imagery for navigation, mine countermeasures, and oceanographic research.",
-      capabilities: [
-        "High-Resolution Bathymetry",
-        "Seafloor Imaging",
-        "Real-Time 3D Mapping",
-        "Water Column Imaging",
+        "Low-Light Enhancement",
+        "Fog/Smoke Removal",
         "Object Detection",
-        "Survey-Grade Accuracy"
+        "Image Restoration",
+        "Thermal Feed Enhancement",
+        "SAR Image Processing"
       ],
-      trl: "TRL 9",
-      icon: Waves,
-      category: "ACOUSTIC/SONAR",
-      swap: {
-        weight: 45,       // Transducer + processor
-        power: 0.4,       // kW
-        size: "small"
-      },
-      statImpacts: {
-        speed: 0,
-        power: -2,
-        weight: 2,
-        range: -1,
-        stealth: -3       // Active sonar emissions
-      },
-      securityLevel: ["IHO S-44 Compliant"],
-      securityIcons: [],
-      specs: {
-        swathWidth: "120-150 degrees",
-        beamCount: "256-512 beams",
-        frequency: "200-400 kHz (shallow) / 12-50 kHz (deep)",
-        depthRange: "0.5m to 7000m (frequency dependent)",
-        resolution: "cm-level in shallow water",
-        accuracy: "IHO S-44 Order 1a capable",
-        dataRate: "High-density point cloud",
-        integration: "Standard hydrographic formats"
-      },
-      detailedDescription: "The Multibeam Echo Sounder (MBES) uses multiple acoustic beams to create detailed 3D maps of the seafloor. The system transmits a fan-shaped acoustic pulse and measures the return time and angle of echoes to build a swath of depth measurements with each ping.\n\nModern MBES systems provide survey-grade bathymetric data suitable for nautical charting, mine countermeasures, and undersea infrastructure inspection. Water column imaging mode can detect objects suspended in the water column, useful for fish schools, gas seeps, or mine detection.\n\nFor autonomous survey missions, MBES data is processed in real-time to build complete seabed maps. Integration with positioning systems (GPS/INS) provides georeferenced survey products.",
-      keyFeatures: [
-        "120-150 degree swath coverage",
-        "256-512 simultaneous beams",
-        "Centimeter-level resolution",
-        "IHO S-44 survey compliance",
-        "Real-time 3D seafloor mapping",
-        "Water column imaging",
-        "Standard hydrographic output formats"
-      ],
-      integrationNotes: "Hull-mounted or pole-mounted installation on USVs. Integrates with TempestOS for autonomous survey mission execution. Data products compatible with standard GIS and hydrographic software.",
-      applications: [
-        "Bathymetric survey",
-        "Nautical charting",
-        "Mine countermeasures",
-        "Pipeline/cable inspection",
-        "Habitat mapping",
-        "Search and salvage"
-      ]
-    },
-    {
-      name: "MYSTIC",
-      provider: "Absentia",
-      description: "Real-time video enhancement across five degradation types using specialized AI agents. GHOST handles fog and haze, SPECTER handles low-light, SPIRIT handles distortion and stabilization, SHADE handles light pollution and glare, and PHANTOM handles detection and anomaly identification. Real time, hardware agnostic, fully local processing with no data exfiltration.",
-      category: "EO/IR SENSORS",
-      trl: "TRL 7",
+      trl: "TRL 5-6",
       icon: Eye,
-      platformTypes: ["USV", "UUV", "UAV", "Ship", "Submarine"],
-      missionTags: ["RECONNAISSANCE", "FORCE_PROTECTION", "SEA_CONTROL", "ANTI_SUBMARINE_WARFARE"],
+      category: "EO/IR SENSORS",
       swap: {
-        weight: 0,       // Software-only, no additional hardware weight
-        power: 0.038,    // kW average (15–60W range depending on load)
+        weight: 0,
+        power: 0.25,
         size: "small"
       },
       statImpacts: {
@@ -1725,34 +1226,32 @@ export const individualCapabilities = [
         power: -1,
         weight: 0,
         range: 0,
-        stealth: 2       // Enhanced detection without active emissions
+        stealth: 0
       },
-      capabilities: [
-        "Fog & Haze Removal (GHOST)",
-        "Low-Light Enhancement (SPECTER)",
-        "Distortion Correction & Stabilization (SPIRIT)",
-        "Glare & Light Pollution Reduction (SHADE)",
-        "Anomaly Detection (PHANTOM)"
-      ],
-      keyFeatures: [
-        "Five specialized AI agents covering all major video degradation types",
-        "Real-time processing with no perceptible latency",
-        "Hardware agnostic — runs on existing onboard compute",
-        "Fully local processing with zero data exfiltration",
-        "Modular agent activation — deploy only what the mission needs"
-      ],
-      detailedDescription: "MYSTIC is a modular AI video enhancement suite developed by Absentia. It deploys five specialized sub-agents, each trained to address a distinct class of video degradation. GHOST corrects fog and haze through atmospheric scattering compensation. SPECTER amplifies low-light imagery using learned noise models. SPIRIT applies real-time stabilization and optical distortion correction. SHADE suppresses light pollution and glare artifacts. PHANTOM performs continuous detection and anomaly flagging across the enhanced feed.\n\nAll processing runs locally on existing platform hardware with no outbound data connections, making MYSTIC suitable for air-gapped and DDIL environments. The modular design allows individual agents to be activated or suspended based on mission profile and available compute budget.",
-      integrationNotes: "MYSTIC runs as a software layer between the raw video feed and downstream systems (operators, recorders, targeting). Compatible with standard RTSP/RTMP streams and MIPI/USB camera interfaces. No additional hardware required. Validated on NVIDIA Jetson, Intel NUC, and standard x86 edge compute. Integration with TempestOS and compatible EO/IR payloads is supported.",
+      securityLevel: ["GPU-Accelerated Edge Compute"],
+      securityIcons: [],
       specs: {
-        processingLatency: "< 33ms (real-time at 30fps)",
-        powerDraw: "15–60W depending on active agents and resolution",
-        hardwareRequirements: "Existing onboard compute (GPU-accelerated recommended)",
-        dataPolicy: "Fully local — no exfiltration, no cloud dependency",
-        agents: "GHOST, SPECTER, SPIRIT, SHADE, PHANTOM",
-        compatibility: "RTSP, RTMP, MIPI, USB; NVIDIA Jetson, Intel NUC, x86 edge"
+        power: "50–250 W (host-dependent, GPU-accelerated)",
+        weight: "0 kg (software payload)",
+        latency: "<50 ms real-time processing",
+        sensorTypes: "EO, IR, Thermal, SAR",
+        deployment: "Edge compute, containerized",
+        processing: "Physics-informed AI models"
       },
-      securityLevel: ["Zero Data Exfiltration", "Air-Gap Compatible", "DDIL Resilient"],
-      securityIcons: ["ddil", "encrypted"]
+      detailedDescription: "Absentia MYSTIC is a physics-informed AI software suite designed for real-time enhancement of degraded visual sensor feeds across electro-optical, infrared, thermal, and synthetic aperture radar modalities.\n\nMYSTIC leverages physics-based models combined with deep learning to restore and enhance imagery degraded by environmental conditions including low-light, fog, smoke, rain, and other obscurants. The system operates at the edge with sub-50ms latency, enabling real-time situational awareness in conditions that would otherwise render visual sensors ineffective.\n\nAs a pure software payload with zero weight impact, MYSTIC deploys on existing GPU-accelerated edge compute infrastructure with typical power draw of 50–250W depending on host configuration.",
+      keyFeatures: [
+        "Physics-informed AI for sensor feed enhancement",
+        "Real-time processing with <50 ms latency",
+        "Zero weight impact — pure software payload",
+        "Multi-modal: EO, IR, thermal, and SAR support",
+        "Low-light, fog, smoke, and obscurant removal",
+        "GPU-accelerated edge compute deployment",
+        "Automated object detection in degraded conditions"
+      ],
+      integrationNotes: "MYSTIC deploys as a containerized workload on TempestOS or any GPU-equipped edge compute platform. Processes raw sensor feeds in-line, providing enhanced imagery to downstream systems including Guardian AI targeting and operator displays.",
+      missionTags: ["Vision Enhancement", "Sensor Processing", "AI Perception"],
+      providerLogo: "/providers/absentia/assets/AT_LOGO_A.svg",
+      bannerImage: "/providers/absentia/assets/banners/MYSTIC_banner.svg"
     }
   ];
 export const capabilityCategories = {
@@ -1795,11 +1294,6 @@ export const capabilityCategories = {
     icon: Satellite,
     description: "Sensors, radar, and detection systems",
     subcategories: ["SENSORS & DETECTION", "RADAR", "SONAR", "IMAGING"]
-  },
-  "RESILIENT PNT": {
-    icon: Compass,
-    description: "Position, Navigation, and Timing systems for GPS-denied environments",
-    subcategories: ["RESILIENT PNT", "NAVIGATION", "TIMING"]
   }
 };
 
@@ -2375,406 +1869,6 @@ export const missionFlowTemplates = {
       { from: 'arrived', to: 'screen', label: 'No' }
     ],
     loopBack: { from: 'screen', to: 'scan', label: 'Continuous Screening' }
-  },
-
-  // ============ CNO PRIORITY MISSIONS ============
-  SURVEY: {
-    name: "Survey & Mapping",
-    category: "SURVEY",
-    nodes: [
-      { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
-      { id: 'transit', type: 'action', label: 'Transit to Area', position: { x: 200, y: 150 } },
-      { id: 'survey', type: 'action', label: 'Survey Track', position: { x: 350, y: 150 } },
-      { id: 'scan', type: 'sense', label: 'MBES Scan', position: { x: 500, y: 150 } },
-      { id: 'anomaly', type: 'decision', label: 'Anomaly?', position: { x: 650, y: 150 } },
-      { id: 'investigate', type: 'action', label: 'Investigate', position: { x: 650, y: 280 } },
-      { id: 'log', type: 'orient', label: 'Log & Report', position: { x: 800, y: 150 } },
-      { id: 'complete', type: 'decision', label: 'Track Complete?', position: { x: 950, y: 150 } },
-      { id: 'end', type: 'end', label: 'Survey Complete', position: { x: 1100, y: 150 } }
-    ],
-    connections: [
-      { from: 'deploy', to: 'transit' },
-      { from: 'transit', to: 'survey' },
-      { from: 'survey', to: 'scan' },
-      { from: 'scan', to: 'anomaly' },
-      { from: 'anomaly', to: 'log', label: 'No' },
-      { from: 'anomaly', to: 'investigate', label: 'Yes' },
-      { from: 'investigate', to: 'log' },
-      { from: 'log', to: 'complete' },
-      { from: 'complete', to: 'end', label: 'Yes' },
-      { from: 'complete', to: 'survey', label: 'No' }
-    ],
-    loopBack: { from: 'survey', to: 'scan', label: 'Continue Survey' }
-  },
-
-  MCM: {
-    name: "Mine Countermeasures",
-    category: "MCM",
-    nodes: [
-      { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
-      { id: 'search', type: 'action', label: 'Search Pattern', position: { x: 200, y: 150 } },
-      { id: 'scan', type: 'sense', label: 'Side-Scan', position: { x: 350, y: 150 } },
-      { id: 'contact', type: 'decision', label: 'Contact?', position: { x: 500, y: 150 } },
-      { id: 'classify', type: 'orient', label: 'Classify Target', position: { x: 650, y: 150 } },
-      { id: 'mine_check', type: 'decision', label: 'Mine?', position: { x: 800, y: 150 } },
-      { id: 'mark', type: 'action', label: 'Mark & Report', position: { x: 950, y: 100 } },
-      { id: 'continue', type: 'action', label: 'Log & Continue', position: { x: 950, y: 200 } },
-      { id: 'area_check', type: 'decision', label: 'Area Clear?', position: { x: 1100, y: 150 } },
-      { id: 'end', type: 'end', label: 'MCM Complete', position: { x: 1250, y: 150 } }
-    ],
-    connections: [
-      { from: 'deploy', to: 'search' },
-      { from: 'search', to: 'scan' },
-      { from: 'scan', to: 'contact' },
-      { from: 'contact', to: 'classify', label: 'Yes' },
-      { from: 'contact', to: 'area_check', label: 'No' },
-      { from: 'classify', to: 'mine_check' },
-      { from: 'mine_check', to: 'mark', label: 'Yes' },
-      { from: 'mine_check', to: 'continue', label: 'No' },
-      { from: 'mark', to: 'area_check' },
-      { from: 'continue', to: 'area_check' },
-      { from: 'area_check', to: 'end', label: 'Yes' },
-      { from: 'area_check', to: 'search', label: 'No' }
-    ],
-    loopBack: { from: 'search', to: 'scan', label: 'Continue Search' }
-  },
-
-  ASW: {
-    name: "Anti-Submarine Warfare",
-    category: "ASW",
-    nodes: [
-      { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
-      { id: 'patrol', type: 'action', label: 'Patrol Zone', position: { x: 200, y: 150 } },
-      { id: 'listen', type: 'sense', label: 'Passive Scan', position: { x: 350, y: 150 } },
-      { id: 'contact', type: 'decision', label: 'Contact in Zone?', position: { x: 500, y: 150 } },
-      { id: 'active', type: 'action', label: 'Active Scan', position: { x: 650, y: 200 } },
-      { id: 'classify', type: 'orient', label: 'Classify Target', position: { x: 650, y: 100 } },
-      { id: 'hostile', type: 'decision', label: 'Hostile/Violation?', position: { x: 800, y: 150 } },
-      { id: 'track', type: 'action', label: 'Track & Report', position: { x: 950, y: 100 } },
-      { id: 'log', type: 'action', label: 'Log & Resume', position: { x: 950, y: 200 } },
-      { id: 'end', type: 'end', label: 'Contact Tracked', position: { x: 1100, y: 100 } }
-    ],
-    connections: [
-      { from: 'deploy', to: 'patrol' },
-      { from: 'patrol', to: 'listen' },
-      { from: 'listen', to: 'contact' },
-      { from: 'contact', to: 'classify', label: 'Yes' },
-      { from: 'contact', to: 'patrol', label: 'No' },
-      { from: 'classify', to: 'active' },
-      { from: 'active', to: 'hostile' },
-      { from: 'hostile', to: 'track', label: 'Yes' },
-      { from: 'hostile', to: 'log', label: 'No - Friendly' },
-      { from: 'track', to: 'end' },
-      { from: 'log', to: 'patrol' }
-    ],
-    loopBack: { from: 'patrol', to: 'listen', label: 'Continuous Monitoring' }
-  },
-
-  // ============ AERIAL MISSIONS ============
-  AERIAL_ISR: {
-    name: "Aerial ISR",
-    category: "ISR",
-    nodes: [
-      { id: 'launch', type: 'trigger', label: 'Launch', position: { x: 50, y: 150 } },
-      { id: 'transit', type: 'action', label: 'Transit to AO', position: { x: 200, y: 150 } },
-      { id: 'orbit', type: 'action', label: 'Enter Orbit', position: { x: 350, y: 150 } },
-      { id: 'scan', type: 'sense', label: 'Sensor Scan', position: { x: 500, y: 150 } },
-      { id: 'detect', type: 'decision', label: 'Target Detected?', position: { x: 650, y: 150 } },
-      { id: 'classify', type: 'orient', label: 'Classify & Track', position: { x: 800, y: 100 } },
-      { id: 'report', type: 'action', label: 'Report Intel', position: { x: 950, y: 100 } },
-      { id: 'fuel', type: 'decision', label: 'Fuel State?', position: { x: 650, y: 280 } },
-      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 800, y: 280 } }
-    ],
-    connections: [
-      { from: 'launch', to: 'transit' },
-      { from: 'transit', to: 'orbit' },
-      { from: 'orbit', to: 'scan' },
-      { from: 'scan', to: 'detect' },
-      { from: 'detect', to: 'classify', label: 'Yes' },
-      { from: 'detect', to: 'fuel', label: 'No' },
-      { from: 'classify', to: 'report' },
-      { from: 'report', to: 'fuel' },
-      { from: 'fuel', to: 'scan', label: 'Good' },
-      { from: 'fuel', to: 'rtb', label: 'Bingo' }
-    ]
-  },
-  PERSISTENT_MDA: {
-    name: "Persistent MDA",
-    category: "ISR",
-    nodes: [
-      { id: 'deploy', type: 'trigger', label: 'Deploy to Station', position: { x: 50, y: 150 } },
-      { id: 'station', type: 'action', label: 'Hold Station', position: { x: 200, y: 150 } },
-      { id: 'radar', type: 'sense', label: 'Maritime Radar', position: { x: 350, y: 100 } },
-      { id: 'ais', type: 'sense', label: 'AIS Correlation', position: { x: 350, y: 200 } },
-      { id: 'fuse', type: 'orient', label: 'Fuse Data', position: { x: 500, y: 150 } },
-      { id: 'anomaly', type: 'decision', label: 'Anomaly?', position: { x: 650, y: 150 } },
-      { id: 'cue', type: 'action', label: 'Cue Surface Assets', position: { x: 800, y: 100 } },
-      { id: 'update', type: 'action', label: 'Update COP', position: { x: 800, y: 200 } },
-      { id: 'handoff', type: 'decision', label: 'Relief On Station?', position: { x: 950, y: 150 } },
-      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 1100, y: 150 } }
-    ],
-    connections: [
-      { from: 'deploy', to: 'station' },
-      { from: 'station', to: 'radar' },
-      { from: 'station', to: 'ais' },
-      { from: 'radar', to: 'fuse' },
-      { from: 'ais', to: 'fuse' },
-      { from: 'fuse', to: 'anomaly' },
-      { from: 'anomaly', to: 'cue', label: 'Yes' },
-      { from: 'anomaly', to: 'update', label: 'No' },
-      { from: 'cue', to: 'update' },
-      { from: 'update', to: 'handoff' },
-      { from: 'handoff', to: 'station', label: 'No' },
-      { from: 'handoff', to: 'rtb', label: 'Yes' }
-    ]
-  },
-  AERIAL_REFUELING: {
-    name: "Aerial Refueling",
-    category: "LOGISTICS",
-    nodes: [
-      { id: 'launch', type: 'trigger', label: 'Launch Tanker', position: { x: 50, y: 150 } },
-      { id: 'transit', type: 'action', label: 'Transit to Track', position: { x: 200, y: 150 } },
-      { id: 'anchor', type: 'action', label: 'Enter Anchor', position: { x: 350, y: 150 } },
-      { id: 'advertise', type: 'action', label: 'Broadcast Availability', position: { x: 500, y: 150 } },
-      { id: 'receiver', type: 'decision', label: 'Receiver Inbound?', position: { x: 650, y: 150 } },
-      { id: 'rendezvous', type: 'action', label: 'Rendezvous', position: { x: 800, y: 100 } },
-      { id: 'refuel', type: 'action', label: 'Transfer Fuel', position: { x: 950, y: 100 } },
-      { id: 'complete', type: 'decision', label: 'Transfer Complete?', position: { x: 1100, y: 100 } },
-      { id: 'fuel_state', type: 'decision', label: 'Offload Remaining?', position: { x: 650, y: 280 } },
-      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 800, y: 280 } }
-    ],
-    connections: [
-      { from: 'launch', to: 'transit' },
-      { from: 'transit', to: 'anchor' },
-      { from: 'anchor', to: 'advertise' },
-      { from: 'advertise', to: 'receiver' },
-      { from: 'receiver', to: 'rendezvous', label: 'Yes' },
-      { from: 'receiver', to: 'fuel_state', label: 'No' },
-      { from: 'rendezvous', to: 'refuel' },
-      { from: 'refuel', to: 'complete' },
-      { from: 'complete', to: 'fuel_state', label: 'Yes' },
-      { from: 'complete', to: 'refuel', label: 'No - Retry' },
-      { from: 'fuel_state', to: 'advertise', label: 'Yes' },
-      { from: 'fuel_state', to: 'rtb', label: 'No' }
-    ]
-  },
-  TACTICAL_SUPPORT: {
-    name: "Tactical Support",
-    category: "COMBAT",
-    nodes: [
-      { id: 'scramble', type: 'trigger', label: 'Scramble', position: { x: 50, y: 150 } },
-      { id: 'transit', type: 'action', label: 'Transit to AO', position: { x: 200, y: 150 } },
-      { id: 'checkin', type: 'action', label: 'Check-in with JTAC', position: { x: 350, y: 150 } },
-      { id: 'hold', type: 'action', label: 'Hold Pattern', position: { x: 500, y: 150 } },
-      { id: 'tasking', type: 'decision', label: 'Tasking Received?', position: { x: 650, y: 150 } },
-      { id: 'acquire', type: 'sense', label: 'Acquire Target', position: { x: 800, y: 100 } },
-      { id: 'confirm', type: 'decision', label: 'Target Confirmed?', position: { x: 950, y: 100 } },
-      { id: 'human', type: 'human_checkpoint', label: 'Weapons Release Auth', position: { x: 1100, y: 100 } },
-      { id: 'engage', type: 'action', label: 'Engage', position: { x: 1250, y: 100 } },
-      { id: 'bda', type: 'action', label: 'BDA Report', position: { x: 1400, y: 100 } },
-      { id: 'winchester', type: 'decision', label: 'Winchester?', position: { x: 650, y: 280 } },
-      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 800, y: 280 } }
-    ],
-    connections: [
-      { from: 'scramble', to: 'transit' },
-      { from: 'transit', to: 'checkin' },
-      { from: 'checkin', to: 'hold' },
-      { from: 'hold', to: 'tasking' },
-      { from: 'tasking', to: 'acquire', label: 'Yes' },
-      { from: 'tasking', to: 'winchester', label: 'No' },
-      { from: 'acquire', to: 'confirm' },
-      { from: 'confirm', to: 'human', label: 'Yes' },
-      { from: 'confirm', to: 'hold', label: 'No' },
-      { from: 'human', to: 'engage', label: 'Approved' },
-      { from: 'human', to: 'hold', label: 'Denied' },
-      { from: 'engage', to: 'bda' },
-      { from: 'bda', to: 'winchester' },
-      { from: 'winchester', to: 'hold', label: 'No' },
-      { from: 'winchester', to: 'rtb', label: 'Yes' }
-    ]
-  },
-  COMMS_RELAY: {
-    name: "Comms Relay",
-    category: "LOGISTICS",
-    nodes: [
-      { id: 'launch', type: 'trigger', label: 'Launch', position: { x: 50, y: 150 } },
-      { id: 'climb', type: 'action', label: 'Climb to Altitude', position: { x: 200, y: 150 } },
-      { id: 'station', type: 'action', label: 'Establish Station', position: { x: 350, y: 150 } },
-      { id: 'link', type: 'action', label: 'Establish Data Links', position: { x: 500, y: 150 } },
-      { id: 'monitor', type: 'sense', label: 'Monitor Link Health', position: { x: 650, y: 150 } },
-      { id: 'degraded', type: 'decision', label: 'Link Degraded?', position: { x: 800, y: 150 } },
-      { id: 'reposition', type: 'action', label: 'Reposition', position: { x: 950, y: 100 } },
-      { id: 'fuel', type: 'decision', label: 'Fuel State?', position: { x: 800, y: 280 } },
-      { id: 'handoff', type: 'action', label: 'Handoff to Relief', position: { x: 950, y: 280 } },
-      { id: 'rtb', type: 'end', label: 'RTB', position: { x: 1100, y: 280 } }
-    ],
-    connections: [
-      { from: 'launch', to: 'climb' },
-      { from: 'climb', to: 'station' },
-      { from: 'station', to: 'link' },
-      { from: 'link', to: 'monitor' },
-      { from: 'monitor', to: 'degraded' },
-      { from: 'degraded', to: 'reposition', label: 'Yes' },
-      { from: 'degraded', to: 'fuel', label: 'No' },
-      { from: 'reposition', to: 'monitor' },
-      { from: 'fuel', to: 'monitor', label: 'Good' },
-      { from: 'fuel', to: 'handoff', label: 'Bingo' },
-      { from: 'handoff', to: 'rtb' }
-    ]
-  },
-
-  // ============ COMBINED MISSIONS ============
-  COMBINED_ISR_DENIAL: {
-    name: "Combined ISR + Sea Denial",
-    category: "SEA_CONTROL",
-    nodes: [
-      { id: 'deploy', type: 'trigger', label: 'Deploy Forces', position: { x: 50, y: 150 } },
-      { id: 'aerial_station', type: 'action', label: 'Aerial: Enter Orbit', position: { x: 200, y: 80 } },
-      { id: 'surface_patrol', type: 'action', label: 'Surface: Patrol Zone', position: { x: 200, y: 220 } },
-      { id: 'aerial_scan', type: 'sense', label: 'Wide Area Scan', position: { x: 400, y: 80 } },
-      { id: 'surface_scan', type: 'sense', label: 'Close-In Scan', position: { x: 400, y: 220 } },
-      { id: 'fuse', type: 'orient', label: 'Fuse Intel', position: { x: 550, y: 150 } },
-      { id: 'contact', type: 'decision', label: 'Hostile Contact?', position: { x: 700, y: 150 } },
-      { id: 'cue', type: 'action', label: 'Aerial Cues Surface', position: { x: 850, y: 100 } },
-      { id: 'intercept', type: 'action', label: 'Surface Intercept', position: { x: 1000, y: 100 } },
-      { id: 'engage', type: 'action', label: 'Coordinated Engage', position: { x: 1150, y: 100 } },
-      { id: 'bda', type: 'action', label: 'Aerial BDA', position: { x: 1300, y: 100 } },
-      { id: 'continue', type: 'decision', label: 'Continue Ops?', position: { x: 700, y: 280 } },
-      { id: 'complete', type: 'end', label: 'Mission Complete', position: { x: 850, y: 280 } }
-    ],
-    connections: [
-      { from: 'deploy', to: 'aerial_station' },
-      { from: 'deploy', to: 'surface_patrol' },
-      { from: 'aerial_station', to: 'aerial_scan' },
-      { from: 'surface_patrol', to: 'surface_scan' },
-      { from: 'aerial_scan', to: 'fuse' },
-      { from: 'surface_scan', to: 'fuse' },
-      { from: 'fuse', to: 'contact' },
-      { from: 'contact', to: 'cue', label: 'Yes' },
-      { from: 'contact', to: 'continue', label: 'No' },
-      { from: 'cue', to: 'intercept' },
-      { from: 'intercept', to: 'engage' },
-      { from: 'engage', to: 'bda' },
-      { from: 'bda', to: 'continue' },
-      { from: 'continue', to: 'aerial_scan', label: 'Yes' },
-      { from: 'continue', to: 'complete', label: 'No' }
-    ]
-  },
-  COMBINED_ASW: {
-    name: "Combined ASW",
-    category: "DEFENSE",
-    nodes: [
-      { id: 'deploy', type: 'trigger', label: 'Deploy ASW Package', position: { x: 50, y: 150 } },
-      { id: 'aerial_pattern', type: 'action', label: 'Aerial: Sonobuoy Pattern', position: { x: 200, y: 80 } },
-      { id: 'surface_search', type: 'action', label: 'Surface: Active Sonar', position: { x: 200, y: 220 } },
-      { id: 'aerial_listen', type: 'sense', label: 'Passive Acoustic', position: { x: 400, y: 80 } },
-      { id: 'surface_listen', type: 'sense', label: 'Hull/Towed Array', position: { x: 400, y: 220 } },
-      { id: 'correlate', type: 'orient', label: 'Correlate Contacts', position: { x: 550, y: 150 } },
-      { id: 'sub_contact', type: 'decision', label: 'Submarine Contact?', position: { x: 700, y: 150 } },
-      { id: 'localize', type: 'action', label: 'MAD/Dipping Sonar', position: { x: 850, y: 100 } },
-      { id: 'prosecute', type: 'decision', label: 'Prosecute?', position: { x: 1000, y: 100 } },
-      { id: 'human', type: 'human_checkpoint', label: 'Weapons Auth', position: { x: 1150, y: 100 } },
-      { id: 'attack', type: 'action', label: 'Torpedo Attack', position: { x: 1300, y: 100 } },
-      { id: 'reattack', type: 'decision', label: 'Kill Confirmed?', position: { x: 1450, y: 100 } },
-      { id: 'continue', type: 'decision', label: 'Continue Search?', position: { x: 700, y: 280 } },
-      { id: 'complete', type: 'end', label: 'Area Sanitized', position: { x: 850, y: 280 } }
-    ],
-    connections: [
-      { from: 'deploy', to: 'aerial_pattern' },
-      { from: 'deploy', to: 'surface_search' },
-      { from: 'aerial_pattern', to: 'aerial_listen' },
-      { from: 'surface_search', to: 'surface_listen' },
-      { from: 'aerial_listen', to: 'correlate' },
-      { from: 'surface_listen', to: 'correlate' },
-      { from: 'correlate', to: 'sub_contact' },
-      { from: 'sub_contact', to: 'localize', label: 'Yes' },
-      { from: 'sub_contact', to: 'continue', label: 'No' },
-      { from: 'localize', to: 'prosecute' },
-      { from: 'prosecute', to: 'human', label: 'Yes' },
-      { from: 'prosecute', to: 'continue', label: 'No - Lost' },
-      { from: 'human', to: 'attack', label: 'Approved' },
-      { from: 'human', to: 'continue', label: 'Denied' },
-      { from: 'attack', to: 'reattack' },
-      { from: 'reattack', to: 'continue', label: 'Yes' },
-      { from: 'reattack', to: 'localize', label: 'No' },
-      { from: 'continue', to: 'aerial_listen', label: 'Yes' },
-      { from: 'continue', to: 'complete', label: 'No' }
-    ]
-  },
-  COMBINED_ESCORT: {
-    name: "Combined Convoy Escort",
-    category: "ESCORT",
-    nodes: [
-      { id: 'form', type: 'trigger', label: 'Form Escort', position: { x: 50, y: 150 } },
-      { id: 'aerial_cap', type: 'action', label: 'Aerial: Establish CAP', position: { x: 200, y: 80 } },
-      { id: 'surface_screen', type: 'action', label: 'Surface: Form Screen', position: { x: 200, y: 220 } },
-      { id: 'aerial_scan', type: 'sense', label: 'Long-Range Scan', position: { x: 400, y: 80 } },
-      { id: 'surface_scan', type: 'sense', label: 'Close Screening', position: { x: 400, y: 220 } },
-      { id: 'threat', type: 'decision', label: 'Threat Detected?', position: { x: 550, y: 150 } },
-      { id: 'classify', type: 'orient', label: 'Classify Threat', position: { x: 700, y: 100 } },
-      { id: 'air_threat', type: 'decision', label: 'Air or Surface?', position: { x: 850, y: 100 } },
-      { id: 'aerial_intercept', type: 'action', label: 'Aerial Intercept', position: { x: 1000, y: 50 } },
-      { id: 'surface_intercept', type: 'action', label: 'Surface Intercept', position: { x: 1000, y: 150 } },
-      { id: 'neutralize', type: 'action', label: 'Neutralize', position: { x: 1150, y: 100 } },
-      { id: 'hvu_status', type: 'decision', label: 'HVU Status?', position: { x: 550, y: 280 } },
-      { id: 'arrived', type: 'decision', label: 'Destination?', position: { x: 400, y: 350 } },
-      { id: 'complete', type: 'end', label: 'Escort Complete', position: { x: 250, y: 350 } }
-    ],
-    connections: [
-      { from: 'form', to: 'aerial_cap' },
-      { from: 'form', to: 'surface_screen' },
-      { from: 'aerial_cap', to: 'aerial_scan' },
-      { from: 'surface_screen', to: 'surface_scan' },
-      { from: 'aerial_scan', to: 'threat' },
-      { from: 'surface_scan', to: 'threat' },
-      { from: 'threat', to: 'classify', label: 'Yes' },
-      { from: 'threat', to: 'hvu_status', label: 'No' },
-      { from: 'classify', to: 'air_threat' },
-      { from: 'air_threat', to: 'aerial_intercept', label: 'Air' },
-      { from: 'air_threat', to: 'surface_intercept', label: 'Surface' },
-      { from: 'aerial_intercept', to: 'neutralize' },
-      { from: 'surface_intercept', to: 'neutralize' },
-      { from: 'neutralize', to: 'hvu_status' },
-      { from: 'hvu_status', to: 'arrived', label: 'Safe' },
-      { from: 'arrived', to: 'aerial_scan', label: 'No' },
-      { from: 'arrived', to: 'complete', label: 'Yes' }
-    ]
-  },
-  COMBINED_STRIKE: {
-    name: "Strike Package",
-    category: "COMBAT",
-    nodes: [
-      { id: 'mission_brief', type: 'trigger', label: 'Mission Brief', position: { x: 50, y: 150 } },
-      { id: 'aerial_launch', type: 'action', label: 'Aerial: Launch Strike', position: { x: 200, y: 80 } },
-      { id: 'surface_position', type: 'action', label: 'Surface: Move to FP', position: { x: 200, y: 220 } },
-      { id: 'aerial_ingress', type: 'action', label: 'Ingress to Target', position: { x: 400, y: 80 } },
-      { id: 'surface_standby', type: 'action', label: 'Standby for BDA', position: { x: 400, y: 220 } },
-      { id: 'aerial_acquire', type: 'sense', label: 'Acquire Target', position: { x: 550, y: 80 } },
-      { id: 'confirm', type: 'decision', label: 'Target Confirmed?', position: { x: 700, y: 80 } },
-      { id: 'human', type: 'human_checkpoint', label: 'Strike Auth', position: { x: 850, y: 80 } },
-      { id: 'aerial_strike', type: 'action', label: 'Aerial Strike', position: { x: 1000, y: 80 } },
-      { id: 'bda', type: 'sense', label: 'Aerial BDA', position: { x: 1150, y: 80 } },
-      { id: 'effective', type: 'decision', label: 'Strike Effective?', position: { x: 1300, y: 150 } },
-      { id: 'surface_strike', type: 'action', label: 'Surface Follow-Up', position: { x: 1300, y: 280 } },
-      { id: 'complete', type: 'end', label: 'Target Destroyed', position: { x: 1450, y: 150 } }
-    ],
-    connections: [
-      { from: 'mission_brief', to: 'aerial_launch' },
-      { from: 'mission_brief', to: 'surface_position' },
-      { from: 'aerial_launch', to: 'aerial_ingress' },
-      { from: 'surface_position', to: 'surface_standby' },
-      { from: 'aerial_ingress', to: 'aerial_acquire' },
-      { from: 'aerial_acquire', to: 'confirm' },
-      { from: 'confirm', to: 'human', label: 'Yes' },
-      { from: 'confirm', to: 'aerial_ingress', label: 'No - Reacquire' },
-      { from: 'human', to: 'aerial_strike', label: 'Approved' },
-      { from: 'aerial_strike', to: 'bda' },
-      { from: 'bda', to: 'effective' },
-      { from: 'surface_standby', to: 'effective' },
-      { from: 'effective', to: 'complete', label: 'Yes' },
-      { from: 'effective', to: 'surface_strike', label: 'No' },
-      { from: 'surface_strike', to: 'complete' }
-    ]
   }
 };
 

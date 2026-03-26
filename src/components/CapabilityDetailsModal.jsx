@@ -1,77 +1,11 @@
-import { useMemo } from 'react';
 import { jsPDF } from 'jspdf';
-
-// Validate URLs to prevent javascript:/data: injection in CSS url()
-const isSafeImageUrl = (url) => {
-  if (!url || typeof url !== 'string') return false;
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
-  } catch {
-    return false;
-  }
-};
-import { X, FileText, File, Download, Ship, Check, AlertTriangle, Zap, Scale, Anchor, Plane } from 'lucide-react';
-import { vesselHullData, vesselHullComponents, isAerialPlatform } from '../data/vesselData';
+import { X, FileText, File, Download } from 'lucide-react';
 
 const CapabilityDetailsModal = ({
   selectedCapabilityDetails,
   setSelectedCapabilityDetails,
   addToOutfitterCart
 }) => {
-  // Calculate compatible vessels based on SWaP requirements
-  const compatibleVessels = useMemo(() => {
-    if (!selectedCapabilityDetails?.swap) return { fits: vesselHullData, tooSmall: [] };
-
-    const capWeight = selectedCapabilityDetails.swap.weight || 0;
-    const capPower = selectedCapabilityDetails.swap.power || 0;
-
-    const fits = [];
-    const tooSmall = [];
-
-    vesselHullData.forEach(vessel => {
-      const capacity = vessel.capacity;
-      if (!capacity) {
-        // No capacity data - assume it fits
-        fits.push({ vessel, headroom: null });
-        return;
-      }
-
-      const weightFits = capacity.totalWeight >= capWeight;
-      const powerFits = capacity.totalPower >= capPower;
-
-      if (weightFits && powerFits) {
-        fits.push({
-          vessel,
-          headroom: {
-            weight: capacity.totalWeight - capWeight,
-            power: capacity.totalPower - capPower,
-            weightPercent: Math.round(((capacity.totalWeight - capWeight) / capacity.totalWeight) * 100),
-            powerPercent: Math.round(((capacity.totalPower - capPower) / capacity.totalPower) * 100)
-          }
-        });
-      } else {
-        tooSmall.push({
-          vessel,
-          reason: !weightFits && !powerFits
-            ? 'Exceeds weight and power'
-            : !weightFits
-            ? `Needs ${capWeight}kg, has ${capacity.totalWeight}kg`
-            : `Needs ${capPower}kW, has ${capacity.totalPower}kW`
-        });
-      }
-    });
-
-    // Sort fits by remaining headroom
-    fits.sort((a, b) => {
-      if (!a.headroom) return 1;
-      if (!b.headroom) return -1;
-      return b.headroom.weightPercent - a.headroom.weightPercent;
-    });
-
-    return { fits, tooSmall };
-  }, [selectedCapabilityDetails]);
-
   if (!selectedCapabilityDetails) return null;
 
   return (
@@ -119,9 +53,17 @@ const CapabilityDetailsModal = ({
           {/* Company Header Section */}
           <div className="bg-gradient-to-br from-darkest to-darker p-8 border-b border-lime-brand/10">
             <div className="flex items-center gap-6 mb-4">
-              {/* Company Logo Placeholder */}
-              <div className="bg-white p-4 rounded-lg flex items-center justify-center min-w-[120px] h-[60px] text-sm font-bold text-darker">
-                {selectedCapabilityDetails.provider.toUpperCase()}
+              {/* Company Logo */}
+              <div className="bg-white p-2 rounded-lg flex items-center justify-center min-w-[120px] h-[60px]">
+                {selectedCapabilityDetails.providerLogo ? (
+                  <img
+                    src={selectedCapabilityDetails.providerLogo}
+                    alt={selectedCapabilityDetails.provider}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <span className="text-sm font-bold text-darker">{selectedCapabilityDetails.provider.toUpperCase()}</span>
+                )}
               </div>
 
               <div className="flex-1">
@@ -152,7 +94,7 @@ const CapabilityDetailsModal = ({
 
           {/* Documents Downloads Section */}
           {selectedCapabilityDetails.documents && selectedCapabilityDetails.documents.length > 0 && (
-            <div className="bg-darkest py-6 px-12 border-b border-lime-brand/10">
+            <div className="bg-darkest p-6 px-8 border-b border-lime-brand/10">
               <h4 className="text-lime-brand text-lg font-bold mb-4 flex items-center gap-2">
                 <Download size={20} />
                 Available Documents
@@ -320,26 +262,26 @@ const CapabilityDetailsModal = ({
           <div
             className="h-[300px] bg-darkest relative flex items-center justify-center border-b border-lime-brand/10 bg-cover bg-center bg-no-repeat"
             style={{
-              background: isSafeImageUrl(selectedCapabilityDetails.bannerImage)
-                ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${encodeURI(selectedCapabilityDetails.bannerImage)})`
+              background: selectedCapabilityDetails.bannerImage
+                ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${selectedCapabilityDetails.bannerImage})`
                 : 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
             }}
           >
-            <div className="relative z-[1] text-center text-white px-12">
+            <div className="relative z-[1] text-center text-white">
               <h3 className="text-[2rem] font-bold m-0 mb-4 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">
                 {selectedCapabilityDetails.name}
               </h3>
-              <p className="text-lg m-0 opacity-90 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] max-w-4xl mx-auto">
+              <p className="text-lg m-0 opacity-90 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">
                 {selectedCapabilityDetails.description}
               </p>
             </div>
           </div>
 
           {/* Content Sections */}
-          <div className="py-8 px-12">
+          <div className="p-8">
 
             {/* Rich Description Section */}
             <div className="mb-8">
@@ -410,115 +352,6 @@ const CapabilityDetailsModal = ({
                     {selectedCapabilityDetails.integrationNotes}
                   </p>
                 </div>
-              </div>
-            )}
-
-            {/* Compatible Vessels Section */}
-            {selectedCapabilityDetails.swap && (
-              <div className="mb-8">
-                <h4 className="text-lime-brand text-lg font-bold mb-4 flex items-center gap-2">
-                  <Ship size={20} />
-                  Compatible Platforms
-                </h4>
-
-                {/* SWaP Requirements */}
-                <div className="flex gap-4 mb-4 p-4 bg-darkest rounded-lg border border-lime-brand/20">
-                  <div className="flex items-center gap-2">
-                    <Scale size={16} className="text-cyan-400" />
-                    <span className="text-gray-400 text-sm">Weight:</span>
-                    <span className="text-white font-semibold">{selectedCapabilityDetails.swap.weight || 0}kg</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Zap size={16} className="text-yellow-400" />
-                    <span className="text-gray-400 text-sm">Power:</span>
-                    <span className="text-white font-semibold">{selectedCapabilityDetails.swap.power || 0}kW</span>
-                  </div>
-                </div>
-
-                {/* Compatible Vessels */}
-                {compatibleVessels.fits.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Check size={16} className="text-green-400" />
-                      <span className="text-green-400 text-sm font-semibold">
-                        {compatibleVessels.fits.length} Compatible Platforms
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
-                      {compatibleVessels.fits.slice(0, 8).map(({ vessel, headroom }) => {
-                        const HullComponent = vesselHullComponents[vessel.icon];
-                        const isAerial = isAerialPlatform(vessel.platformType);
-                        return (
-                          <div
-                            key={vessel.name}
-                            className="p-3 bg-darkest rounded-lg border border-green-500/20 hover:border-green-500/40 transition-colors"
-                          >
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-12 h-10 flex items-center justify-center opacity-60">
-                                {HullComponent ? (
-                                  <HullComponent size={35} />
-                                ) : isAerial ? (
-                                  <Plane size={24} className="text-cyan-400" />
-                                ) : (
-                                  <Anchor size={24} className="text-blue-400" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-white text-sm font-semibold truncate">{vessel.name}</div>
-                                <div className="text-gray-500 text-xs">{vessel.type}</div>
-                              </div>
-                            </div>
-                            {headroom && (
-                              <div className="flex gap-2">
-                                <div className="flex-1 text-center px-2 py-1 bg-cyan-500/10 rounded text-xs">
-                                  <span className="text-cyan-400">{headroom.weight}kg</span>
-                                  <span className="text-gray-500"> left</span>
-                                </div>
-                                <div className="flex-1 text-center px-2 py-1 bg-yellow-500/10 rounded text-xs">
-                                  <span className="text-yellow-400">{headroom.power}kW</span>
-                                  <span className="text-gray-500"> left</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {compatibleVessels.fits.length > 8 && (
-                      <div className="mt-2 text-gray-500 text-sm text-center">
-                        +{compatibleVessels.fits.length - 8} more platforms
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Incompatible Vessels */}
-                {compatibleVessels.tooSmall.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <AlertTriangle size={16} className="text-red-400" />
-                      <span className="text-red-400 text-sm font-semibold">
-                        {compatibleVessels.tooSmall.length} Too Small
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {compatibleVessels.tooSmall.slice(0, 6).map(({ vessel, reason }) => (
-                        <div
-                          key={vessel.name}
-                          className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded text-xs text-gray-400"
-                          title={reason}
-                        >
-                          {vessel.name}
-                        </div>
-                      ))}
-                      {compatibleVessels.tooSmall.length > 6 && (
-                        <div className="px-3 py-1.5 text-gray-500 text-xs">
-                          +{compatibleVessels.tooSmall.length - 6} more
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
