@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import useDataStore from '../providers/dataStore';
 // Fallback imports for before dataStore is initialized
 import { swarmSquadrons as initialSquadrons, squadronUnitConfigurations as initialConfigurations, generateSquadronId } from '../data/fleetData';
 import { individualCapabilities, engineeringStacks } from '../data/marketplaceData';

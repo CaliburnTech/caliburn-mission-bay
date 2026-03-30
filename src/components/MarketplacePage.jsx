@@ -24,7 +24,7 @@ import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
 
 const MarketplacePage = ({ onLogoClick }) => {
-  const dataStore = useDataStore();
+  const _dataStore = useDataStore();
 
   // Navigation store
   const { selectedView, setSelectedView } = useNavigationStore();

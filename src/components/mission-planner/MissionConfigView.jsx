@@ -3,7 +3,6 @@ import { ChevronLeft, Layers, Save, Rocket, Ship, Plane, Users, FileText, GitBra
 import useMissionStore from '../../store/missionStore';
 import { missionFlowTemplates, squadrons } from '../../data/marketplaceData';
 import { generateSBOMFromMission } from '../../utils/sbomGenerator';
-import { resolveSV2 } from '../../utils/sv2AutoGenerator';
 import { activeDeployments } from '../../data/fleetData';
 import SBOMDisplay from '../shared/SBOMDisplay';
 import SV2Editor from '../shared/SV2Editor';

@@ -43,7 +43,8 @@ const VersionTimeline = ({ configId, onSelectVersion, onCompareVersions, selecte
                 width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0,
                 backgroundColor: isLatest ? '#cbfd00' : isSelected ? '#3b82f6' : '#4b5563',
                 border: isSelected ? '2px solid #60a5fa' : '2px solid transparent'
-              }} />
+              }}
+              />
               {idx < versions.length - 1 && (
                 <div style={{ width: '2px', flex: 1, backgroundColor: '#374151', minHeight: '20px' }} />
               )}
@@ -64,7 +65,8 @@ const VersionTimeline = ({ configId, onSelectVersion, onCompareVersions, selecte
                   fontSize: '10px', fontWeight: 700, color: '#cbfd00', backgroundColor: 'rgba(203, 253, 0, 0.1)',
                   padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(203, 253, 0, 0.2)',
                   fontFamily: 'monospace'
-                }}>
+                }}
+                >
                   <Tag size={8} /> {version.tag}
                 </span>
               )}

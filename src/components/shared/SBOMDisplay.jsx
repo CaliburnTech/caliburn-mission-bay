@@ -5,7 +5,7 @@ import { sbomToJSON, sbomToCSV, getSBOMStats } from '../../utils/sbomGenerator';
 const SBOMDisplay = ({ sbom, onClose }) => {
   const [sortField, setSortField] = useState('name');
   const [sortAsc, setSortAsc] = useState(true);
-  const [showDeps, setShowDeps] = useState(false);
+
   const [copiedJSON, setCopiedJSON] = useState(false);
 
   const stats = useMemo(() => getSBOMStats(sbom), [sbom]);
@@ -142,7 +142,8 @@ const SBOMDisplay = ({ sbom, onClose }) => {
                       backgroundColor: `${licenseColor(c.license)}20`,
                       color: licenseColor(c.license),
                       border: `1px solid ${licenseColor(c.license)}40`
-                    }}>
+                    }}
+                    >
                       {c.license}
                     </span>
                   </td>

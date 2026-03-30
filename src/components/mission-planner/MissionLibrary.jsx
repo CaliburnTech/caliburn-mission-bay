@@ -5,7 +5,6 @@ import { squadrons } from '../../data/marketplaceData';
 import { getStatusColor, getStatusBg, formatMissionDate } from '../../utils/statusUtils';
 import { ALL_MISSIONS } from './constants';
 import { generateSBOMFromMission } from '../../utils/sbomGenerator';
-import { resolveSV2 } from '../../utils/sv2AutoGenerator';
 import { activeDeployments } from '../../data/fleetData';
 import SBOMDisplay from '../shared/SBOMDisplay';
 import SV2Editor from '../shared/SV2Editor';
@@ -129,7 +128,7 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
   const [showSBOM, setShowSBOM] = useState(false);
   const [showSV2, setShowSV2] = useState(false);
   const [sbomData, setSbomData] = useState(null);
-  const [sv2Data, setSv2Data] = useState(null);
+  const [_sv2Data, _setSv2Data] = useState(null);
 
   const handleGenerateSBOM = (mission) => {
     const deps = activeDeployments.filter(d => d.missionId === mission.id);

@@ -216,7 +216,7 @@ export const getSV2Template = (identifier) => {
   if (!identifier) return null;
   const lower = identifier.toLowerCase();
 
-  for (const [key, template] of Object.entries(sv2Templates)) {
+  for (const [_key, template] of Object.entries(sv2Templates)) {
     if (!template.matchRules) continue;
     const matches = template.matchRules.some(rule => {
       if (rule.configName && lower.includes(rule.configName)) return true;

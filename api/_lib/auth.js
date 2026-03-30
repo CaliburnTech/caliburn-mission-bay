@@ -9,7 +9,7 @@
 // import { verifyToken } from '@clerk/backend'
 // export const requireAuth = async (req) => { ... }
 
-export const requireAuth = async (req) => {
+export const requireAuth = async () => {
   // Phase 2: Verify Clerk JWT from Authorization header
   // For now, return a mock user
   return {

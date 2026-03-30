@@ -20,7 +20,7 @@ import VersionDiffViewer from './versions/VersionDiffViewer';
 import FleetStatusBoard from './versions/FleetStatusBoard';
 
 const VersionControlView = () => {
-  const dataStore = useDataStore();
+  const _dataStore = useDataStore();
   const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
   const totalVersions = useVersionStore(s => s.getTotalVersionCount());
 

@@ -1,7 +1,7 @@
 // SV-2 (Systems Viewpoint 2) Mermaid diagram generator
 // Generates DoDAF SV-2 system communication descriptions from configurations
 
-import { softwareCatalog, getCatalogEntry, sv2Architectures, getComponentsFromLoadout, getComponentsFromMission } from '../data/softwareCatalog';
+import { getCatalogEntry, sv2Architectures, getComponentsFromLoadout, getComponentsFromMission } from '../data/softwareCatalog';
 
 // Sanitize node names for Mermaid (no special chars in IDs)
 const nodeId = (name) => name.replace(/[^a-zA-Z0-9]/g, '_');
@@ -63,8 +63,8 @@ const buildMermaidFromArchitecture = (arch) => {
   arch.connections.forEach(conn => {
     const fromId = nodeId(conn.from);
     const toId = nodeId(conn.to);
-    const fromEntry = getCatalogEntry(conn.from);
-    const toEntry = getCatalogEntry(conn.to);
+    const _fromEntry = getCatalogEntry(conn.from);
+    const _toEntry = getCatalogEntry(conn.to);
     const fromLabel = `${conn.from}`;
     const toLabel = `${conn.to}`;
 

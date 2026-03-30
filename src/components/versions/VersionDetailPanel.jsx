@@ -10,6 +10,12 @@ import { useMemo } from 'react';
 import { Package, Cpu, GitCommit, Tag, Clock, FileText, GitBranch, Layers } from 'lucide-react';
 
 const VersionDetailPanel = ({ version }) => {
+  const manifestEntries = useMemo(() => {
+    if (!version) return [];
+    const snapshot = version.snapshot;
+    return Object.entries(snapshot?.softwareManifest || {}).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [version]);
+
   if (!version) {
     return (
       <div className="flex items-center justify-center h-full p-8">
@@ -20,10 +26,6 @@ const VersionDetailPanel = ({ version }) => {
 
   const { snapshot } = version;
   const date = new Date(version.createdAt);
-
-  const manifestEntries = useMemo(() => {
-    return Object.entries(snapshot?.softwareManifest || {}).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [snapshot]);
 
   const sbomCount = snapshot?.sbomSnapshot?.components?.length || 0;
 
@@ -40,7 +42,8 @@ const VersionDetailPanel = ({ version }) => {
             fontSize: '10px', fontWeight: 700, color: '#cbfd00', backgroundColor: 'rgba(203, 253, 0, 0.1)',
             padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(203, 253, 0, 0.2)',
             fontFamily: 'monospace'
-          }}>
+          }}
+          >
             <Tag size={8} /> {version.tag}
           </span>
         )}

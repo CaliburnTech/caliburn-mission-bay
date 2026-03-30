@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ChevronLeft, Eye, Crosshair, Shield, Navigation, Cpu,
   Wifi, Zap, Plus, X, Check, Ship,
@@ -109,7 +109,7 @@ const VIEW_NAMES = {
 // Slot capacity and category keys imported from ../data/vesselData.js
 // Main Loadout Builder Component
 const LoadoutBuilder = () => {
-  const dataStore = useDataStore();
+  const _dataStore = useDataStore();
   const { selectedHull } = useOutfitterStore();
   const { goBack, getPreviousView } = useNavigationStore();
 
@@ -857,7 +857,8 @@ const VersionDropdown = ({ configId, onClose, onSelectVersion }) => {
         width: '300px', backgroundColor: '#1a2530', border: '1px solid rgba(203, 253, 0, 0.2)',
         borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 100,
         overflow: 'hidden'
-      }}>
+      }}
+      >
         <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(75, 85, 99, 0.3)', fontSize: '10px', fontWeight: 700, color: '#cbfd00', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Recent Versions
         </div>
@@ -877,18 +878,21 @@ const VersionDropdown = ({ configId, onClose, onSelectVersion }) => {
                   borderBottom: idx < versions.length - 1 ? '1px solid rgba(75, 85, 99, 0.15)' : 'none',
                   display: 'flex', alignItems: 'flex-start', gap: '8px',
                   cursor: 'pointer', transition: 'background-color 0.1s'
-                }} className="hover:bg-lime-brand/5">
+                }} className="hover:bg-lime-brand/5"
+                >
                   <div style={{
                     width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, marginTop: '4px',
                     backgroundColor: idx === 0 ? '#cbfd00' : '#4b5563'
-                  }} />
+                  }}
+                  />
                   <div style={{ flex: 1 }}>
                     {ver.tag && (
                       <span style={{
                         fontSize: '9px', fontWeight: 700, color: '#cbfd00', fontFamily: 'monospace',
                         backgroundColor: 'rgba(203, 253, 0, 0.1)', padding: '0 4px', borderRadius: '2px',
                         marginRight: '4px'
-                      }}>
+                      }}
+                      >
                         {ver.tag}
                       </span>
                     )}

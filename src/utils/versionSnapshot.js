@@ -8,7 +8,7 @@
  * The version store wraps it with metadata (parent, message, timestamp) = the commit object.
  */
 
-import { softwareCatalog, getCatalogEntry } from '../data/softwareCatalog';
+import { getCatalogEntry } from '../data/softwareCatalog';
 import { generateSBOMFromActiveConfig } from './sbomGenerator';
 import { resolveSV2 } from './sv2AutoGenerator';
 import { sv2DataToFlowchart } from './sv2MermaidGenerator';

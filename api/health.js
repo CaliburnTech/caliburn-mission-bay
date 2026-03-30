@@ -1,3 +1,4 @@
+/* global process */
 /**
  * Health check endpoint
  * GET /api/health

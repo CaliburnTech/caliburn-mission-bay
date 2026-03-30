@@ -183,7 +183,7 @@ const collectBaselineComponents = (equipped) => {
 // ──────────────────────────────────────────
 
 const computeLayout = (activeLayers, mbSubgroups, equipped, baselineComps, computeTemplate) => {
-  const { diagramWidth, layerGap, layerPaddingX, layerPaddingY,
+  const { diagramWidth: _diagramWidth, layerGap, layerPaddingX, layerPaddingY,
     componentWidth, componentHeight, componentGapX, componentGapY, componentsPerRow,
     subgroupPaddingX, subgroupPaddingY } = LAYOUT;
 

@@ -107,14 +107,16 @@ const VersionDiffViewer = ({ versionIdA, versionIdB, onClose }) => {
                   return (
                     <div key={i} className="flex items-center gap-2 px-3 py-2" style={{
                       borderBottom: i < changes.length - 1 ? '1px solid rgba(75, 85, 99, 0.15)' : 'none'
-                    }}>
+                    }}
+                    >
                       <Icon size={12} style={{ color, flexShrink: 0 }} />
                       <span className="text-gray-200 text-xs font-medium flex-1">{change.subject}</span>
                       <span style={{ fontSize: '10px', color: '#9ca3af' }}>{change.detail}</span>
                       <span style={{
                         fontSize: '9px', fontWeight: 600, color, backgroundColor: `${color}15`,
                         padding: '1px 6px', borderRadius: '3px'
-                      }}>
+                      }}
+                      >
                         {CHANGE_LABELS[change.type] || change.type}
                       </span>
                     </div>
@@ -133,7 +135,8 @@ const VersionLabel = ({ version }) => (
   <span className="inline-flex items-center gap-1" style={{
     fontSize: '11px', fontFamily: 'monospace', color: '#d1d5db',
     backgroundColor: 'rgba(75, 85, 99, 0.2)', padding: '2px 8px', borderRadius: '4px'
-  }}>
+  }}
+  >
     {version.tag || version.id.slice(-8)}
   </span>
 );
@@ -142,7 +145,8 @@ const CountBadge = ({ count, label, color }) => (
   <span style={{
     fontSize: '11px', fontWeight: 600, color,
     backgroundColor: `${color}15`, padding: '2px 8px', borderRadius: '4px'
-  }}>
+  }}
+  >
     {count} {label}
   </span>
 );

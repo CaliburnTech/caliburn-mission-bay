@@ -10,8 +10,6 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
-  getNodesBounds,
-  getViewportForBounds
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toSvg } from 'html-to-image';
@@ -30,7 +28,8 @@ const SV2Styles = () => (
       padding: 4px 8px;
       pointer-events: none;
     }
-  `}</style>
+  `}
+  </style>
 );
 
 const DIAGRAM_WIDTH = 900;
@@ -158,7 +157,13 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
   const historyRef = useRef([takeSnapshot(initialNodes, initialEdges)]);
   const historyIndexRef = useRef(0);
   const skipNextSnapshotRef = useRef(0); // counter, not boolean — avoids race conditions
-  const [historyVersion, setHistoryVersion] = useState(0); // forces button re-render
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  const syncHistoryState = useCallback(() => {
+    setCanUndo(historyIndexRef.current > 0);
+    setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
+  }, []);
 
   const pushSnapshot = useCallback((n, e) => {
     const idx = historyIndexRef.current;
@@ -166,8 +171,8 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
     historyRef.current.push(takeSnapshot(n, e));
     if (historyRef.current.length > 50) historyRef.current.shift();
     historyIndexRef.current = historyRef.current.length - 1;
-    setHistoryVersion(v => v + 1);
-  }, []);
+    syncHistoryState();
+  }, [syncHistoryState]);
 
   // Push history on drag end (single entry per drag, not per pixel)
   const onNodeDragStop = useCallback(() => {
@@ -181,8 +186,8 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
     const snap = historyRef.current[historyIndexRef.current];
     setNodes(structuredClone(snap.nodes));
     setEdges(structuredClone(snap.edges));
-    setHistoryVersion(v => v + 1);
-  }, [setNodes, setEdges]);
+    syncHistoryState();
+  }, [setNodes, setEdges, syncHistoryState]);
 
   const redo = useCallback(() => {
     if (historyIndexRef.current >= historyRef.current.length - 1) return;
@@ -191,8 +196,8 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
     const snap = historyRef.current[historyIndexRef.current];
     setNodes(structuredClone(snap.nodes));
     setEdges(structuredClone(snap.edges));
-    setHistoryVersion(v => v + 1);
-  }, [setNodes, setEdges]);
+    syncHistoryState();
+  }, [setNodes, setEdges, syncHistoryState]);
 
   // Snapshot on non-drag changes (label edits, add/delete) via useEffect
   const lastKeyRef = useRef('');
@@ -231,8 +236,6 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
   const addInputRef = useRef(null);
 
   const hasSelection = selectedNodes.filter(n => n.data?.nodeKind === 'component').length > 0 || selectedEdges.length > 0;
-  const canUndo = historyIndexRef.current > 0;
-  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
 
   // Auto-focus container
   useEffect(() => { containerRef.current?.focus(); }, []);
@@ -470,13 +473,13 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
             fitView
             fitViewOptions={{ padding: 0.08 }}
             proOptions={{ hideAttribution: true }}
-            nodesDraggable={true}
+            nodesDraggable
             nodesConnectable={editMode === 'connect'}
-            elementsSelectable={true}
+            elementsSelectable
             deleteKeyCode={null}
             minZoom={0.3}
             maxZoom={2}
-            snapToGrid={true}
+            snapToGrid
             snapGrid={[10, 10]}
           >
             <SV2Styles />
@@ -518,7 +521,8 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
               <OverlayTitle>{editingNodeId ? 'Edit Component Label' : 'Edit Data Flow Label'}</OverlayTitle>
               <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') cancelEdit(); }}
-                style={inputStyle} placeholder="Enter label..." />
+                style={inputStyle} placeholder="Enter label..."
+              />
               <OverlayActions onCancel={cancelEdit} onConfirm={commitEdit} />
             </Overlay>
           )}
@@ -529,7 +533,8 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
               <OverlayTitle>Add Component</OverlayTitle>
               <input ref={addInputRef} type="text" value={addNodeName} onChange={(e) => setAddNodeName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') commitAddComponent(); if (e.key === 'Escape') setAddNodeModal(false); }}
-                style={inputStyle} placeholder="Component name..." />
+                style={inputStyle} placeholder="Component name..."
+              />
               <select value={addNodeLayer} onChange={(e) => setAddNodeLayer(e.target.value)} style={{ ...inputStyle, marginTop: '6px' }}>
                 <option value="">Floating (no layer)</option>
                 {template.layers.map((l, i) => <option key={l.id} value={String(i + 1)}>{l.label}</option>)}
@@ -544,7 +549,8 @@ const ArchitectureDiagram = ({ activeConfig, hullName, onClose }) => {
               <OverlayTitle>Data Flow Label</OverlayTitle>
               <input type="text" value={connectLabel} onChange={(e) => setConnectLabel(e.target.value)} autoFocus
                 onKeyDown={(e) => { if (e.key === 'Enter') commitConnection(); if (e.key === 'Escape') setPendingConnection(null); }}
-                style={inputStyle} placeholder='e.g., "C2", "Env Data", "NMEA 2000"' />
+                style={inputStyle} placeholder='e.g., "C2", "Env Data", "NMEA 2000"'
+              />
               <OverlayActions onCancel={() => setPendingConnection(null)} onConfirm={commitConnection} confirmLabel="Create" />
             </Overlay>
           )}
@@ -579,7 +585,8 @@ const TBtn = ({ icon, label, active, onClick, disabled, danger }) => (
     borderRadius: '5px', fontSize: '11px', fontWeight: 500,
     color: disabled ? '#ccc' : danger ? '#dc2626' : active ? '#0369a1' : '#555',
     cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all 0.15s'
-  }}>
+  }}
+  >
     {icon}<span>{label}</span>
   </button>
 );

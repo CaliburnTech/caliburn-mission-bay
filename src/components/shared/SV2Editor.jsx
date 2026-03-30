@@ -240,7 +240,8 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
             borderBottom: '1px solid rgba(245, 158, 11, 0.3)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             flexShrink: 0
-          }}>
+          }}
+          >
             <span style={{ fontSize: '12px', color: '#f59e0b' }}>
               Config changed — auto-generated section updated. Your engineer additions are preserved.
             </span>
@@ -249,14 +250,16 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
                 padding: '3px 10px', fontSize: '11px', fontWeight: 600,
                 backgroundColor: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.3)',
                 borderRadius: '4px', color: '#f59e0b', cursor: 'pointer'
-              }}>
+              }}
+              >
                 Got it
               </button>
               <button onClick={handleRegenerate} style={{
                 padding: '3px 10px', fontSize: '11px',
                 backgroundColor: 'transparent', border: '1px solid rgba(107, 114, 128, 0.3)',
                 borderRadius: '4px', color: '#6b7280', cursor: 'pointer'
-              }}>
+              }}
+              >
                 Regenerate fresh
               </button>
             </div>
@@ -357,7 +360,8 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
                 padding: '6px 14px', fontSize: '12px', fontWeight: 600, borderRadius: '6px',
                 backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)',
                 color: '#ef4444', cursor: 'pointer'
-              }}>
+              }}
+              >
                 Remove from config
               </button>
             </div>
@@ -386,7 +390,8 @@ const ToggleBtn = ({ active, onClick, icon, label }) => (
     backgroundColor: active ? '#fff' : 'transparent',
     color: active ? '#333' : '#aaa',
     boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none'
-  }}>
+  }}
+  >
     {icon} {label}
   </button>
 );

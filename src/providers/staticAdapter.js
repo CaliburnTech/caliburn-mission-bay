@@ -39,8 +39,6 @@ import {
   softwareCatalog,
   getCatalogEntry,
   sv2Architectures,
-  getComponentsFromLoadout,
-  getComponentsFromMission
 } from '../data/softwareCatalog';
 
 import { sv2Templates, getSV2Template, getAvailableTemplates } from '../data/sv2Templates';

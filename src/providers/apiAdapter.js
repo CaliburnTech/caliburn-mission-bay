@@ -27,7 +27,7 @@ export const createApiAdapter = (authToken = null) => {
     ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
   });
 
-  const fetchJSON = async (path) => {
+  const _fetchJSON = async (path) => {
     const res = await fetch(`${API_BASE}${path}`, { headers: headers() });
     if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
     return res.json();

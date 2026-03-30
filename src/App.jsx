@@ -12,7 +12,7 @@ import './App.css'
 
 function App() {
   const { setSelectedView } = useNavigationStore()
-  const { initialize, isReady, isLoading, error } = useDataStore()
+  const { initialize, isReady: _isReady, isLoading: _isLoading, error: _error } = useDataStore()
 
   // Initialize data store on mount
   useEffect(() => {

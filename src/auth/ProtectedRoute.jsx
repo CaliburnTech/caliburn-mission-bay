@@ -5,7 +5,7 @@
  * In demo mode, always renders children (no gate).
  */
 
-import { useAuth } from './AuthProvider';
+import { useAuth } from './useAuth';
 
 const ProtectedRoute = ({ children, requiredRole = null }) => {
   const { isAuthenticated, isLoading, mode, role } = useAuth();

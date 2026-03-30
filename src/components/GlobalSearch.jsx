@@ -5,7 +5,7 @@ import { vesselHullData } from '../data/vesselData';
 import useDataStore from '../providers/dataStore';
 
 const GlobalSearch = ({ onNavigate }) => {
-  const dataStore = useDataStore();
+  const _dataStore = useDataStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);

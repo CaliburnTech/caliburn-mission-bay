@@ -9,24 +9,8 @@
  * regardless of mode.
  */
 
-import { createContext, useContext } from 'react';
 import { APP_MODE } from '../providers/dataInterface';
-
-const AuthContext = createContext(null);
-
-// Demo auth state — no login required, full access
-const DEMO_AUTH = {
-  isAuthenticated: true,
-  isLoading: false,
-  user: null,
-  company: null,
-  role: 'admin',
-  mode: 'demo',
-
-  // No-op methods
-  signIn: () => console.warn('[Demo] Sign in not available'),
-  signOut: () => console.warn('[Demo] Sign out not available'),
-};
+import { AuthContext, DEMO_AUTH } from './authContext';
 
 /**
  * Auth Provider component.
@@ -45,29 +29,6 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-/**
- * Auth hook — same interface in both modes.
- *
- * @returns {{
- *   isAuthenticated: boolean,
- *   isLoading: boolean,
- *   user: Object|null,
- *   company: Object|null,
- *   role: string,
- *   mode: string,
- *   signIn: Function,
- *   signOut: Function
- * }}
- */
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    // Outside provider — return demo defaults
-    return DEMO_AUTH;
-  }
-  return ctx;
 };
 
 export default AuthProvider;

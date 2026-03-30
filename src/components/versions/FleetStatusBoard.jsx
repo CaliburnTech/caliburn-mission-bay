@@ -9,7 +9,6 @@
 
 import { Ship, Check, AlertTriangle, GitBranch, Wifi, WifiOff, RefreshCw, Zap } from 'lucide-react';
 import useVersionStore from '../../store/versionStore';
-import { getSyncStatusColor } from '../../utils/versionDiff';
 
 const STATUS_CONFIG = {
   CURRENT: { label: 'Current', icon: Check, color: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)' },
@@ -19,7 +18,7 @@ const STATUS_CONFIG = {
   UNKNOWN: { label: 'Unknown', icon: Wifi, color: '#9ca3af', bg: 'rgba(156, 163, 175, 0.1)' }
 };
 
-const FleetStatusBoard = ({ squadronId, squadronName }) => {
+const FleetStatusBoard = ({ squadronId }) => {
   const fleetStatus = useVersionStore(s => s.getFleetStatus(squadronId));
   const syncVessel = useVersionStore(s => s.syncVessel);
   const syncAllVessels = useVersionStore(s => s.syncAllVessels);
@@ -96,7 +95,8 @@ const FleetStatusBoard = ({ squadronId, squadronName }) => {
                 <span className="inline-flex items-center gap-1" style={{
                   fontSize: '10px', fontWeight: 600, color: config.color,
                   backgroundColor: config.bg, padding: '2px 8px', borderRadius: '4px'
-                }}>
+                }}
+                >
                   <StatusIcon size={10} />
                   {config.label}
                   {vessel.versionsBehind > 0 && vessel.syncStatus === 'BEHIND' && (
@@ -148,7 +148,8 @@ const StatusBadge = ({ count, status }) => {
     <span className="inline-flex items-center gap-1" style={{
       fontSize: '11px', fontWeight: 600, color: config.color,
       backgroundColor: config.bg, padding: '3px 10px', borderRadius: '6px'
-    }}>
+    }}
+    >
       {count} {config.label}
     </span>
   );

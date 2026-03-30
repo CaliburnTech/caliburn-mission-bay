@@ -79,7 +79,7 @@ const useSV2Store = create(
         if (!saved) return { merged: baseDiagram, staleCount: 0 };
 
         const baseComponentIds = new Set(baseDiagram.components.map(c => c.id));
-        const baseEdgeKeys = new Set(baseDiagram.edges.map(e => `${e.source}->${e.target}`));
+        const _baseEdgeKeys = new Set(baseDiagram.edges.map(e => `${e.source}->${e.target}`));
 
         let staleCount = 0;
 

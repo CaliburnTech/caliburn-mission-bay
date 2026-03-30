@@ -390,7 +390,7 @@ const CellDetailModal = ({ vessel, mission, capabilities = [], onClose, existing
 
 // Main Mission Matrix Component
 const MissionMatrix = () => {
-  const dataStore = useDataStore();
+  const _dataStore = useDataStore();
   const [selectedCell, setSelectedCell] = useState(null);
   const [selectedCapability, setSelectedCapability] = useState(null);
   const [showGapsOnly, setShowGapsOnly] = useState(false);

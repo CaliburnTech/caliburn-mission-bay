@@ -12,7 +12,7 @@ const ShipyardView = ({
   openSquadronManagement,
   onSelectHull
 }) => {
-  const dataStore = useDataStore();
+  const _dataStore = useDataStore();
   const [showHullPicker, setShowHullPicker] = useState(false);
 
   // Fleet sub-tab state (hangar vs pier) and selected squadron (persisted for back navigation)
