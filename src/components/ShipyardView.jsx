@@ -89,7 +89,7 @@ const ShipyardView = ({
       hasSensors: false,
       hasWeapons: false,
       hasComms: false,
-      hasEW: false
+      hasC2: false
     };
 
     configs.forEach(config => {
@@ -105,8 +105,8 @@ const ShipyardView = ({
         if (capLower.includes('comm') || capLower.includes('satcom') || capLower.includes('link')) {
           capabilities.hasComms = true;
         }
-        if (capLower.includes('ew') || capLower.includes('electronic') || capLower.includes('esm') || capLower.includes('jam')) {
-          capabilities.hasEW = true;
+        if (capLower.includes('tak') || capLower.includes('trax') || capLower.includes('c2') || capLower.includes('command')) {
+          capabilities.hasC2 = true;
         }
       });
     });
@@ -232,7 +232,7 @@ const ShipyardView = ({
           <div className="w-3 h-3 rounded bg-purple-500/20 flex items-center justify-center">
             <Shield size={8} className="text-purple-400" />
           </div>
-          <span className="text-gray-400">EW</span>
+          <span className="text-gray-400">C2</span>
         </div>
       </div>
 
@@ -348,7 +348,7 @@ const ShipyardView = ({
                 </div>
 
                 {/* Capability Icons */}
-                {(caps.hasSensors || caps.hasWeapons || caps.hasComms || caps.hasEW) && (
+                {(caps.hasSensors || caps.hasWeapons || caps.hasComms || caps.hasC2) && (
                   <div className="flex items-center justify-center gap-1.5 mt-1.5">
                     {caps.hasSensors && (
                       <div className="w-4 h-4 rounded bg-cyan-500/20 flex items-center justify-center cursor-help hover:bg-cyan-500/40 transition-colors" title="Sensors: Cameras, Radar, Sonar">
@@ -365,9 +365,9 @@ const ShipyardView = ({
                         <Radio size={10} className="text-green-400" />
                       </div>
                     )}
-                    {caps.hasEW && (
-                      <div className="w-4 h-4 rounded bg-purple-500/20 flex items-center justify-center cursor-help hover:bg-purple-500/40 transition-colors" title="Electronic Warfare: ESM, Jamming">
-                        <Shield size={10} className="text-purple-400" />
+                    {caps.hasC2 && (
+                      <div className="w-4 h-4 rounded bg-orange-500/20 flex items-center justify-center cursor-help hover:bg-orange-500/40 transition-colors" title="C2 Systems: TAK, TRAX">
+                        <Shield size={10} className="text-orange-400" />
                       </div>
                     )}
                   </div>

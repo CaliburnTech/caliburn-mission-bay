@@ -1,12 +1,19 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   ChevronLeft, Eye, Crosshair, Shield, Navigation, Cpu,
   Wifi, Zap, Plus, X, Check, Ship,
-  AlertCircle, CheckCircle2, Search, Layers, ChevronDown
+  AlertCircle, CheckCircle2, Search, Layers, ChevronDown,
+  FileText, GitBranch
 } from 'lucide-react';
 import useOutfitterStore from '../store/outfitterStore';
 import useNavigationStore from '../store/navigationStore';
 import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
+import { generateSBOMFromActiveConfig } from '../utils/sbomGenerator';
+import useVersionStore from '../store/versionStore';
+import SBOMDisplay from './shared/SBOMDisplay';
+import SV2Editor from './shared/SV2Editor';
+import CreateVersionModal from './shared/CreateVersionModal';
+import VersionDetailPanel from './versions/VersionDetailPanel';
 import { vesselHullComponents, VESSEL_SLOT_CAPACITY, DEFAULT_SLOT_CAPACITY, LOADOUT_CATEGORY_KEYS } from '../data/vesselData';
 import { individualCapabilities, engineeringStacks } from '../data/marketplaceData';
 import { CATEGORY_COLORS, BRAND_COLORS } from '../constants/colors';
@@ -25,8 +32,8 @@ const LOADOUT_CATEGORIES = {
     name: 'Sensors',
     icon: Eye,
     color: CATEGORY_COLORS.SENSORS.hex,
-    types: ['EO/IR SENSORS', 'RADAR/RF', 'ACOUSTIC/SONAR'],
-    description: 'Detection & surveillance systems'
+    types: ['EO/IR SENSORS', 'RADAR/RF', 'ACOUSTIC/SONAR', 'ELECTRONIC SUPPORT', 'ELECTRONIC ATTACK', 'ELECTRONIC PROTECTION'],
+    description: 'Detection, surveillance & EW systems'
   },
   COMMS: {
     name: 'Communications',
@@ -42,12 +49,12 @@ const LOADOUT_CATEGORIES = {
     types: ['KINETIC WEAPONS', 'DIRECTED ENERGY'],
     description: 'Offensive capabilities'
   },
-  EW: {
-    name: 'Electronic Warfare',
-    icon: Zap,
-    color: CATEGORY_COLORS.EW.hex,
-    types: ['ELECTRONIC SUPPORT', 'ELECTRONIC ATTACK', 'ELECTRONIC PROTECTION'],
-    description: 'EW & countermeasures'
+  C2: {
+    name: 'C2 Systems',
+    icon: Shield,
+    color: CATEGORY_COLORS.C2.hex,
+    types: ['C2 SYSTEMS', 'COMMAND & CONTROL'],
+    description: 'Command & control systems'
   },
   NAV: {
     name: 'Navigation',
@@ -115,6 +122,29 @@ const LoadoutBuilder = () => {
     closeActiveConfiguration
   } = useConfigurationStore();
 
+  // Version tracking
+  const versionCount = useVersionStore(s => {
+    const configId = activeConfig?.id;
+    return configId ? (s.versionHistory[configId] || []).length : 0;
+  });
+
+  // SBOM / Architecture diagram / Version modal state
+  const [showSBOM, setShowSBOM] = useState(false);
+  const [showArch, setShowArch] = useState(false);
+  const [sbomData, setSbomData] = useState(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
+  const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+  const [viewingVersion, setViewingVersion] = useState(null);
+  const [lastSavedConfigId, setLastSavedConfigId] = useState(null);
+
+  const handleGenerateSBOM = () => {
+    const sbom = generateSBOMFromActiveConfig(activeConfig, selectedHull?.name || '');
+    if (sbom) {
+      setSbomData(sbom);
+      setShowSBOM(true);
+    }
+  };
+
   // Derive loadout from activeConfig for display (convert names to objects)
   const loadout = useMemo(() => {
     if (!activeConfig?.slots) {
@@ -122,7 +152,7 @@ const LoadoutBuilder = () => {
         SENSORS: [],
         COMMS: [],
         WEAPONS: [],
-        EW: [],
+        C2: [],
         NAV: [],
         AI: [],
         UTILITY: [],
@@ -145,7 +175,7 @@ const LoadoutBuilder = () => {
         SENSORS: 0,
         COMMS: 0,
         WEAPONS: 0,
-        EW: 0,
+        C2: 0,
         NAV: 0,
         AI: 0,
         UTILITY: 0,
@@ -168,7 +198,7 @@ const LoadoutBuilder = () => {
     SENSORS: true,
     COMMS: true,
     WEAPONS: true,
-    EW: true,
+    C2: true,
     NAV: true,
     AI: true,
     UTILITY: true,
@@ -413,12 +443,12 @@ const LoadoutBuilder = () => {
     setGlobalSearchTerm('');
   };
 
-  // Handle save configuration
+  // Handle save configuration — saves config, then shows version commit modal
   const handleSave = () => {
     const configId = saveActiveConfiguration();
     if (configId) {
-      console.log('Configuration saved:', configId);
-      // Could show a toast notification here
+      setLastSavedConfigId(configId);
+      setShowVersionModal(true);
     }
   };
 
@@ -483,6 +513,42 @@ const LoadoutBuilder = () => {
               <><CheckCircle2 size={14} /> Ready</>
             ) : (
               <><AlertCircle size={14} /> {deploymentStatus.equippedCount === 0 ? 'Empty' : 'Incomplete'}</>
+            )}
+          </div>
+          <button
+            onClick={handleGenerateSBOM}
+            className="px-3 py-3 bg-transparent border border-cyan-500/40 text-cyan-500 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-cyan-500/10 transition-colors"
+            title="Generate SBOM"
+          >
+            <FileText size={15} /> SBOM
+          </button>
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <button
+              onClick={() => setShowArch(true)}
+              className="px-3 py-3 bg-transparent border border-violet-500/40 text-violet-500 text-xs font-semibold flex items-center gap-1.5 hover:bg-violet-500/10 transition-colors"
+              style={{ borderRadius: '8px 0 0 8px', borderRight: 'none' }}
+              title="Architecture Diagram"
+            >
+              <GitBranch size={15} /> SV-2
+            </button>
+            <button
+              onClick={() => setShowVersionDropdown(!showVersionDropdown)}
+              className="px-2 py-3 bg-transparent border border-violet-500/40 text-violet-500 text-xs font-semibold flex items-center hover:bg-violet-500/10 transition-colors"
+              style={{ borderRadius: '0 8px 8px 0' }}
+              title={`${versionCount} version${versionCount !== 1 ? 's' : ''} — click for history`}
+            >
+              {versionCount > 0 && (
+                <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#cbfd00', marginRight: '2px' }}>{versionCount}</span>
+              )}
+              ▾
+            </button>
+            {/* Version dropdown */}
+            {showVersionDropdown && activeConfig?.id && (
+              <VersionDropdown
+                configId={activeConfig.id}
+                onClose={() => setShowVersionDropdown(false)}
+                onSelectVersion={(ver) => { setViewingVersion(ver); setShowVersionDropdown(false); }}
+              />
             )}
           </div>
           <button
@@ -687,9 +753,9 @@ const LoadoutBuilder = () => {
           </div>
         </div>
 
-        {/* Right Column - EW, Nav, AI, Utility */}
+        {/* Right Column - C2, Nav, AI, Utility */}
         <div className="space-y-4">
-          {['EW', 'NAV', 'AI', 'UTILITY'].filter(key => visibleCategories[key]).map(key => (
+          {['C2', 'NAV', 'AI', 'UTILITY'].filter(key => visibleCategories[key]).map(key => (
             <CategorySlotCard
               key={key}
               categoryKey={key}
@@ -728,7 +794,120 @@ const LoadoutBuilder = () => {
         loadout={loadout}
         onNavigateToMissionPlanner={handleNavigateToMissionPlanner}
       />
+
+      {/* SBOM Modal */}
+      {showSBOM && sbomData && (
+        <SBOMDisplay sbom={sbomData} onClose={() => setShowSBOM(false)} />
+      )}
+
+      {/* Version Detail Modal */}
+      {viewingVersion && (
+        <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000 }}>
+          <div className="card-accent" style={{ width: '500px', maxWidth: '90vw', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderColor: 'rgba(203, 253, 0, 0.3)' }}>
+            <div className="flex items-center justify-between" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(75, 85, 99, 0.3)', flexShrink: 0 }}>
+              <h3 className="text-lime-brand text-sm font-bold m-0">Version Snapshot</h3>
+              <button onClick={() => setViewingVersion(null)} className="btn-ghost" style={{ padding: '4px', minHeight: 'auto' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <VersionDetailPanel version={viewingVersion} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version Commit Modal */}
+      {showVersionModal && lastSavedConfigId && (
+        <CreateVersionModal
+          configId={lastSavedConfigId}
+          activeConfig={activeConfig}
+          hullName={selectedHull?.name || ''}
+          onClose={() => setShowVersionModal(false)}
+        />
+      )}
+
+      {/* SV-2 Editor (Mermaid + Monaco + AI Chat) */}
+      {showArch && (
+        <SV2Editor
+          activeConfig={activeConfig}
+          hullName={selectedHull?.name || ''}
+          onClose={() => setShowArch(false)}
+        />
+      )}
     </div>
+  );
+};
+
+// Version history dropdown — shows recent versions next to SV-2 button
+// Uses local state snapshot to avoid Zustand selector infinite loop
+const VersionDropdown = ({ configId, onClose, onSelectVersion }) => {
+  const [versions] = useState(() => {
+    const state = useVersionStore.getState();
+    const ids = (state.versionHistory[configId] || []).slice(0, 8);
+    return ids.map(id => state.versions[id]).filter(Boolean);
+  });
+
+  return (
+    <>
+      {/* Click-away overlay */}
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99 }} />
+      <div style={{
+        position: 'absolute', top: '100%', right: 0, marginTop: '8px',
+        width: '300px', backgroundColor: '#1a2530', border: '1px solid rgba(203, 253, 0, 0.2)',
+        borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 100,
+        overflow: 'hidden'
+      }}>
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(75, 85, 99, 0.3)', fontSize: '10px', fontWeight: 700, color: '#cbfd00', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Recent Versions
+        </div>
+        <div style={{ maxHeight: '280px', overflow: 'auto' }}>
+          {versions.length === 0 ? (
+            <div style={{ padding: '16px', textAlign: 'center', color: '#6b7280', fontSize: '12px' }}>
+              No versions saved yet
+            </div>
+          ) : (
+            versions.map((ver, idx) => {
+              const date = new Date(ver.createdAt);
+              const timeStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+                ' ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+              return (
+                <div key={ver.id} onClick={() => onSelectVersion?.(ver)} style={{
+                  padding: '8px 12px',
+                  borderBottom: idx < versions.length - 1 ? '1px solid rgba(75, 85, 99, 0.15)' : 'none',
+                  display: 'flex', alignItems: 'flex-start', gap: '8px',
+                  cursor: 'pointer', transition: 'background-color 0.1s'
+                }} className="hover:bg-lime-brand/5">
+                  <div style={{
+                    width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, marginTop: '4px',
+                    backgroundColor: idx === 0 ? '#cbfd00' : '#4b5563'
+                  }} />
+                  <div style={{ flex: 1 }}>
+                    {ver.tag && (
+                      <span style={{
+                        fontSize: '9px', fontWeight: 700, color: '#cbfd00', fontFamily: 'monospace',
+                        backgroundColor: 'rgba(203, 253, 0, 0.1)', padding: '0 4px', borderRadius: '2px',
+                        marginRight: '4px'
+                      }}>
+                        {ver.tag}
+                      </span>
+                    )}
+                    <div style={{ fontSize: '11px', color: '#d1d5db', lineHeight: '1.3' }}>{ver.message}</div>
+                    <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>
+                      {timeStr} • {ver.snapshot?.equippedCount || 0} capabilities
+                      {idx === 0 && <span style={{ color: '#cbfd00', marginLeft: '4px', fontWeight: 600 }}>LATEST</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        <div style={{ padding: '6px 12px', borderTop: '1px solid rgba(75, 85, 99, 0.3)', textAlign: 'center' }}>
+          <span style={{ fontSize: '10px', color: '#6b7280' }}>
+            Full history available in Versions tab
+          </span>
+        </div>
+      </div>
+    </>
   );
 };
 

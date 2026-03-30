@@ -21,7 +21,8 @@ import {
   Zap,
   ShieldCheck,
   Compass,
-  Cpu
+  Cpu,
+  Wifi
 } from 'lucide-react';
 import {
   NGHTSIcon,
@@ -1064,10 +1065,149 @@ export const individualCapabilities = [
       bannerImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80"
     },
     {
+      name: "Peplink MAX BR1 Mini",
+      provider: "Peplink",
+      type: "Ruggedized Mobile Router",
+      description: "Industrial-grade cellular router with SpeedFusion VPN, hot failover, and fleet management. CAT-7 LTE with 3G fallback, dual-band WiFi, and GPS. Built for harsh environments requiring always-on connectivity.",
+      capabilities: [
+        "CAT-7 LTE Cellular",
+        "SpeedFusion VPN",
+        "Hot Failover",
+        "GPS Fleet Tracking",
+        "WiFi AP/Client",
+        "Cloud Management"
+      ],
+      trl: "TRL 9",
+      icon: Wifi,
+      category: "RF COMMUNICATIONS",
+      swap: {
+        weight: 0.5,
+        power: 0.024,     // 12V 2A = 24W max
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -1,
+        weight: 0,
+        range: 0,
+        stealth: -3       // Cellular RF emissions
+      },
+      securityLevel: ["AES-256 Encryption", "Stateful Firewall", "DoS Prevention"],
+      securityIcons: ["encrypted"],
+      specs: {
+        cellular: "CAT-7 LTE (300 Mbps down / 150 Mbps up), 3G fallback",
+        bands: "B2, B4, B5, B7, B12, B13, B14, B25, B26, B41, B42, B43, B48, B66, B71",
+        wifi: "802.11 a/b/g/n/ac dual-band",
+        ethernet: "Ethernet WAN + LAN with VLAN support",
+        vpn: "SpeedFusion site-to-site, IPsec, 256-bit AES",
+        gps: "Built-in GPS with fleet management via InControl 2",
+        management: "InControl 2 cloud management, SNMP v1/v2c/v3",
+        qos: "Application-aware QoS with bandwidth prioritization",
+        failover: "Hot Failover — seamless connection transitions",
+        power: "12V DC, vehicle adapter available",
+        mounting: "DIN rail mount option",
+        privateLTE: "CAT-7 modem supports private LTE network operation"
+      },
+      detailedDescription: "The Peplink MAX BR1 Mini (HW3) is an industrial-grade mobile router designed for deployments requiring reliable cellular connectivity in harsh environments. It features SpeedFusion VPN technology for bonding multiple WAN connections with hot failover — connections transition without interruption.\n\nThe built-in CAT-7 LTE modem supports all major US carrier bands (AT&T, T-Mobile, Verizon, FirstNet) with 3G fallback. Dual-band 802.11ac WiFi can operate as an access point or WiFi WAN client. InControl 2 cloud management enables remote fleet monitoring and configuration.\n\nFor autonomous maritime platforms, the BR1 Mini provides the primary cellular backhaul when in coastal range, with GPS tracking for fleet awareness. The ruggedized form factor and DIN rail mounting make it suitable for vessel installation. SpeedFusion smoothing technology improves real-time application performance over unreliable cellular links.",
+      keyFeatures: [
+        "Industrial-grade ruggedized enclosure",
+        "CAT-7 LTE with all major US carrier bands",
+        "SpeedFusion VPN bonding with hot failover",
+        "Built-in GPS with InControl 2 fleet management",
+        "Dual-band 802.11ac WiFi (AP + client mode)",
+        "Stateful firewall with DoS prevention",
+        "DIN rail mountable for vessel installation",
+        "Private LTE network support"
+      ],
+      integrationNotes: "The BR1 Mini connects to TempestOS via Ethernet LAN, providing cellular WAN backhaul for cloud connectivity. In the SV-2 architecture, it sits in the Equipment/Radios layer alongside other comms hardware (Doodle, Starlink). SpeedFusion VPN tunnels connect to shore-side Peplink devices or cloud instances for secure, bonded connectivity. GPS data is available to TMS via the InControl 2 API.",
+      documents: [
+        {
+          name: "BR1 Mini HW3 Datasheet",
+          type: "PDF",
+          size: "1.2 MB",
+          description: "Complete specifications, band support, and deployment guide",
+          url: "#"
+        },
+        {
+          name: "SpeedFusion VPN Configuration Guide",
+          type: "PDF",
+          size: "0.8 MB",
+          description: "VPN setup and failover configuration for maritime deployments",
+          url: "#"
+        }
+      ]
+    },
+    {
+      name: "TAK (Team Awareness Kit)",
+      provider: "TAK Product Center / DoD",
+      type: "C2 Common Operating Picture",
+      description: "Team Awareness Kit — the DoD standard for real-time situational awareness and C2. Cloud TAK server provides the common operating picture; Vehicle TAK client runs on autonomous platforms. CoT (Cursor on Target) messaging enables interoperability across all TAK-equipped assets.",
+      capabilities: [
+        "Common Operating Picture",
+        "Cursor on Target (CoT)",
+        "Mission Planning",
+        "Geofence Alerts",
+        "Track Management",
+        "Waypoint Command"
+      ],
+      trl: "TRL 9",
+      icon: Shield,
+      category: "C2 SYSTEMS",
+      swap: {
+        weight: 0,
+        power: 0.1,
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -1,
+        weight: 0,
+        range: 0,
+        stealth: 0
+      },
+      securityLevel: ["Government Purpose Rights", "C2 Certified"],
+      securityIcons: ["milstd"],
+      specs: {
+        serverVersion: "TAK Server 4.10",
+        clientVersion: "ATAK / WinTAK / Vehicle TAK",
+        protocol: "CoT (Cursor on Target) XML",
+        transport: "TCP/UDP/Multicast, WebSocket",
+        interoperability: "Link-16 via TRAX, JREAP, KML/KLV",
+        deployment: "Cloud TAK (AWS/GovCloud) + Vehicle TAK (on-platform)"
+      },
+      detailedDescription: "TAK is the DoD's standard situational awareness and C2 platform used across all services. The TAK ecosystem includes Cloud TAK Server for the common operating picture, ATAK (Android TAK) for mobile operators, WinTAK for desktop operations, and Vehicle TAK for autonomous platform integration.\n\nIn the Caliburn architecture, Cloud TAK Server hosts the COP and receives position reports, sensor data, and alerts from all deployed assets. Vehicle TAK runs on each autonomous platform within TempestOS, translating between CoT messaging and the Tempest Messaging Service (TMS) pub/sub bus.\n\nTAK enables mission planning, geofence monitoring, track management, and waypoint command — all through a standardized CoT message format that ensures interoperability across the entire fleet.",
+      keyFeatures: [
+        "DoD standard C2 platform — used across all services",
+        "Cloud TAK Server provides shared COP",
+        "Vehicle TAK client integrates with TempestOS/TMS",
+        "CoT messaging for universal interoperability",
+        "Geofence alerts and notification triggers",
+        "WebSocket and multicast transport options"
+      ],
+      integrationNotes: "Vehicle TAK runs as a containerized service within TempestOS. It subscribes to TMS channels for sensor data and vehicle telemetry, translates to CoT messages, and publishes to Cloud TAK Server. Commands from operators flow in reverse: Cloud TAK → Vehicle TAK → TMS → MOOS-IvP/HAL.",
+      documents: [
+        {
+          name: "TAK Server Administration Guide",
+          type: "PDF",
+          size: "2.1 MB",
+          description: "Cloud TAK Server setup, configuration, and administration",
+          url: "#"
+        },
+        {
+          name: "CoT Message Specification",
+          type: "PDF",
+          size: "0.8 MB",
+          description: "Cursor on Target XML schema and message types",
+          url: "#"
+        }
+      ]
+    },
+    {
       name: "SNC TRAX",
       provider: "Sierra Nevada Corporation",
       type: "Tactical Data Link Gateway",
       description: "Tactical Radio Application Extension (TRAX) routes data between incompatible hardware and software applications with bi-directional translation across 21 data protocols. Combat-proven with 100K+ global users across 60+ disparate systems.",
+      category: "C2 SYSTEMS",
       capabilities: [
         "Link-16 Gateway",
         "JREAP A/C Translation",
@@ -1079,7 +1219,6 @@ export const individualCapabilities = [
       ],
       trl: "TRL 9",
       icon: Network,
-      category: "RF COMMUNICATIONS",
       swap: {
         weight: 0,        // Pure software - no weight
         power: 0.1,       // Minimal processing overhead
@@ -1270,10 +1409,10 @@ export const capabilityCategories = {
     description: "Weapon systems and defensive measures", 
     subcategories: ["WEAPONS & DEFENSE", "MISSILE DEFENSE", "COUNTERMEASURES"]
   },
-  "ELECTRONIC WARFARE": {
-    icon: Signal,
-    description: "Electronic warfare and cyber capabilities",
-    subcategories: ["ELECTRONIC WARFARE", "CYBER DEFENSE", "SIGNALS INTELLIGENCE"]
+  "C2 SYSTEMS": {
+    icon: Shield,
+    description: "Command and control systems, TAK ecosystem, mission management",
+    subcategories: ["C2 SYSTEMS", "TAK", "MISSION MANAGEMENT"]
   },
   "UNMANNED SYSTEMS": {
     icon: Brain,
@@ -1292,8 +1431,13 @@ export const capabilityCategories = {
   },
   "SENSORS & DETECTION": {
     icon: Satellite,
-    description: "Sensors, radar, and detection systems",
-    subcategories: ["SENSORS & DETECTION", "RADAR", "SONAR", "IMAGING"]
+    description: "Sensors, radar, detection, and electronic warfare systems",
+    subcategories: ["SENSORS & DETECTION", "RADAR", "SONAR", "IMAGING", "ELECTRONIC WARFARE", "ELECTRONIC SUPPORT", "SIGNALS INTELLIGENCE"]
+  },
+  "RESILIENT PNT": {
+    icon: Compass,
+    description: "Position, Navigation, and Timing systems for GPS-denied environments",
+    subcategories: ["RESILIENT PNT", "NAVIGATION", "TIMING"]
   }
 };
 

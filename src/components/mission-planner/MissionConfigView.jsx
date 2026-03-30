@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Layers, Save, Rocket, Ship, Plane, Users } from 'lucide-react';
+import { ChevronLeft, Layers, Save, Rocket, Ship, Plane, Users, FileText, GitBranch } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
 import { missionFlowTemplates, squadrons } from '../../data/marketplaceData';
+import { generateSBOMFromMission } from '../../utils/sbomGenerator';
+import { resolveSV2 } from '../../utils/sv2AutoGenerator';
+import { activeDeployments } from '../../data/fleetData';
+import SBOMDisplay from '../shared/SBOMDisplay';
+import SV2Editor from '../shared/SV2Editor';
 import {
   KEY_MARITIME_MISSIONS,
   KEY_AERIAL_MISSIONS,
@@ -104,6 +109,23 @@ const MissionConfigView = ({ mission, onBack }) => {
   // Selected node for autonomy popout
   const [selectedNode, setSelectedNode] = useState(null);
   const [showAutonomyPopout, setShowAutonomyPopout] = useState(false);
+
+  // SBOM / SV-2 modal state
+  const [showSBOM, setShowSBOM] = useState(false);
+  const [showSV2, setShowSV2] = useState(false);
+  const [sbomData, setSbomData] = useState(null);
+
+  const handleGenerateSBOM = () => {
+    const missionData = mission || { id: 'new', name: missionPlannerConfig.name, template: selectedMissionTemplate, missionProfile: {} };
+    const missionDeployments = activeDeployments.filter(d => d.missionId === missionData.id);
+    const sbom = generateSBOMFromMission(missionData, missionDeployments);
+    setSbomData(sbom);
+    setShowSBOM(true);
+  };
+
+  const handleGenerateSV2 = () => {
+    setShowSV2(true);
+  };
 
   // Check if zone config has actual geometry data
   const hasZoneData = (config) => {
@@ -474,9 +496,37 @@ const MissionConfigView = ({ mission, onBack }) => {
                 Deploy ({getAssignedCount()} sqdn)
               </button>
             </div>
+
+            {/* SBOM / SV-2 Generation */}
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={handleGenerateSBOM}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-transparent border border-cyan-500/30 rounded text-cyan-500 text-[0.6rem] font-semibold cursor-pointer hover:bg-cyan-500/10 transition-colors"
+              >
+                <FileText size={11} />
+                SBOM
+              </button>
+              <button
+                onClick={handleGenerateSV2}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-transparent border border-violet-500/30 rounded text-violet-500 text-[0.6rem] font-semibold cursor-pointer hover:bg-violet-500/10 transition-colors"
+              >
+                <GitBranch size={11} />
+                SV-2
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* SBOM Modal */}
+      {showSBOM && sbomData && (
+        <SBOMDisplay sbom={sbomData} onClose={() => setShowSBOM(false)} />
+      )}
+
+      {/* SV-2 Modal */}
+      {showSV2 && (
+        <SV2Editor activeConfig={null} hullName={mission?.name || missionPlannerConfig?.name || ''} onClose={() => setShowSV2(false)} />
+      )}
     </div>
   );
 };

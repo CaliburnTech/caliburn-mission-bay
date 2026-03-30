@@ -78,18 +78,19 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_004",
-    name: "SubSeaSail UUV Squadron",
-    type: "Autonomous UUV",
-    platformType: "UUV",
+    name: "SubSeaSail Horus",
+    type: "Autonomous AUSV",
+    platformType: "USV",
     totalUnits: 45,
     status: {
-      missionReady: 38,
+      missionReady: 37,
       deployed: 4,
       charging: 2,
-      maintenance: 1
+      maintenance: 1,
+      antxReserved: 1
     },
     icon: "SubSeaSail",
-    description: "Underwater autonomous vehicle swarm for subsurface reconnaissance",
+    description: "SubSeaSail HORUS autonomous undersea and surface vehicles. 100% energy harvesting, ultra-low-signature AUSV capable of submersion. ANTX Coastal Trident 2026 participant.",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -377,6 +378,28 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
+  "sqdn_004": { // SubSeaSail Horus
+    outfits: [
+      {
+        name: "ANTX METOC Monitoring Package",
+        count: 1,
+        capabilities: ["METOC Environmental Suite", "Doodle Radio Link", "Starlink Terminal", "MOOS-IvP Navigation", "Cloud TAK Integration"],
+        status: { missionReady: 0, deployed: 0, staging: 1, maintenance: 0 }
+      },
+      {
+        name: "Subsurface Reconnaissance Package",
+        count: 24,
+        capabilities: ["Acoustic Sensor Array", "Depth Sounder", "Underwater Acoustic Modem", "Burst Transmitter"],
+        status: { missionReady: 20, deployed: 4, charging: 0, maintenance: 0 }
+      },
+      {
+        name: "Persistent ISR Package",
+        count: 20,
+        capabilities: ["Environmental Sensors", "GPS Tracking", "Solar Power Management", "SATCOM Data Link"],
+        status: { missionReady: 17, deployed: 0, charging: 2, maintenance: 1 }
+      }
+    ]
+  },
   "sqdn_008": { // AEGIR-F Kinetic Strike Swarm
     outfits: [
       {
@@ -535,7 +558,7 @@ export const activeDeployments = [
       SENSORS: ["Hidden Level Radar"],
       COMMS: ["Silvus MANET Radio"],
       WEAPONS: ["Close-in Defense System"],
-      EW: [],
+      C2: [],
       NAV: ["Precision INS/GPS"],
       AI: ["TempestOS Core", "NSYTE Autonomy"]
     },
@@ -555,7 +578,7 @@ export const activeDeployments = [
       SENSORS: ["Navigation Radar"],
       COMMS: ["Emergency Beacon", "High-Speed Comms"],
       WEAPONS: [],
-      EW: [],
+      C2: [],
       NAV: ["Precision INS/GPS"],
       AI: ["TempestOS Core"]
     },
@@ -573,10 +596,10 @@ export const activeDeployments = [
     vesselCount: 3,
     loadoutName: "Long Endurance ISR",
     loadout: {
-      SENSORS: ["EO/IR Camera Suite", "AIS Receiver"],
+      SENSORS: ["EO/IR Camera Suite", "AIS Receiver", "ESM/SIGINT Receiver"],
       COMMS: ["Iridium SATCOM", "Mesh Radio"],
       WEAPONS: [],
-      EW: ["ESM/SIGINT Receiver"],
+      C2: [],
       NAV: ["Multi-Constellation GNSS"],
       AI: ["TempestOS Core", "NSYTE Autonomy"]
     },
@@ -594,10 +617,10 @@ export const activeDeployments = [
     vesselCount: 3,
     loadoutName: "ISR Package",
     loadout: {
-      SENSORS: ["Multi-Spectral Targeting System", "Synthetic Aperture Radar"],
+      SENSORS: ["Multi-Spectral Targeting System", "Synthetic Aperture Radar", "SIGINT Pod"],
       COMMS: ["Beyond Line-of-Sight Data Link", "Tactical Data Link"],
       WEAPONS: [],
-      EW: ["SIGINT Pod"],
+      C2: [],
       NAV: ["Precision Navigation"],
       AI: ["TempestOS Core"]
     },
@@ -617,7 +640,7 @@ export const activeDeployments = [
       SENSORS: ["Targeting Pod"],
       COMMS: ["Secure Data Link"],
       WEAPONS: ["Hellfire Missiles", "Precision Munitions"],
-      EW: [],
+      C2: [],
       NAV: ["Precision Navigation"],
       AI: ["TempestOS Core", "NSYTE Autonomy"]
     },
@@ -638,13 +661,34 @@ export const activeDeployments = [
       SENSORS: ["Acoustic Array", "Depth Sounder"],
       COMMS: ["Underwater Acoustic Modem", "Burst Transmitter"],
       WEAPONS: [],
-      EW: [],
+      C2: [],
       NAV: ["Inertial Navigation", "Terrain Following"],
       AI: ["TempestOS Core"]
     },
     deployedAt: "2024-12-16T22:00:00Z",
     status: "staging", // Pre-positioned but mission not launched yet
     healthStatus: { operational: 4, degraded: 0, offline: 0 }
+  },
+  // SubSeaSail HORUS - ANTX Coastal Trident 2026 METOC
+  {
+    id: "deploy_antx_001",
+    missionId: "mission-antx-001",
+    missionName: "ANTX-CoastalTrident-METOC",
+    squadronId: "sqdn_004",
+    hullType: "SubSeaSail",
+    vesselCount: 1,
+    loadoutName: "ANTX METOC Monitoring Package",
+    loadout: {
+      SENSORS: ["Water Temp Sensor", "Wind Speed Sensor", "Salinity Sensor", "Wave Height IMU", "GPS", "Stereo Audio Array", "Acoustic Sensor"],
+      COMMS: ["Doodle Radio Link", "Starlink Terminal", "SATCOM"],
+      WEAPONS: [],
+      C2: [],
+      NAV: ["MOOS-IvP Autonomous Navigation", "BHV_Loiter Behavior"],
+      AI: ["TempestOS Core", "Cloud TAK", "Vehicle TAK", "TMS", "HAL"]
+    },
+    deployedAt: null,
+    status: "staging",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
   },
   // MetalShark reconnaissance deployment
   {
@@ -656,10 +700,10 @@ export const activeDeployments = [
     vesselCount: 5,
     loadoutName: "Reconnaissance Package",
     loadout: {
-      SENSORS: ["EO/IR Sensors", "Radar Warning Receiver"],
+      SENSORS: ["EO/IR Sensors", "Radar Warning Receiver", "ESM/SIGINT"],
       COMMS: ["Secure Communications", "Data Link"],
       WEAPONS: [],
-      EW: ["ESM/SIGINT"],
+      C2: [],
       NAV: ["Precision INS/GPS"],
       AI: ["TempestOS Core", "NSYTE Autonomy"]
     },

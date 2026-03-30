@@ -31,7 +31,7 @@ export const CATEGORY_COLORS = {
     tw: 'red-500',
     name: 'red'
   },
-  EW: {
+  C2: {
     hex: '#f97316',
     tw: 'orange-500',
     name: 'orange'

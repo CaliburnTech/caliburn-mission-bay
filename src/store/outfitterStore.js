@@ -3,10 +3,31 @@ import { engineeringStacks, individualCapabilities } from '../data/marketplaceDa
 import { vesselHullData, vesselMountPoints, globalBaselines } from '../data/vesselData';
 import useConfigurationStore from './configurationStore';
 
+// Restore selectedHull from localStorage on init
+const restoreSelectedHull = () => {
+  try {
+    const saved = localStorage.getItem('caliburn-selected-hull');
+    if (saved) {
+      const hullName = JSON.parse(saved);
+      return vesselHullData.find(h => h.name === hullName) || null;
+    }
+  } catch { /* ignore */ }
+  return null;
+};
+
 const useOutfitterStore = create((set, get) => ({
-  // Hull selection
-  selectedHull: null,
-  setSelectedHull: (hull) => set({ selectedHull: hull }),
+  // Hull selection (persisted to localStorage for refresh survival)
+  selectedHull: restoreSelectedHull(),
+  setSelectedHull: (hull) => {
+    set({ selectedHull: hull });
+    try {
+      if (hull) {
+        localStorage.setItem('caliburn-selected-hull', JSON.stringify(hull.name));
+      } else {
+        localStorage.removeItem('caliburn-selected-hull');
+      }
+    } catch { /* ignore in private browsing */ }
+  },
 
   // Load a saved configuration into the outfitter
   // Takes a squadron and configuration object, sets up the hull and pre-populates capabilities
@@ -33,6 +54,7 @@ const useOutfitterStore = create((set, get) => ({
       selectedMountPoint: null,
       selectedCategory: null
     });
+    try { localStorage.setItem('caliburn-selected-hull', JSON.stringify(vessel.name)); } catch { /* */ }
 
     return true;
   },
@@ -480,13 +502,16 @@ const useOutfitterStore = create((set, get) => ({
   },
 
   // Reset outfitter state (when leaving outfitter view)
-  resetOutfitter: () => set({
-    selectedHull: null,
-    selectedMountPoint: null,
-    selectedCategory: null,
-    isFullScreenConfig: false,
-    draggedCapability: null
-  })
+  resetOutfitter: () => {
+    try { localStorage.removeItem('caliburn-selected-hull'); } catch { /* */ }
+    set({
+      selectedHull: null,
+      selectedMountPoint: null,
+      selectedCategory: null,
+      isFullScreenConfig: false,
+      draggedCapability: null
+    });
+  }
 }));
 
 export default useOutfitterStore;

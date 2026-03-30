@@ -137,7 +137,7 @@ const CAPABILITY_ICONS = {
   sensors: { icon: Eye, color: 'cyan', label: 'Sensors' },
   weapons: { icon: Target, color: 'red', label: 'Weapons' },
   comms: { icon: Radio, color: 'green', label: 'Comms' },
-  ew: { icon: Shield, color: 'purple', label: 'EW' },
+  c2: { icon: Shield, color: 'orange', label: 'C2' },
   sonar: { icon: Waves, color: 'blue', label: 'Sonar' }
 };
 

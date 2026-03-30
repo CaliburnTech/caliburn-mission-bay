@@ -18,6 +18,7 @@ import LoadoutBuilder from './LoadoutBuilder';
 import DeploymentModal from './DeploymentModal';
 import SquadronManagementModal from './SquadronManagementModal';
 import CapabilityDetailsModal from './CapabilityDetailsModal';
+import VersionControlView from './VersionControlView';
 import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
 
@@ -175,6 +176,12 @@ const MarketplacePage = ({ onLogoClick }) => {
               >
                 Mission Planner
               </button>
+              <button
+                onClick={() => setSelectedView('versions')}
+                className={`${selectedView === 'versions' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
+              >
+                Versions
+              </button>
             </div>
 
             {/* Global Search */}
@@ -259,6 +266,10 @@ const MarketplacePage = ({ onLogoClick }) => {
               <MissionPlanner />
             )}
 
+            {/* Versions */}
+            {selectedView === 'versions' && (
+              <VersionControlView />
+            )}
 
           </div>
         </div>

@@ -8,9 +8,9 @@
       default-src 'self';
       script-src 'self';
       style-src 'self' 'unsafe-inline';
-      img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://tiles.openseamap.org https://server.arcgisonline.com https://images.unsplash.com https://cdn.northropgrumman.com;
-      font-src 'self';
-      connect-src 'self';
+      img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://tiles.openseamap.org https://server.arcgisonline.com https://images.unsplash.com https://cdn.northropgrumman.com https://cdn.tldraw.com;
+      font-src 'self' https://cdn.tldraw.com;
+      connect-src 'self' https://cdn.tldraw.com https://api.anthropic.com;
       object-src 'none';
       base-uri 'self';
       form-action 'self';

@@ -30,7 +30,7 @@ export const getSlotCapacity = (hullName) => {
 const generateConfigId = () => `config_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 // Category keys in display order
-export const CATEGORY_KEYS = ['SENSORS', 'COMMS', 'WEAPONS', 'EW', 'NAV', 'AI', 'UTILITY', 'OTHER'];
+export const CATEGORY_KEYS = ['SENSORS', 'COMMS', 'WEAPONS', 'C2', 'NAV', 'AI', 'UTILITY', 'OTHER'];
 
 // Initialize empty slots based on hull capacity
 const createEmptySlots = (hullName) => {
@@ -414,8 +414,12 @@ function mapCapabilityToCategory(capability) {
       categoryType.includes('DIRECTED ENERGY')) {
     return 'WEAPONS';
   }
-  if (categoryType.includes('ELECTRONIC') || categoryType.includes('EW')) {
-    return 'EW';
+  if (categoryType.includes('ELECTRONIC') || categoryType.includes('EW') ||
+      categoryType.includes('SIGNALS INTELLIGENCE')) {
+    return 'SENSORS';  // EW merged into SENSORS
+  }
+  if (categoryType.includes('C2 SYSTEM') || categoryType === 'C2') {
+    return 'C2';
   }
   if (categoryType.includes('NAV')) {
     return 'NAV';

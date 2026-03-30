@@ -158,11 +158,11 @@ export const vesselHullData = [
     }
   },
   {
-    name: "SubSeaSail",
-    type: "Small UUV",
-    platformType: "UUV",
+    name: "SubSeaSail Horus",
+    type: "Autonomous AUSV",
+    platformType: "USV",
     displacement: "< 1 ton",
-    description: "Autonomous underwater glider for persistent subsurface surveillance",
+    description: "Autonomous undersea and surface vehicle. 100% energy harvesting, submersible, solar + LiFePO4.",
     icon: "SubSeaSail",
     specs: {
       speed: 2,         // knots (glider)
@@ -789,6 +789,7 @@ export const vesselHullComponents = {
   "MetalShark": MetalSharkHull,
   "Saildrone": SailboatHull,
   "SubSeaSail": SubSeaSailHull,
+  "SubSeaSail Horus": SubSeaSailHull,
   "Otter X": SmallUSVHull,
   "Mariner": SmallUSVHull,
   "AEGIR-F": AEGIRFHull,        // SNC small kinetic USV
@@ -893,43 +894,45 @@ export const vesselMountPoints = {
 /**
  * Slot capacity per vessel type for the Loadout Builder.
  * Defines how many slots of each category a vessel can support.
- * Categories: SENSORS, COMMS, WEAPONS, EW, NAV, AI, UTILITY, OTHER
+ * Categories: SENSORS, COMMS, WEAPONS, C2, NAV, AI, UTILITY, OTHER
+ * Note: EW (Electronic Warfare) merged into SENSORS. C2 Systems is new.
  */
 export const VESSEL_SLOT_CAPACITY = {
-  // Small USVs
-  "MetalShark": { SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
-  "Saildrone": { SENSORS: 2, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
-  "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, EW: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
-  "Otter X": { SENSORS: 2, COMMS: 1, WEAPONS: 0, EW: 0, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
-  "Mariner": { SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  // Small USVs — EW merged into SENSORS, C2 slot added
+  "MetalShark": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "Saildrone": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "SubSeaSail Horus": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "Otter X": { SENSORS: 2, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
+  "Mariner": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // SNC AEGIR Family
-  "AEGIR-F": { SENSORS: 1, COMMS: 1, WEAPONS: 1, EW: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
-  "AEGIR-W": { SENSORS: 2, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
-  "AEGIR-H": { SENSORS: 3, COMMS: 3, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 3, OTHER: 0 },
+  "AEGIR-F": { SENSORS: 1, COMMS: 1, WEAPONS: 1, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "AEGIR-W": { SENSORS: 4, COMMS: 2, WEAPONS: 2, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "AEGIR-H": { SENSORS: 5, COMMS: 3, WEAPONS: 2, C2: 2, NAV: 2, AI: 3, UTILITY: 3, OTHER: 0 },
   // Medium USVs
-  "ZeroUSV Oceanus17": { SENSORS: 3, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
-  "MASC": { SENSORS: 3, COMMS: 3, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  "ZeroUSV Oceanus17": { SENSORS: 4, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
+  "MASC": { SENSORS: 5, COMMS: 3, WEAPONS: 2, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   // AUSV
-  "Triton": { SENSORS: 2, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "Triton": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // Large UUV
-  "Manta Ray": { SENSORS: 3, COMMS: 2, WEAPONS: 1, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  "Manta Ray": { SENSORS: 5, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   // UAV platforms
-  "MQ-25 Stingray": { SENSORS: 1, COMMS: 2, WEAPONS: 0, EW: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
-  "MQ-9 Reaper": { SENSORS: 3, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
-  "MQ-4C Triton": { SENSORS: 4, COMMS: 3, WEAPONS: 0, EW: 3, NAV: 2, AI: 3, UTILITY: 1, OTHER: 0 },
-  "MQ-8C Fire Scout": { SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
-  "RQ-21A Blackjack": { SENSORS: 1, COMMS: 1, WEAPONS: 0, EW: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "MQ-25 Stingray": { SENSORS: 2, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "MQ-9 Reaper": { SENSORS: 5, COMMS: 2, WEAPONS: 2, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "MQ-4C Triton": { SENSORS: 7, COMMS: 3, WEAPONS: 0, C2: 2, NAV: 2, AI: 3, UTILITY: 1, OTHER: 0 },
+  "MQ-8C Fire Scout": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "RQ-21A Blackjack": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   // Crewed vessels
-  "Arleigh Burke": { SENSORS: 5, COMMS: 4, WEAPONS: 6, EW: 3, NAV: 2, AI: 4, UTILITY: 3, OTHER: 0 },
-  "Virginia Class": { SENSORS: 4, COMMS: 3, WEAPONS: 4, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  "Arleigh Burke": { SENSORS: 8, COMMS: 4, WEAPONS: 6, C2: 3, NAV: 2, AI: 4, UTILITY: 3, OTHER: 0 },
+  "Virginia Class": { SENSORS: 6, COMMS: 3, WEAPONS: 4, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   // Fallback
-  "Custom Platform": { SENSORS: 3, COMMS: 2, WEAPONS: 2, EW: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 }
+  "Custom Platform": { SENSORS: 5, COMMS: 2, WEAPONS: 2, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 }
 };
 
 /** Default slot capacity for vessels not in VESSEL_SLOT_CAPACITY */
 export const DEFAULT_SLOT_CAPACITY = {
-  SENSORS: 2, COMMS: 2, WEAPONS: 1, EW: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0
+  SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0
 };
 
 /** All loadout category keys */
-export const LOADOUT_CATEGORY_KEYS = ['SENSORS', 'COMMS', 'WEAPONS', 'EW', 'NAV', 'AI', 'UTILITY', 'OTHER'];
+export const LOADOUT_CATEGORY_KEYS = ['SENSORS', 'COMMS', 'WEAPONS', 'C2', 'NAV', 'AI', 'UTILITY', 'OTHER'];

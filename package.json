@@ -18,12 +18,18 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@monaco-editor/react": "^4.7.0",
+    "@xyflow/react": "^12.10.1",
+    "html-to-image": "^1.11.13",
     "jspdf": "^4.2.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.576.0",
+    "mermaid": "^11.13.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-leaflet": "^5.0.0",
+    "tldraw": "^4.5.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

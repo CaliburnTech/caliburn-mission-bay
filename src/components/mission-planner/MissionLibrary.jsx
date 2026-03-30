@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { History, FileText, Rocket, Play, Pause, Check, Archive, Edit2, Eye, Copy, Trash2, Plus, Target, Users, Ship, Plane } from 'lucide-react';
+import { History, FileText, Rocket, Play, Pause, Check, Archive, Edit2, Eye, Copy, Trash2, Plus, Target, Users, Ship, Plane, GitBranch } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
 import { squadrons } from '../../data/marketplaceData';
 import { getStatusColor, getStatusBg, formatMissionDate } from '../../utils/statusUtils';
 import { ALL_MISSIONS } from './constants';
+import { generateSBOMFromMission } from '../../utils/sbomGenerator';
+import { resolveSV2 } from '../../utils/sv2AutoGenerator';
+import { activeDeployments } from '../../data/fleetData';
+import SBOMDisplay from '../shared/SBOMDisplay';
+import SV2Editor from '../shared/SV2Editor';
 
 // Domain badge colors
 const domainStyles = {
@@ -121,6 +126,23 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('updatedAt');
   const [sortDir, setSortDir] = useState('desc');
+  const [showSBOM, setShowSBOM] = useState(false);
+  const [showSV2, setShowSV2] = useState(false);
+  const [sbomData, setSbomData] = useState(null);
+  const [sv2Data, setSv2Data] = useState(null);
+
+  const handleGenerateSBOM = (mission) => {
+    const deps = activeDeployments.filter(d => d.missionId === mission.id);
+    setSbomData(generateSBOMFromMission(mission, deps));
+    setShowSBOM(true);
+  };
+
+  const [sv2Mission, setSv2Mission] = useState(null);
+
+  const handleGenerateSV2 = (mission) => {
+    setSv2Mission(mission);
+    setShowSV2(true);
+  };
 
   const getMissionTypeColor = (template) => {
     const mission = ALL_MISSIONS.find(m => m.key === template);
@@ -191,7 +213,7 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
       </div>
 
       <div className="data-table">
-        <div className="data-table-header gap-sm" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr 120px' }}>
+        <div className="data-table-header gap-sm" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr 180px' }}>
           <div onClick={() => handleSort('name')} className="cursor-pointer flex items-center gap-xs hover:text-gray-300 transition-colors">
             Mission Name {sortBy === 'name' && (sortDir === 'asc' ? '↑' : '↓')}
           </div>
@@ -220,7 +242,7 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
               const domainStyle = domainStyles[domain] || domainStyles.MARITIME;
               const DomainIcon = domainStyle.icon;
               return (
-                <div key={mission.id} onClick={() => onSelectMission(mission)} className={`data-table-row gap-sm ${idx % 2 === 1 ? 'data-table-row-alt' : ''}`} style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr 120px' }}>
+                <div key={mission.id} onClick={() => onSelectMission(mission)} className={`data-table-row gap-sm ${idx % 2 === 1 ? 'data-table-row-alt' : ''}`} style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr 180px' }}>
                   <div className="flex items-center gap-md">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${getMissionTypeColor(mission.template)}20` }}>
                       <MissionIcon size={18} color={getMissionTypeColor(mission.template)} />
@@ -261,6 +283,12 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
                   <div className="text-secondary text-sm">{mission.zoneConfig?.name || '-'}</div>
                   <div className="text-muted text-xs">{formatMissionDate(mission.updatedAt)}</div>
                   <div className="flex gap-sm" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => handleGenerateSBOM(mission)} title="Generate SBOM" className="px-2 py-1.5 bg-transparent border border-cyan-500/30 rounded text-cyan-500 text-xs cursor-pointer hover:bg-cyan-500/10 transition-colors">
+                      <FileText size={12} />
+                    </button>
+                    <button onClick={() => handleGenerateSV2(mission)} title="Generate SV-2" className="px-2 py-1.5 bg-transparent border border-violet-500/30 rounded text-violet-500 text-xs cursor-pointer hover:bg-violet-500/10 transition-colors">
+                      <GitBranch size={12} />
+                    </button>
                     {mission.status === 'draft' && (
                       <>
                         <button onClick={() => launchMission(mission.id)} disabled={!mission.assignedSquadrons?.length} title={mission.assignedSquadrons?.length ? 'Launch mission' : 'Assign squadron first'} className={`px-2.5 py-1.5 rounded text-xs flex items-center gap-xs transition-colors ${mission.assignedSquadrons?.length ? 'bg-green-400/15 border border-green-400/30 text-green-400 cursor-pointer hover:bg-green-400/25' : 'bg-transparent border border-gray-600 text-gray-600 cursor-not-allowed'}`}>
@@ -288,6 +316,16 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
           )}
         </div>
       </div>
+
+      {/* SBOM Modal */}
+      {showSBOM && sbomData && (
+        <SBOMDisplay sbom={sbomData} onClose={() => setShowSBOM(false)} />
+      )}
+
+      {/* SV-2 Modal */}
+      {showSV2 && (
+        <SV2Editor activeConfig={null} hullName={sv2Mission?.name || ''} onClose={() => setShowSV2(false)} />
+      )}
     </div>
   );
 };

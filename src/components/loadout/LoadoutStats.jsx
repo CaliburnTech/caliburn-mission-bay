@@ -299,7 +299,7 @@ const MaritimeLoadoutStatsDisplay = ({ vessel, loadout, previewCapability }) => 
         value={currentStats.powerRemaining}
         maxValue={currentStats.powerCapacity}
         unit="kW"
-        color={CATEGORY_COLORS.EW.hex}
+        color={CATEGORY_COLORS.C2.hex}
         previewDelta={previewDeltas?.power}
         isCapacity
       />

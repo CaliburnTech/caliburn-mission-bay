@@ -17,7 +17,7 @@ const SplashPageD = ({ onEnter }) => {
     SENSORS: { icon: Eye, color: '#22d3ee', name: 'Sensors', desc: 'Detection & surveillance' },
     COMMS: { icon: Wifi, color: '#a78bfa', name: 'Communications', desc: 'Data links & networking' },
     WEAPONS: { icon: Crosshair, color: '#f87171', name: 'Weapons', desc: 'Offensive capabilities' },
-    EW: { icon: Zap, color: '#fbbf24', name: 'Electronic Warfare', desc: 'EW & countermeasures' },
+    C2: { icon: Shield, color: '#f97316', name: 'C2 Systems', desc: 'Command & control' },
     NAV: { icon: Navigation, color: '#60a5fa', name: 'Navigation', desc: 'Position & guidance' },
     AI: { icon: Cpu, color: '#CBFD00', name: 'AI & Autonomy', desc: 'Autonomous control' },
   };
@@ -34,7 +34,7 @@ const SplashPageD = ({ onEnter }) => {
       before: {
         name: 'ISR Config',
         slots: {
-          SENSORS: ['Scion ESM'],
+          SENSORS: ['SNC TRAX'],
           COMMS: ['Lattice Mesh'],
           AI: ['Marine AI'],
           NAV: ['SeaFIND Nav'],
@@ -46,13 +46,13 @@ const SplashPageD = ({ onEnter }) => {
           SENSORS: ['Towed Sonar'],
           COMMS: ['Lattice Mesh'],
           AI: ['Marine AI'],
-          EW: ['DRAKE Counter-UAS'],
+          EW: ['TAK (Team Awareness Kit)'],
         }
       },
       swapSequence: [
-        { category: 'SENSORS', slot: 0, from: 'Scion ESM', to: 'Towed Sonar' },
+        { category: 'SENSORS', slot: 0, from: 'SNC TRAX', to: 'Towed Sonar' },
         { category: 'NAV', slot: 0, action: 'remove' },
-        { category: 'EW', slot: 0, to: 'DRAKE Counter-UAS' },
+        { category: 'C2', slot: 0, to: 'TAK (Team Awareness Kit)' },
       ],
       mission: 'ASW PATROL'
     },
@@ -66,7 +66,7 @@ const SplashPageD = ({ onEnter }) => {
       before: {
         name: 'Recon Config',
         slots: {
-          SENSORS: ['Scion ESM'],
+          SENSORS: ['SNC TRAX'],
           COMMS: ['Lattice Mesh'],
           AI: ['Marine AI'],
           NAV: ['SeaFIND Nav'],
@@ -79,14 +79,14 @@ const SplashPageD = ({ onEnter }) => {
           COMMS: ['Lattice Mesh'],
           WEAPONS: ['Jackal Missile'],
           AI: ['Marine AI'],
-          EW: ['Scion ESM'],
+          EW: ['SNC TRAX'],
         }
       },
       swapSequence: [
-        { category: 'SENSORS', slot: 0, from: 'Scion ESM', to: 'NGHTS Targeting' },
+        { category: 'SENSORS', slot: 0, from: 'SNC TRAX', to: 'NGHTS Targeting' },
         { category: 'WEAPONS', slot: 0, to: 'Jackal Missile' },
         { category: 'NAV', slot: 0, action: 'remove' },
-        { category: 'EW', slot: 0, to: 'Scion ESM' },
+        { category: 'C2', slot: 0, to: 'SNC TRAX' },
       ],
       mission: 'PRECISION STRIKE'
     },
@@ -100,7 +100,7 @@ const SplashPageD = ({ onEnter }) => {
       before: {
         name: 'Patrol Config',
         slots: {
-          SENSORS: ['Scion ESM'],
+          SENSORS: ['SNC TRAX'],
           COMMS: ['Lattice Mesh'],
           AI: ['Marine AI'],
           NAV: ['SeaFIND Nav'],
@@ -109,16 +109,16 @@ const SplashPageD = ({ onEnter }) => {
       after: {
         name: 'Guardian Config',
         slots: {
-          SENSORS: ['Scion ESM'],
+          SENSORS: ['SNC TRAX'],
           COMMS: ['Lattice Mesh'],
           AI: ['Guardian AI'],
-          EW: ['DRAKE Counter-UAS'],
+          EW: ['TAK (Team Awareness Kit)'],
         }
       },
       swapSequence: [
         { category: 'AI', slot: 0, from: 'Marine AI', to: 'Guardian AI' },
         { category: 'NAV', slot: 0, action: 'remove' },
-        { category: 'EW', slot: 0, to: 'DRAKE Counter-UAS' },
+        { category: 'C2', slot: 0, to: 'TAK (Team Awareness Kit)' },
       ],
       mission: 'SEA DENIAL'
     }
@@ -259,7 +259,7 @@ const SplashPageD = ({ onEnter }) => {
   // Left categories (Sensors, Comms, Weapons)
   const leftCategories = ['SENSORS', 'COMMS', 'WEAPONS'];
   // Right categories (EW, Nav, AI)
-  const rightCategories = ['EW', 'NAV', 'AI'];
+  const rightCategories = ['C2', 'NAV', 'AI'];
 
   return (
     <div className="fixed inset-0 bg-darkest flex flex-col overflow-hidden">

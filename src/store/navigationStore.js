@@ -3,7 +3,7 @@ import { create } from 'zustand';
 // Whitelist of valid view names — reject any hash not in this set
 const VALID_VIEWS = new Set([
   'shipyard', 'outfitter', 'capabilities', 'stacks',
-  'matrix', 'squadron', 'loadout', 'splash'
+  'matrix', 'squadron', 'loadout', 'splash', 'versions'
 ]);
 
 const DEFAULT_VIEW = 'shipyard';
@@ -56,8 +56,10 @@ const useNavigationStore = create((set, get) => ({
   // Fleet sub-tab: 'hangar' (aerial) or 'pier' (maritime)
   fleetSubTab: getInitialFleetSubTab(),
 
-  // Selected squadron ID (persists across view changes for "back" navigation)
-  selectedSquadronId: null,
+  // Selected squadron ID (persists across view changes and refresh)
+  selectedSquadronId: (() => {
+    try { return safeLocalStorage.getItem('caliburn-selected-squadron') || null; } catch { return null; }
+  })(),
 
   // Navigate to a view, pushing current view to history
   setSelectedView: (view, { skipHistory = false } = {}) => {
