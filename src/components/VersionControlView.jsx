@@ -13,12 +13,14 @@ import { GitCommit, Ship, Users, Clock, History, Diff, ShieldCheck } from 'lucid
 import useVersionStore from '../store/versionStore';
 import useConfigurationStore from '../store/configurationStore';
 import { swarmSquadrons } from '../data/fleetData';
+import useDataStore from '../providers/dataStore';
 import VersionTimeline from './versions/VersionTimeline';
 import VersionDetailPanel from './versions/VersionDetailPanel';
 import VersionDiffViewer from './versions/VersionDiffViewer';
 import FleetStatusBoard from './versions/FleetStatusBoard';
 
 const VersionControlView = () => {
+  const dataStore = useDataStore();
   const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
   const totalVersions = useVersionStore(s => s.getTotalVersionCount());
 

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Ship } from 'lucide-react';
 import { engineeringStacks, individualCapabilities, capabilityCategories } from '../data/marketplaceData';
+import useDataStore from '../providers/dataStore';
 import useNavigationStore from '../store/navigationStore';
 import useFilterStore from '../store/filterStore';
 import useOutfitterStore from '../store/outfitterStore';
@@ -23,6 +24,8 @@ import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
 
 const MarketplacePage = ({ onLogoClick }) => {
+  const dataStore = useDataStore();
+
   // Navigation store
   const { selectedView, setSelectedView } = useNavigationStore();
 

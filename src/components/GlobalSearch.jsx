@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, X, Cpu, Ship, Layers, Users, ChevronRight } from 'lucide-react';
 import { engineeringStacks, individualCapabilities, squadrons } from '../data/marketplaceData';
 import { vesselHullData } from '../data/vesselData';
+import useDataStore from '../providers/dataStore';
 
 const GlobalSearch = ({ onNavigate }) => {
+  const dataStore = useDataStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);

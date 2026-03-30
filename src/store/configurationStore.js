@@ -10,12 +10,19 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import useDataStore from '../providers/dataStore';
+
+// Fallback imports for before dataStore is initialized (module-level code)
 import { individualCapabilities, engineeringStacks } from '../data/marketplaceData';
 import { vesselHullData, VESSEL_SLOT_CAPACITY, DEFAULT_SLOT_CAPACITY } from '../data/vesselData';
 
 // Helper: Look up a capability object by name
+// Uses dataStore when ready, falls back to static imports during init
 export const getCapabilityByName = (name) => {
   if (!name) return null;
+  const store = useDataStore.getState();
+  if (store.isReady) return store.getCapabilityByName(name);
+  // Fallback during initialization
   return individualCapabilities.find(c => c.name === name) ||
          engineeringStacks.find(s => s.name === name) ||
          null;
@@ -23,6 +30,8 @@ export const getCapabilityByName = (name) => {
 
 // Helper: Get slot capacity for a hull
 export const getSlotCapacity = (hullName) => {
+  const store = useDataStore.getState();
+  if (store.isReady) return store.getSlotCapacity(hullName);
   return VESSEL_SLOT_CAPACITY[hullName] || DEFAULT_SLOT_CAPACITY;
 };
 
@@ -86,7 +95,8 @@ const useConfigurationStore = create(
 
       // Start a new empty configuration for a hull
       startNewConfiguration: (hullName) => {
-        const hull = vesselHullData.find(h => h.name === hullName);
+        const ds = useDataStore.getState();
+        const hull = ds.isReady ? ds.getVesselByName(hullName) : vesselHullData.find(h => h.name === hullName);
         if (!hull) {
           console.warn('Hull not found:', hullName);
           return false;
@@ -125,7 +135,9 @@ const useConfigurationStore = create(
       // Load a configuration from fleet data (legacy format)
       loadFromFleetData: (squadron, outfit) => {
         // Find the hull for this squadron
-        const hull = vesselHullData.find(v =>
+        const ds = useDataStore.getState();
+        const vessels = ds.isReady ? ds.vessels : vesselHullData;
+        const hull = vessels.find(v =>
           v.name === squadron.icon || v.icon === squadron.icon
         );
 

@@ -1,7 +1,30 @@
 import { create } from 'zustand';
+import useDataStore from '../providers/dataStore';
+// Fallback imports for before dataStore is initialized
 import { engineeringStacks, individualCapabilities } from '../data/marketplaceData';
 import { vesselHullData, vesselMountPoints, globalBaselines } from '../data/vesselData';
 import useConfigurationStore from './configurationStore';
+
+// Data access helpers — use dataStore when ready, fall back to static imports
+const getData = () => {
+  const ds = useDataStore.getState();
+  if (ds.isReady) {
+    return {
+      vessels: ds.vessels,
+      capabilities: ds.capabilities,
+      stacks: ds.stacks,
+      mountPoints: ds.adapter?.getVesselMountPoints?.() || vesselMountPoints,
+      baselines: ds.globalBaselines || globalBaselines
+    };
+  }
+  return {
+    vessels: vesselHullData,
+    capabilities: individualCapabilities,
+    stacks: engineeringStacks,
+    mountPoints: vesselMountPoints,
+    baselines: globalBaselines
+  };
+};
 
 // Restore selectedHull from localStorage on init
 const restoreSelectedHull = () => {
@@ -9,7 +32,7 @@ const restoreSelectedHull = () => {
     const saved = localStorage.getItem('caliburn-selected-hull');
     if (saved) {
       const hullName = JSON.parse(saved);
-      return vesselHullData.find(h => h.name === hullName) || null;
+      return getData().vessels.find(h => h.name === hullName) || null;
     }
   } catch { /* ignore */ }
   return null;
@@ -33,8 +56,8 @@ const useOutfitterStore = create((set, get) => ({
   // Takes a squadron and configuration object, sets up the hull and pre-populates capabilities
   // This now uses the unified configurationStore for LoadoutBuilder compatibility
   loadSavedConfiguration: (squadron, configOutfit) => {
-    // Find the actual vessel from vesselHullData using squadron icon
-    const vessel = vesselHullData.find(v =>
+    // Find the actual vessel using squadron icon
+    const vessel = getData().vessels.find(v =>
       v.name === squadron.icon || v.icon === squadron.icon
     );
 
@@ -210,10 +233,11 @@ const useOutfitterStore = create((set, get) => ({
       return [];
     }
 
-    const compatibleIndividualCaps = individualCapabilities.filter(
+    const { capabilities: caps, stacks } = getData();
+    const compatibleIndividualCaps = caps.filter(
       cap => cap.category === mountPointType
     );
-    const compatibleStacks = engineeringStacks.filter(
+    const compatibleStacks = stacks.filter(
       stack => stack.category === mountPointType
     );
 
@@ -230,9 +254,9 @@ const useOutfitterStore = create((set, get) => ({
 
     const warnings = [];
     const hullName = state.selectedHull.name;
-    const mountPoints = vesselMountPoints[hullName];
+    const mountPoints = getData().mountPoints[hullName];
     const mountPoint = mountPoints?.[mountPointName];
-    const hullData = vesselHullData.find(h => h.name === hullName);
+    const hullData = getData().vessels.find(h => h.name === hullName);
 
     if (!mountPoint || !hullData) {
       return { compatible: true, warnings: [] };
@@ -303,7 +327,7 @@ const useOutfitterStore = create((set, get) => ({
     if (!state.selectedHull) return null;
 
     const hullName = state.selectedHull.name;
-    const mountPoints = vesselMountPoints[hullName];
+    const mountPoints = getData().mountPoints[hullName];
     const currentConfig = state.vesselConfiguration[hullName] || {};
 
     if (!mountPoints) return null;
@@ -350,7 +374,7 @@ const useOutfitterStore = create((set, get) => ({
 
     // Determine status based on offset
     // Small vessels are more sensitive to imbalance
-    const hullData = vesselHullData.find(h => h.name === hullName);
+    const hullData = getData().vessels.find(h => h.name === hullName);
     const isSmallVessel = hullData?.type?.includes('Small') || hullData?.displacement?.includes('< 5');
     const warningThreshold = isSmallVessel ? 8 : 15;
     const criticalThreshold = isSmallVessel ? 15 : 25;
@@ -381,7 +405,7 @@ const useOutfitterStore = create((set, get) => ({
     }
 
     const hullName = state.selectedHull.name;
-    const hullData = vesselHullData.find(h => h.name === hullName);
+    const hullData = getData().vessels.find(h => h.name === hullName);
 
     if (!hullData?.specs) {
       return null;
@@ -474,17 +498,18 @@ const useOutfitterStore = create((set, get) => ({
     };
 
     // Determine status for each stat
+    const bl = getData().baselines;
     const status = {
-      speed: current.speed < globalBaselines.speed.criticalLow ? 'critical' :
-             current.speed < globalBaselines.speed.baseline * 0.5 ? 'warning' : 'normal',
-      range: current.range < globalBaselines.range.criticalLow ? 'critical' :
-             current.range < globalBaselines.range.baseline * 0.5 ? 'warning' : 'normal',
+      speed: current.speed < bl.speed.criticalLow ? 'critical' :
+             current.speed < bl.speed.baseline * 0.5 ? 'warning' : 'normal',
+      range: current.range < bl.range.criticalLow ? 'critical' :
+             current.range < bl.range.baseline * 0.5 ? 'warning' : 'normal',
       power: used.power > totalCapacity.power ? 'critical' :
              used.power > totalCapacity.power * 0.9 ? 'warning' : 'normal',
       payload: used.payload > totalCapacity.payload ? 'critical' :
                used.payload > totalCapacity.payload * 0.9 ? 'warning' : 'normal',
-      signature: current.rcs > globalBaselines.signature.highSignature ? 'critical' :
-                 current.rcs > globalBaselines.signature.baseline ? 'warning' : 'normal'
+      signature: current.rcs > bl.signature.highSignature ? 'critical' :
+                 current.rcs > bl.signature.baseline ? 'warning' : 'normal'
     };
 
     return {
@@ -497,7 +522,7 @@ const useOutfitterStore = create((set, get) => ({
       provided,
       status,
       unknownImpacts,
-      baselines: globalBaselines
+      baselines: getData().baselines
     };
   },
 

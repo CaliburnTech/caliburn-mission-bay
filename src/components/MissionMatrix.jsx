@@ -7,6 +7,7 @@ import { CATEGORY_COLORS } from '../constants/colors';
 import useNavigationStore from '../store/navigationStore';
 import useOutfitterStore from '../store/outfitterStore';
 import useSquadronStore from '../store/squadronStore';
+import useDataStore from '../providers/dataStore';
 
 // Platform type colors
 const PLATFORM_COLORS = {
@@ -389,6 +390,7 @@ const CellDetailModal = ({ vessel, mission, capabilities = [], onClose, existing
 
 // Main Mission Matrix Component
 const MissionMatrix = () => {
+  const dataStore = useDataStore();
   const [selectedCell, setSelectedCell] = useState(null);
   const [selectedCapability, setSelectedCapability] = useState(null);
   const [showGapsOnly, setShowGapsOnly] = useState(false);

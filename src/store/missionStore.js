@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import useDataStore from '../providers/dataStore';
+// Fallback for before dataStore is initialized
 import { initialMissions } from '../data/missionsData';
 
 const useMissionStore = create((set) => ({

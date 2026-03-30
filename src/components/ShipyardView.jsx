@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Ship, ChevronDown, ChevronUp, Settings, Scale, X, Plus, Rocket, Check, Wrench, Battery, Package, ChevronRight, Plane, Anchor, Edit3, Target, Radio, Eye, Shield, AlertTriangle } from 'lucide-react';
 import { vesselHullComponents, vesselHullData, isAerialPlatform, isMaritimePlatform } from '../data/vesselData';
 import { squadronUnitConfigurations, activeDeployments } from '../data/fleetData';
+import useDataStore from '../providers/dataStore';
 import useSquadronStore from '../store/squadronStore';
 import useNavigationStore from '../store/navigationStore';
 import useOutfitterStore from '../store/outfitterStore';
@@ -11,6 +12,7 @@ const ShipyardView = ({
   openSquadronManagement,
   onSelectHull
 }) => {
+  const dataStore = useDataStore();
   const [showHullPicker, setShowHullPicker] = useState(false);
 
   // Fleet sub-tab state (hangar vs pier) and selected squadron (persisted for back navigation)

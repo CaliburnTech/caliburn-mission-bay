@@ -10,6 +10,7 @@ import useNavigationStore from '../store/navigationStore';
 import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
 import { generateSBOMFromActiveConfig } from '../utils/sbomGenerator';
 import useVersionStore from '../store/versionStore';
+import useDataStore from '../providers/dataStore';
 import SBOMDisplay from './shared/SBOMDisplay';
 import SV2Editor from './shared/SV2Editor';
 import CreateVersionModal from './shared/CreateVersionModal';
@@ -108,6 +109,7 @@ const VIEW_NAMES = {
 // Slot capacity and category keys imported from ../data/vesselData.js
 // Main Loadout Builder Component
 const LoadoutBuilder = () => {
+  const dataStore = useDataStore();
   const { selectedHull } = useOutfitterStore();
   const { goBack, getPreviousView } = useNavigationStore();
 

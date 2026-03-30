@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import MarketplacePage from './components/MarketplacePage'
 import SplashPageC from './components/SplashPageC'
 import SplashPageD from './components/SplashPageD'
+import useDataStore from './providers/dataStore'
+import { AuthProvider } from './auth/AuthProvider'
 
 // Toggle between splash page concepts: 'C' = Mission Control, 'D' = The Transformation
 const SPLASH_VERSION = 'C'
@@ -10,6 +12,12 @@ import './App.css'
 
 function App() {
   const { setSelectedView } = useNavigationStore()
+  const { initialize, isReady, isLoading, error } = useDataStore()
+
+  // Initialize data store on mount
+  useEffect(() => {
+    initialize()
+  }, [initialize])
 
   // Initialize from URL hash - #splash or empty = splash, valid view = app
   const getInitialSplashState = () => {
@@ -53,10 +61,18 @@ function App() {
 
   if (showSplash) {
     const SplashPage = SPLASH_VERSION === 'D' ? SplashPageD : SplashPageC
-    return <SplashPage onEnter={handleEnter} />
+    return (
+      <AuthProvider>
+        <SplashPage onEnter={handleEnter} />
+      </AuthProvider>
+    )
   }
 
-  return <MarketplacePage onLogoClick={handleReturnToSplash} />
+  return (
+    <AuthProvider>
+      <MarketplacePage onLogoClick={handleReturnToSplash} />
+    </AuthProvider>
+  )
 }
 
 export default App
