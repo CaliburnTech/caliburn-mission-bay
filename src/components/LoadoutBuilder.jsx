@@ -8,6 +8,7 @@ import {
 import useOutfitterStore from '../store/outfitterStore';
 import useNavigationStore from '../store/navigationStore';
 import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
+import useMissionStore from '../store/missionStore';
 import { generateSBOMFromActiveConfig } from '../utils/sbomGenerator';
 import useVersionStore from '../store/versionStore';
 import useDataStore from '../providers/dataStore';
@@ -107,11 +108,14 @@ const VIEW_NAMES = {
 };
 
 // Slot capacity and category keys imported from ../data/vesselData.js
+// Port Security Mission Set — the three real capabilities to equip
+const PORT_SECURITY_CAPS = ['Towed Hydrophone Array', 'OrbComm ST 6100', 'MOOS-IvP'];
+
 // Main Loadout Builder Component
 const LoadoutBuilder = () => {
   const _dataStore = useDataStore();
   const { selectedHull } = useOutfitterStore();
-  const { goBack, getPreviousView } = useNavigationStore();
+  const { goBack, getPreviousView, setSelectedView } = useNavigationStore();
 
   // Configuration store - unified state management
   const {
@@ -123,6 +127,12 @@ const LoadoutBuilder = () => {
     saveActiveConfiguration,
     closeActiveConfiguration
   } = useConfigurationStore();
+
+  // Mission store — for Port Security deep-link
+  const { setSelectedMissionTemplate, setPendingMissionOpen } = useMissionStore();
+
+  // Port Security Mission Set state
+  const [portSecApplied, setPortSecApplied] = useState(false);
 
   // Version tracking
   const versionCount = useVersionStore(s => {
@@ -222,9 +232,6 @@ const LoadoutBuilder = () => {
 
   // Deployment modal state
   const [deploymentModalOpen, setDeploymentModalOpen] = useState(false);
-
-  // Navigation store for mission planner navigation
-  const { setSelectedView } = useNavigationStore();
 
   // Get base slot capacity for current vessel
   const baseSlotCapacity = VESSEL_SLOT_CAPACITY[selectedHull?.name] || DEFAULT_SLOT_CAPACITY;
@@ -381,6 +388,36 @@ const LoadoutBuilder = () => {
     });
 
     setQuickApplyOpen(false);
+  };
+
+  // Apply the Port Security Mission Set capabilities to the loadout
+  const handleApplyPortSecurity = () => {
+    PORT_SECURITY_CAPS.forEach(capName => {
+      const cap = individualCapabilities.find(c => c.name === capName);
+      if (!cap) return;
+      for (const [key, cat] of Object.entries(LOADOUT_CATEGORIES)) {
+        if (cat.types && cat.types.includes(cap.category)) {
+          const capacity = getTotalCapacity(key);
+          const currentSlots = activeConfig?.slots?.[key] || [];
+          const emptyIndex = currentSlots.findIndex(s => s === null);
+          if (emptyIndex !== -1) {
+            setSlotCapability(key, emptyIndex, cap.name);
+            break;
+          } else if (currentSlots.length < capacity) {
+            setSlotCapability(key, currentSlots.length, cap.name);
+            break;
+          }
+        }
+      }
+    });
+    setPortSecApplied(true);
+  };
+
+  // Navigate to Port Security mission in Mission Planner
+  const handleGoToMission = () => {
+    setSelectedMissionTemplate('PORT_SECURITY');
+    setPendingMissionOpen(true);
+    setSelectedView('squadron');
   };
 
   // Handle slot click
@@ -734,6 +771,35 @@ const LoadoutBuilder = () => {
               <div className="text-gray-500 text-sm">{selectedHull.type}</div>
             </div>
           </div>
+
+          {/* Port Security Mission Set — HORUS only */}
+          {selectedHull.name === 'SubSeaSail Horus' && (
+            <div className="mt-4 w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+              <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Set</p>
+              <button
+                onClick={handleApplyPortSecurity}
+                disabled={portSecApplied}
+                className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
+                  portSecApplied
+                    ? 'bg-lime-brand/10 border-lime-brand text-lime-brand cursor-default'
+                    : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${portSecApplied ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                  {portSecApplied && <Check size={10} className="text-black" />}
+                </span>
+                Port Security Mission Set
+              </button>
+              {portSecApplied && (
+                <button
+                  onClick={handleGoToMission}
+                  className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                >
+                  Go to Mission →
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Mario Kart Style Stats */}
           <div className="mt-4 w-full">

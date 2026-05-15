@@ -84,7 +84,7 @@ export const engineeringStacks = [
     },
     integration: "The Guardian AI system integrates NGHTS laser targeting with advanced AI algorithms for autonomous threat detection. Multi-sensor arrays provide 360-degree coverage while AI processes imagery in real-time, automatically classifying and prioritizing targets.",
     components: ["Marine AI Guardian AI", "Lookout Sensor Fusion", "Multi-Sensor Array (Radar/IR/Camera/Sub-Surface)", "NG NGHTS Laser Targeting"],
-    missionTags: ["Sea Denial", "Electronic Warfare"]
+    missionTags: ["Sea Denial", "Electronic Warfare", "PORT_SECURITY"]
   },
 
   {
@@ -147,7 +147,7 @@ export const engineeringStacks = [
     },
     integration: "Comprehensive vessel health monitoring platform that provides micro-level readiness reporting to support MOC decisions on refit scheduling and mission assignments. Integrates NDT sensors with advanced analytics for predictive maintenance.",
     components: ["Drawbridge Data Platform", "Gecko Robotics NDT Sensors", "Cantilever Analytics", "MOC Integration Layer"],
-    missionTags: ["Force Protection", "ISR Operations"]
+    missionTags: ["Force Protection", "ISR Operations", "PORT_SECURITY"]
   }
 ];
 
@@ -309,6 +309,7 @@ export const individualCapabilities = [
         range: 0,
         stealth: -2       // Laser emissions detectable
       },
+      missionTags: ["PORT_SECURITY"],
       bannerImage: "https://cdn.northropgrumman.com/-/media/NEWS/Imports/Northrop-Grumman-to-Manufacture-US-Marine-Corps-Next-Generation-Handheld-Targeting-System_hero.jpg"
     },
     {
@@ -345,7 +346,8 @@ export const individualCapabilities = [
         powerDC: "24 VDC (324W Max, 226W Nominal)",
         radioFrequency: "S-Band (2-4 GHz), X-Band (8-12 GHz)",
         detectionRange: "8 NM observed"
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Hidden Level Passive Radar",
@@ -367,7 +369,8 @@ export const individualCapabilities = [
         weight: 4,
         range: -3,
         stealth: -15      // Active radar = significant emissions
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Advanced Towed Sonar",
@@ -389,7 +392,77 @@ export const individualCapabilities = [
         weight: 8,
         range: -5,
         stealth: 3        // Passive sonar, low emissions
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
+    },
+    {
+      name: "Towed Hydrophone Array",
+      provider: "OceanSonics",
+      type: "Passive Acoustic Sensor",
+      description: "Towed passive hydrophone array for wide-area acoustic surveillance and contact classification.",
+      capabilities: ["Passive Contact Detection", "Acoustic Classification", "Bearing Estimation"],
+      trl: "TRL 9",
+      icon: TowedSonarIcon,
+      category: "ACOUSTIC/SONAR",
+      swap: {
+        weight: 85,
+        power: 0.3,
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -3,
+        power: -2,
+        weight: 4,
+        range: 0,
+        stealth: 5
+      },
+      missionTags: ["PORT_SECURITY"]
+    },
+    {
+      name: "OrbComm ST 6100",
+      provider: "OrbComm",
+      type: "Satellite IoT Terminal",
+      description: "Low-power L-band satellite terminal providing two-way store-and-forward messaging in DDIL environments.",
+      capabilities: ["L-band SATCOM", "Store-and-Forward", "DDIL Messaging", "Position Reporting"],
+      trl: "TRL 9",
+      icon: AntennaIcon,
+      category: "SATCOM",
+      swap: {
+        weight: 4,
+        power: 0.12,
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -1,
+        weight: 0,
+        range: 15,
+        stealth: -2
+      },
+      missionTags: ["PORT_SECURITY"]
+    },
+    {
+      name: "MOOS-IvP",
+      provider: "MIT LAMSS",
+      type: "Autonomy Middleware",
+      description: "Mission-oriented operating suite with interval programming for multi-objective autonomous behavior arbitration.",
+      capabilities: ["Multi-Objective Optimization", "Behavior Arbitration", "Helm Autonomy", "Mission Scripting"],
+      trl: "TRL 8",
+      icon: Cpu,
+      category: "UNMANNED SYSTEMS",
+      swap: {
+        weight: 0,
+        power: 0.05,
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: 0,
+        weight: 0,
+        range: 5,
+        stealth: 0
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "SM-6 Missile System",
@@ -499,7 +572,8 @@ export const individualCapabilities = [
         weight: 1,
         range: 0,
         stealth: -3       // RF emissions
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Programmable Automation Controller",
@@ -565,7 +639,8 @@ export const individualCapabilities = [
         weight: 1,
         range: 0,
         stealth: -4       // Mesh network emissions
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Marine AI Navigation System",
@@ -587,7 +662,8 @@ export const individualCapabilities = [
         weight: 1,
         range: 5,         // Efficient navigation
         stealth: 2        // Smart routing avoids detection
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Advanced EO/IR Camera System",
@@ -609,7 +685,8 @@ export const individualCapabilities = [
         weight: 1,
         range: 0,
         stealth: 0        // Passive sensor
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Military-Grade GPS Module",
@@ -763,7 +840,8 @@ export const individualCapabilities = [
         weight: 0,
         range: 0,
         stealth: 0        // Passive sensor
-      }
+      },
+      missionTags: ["PORT_SECURITY"]
     },
     {
       name: "Proximity Sensor Array",
@@ -1001,6 +1079,7 @@ export const individualCapabilities = [
           url: "#"
         }
       ],
+      missionTags: ["PORT_SECURITY"],
       bannerImage: "https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/what-we-do/land/c-uas/drake-counter-uas-hero.jpg"
     },
     {
@@ -1062,6 +1141,7 @@ export const individualCapabilities = [
           url: "#"
         }
       ],
+      missionTags: ["PORT_SECURITY"],
       bannerImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80"
     },
     {
@@ -1721,6 +1801,33 @@ export const missionObjectives = {
     intendedOutcome: "Deliver cargo to destination without detection or engagement",
     endCondition: "Cargo delivered or mission abort due to compromise"
   },
+  PORT_SECURITY: {
+    id: "port_security",
+    name: "Port Security",
+    description: "Continuous, low-engagement screening of a defined harbor area against high volumes of mostly legitimate traffic. The autonomous boat is the screener, not the shooter — detection, identification, deterrence presence, and cueing are the core deliverables. Engagement is human-controlled, off-platform.",
+    typicalDuration: "4–8 hours (sortie), rotating continuous",
+    requiredCapabilities: ["Surface Search Radar", "AIS Tracking", "EO/IR Sensors", "Multi-Sensor Fusion", "Secure Comms to MOC"],
+    optionalCapabilities: ["Subsurface Detection", "Counter-UAS RF Detection", "Acoustic Hailer"],
+    controlLoop: "SCREEN-INVESTIGATE-CUE: Patrol → Sense → Classify → Investigate → Cue Shore",
+    autonomyCeiling: "DAL 3 — tactical observation and screening. Engagement authority stays with shore.",
+    sensorPolicy: {
+      radar: "Continuous surface search; correlate all returns against AIS",
+      ais: "PRIMARY — baseline all traffic, flag missing or spoofed transponders",
+      eoIr: "Passive surveillance; active on flagged contacts for visual ID",
+      rfSpectrum: "Passive monitoring for drone control frequencies",
+      hydrophone: "Passive; cue EOD on subsurface contact"
+    },
+    escalationTriggers: [
+      "Radar return with no AIS in restricted area",
+      "AIS signature mismatch on EO/IR",
+      "Loitering without apparent purpose near sensitive asset",
+      "Evasive maneuvering on approach",
+      "Fast inbound vector toward HVA at pier"
+    ],
+    variants: ["Routine Patrol", "HVA in Port", "Surge", "Choke Point Overwatch"],
+    intendedOutcome: "Continuous classified contact log fed to MOC; anomalous contacts investigated and resolved or cued to shore response",
+    endCondition: "End of assigned sortie window or relief on station"
+  },
   SEA_DENIAL: {
     id: "sea_denial",
     name: "Sea Denial",
@@ -2013,6 +2120,37 @@ export const missionFlowTemplates = {
       { from: 'arrived', to: 'screen', label: 'No' }
     ],
     loopBack: { from: 'screen', to: 'scan', label: 'Continuous Screening' }
+  },
+  PORT_SECURITY: {
+    name: "Port Security",
+    category: "FORCE_PROTECTION",
+    nodes: [
+      { id: 'on_station', type: 'trigger', label: 'On Station', position: { x: 50, y: 150 } },
+      { id: 'patrol', type: 'action', label: 'Randomized Patrol', position: { x: 200, y: 150 } },
+      { id: 'sensor_sweep', type: 'sense', label: 'Sensor Sweep\n(Radar+AIS+EO/IR+RF)', position: { x: 370, y: 150 } },
+      { id: 'anomaly', type: 'decision', label: 'Anomaly?', position: { x: 540, y: 150 } },
+      { id: 'log_baseline', type: 'action', label: 'Log Baseline', position: { x: 540, y: 290 } },
+      { id: 'investigate', type: 'action', label: 'Investigate\n(EO/IR + VHF Hail)', position: { x: 700, y: 100 } },
+      { id: 'resolved', type: 'decision', label: 'Resolved?', position: { x: 870, y: 100 } },
+      { id: 'log_contact', type: 'action', label: 'Log Contact\n& Resume', position: { x: 870, y: 240 } },
+      { id: 'maintain_track', type: 'action', label: 'Maintain Track\n& Standoff', position: { x: 1040, y: 100 } },
+      { id: 'cue_moc', type: 'human_checkpoint', label: 'Cue MOC\n(Human Decision)', position: { x: 1040, y: 240 } },
+      { id: 'handoff', type: 'end', label: 'Shore Response\nHandoff', position: { x: 1210, y: 170 } }
+    ],
+    connections: [
+      { from: 'on_station', to: 'patrol' },
+      { from: 'patrol', to: 'sensor_sweep' },
+      { from: 'sensor_sweep', to: 'anomaly' },
+      { from: 'anomaly', to: 'investigate', label: 'Yes' },
+      { from: 'anomaly', to: 'log_baseline', label: 'No' },
+      { from: 'investigate', to: 'resolved' },
+      { from: 'resolved', to: 'log_contact', label: 'Yes' },
+      { from: 'resolved', to: 'maintain_track', label: 'No' },
+      { from: 'maintain_track', to: 'cue_moc' },
+      { from: 'cue_moc', to: 'handoff', label: 'Approved' },
+      { from: 'cue_moc', to: 'maintain_track', label: 'Hold — Continue Track' }
+    ],
+    loopBack: { from: 'log_baseline', to: 'patrol', label: 'Continue Patrol' }
   }
 };
 

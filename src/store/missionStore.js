@@ -7,6 +7,10 @@ const useMissionStore = create((set) => ({
   selectedMissionTemplate: null,
   setSelectedMissionTemplate: (template) => set({ selectedMissionTemplate: template }),
 
+  // Signal MissionPlanner to open config view immediately (cleared after consuming)
+  pendingMissionOpen: false,
+  setPendingMissionOpen: (v) => set({ pendingMissionOpen: v }),
+
   // Mission flow builder - nodes
   missionFlowNodes: [],
   setMissionFlowNodes: (nodes) => set({ missionFlowNodes: nodes }),

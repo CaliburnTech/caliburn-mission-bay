@@ -8,6 +8,7 @@ import useMountPointDragDrop from '../hooks/useMountPointDragDrop';
 import VesselStatsDisplay from './VesselStatsDisplay';
 import AerialStatsDisplay from './AerialStatsDisplay';
 import MountPointNode from './MountPointNode';
+import HorusModelViewer from './loadout/HorusModelViewer';
 
 const OutfitterView = ({ onBackToShipyard }) => {
   // Get state and actions from outfitter store
@@ -283,8 +284,13 @@ const OutfitterView = ({ onBackToShipyard }) => {
                 </button>
               </div>
 
-              {/* Enhanced Vessel Diagram */}
-              <div className="relative w-full h-[650px] bg-darkest rounded-2xl border border-lime-brand/10 overflow-hidden mb-8">
+              {/* HORUS — dedicated blueprint model viewer */}
+              {selectedHull.name === 'SubSeaSail Horus' && (
+                <HorusModelViewer />
+              )}
+
+              {/* Enhanced Vessel Diagram (all non-HORUS hulls) */}
+              <div className={`relative w-full h-[650px] bg-darkest rounded-2xl border border-lime-brand/10 overflow-hidden mb-8${selectedHull.name === 'SubSeaSail Horus' ? ' hidden' : ''}`}>
 
                 {/* Technical drawing background grid */}
                 <div

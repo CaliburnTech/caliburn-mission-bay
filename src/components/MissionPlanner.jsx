@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MissionLibraryTable } from './mission-planner/MissionLibrary';
 import MissionConfigView from './mission-planner/MissionConfigView';
+import useMissionStore from '../store/missionStore';
 
 // Main MissionPlanner component - switches between table and config views
 const MissionPlanner = () => {
   const [view, setView] = useState('table'); // 'table' | 'config'
   const [selectedMission, setSelectedMission] = useState(null);
+  const { pendingMissionOpen, setPendingMissionOpen, setSelectedMissionTemplate } = useMissionStore();
+
+  // If LoadoutBuilder signalled us to open config directly, consume the flag
+  useEffect(() => {
+    if (pendingMissionOpen) {
+      setSelectedMission(null);
+      setView('config');
+      setPendingMissionOpen(false);
+    }
+  }, [pendingMissionOpen, setPendingMissionOpen]);
 
   const handleSelectMission = (mission) => {
     setSelectedMission(mission);
@@ -13,11 +24,13 @@ const MissionPlanner = () => {
   };
 
   const handleNewMission = () => {
+    setSelectedMissionTemplate(null); // clear any lingering template (e.g. PORT_SECURITY from loadout deep-link)
     setSelectedMission(null);
     setView('config');
   };
 
   const handleBack = () => {
+    setSelectedMissionTemplate(null); // reset so next new mission starts fresh
     setSelectedMission(null);
     setView('table');
   };
