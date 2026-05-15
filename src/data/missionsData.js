@@ -195,6 +195,128 @@ export const initialMissions = [
     launchedAt: null,
     history: [{ action: "created", timestamp: "2026-03-25T07:00:00Z" }]
   },
+  // PORT_SECURITY - Pearl Harbor Outer Perimeter
+  {
+    id: "mission-portsec-001",
+    name: "Pearl-Harbor-Outer-Screen",
+    template: "PORT_SECURITY",
+    status: "active",
+    assignedSquadrons: ["sqdn_001"],
+    zoneConfig: {
+      name: "Pearl Harbor Approach Screen",
+      center: { lat: 21.32, lng: -157.98 },
+      radius: 8,
+      assetName: "Naval Station Pearl Harbor",
+      loiterPattern: "racetrack",
+      swarmSize: 3,
+      swarmFormation: "picket",
+      swarmSpacing: "standard"
+    },
+    duration: "30d",
+    missionProfile: {
+      type: "PORT_SECURITY",
+      lane: "OUTER_SCREENING",
+      collectionTypes: ["AIS", "RADAR", "EO_IR", "RF_SPECTRUM"],
+      commsArchitecture: {
+        primary: "OverKey Mesh VPN",
+        secondary: "MILSATCOM",
+        groundStation: "NAVSTA Pearl Harbor MOC",
+        homeBase: "Pearl Harbor"
+      },
+      objectives: {
+        primary: "Continuous AIS-correlated surface track log for all vessels in outer approach sector",
+        secondary: "Early detection and classification of anomalous contacts; cue shore response within 3 min of confirmation"
+      },
+      variants: ["Routine Patrol"],
+      squadronComposition: {
+        screeningBoats: 2,
+        subsurfaceElement: 1,
+        shoreResponse: "USCG Sector Honolulu (cue target, not squadron asset)"
+      },
+      reportingInterval: "2min",
+      escalationTriggers: [
+        "No-AIS radar return inside 5 NM exclusion zone",
+        "AIS transponder mismatch on EO/IR correlation",
+        "Fast inbound (>15 kts) vector toward restricted water"
+      ]
+    },
+    stateHierarchies: {
+      default: ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      contact_flagged: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      comms_degraded: ["Navigation", "Comms", "Mission", "Vehicle", "Payload"],
+      surge: ["Mission", "Payload", "Navigation", "Comms", "Vehicle"]
+    },
+    createdAt: "2026-04-01T06:00:00Z",
+    updatedAt: "2026-05-10T08:00:00Z",
+    launchedAt: "2026-04-03T06:00:00Z",
+    history: [
+      { action: "created", timestamp: "2026-04-01T06:00:00Z" },
+      { action: "launched", timestamp: "2026-04-03T06:00:00Z" },
+      { action: "updated", timestamp: "2026-05-10T08:00:00Z", details: "Expanded RF spectrum monitoring coverage after drone incursion report" }
+    ]
+  },
+  // PORT_SECURITY - NAS North Island CVN HVA Protection
+  {
+    id: "mission-portsec-002",
+    name: "NAS-NorthIsland-CVN-HVA",
+    template: "PORT_SECURITY",
+    status: "draft",
+    assignedSquadrons: ["sqdn_002"],
+    zoneConfig: {
+      name: "NAS North Island Pier Security",
+      center: { lat: 32.70, lng: -117.21 },
+      radius: 3,
+      assetName: "CVN Pier — High Value Asset",
+      loiterPattern: "racetrack",
+      swarmSize: 4,
+      swarmFormation: "overlapping",
+      swarmSpacing: "tight"
+    },
+    duration: "14d",
+    missionProfile: {
+      type: "PORT_SECURITY",
+      lane: "INNER_RING",
+      variant: "HVA_IN_PORT",
+      collectionTypes: ["AIS", "RADAR", "EO_IR", "RF_SPECTRUM", "HYDROPHONE"],
+      commsArchitecture: {
+        primary: "OverKey Mesh VPN",
+        secondary: "Drawbridge DDIL Link",
+        groundStation: "NAS North Island Security Center",
+        homeBase: "NAS North Island"
+      },
+      objectives: {
+        primary: "Enforce 500-yard exclusion zone around CVN pier; zero unauthorized vessel transit",
+        secondary: "Subsurface swimmer detection; cue Naval Security Force within 90 sec of confirmed contact"
+      },
+      variants: ["HVA in Port"],
+      squadronComposition: {
+        screeningBoats: 3,
+        subsurfaceElement: 1,
+        shoreResponse: "Naval Security Forces San Diego (cue target, not squadron asset)"
+      },
+      reportingInterval: "1min",
+      escalationTriggers: [
+        "Any vessel inside 500-yard exclusion zone without IFF",
+        "Hydrophone contact inside pier perimeter — cue EOD immediately",
+        "Counter-UAS RF signature over pier area",
+        "Vessel refusing VHF hail within 1 NM"
+      ],
+      deterrentOptions: ["VHF Bridge-to-Bridge Hail", "Acoustic Hailer", "LED Warning Array"]
+    },
+    stateHierarchies: {
+      default: ["Navigation", "Payload", "Mission", "Comms", "Vehicle"],
+      contact_flagged: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      zone_breach: ["Mission", "Navigation", "Comms", "Payload", "Vehicle"],
+      comms_degraded: ["Navigation", "Mission", "Vehicle", "Comms", "Payload"],
+      subsurface_contact: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-05-12T09:00:00Z",
+    updatedAt: "2026-05-12T09:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-05-12T09:00:00Z" }
+    ]
+  },
   // SIGINT_COLLECTION - South China Sea
   {
     id: "mission-sigint-001",

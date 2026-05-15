@@ -167,6 +167,13 @@ const MapZoneEditor = ({ zoneConfig, setZoneConfig, missionType }) => {
           staging: { lat: 25.0, lng: -81.0, label: 'STAGING' }
         };
       case 'perimeter':
+        if (missionType === 'PORT_SECURITY') {
+          return {
+            center: { lat: 21.35, lng: -157.97 },
+            radius: 8,
+            assetName: 'Naval Station Pearl Harbor'
+          };
+        }
         return {
           center: { lat: 25.2, lng: -80.0 },
           radius: 20,

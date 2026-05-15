@@ -20,6 +20,7 @@ import FlowCanvas from './FlowCanvas';
 import MapZoneEditor from './MapZoneEditor';
 import SquadronAssignment from './SquadronAssignment';
 import AutonomyPopout from './AutonomyPopout';
+import PortSecurityMissionView from './PortSecurityMissionView';
 
 // Get default zone config based on mission type's geometry
 const getDefaultZoneConfig = (missionKey) => {
@@ -45,6 +46,14 @@ const getDefaultZoneConfig = (missionKey) => {
         staging: { lat: 25.0, lng: -81.0, label: 'STAGING' }
       };
     case 'perimeter':
+      if (missionKey === 'PORT_SECURITY') {
+        return {
+          name: '',
+          center: { lat: 21.35, lng: -157.97 },
+          radius: 8,
+          assetName: 'Naval Station Pearl Harbor'
+        };
+      }
       return {
         name: '',
         center: { lat: 25.2, lng: -80.0 },
@@ -183,6 +192,8 @@ const MissionConfigView = ({ mission, onBack }) => {
         ? hierarchyPresets.EVASIVE
         : missionKey === 'RECONNAISSANCE' || missionKey === 'AERIAL_ISR'
         ? hierarchyPresets.ISR
+        : missionKey === 'PORT_SECURITY'
+        ? hierarchyPresets.SAR  // Navigation-first: COLREGS priority in busy port, human cue for escalation
         : hierarchyPresets.DEFAULT;
 
       setStateHierarchies({
@@ -275,6 +286,10 @@ const MissionConfigView = ({ mission, onBack }) => {
       setMissionPlannerConfig({ name: generateMissionName() });
     }
   }, [selectedMissionTemplate, zoneConfig?.name]);
+
+  if (selectedMissionTemplate === 'PORT_SECURITY' || mission?.template === 'PORT_SECURITY') {
+    return <PortSecurityMissionView mission={mission} onBack={onBack} />;
+  }
 
   return (
     <div className="flex flex-col gap-4 min-h-[600px] overflow-hidden w-full max-w-full">

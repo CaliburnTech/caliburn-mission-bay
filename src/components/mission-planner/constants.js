@@ -1,7 +1,7 @@
 import {
   Target, Eye, Crosshair, Radio, Zap, User, CheckCircle,
   Wifi, Brain, Radar, Navigation, Settings2,
-  Shield, Ship, Ban, Plane, Fuel, Satellite, Users, Waves
+  Shield, Ship, Ban, Plane, Fuel, Satellite, Users, Waves, Anchor
 } from 'lucide-react';
 
 // Mission domain types
@@ -23,7 +23,8 @@ export const KEY_MARITIME_MISSIONS = [
   { key: 'REFLEX_SWARM_ATTACK', name: 'Swarm Attack', icon: Crosshair, color: '#ef4444', description: 'Coordinated offensive strike', domain: 'MARITIME' },
   { key: 'ROBOT_DEFENSE_OODA', name: 'SIGINT Collection', icon: Radio, color: '#f97316', description: 'Persistent ELINT/COMINT surveillance', domain: 'MARITIME' },
   { key: 'RECONNAISSANCE', name: 'ISR Patrol', icon: Eye, color: '#06b6d4', description: 'Surveillance & reconnaissance', domain: 'MARITIME' },
-  { key: 'ASW', name: 'Anti-Submarine Warfare', icon: Waves, color: '#06b6d4', description: 'Detect & track hostile submarines', domain: 'MARITIME' }
+  { key: 'ASW', name: 'Anti-Submarine Warfare', icon: Waves, color: '#06b6d4', description: 'Detect & track hostile submarines', domain: 'MARITIME' },
+  { key: 'PORT_SECURITY', name: 'Port Security', icon: Anchor, color: '#10b981', description: 'Harbor perimeter screening & HVA protection', domain: 'MARITIME' }
 ];
 
 // Define the 5 key AERIAL missions
@@ -98,6 +99,7 @@ export const zoneTypes = {
   REFLEX_SWARM_ATTACK: { label: 'Attack Targets', color: '#ef4444', fillOpacity: 0.35, geometryType: 'target', description: 'Mark target points and staging area', domain: 'MARITIME' },
   ROBOT_DEFENSE: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area for SIGINT collection', domain: 'MARITIME' },
   ROBOT_DEFENSE_OODA: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area for SIGINT collection', domain: 'MARITIME' },
+  PORT_SECURITY: { label: 'Security Perimeter', color: '#10b981', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define protected asset and screening perimeter radius', domain: 'MARITIME' },
 
   // Aerial missions
   AERIAL_ISR: { label: 'ISR Orbit', color: '#06b6d4', fillOpacity: 0.2, geometryType: 'orbit', description: 'Define orbit track for surveillance', domain: 'AERIAL' },
