@@ -1,0 +1,496 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Enums ─────────────────────────────────────────────────────────────────────
+
+enum CompanyStatus {
+  PENDING_APPROVAL
+  APPROVED
+  BANNED
+}
+
+// Soft = policy ban, reverts to PENDING_APPROVAL. Hard = Cognito global sign-out + JWT revocation.
+enum BanType {
+  SOFT
+  HARD
+}
+
+// SUPER_ADMIN is NOT stored here — derived at JWT validation from @caliburn.us email domain.
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ProductStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+// Kept separate from ProductStatus so mission and product lifecycles can diverge.
+enum MissionStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+enum SbomFormat {
+  CYCLONEDX_1_5
+}
+
+enum AuditActorType {
+  USER
+  SUPERADMIN
+}
+
+enum ComponentCategory {
+  OS
+  RUNTIME
+  MESSAGING
+  DRIVER
+  SDK
+  LIBRARY
+  FIRMWARE
+  APPLICATION
+  OTHER
+}
+
+// ── Identity ──────────────────────────────────────────────────────────────────
+
+model Company {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  logoUrl         String?
+  website         String?
+  email           String?
+  phone           String?
+  status          CompanyStatus @default(PENDING_APPROVAL)
+  lastBanType     BanType?
+  bannedAt        DateTime?
+  approvedAt      DateTime?
+  approvedByEmail String?
+  anthropicKeyArn String?
+  isSeller        Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  users          User[]
+  products       Product[]
+  applications   VendorApplication[]
+  savedConfigs   SavedConfiguration[]
+  auditLogs      AuditLog[]
+  impersonations ImpersonationSession[]
+  missions       Mission[]
+}
+
+model User {
+  id                 String     @id @default(cuid())
+  // Left as non-nullable to avoid breaking existing rows; flag for Stream B (auth migration).
+  cognitoSub         String?    @unique
+  companyId          String?
+  email              String     @unique
+  name               String?
+  role               UserRole   @default(MEMBER)
+  status             UserStatus @default(ACTIVE)
+  suspendedAt        DateTime?
+  suspendedByEmail   String?
+  onboardingComplete Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  company           Company?               @relation(fields: [companyId], references: [id])
+  savedConfigs      SavedConfiguration[]
+  garageItems       GarageItem[]
+  purchaseRequests  PurchaseRequest[]
+  publishedVersions ProductVersion[]
+  auditActionsBy    AuditLog[]             @relation("AuditActor")
+  impersonationsBy  ImpersonationSession[] @relation("ImpersonationSuperAdmin")
+}
+
+// ── Vendor Onboarding ─────────────────────────────────────────────────────────
+
+model VendorApplication {
+  id          String            @id @default(cuid())
+  companyName String
+  contactName String
+  email       String
+  website     String?
+  message     String?
+  status      ApplicationStatus @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime          @default(now())
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+// ── Products ──────────────────────────────────────────────────────────────────
+
+model Product {
+  id               String        @id @default(cuid())
+  companyId        String
+  type             ProductType
+  name             String
+  description      String?
+  category         String?
+  trlLevel         Int?
+  status           ProductStatus @default(DRAFT)
+  currentVersionId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  company        Company                @relation(fields: [companyId], references: [id])
+  versions       ProductVersion[]
+  events         Event[]
+  leads          Lead[]
+  configProducts ConfigurationProduct[]
+}
+
+enum ProductType {
+  PLATFORM
+  CAPABILITY
+}
+
+model ProductVersion {
+  id            String   @id @default(cuid())
+  productId     String
+  versionNumber Int
+  data          Json
+  changelog     String?
+  publishedAt   DateTime @default(now())
+  publishedById String
+  licenseId     String?
+  swapJson      Json?
+  platformTags  String[]
+  missionTags   String[]
+
+  product     Product                @relation(fields: [productId], references: [id])
+  publishedBy User                   @relation(fields: [publishedById], references: [id])
+  license     License?               @relation(fields: [licenseId], references: [id])
+  configItems ConfigurationProduct[]
+  components  ProductComponent[]
+
+  @@unique([productId, versionNumber])
+}
+
+// ── Buyer Configurations ──────────────────────────────────────────────────────
+
+model SavedConfiguration {
+  id              String   @id @default(cuid())
+  userId          String
+  // companyId is required (org-scoped). Two-step migration needed for non-empty tables:
+  // (1) add nullable, (2) backfill from userId's company, (3) add NOT NULL constraint.
+  companyId       String
+  name            String?
+  configData      Json
+  specVersion     Int      @default(1)
+  hasVendorUpdate Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user             User                   @relation(fields: [userId], references: [id])
+  company          Company                @relation(fields: [companyId], references: [id])
+  products         ConfigurationProduct[]
+  garageItem       GarageItem?
+  purchaseRequests PurchaseRequest[]
+  sboms            Sbom[]
+}
+
+model ConfigurationProduct {
+  configId         String
+  productId        String
+  productVersionId String
+
+  config  SavedConfiguration @relation(fields: [configId], references: [id])
+  product Product            @relation(fields: [productId], references: [id])
+  version ProductVersion     @relation(fields: [productVersionId], references: [id])
+
+  @@id([configId, productId])
+}
+
+// ── My Garage ─────────────────────────────────────────────────────────────────
+
+model GarageItem {
+  id        String       @id @default(cuid())
+  userId    String
+  configId  String       @unique
+  status    GarageStatus @default(SAVED)
+  notes     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user             User               @relation(fields: [userId], references: [id])
+  config           SavedConfiguration @relation(fields: [configId], references: [id])
+  purchaseRequests PurchaseRequest[]
+}
+
+enum GarageStatus {
+  SAVED
+  PURCHASE_REQUESTED
+  IN_PROCUREMENT
+  CONTRACTED
+  DELIVERED
+}
+
+model PurchaseRequest {
+  id           String                @id @default(cuid())
+  userId       String
+  configId     String
+  garageItemId String?
+  message      String?
+  status       PurchaseRequestStatus @default(PENDING)
+  createdAt    DateTime              @default(now())
+
+  user       User               @relation(fields: [userId], references: [id])
+  config     SavedConfiguration @relation(fields: [configId], references: [id])
+  garageItem GarageItem?        @relation(fields: [garageItemId], references: [id])
+}
+
+enum PurchaseRequestStatus {
+  PENDING
+  ACKNOWLEDGED
+  IN_PROGRESS
+  COMPLETE
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+
+model Event {
+  id        String    @id @default(cuid())
+  productId String
+  userId    String?
+  type      EventType
+  metadata  Json?
+  createdAt DateTime  @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+enum EventType {
+  VIEW
+  CONFIGURE
+  PURCHASE_REQUEST
+}
+
+model Lead {
+  id           String   @id @default(cuid())
+  productId    String
+  userId       String?
+  buyerName    String
+  buyerCompany String?
+  email        String
+  phone        String?
+  createdAt    DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+}
+
+// ── SBOM & Components ─────────────────────────────────────────────────────────
+
+model License {
+  id                String   @id @default(cuid())
+  spdxId            String?
+  displayName       String
+  governmentMarking String?
+  isProprietory     Boolean  @default(false)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  productVersions ProductVersion[]
+  components      Component[]
+
+  @@map("licenses")
+}
+
+model Component {
+  id        String            @id @default(cuid())
+  name      String
+  version   String
+  supplier  String?
+  category  ComponentCategory @default(OTHER)
+  licenseId String?
+  bomRef    String?
+  purl      String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  license  License?           @relation(fields: [licenseId], references: [id])
+  products ProductComponent[]
+
+  @@unique([name, version, supplier])
+  @@map("components")
+}
+
+// Links a ProductVersion to its component dependencies. isDirect separates top-level from transitives.
+model ProductComponent {
+  id               String   @id @default(cuid())
+  productVersionId String
+  componentId      String
+  isDirect         Boolean  @default(true)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  productVersion ProductVersion @relation(fields: [productVersionId], references: [id])
+  component      Component      @relation(fields: [componentId], references: [id])
+
+  @@unique([productVersionId, componentId])
+  @@map("product_components")
+}
+
+// Metadata pointer to a generated CycloneDX JSON file in S3. The JSON itself lives at s3Key.
+model Sbom {
+  id                   String     @id @default(cuid())
+  savedConfigurationId String
+  format               SbomFormat @default(CYCLONEDX_1_5)
+  s3Key                String
+  s3Bucket             String     @default("mission-bay-sboms")
+  componentCount       Int        @default(0)
+  topLevelCount        Int        @default(0)
+  dependencyCount      Int        @default(0)
+  licenseCount         Int        @default(0)
+  schemaVersion        String     @default("1.5")
+  generatedAt          DateTime   @default(now())
+  generatedByUserId    String?
+  destinationStatus    String?
+  destinationError     String?
+
+  savedConfiguration SavedConfiguration @relation(fields: [savedConfigurationId], references: [id])
+
+  @@map("sboms")
+}
+
+// ── Missions ──────────────────────────────────────────────────────────────────
+
+// Taxonomy of mission categories. decisionGraph holds the decision-tree template JSON.
+model MissionType {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  displayName   String
+  domain        String
+  decisionGraph Json?
+  description   String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  missions Mission[]
+
+  @@map("mission_types")
+}
+
+model Mission {
+  id              String        @id @default(cuid())
+  name            String
+  typedId         String?
+  status          MissionStatus @default(DRAFT)
+  companyId       String
+  missionTypeId   String
+  description     String?
+  zoneGeoJson     Json?
+  vesselLoadout   Json?
+  notes           String?
+  reviewNotes     String?
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  approvedByEmail String?
+  archivedAt      DateTime?
+  createdByUserId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  company     Company     @relation(fields: [companyId], references: [id])
+  missionType MissionType @relation(fields: [missionTypeId], references: [id])
+
+  @@index([companyId])
+  @@index([status])
+  @@index([missionTypeId])
+  @@map("missions")
+}
+
+// ── Admin & Audit ─────────────────────────────────────────────────────────────
+
+// Immutable record of every super-admin action. Always written, never deleted.
+model AuditLog {
+  id                     String         @id @default(cuid())
+  actorType              AuditActorType
+  actorUserId            String?
+  actorEmail             String?
+  targetCompanyId        String?
+  targetUserId           String?
+  impersonationSessionId String?
+  action                 String
+  targetType             String?
+  targetId               String?
+  metadata               Json?
+  createdAt              DateTime       @default(now())
+
+  actorUser            User?                 @relation("AuditActor", fields: [actorUserId], references: [id])
+  targetCompany        Company?              @relation(fields: [targetCompanyId], references: [id])
+  impersonationSession ImpersonationSession? @relation(fields: [impersonationSessionId], references: [id])
+
+  @@index([targetCompanyId])
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// DB-backed session created when a Caliburn super-admin impersonates a company. TTL = 1 hour.
+model ImpersonationSession {
+  id               String    @id @default(cuid())
+  superAdminUserId String?
+  superAdminEmail  String
+  targetCompanyId  String
+  startedAt        DateTime  @default(now())
+  expiresAt        DateTime
+  endedAt          DateTime?
+  isActive         Boolean   @default(true)
+  ipAddress        String?
+  userAgent        String?
+
+  superAdminUser User?      @relation("ImpersonationSuperAdmin", fields: [superAdminUserId], references: [id])
+  targetCompany  Company    @relation(fields: [targetCompanyId], references: [id])
+  auditLogs      AuditLog[]
+
+  @@index([superAdminUserId])
+  @@index([targetCompanyId])
+  @@index([isActive])
+  @@map("impersonation_sessions")
+}
+
+// JWT revocation list. Lambda Authorizer checks this on every request to sensitive endpoints.
+model SessionDenyList {
+  id        String    @id @default(cuid())
+  jwtJti    String    @unique
+  userId    String
+  reason    String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("session_deny_list")
+}
