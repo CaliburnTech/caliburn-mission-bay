@@ -75,21 +75,29 @@ The backend returns flat Prisma records. The adapter normalizes what it can.
 
 ---
 
-## Auth Requirement (Blocking)
+## Auth (Supabase — Phase 2 complete)
 
-All production endpoints require a valid JWT in `Authorization: Bearer <token>`. The Lambda Authorizer in API Gateway validates it before the handler runs.
+All production endpoints require a valid JWT in `Authorization: Bearer <token>`. The backend `api/_lib/auth.js` middleware validates it via the Supabase admin client (`getUser(token)`).
 
-**Current state:** `AuthProvider.jsx` is a no-op — Clerk is not yet integrated (Phase 2). `App.jsx` calls `dataStore.initialize()` without a token. In `VITE_APP_MODE=production`, every API call will be rejected by the authorizer.
+**Current state:** `AuthProvider.jsx` is fully wired to Supabase Auth. In production mode it:
+1. Calls `supabase.auth.getSession()` on mount to hydrate any existing session
+2. Passes the access token to `dataStore.initialize()` so the API adapter includes it in every request
+3. Subscribes to `onAuthStateChange` to refresh the token on rotation and clean up on sign-out
 
-**Required change to unblock (Phase 2):**
+**Environment variables required:**
 
-```jsx
-// App.jsx — after Clerk integration
-const { getToken } = useAuth(); // Clerk hook
-useEffect(() => {
-  getToken().then((token) => initialize(token));
-}, [initialize, getToken]);
-```
+| Variable | Where | Value |
+|----------|-------|-------|
+| `VITE_SUPABASE_URL` | Browser (Vite) | `https://vmyuyljmycwtfpuwiusr.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Browser (Vite) | `sb_publishable_xECPZXdl1JBnmh4ERIjDdg_gbfQeC8_` |
+| `SUPABASE_URL` | Server (Vercel env) | same project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server (Vercel env) | from Supabase Dashboard → Settings → API |
+| `SUPABASE_WEBHOOK_SECRET` | Server (Vercel env) | arbitrary secret, set in Supabase DB webhook config |
+
+**User sync:** Supabase Database Webhook → `POST /api/auth/webhook`
+Configure in Supabase Dashboard → Database → Webhooks: table `auth.users`, events `INSERT` + `UPDATE`.
+
+**Pending schema migration:** `User.cognitoSub` stores the Supabase UUID. Should be renamed to `authId` once all streams merge.
 
 ---
 
@@ -99,10 +107,11 @@ useEffect(() => {
    ```
    VITE_APP_MODE=production
    VITE_API_URL=https://api.missionbay.caliburn.us
-   VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
+   VITE_SUPABASE_URL=https://vmyuyljmycwtfpuwiusr.supabase.co
+   VITE_SUPABASE_ANON_KEY=sb_publishable_xECPZXdl1JBnmh4ERIjDdg_gbfQeC8_
    ```
-2. Complete Clerk integration in `src/auth/AuthProvider.jsx` (Phase 2).
-3. Pass the Clerk token to `dataStore.initialize()` (see above).
+2. Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_WEBHOOK_SECRET` in Vercel project settings (or `.env.local` for local API dev).
+3. Enable the Supabase Database Webhook pointing at `/api/auth/webhook`.
 
 Demo mode (`VITE_APP_MODE=demo`) is unaffected and continues using all static data.
 
@@ -114,6 +123,12 @@ Demo mode (`VITE_APP_MODE=demo`) is unaffected and continues using all static da
 |------|--------|
 | `src/providers/apiAdapter.js` | Full rewrite — real `fetch()` for all wired endpoints; static fallbacks for the rest; shape normalization |
 | `src/providers/dataStore.js` | Added delegated store methods: `getMe`, `getConfigs`, `createConfig`, `updateConfig`, `deleteConfig`, `getGarage`, `addToGarage`, `recordEvent` |
-| `.env.example` | Replaced `VITE_API_BASE_URL` with `VITE_API_URL` |
+| `src/auth/AuthProvider.jsx` | Real Supabase Auth integration (replaces Clerk placeholder) |
+| `src/auth/supabaseClient.js` | New — Supabase browser client singleton |
+| `src/App.jsx` | Demo mode calls `initialize()` directly; production mode defers to `AuthProvider` |
+| `api/_lib/auth.js` | Supabase JWT verification via admin client (replaces Clerk placeholder) |
+| `api/auth/webhook.js` | Supabase database webhook handler (replaces Clerk/svix webhook) |
+| `.env.example` | Replaced `VITE_API_BASE_URL` + `VITE_CLERK_PUBLISHABLE_KEY` with `VITE_API_URL` + Supabase vars |
 | `eslint.config.js` | Added `apps/**` to lint ignore list (dist bundles from other streams caused false positives) |
+| `package.json` | Removed `@clerk/backend`, `@clerk/clerk-react`; added `@supabase/supabase-js` |
 | `API_SWAP_REVIEW.md` | This document |

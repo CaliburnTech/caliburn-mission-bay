@@ -1,7 +1,7 @@
 /**
  * API Data Adapter (Production Mode)
  *
- * Fetches data from the backend API. Includes auth headers from Clerk.
+ * Fetches data from the backend API. Includes auth headers from Supabase.
  * Shape-normalizes Prisma flat records into the richer shapes the UI expects.
  * Fields the API does not yet provide are set to safe defaults (see API_SWAP_REVIEW.md).
  *

@@ -1,27 +1,47 @@
 /**
- * Auth Middleware (placeholder)
+ * Auth Middleware — Supabase JWT verification.
  *
- * Phase 2 will add Clerk JWT verification here.
- * For now, passes all requests through.
+ * Validates the Bearer token from the Authorization header using the
+ * Supabase admin client. The admin client calls Supabase's token
+ * introspection endpoint, so no local JWT secret is needed here.
+ *
+ * Required env vars (server-side only, never VITE_-prefixed):
+ *   SUPABASE_URL              — project URL
+ *   SUPABASE_SERVICE_ROLE_KEY — service role key (never expose to browser)
  */
 
-// Phase 2: Replace with:
-// import { verifyToken } from '@clerk/backend'
-// export const requireAuth = async (req) => { ... }
+import { createClient } from '@supabase/supabase-js';
 
-export const requireAuth = async () => {
-  // Phase 2: Verify Clerk JWT from Authorization header
-  // For now, return a mock user
+let _adminClient = null;
+const adminClient = () => {
+  if (!_adminClient) {
+    _adminClient = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { persistSession: false } }
+    );
+  }
+  return _adminClient;
+};
+
+export const requireAuth = async (req) => {
+  const authHeader = req.headers?.authorization ?? '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) throw new Error('Missing authorization token');
+
+  const { data: { user }, error } = await adminClient().auth.getUser(token);
+  if (error || !user) throw new Error('Invalid or expired token');
+
   return {
-    userId: 'demo-user',
-    companyId: 'demo-company',
-    role: 'admin'
+    userId: user.id,              // Supabase UUID (stored in User.cognitoSub — rename pending)
+    email: user.email,
+    role: user.app_metadata?.role ?? 'BUYER',
   };
 };
 
 export const requireRole = (role) => async (req) => {
   const user = await requireAuth(req);
-  if (user.role !== role && user.role !== 'admin') {
+  if (user.role !== role && user.role !== 'ADMIN') {
     throw new Error(`Required role: ${role}`);
   }
   return user;

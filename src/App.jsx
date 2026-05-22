@@ -4,6 +4,7 @@ import SplashPageC from './components/SplashPageC'
 import SplashPageD from './components/SplashPageD'
 import useDataStore from './providers/dataStore'
 import { AuthProvider } from './auth/AuthProvider'
+import { APP_MODE } from './providers/dataInterface'
 
 // Toggle between splash page concepts: 'C' = Mission Control, 'D' = The Transformation
 const SPLASH_VERSION = 'C'
@@ -14,9 +15,13 @@ function App() {
   const { setSelectedView } = useNavigationStore()
   const { initialize, isReady: _isReady, isLoading: _isLoading, error: _error } = useDataStore()
 
-  // Initialize data store on mount
+  // Initialize data store on mount.
+  // Production mode: AuthProvider owns initialization (needs the Supabase token).
+  // Demo mode: initialize here with no token — static adapter, no auth required.
   useEffect(() => {
-    initialize()
+    if (APP_MODE !== 'production') {
+      initialize();
+    }
   }, [initialize])
 
   // Initialize from URL hash - #splash or empty = splash, valid view = app
