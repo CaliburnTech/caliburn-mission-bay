@@ -1,0 +1,134 @@
+# Supabase local development configuration
+# Production project: https://vmyuyljmycwtfpuwiusr.supabase.co
+# Docs: https://supabase.com/docs/guides/cli/config
+
+project_id = "vmyuyljmycwtfpuwiusr"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[api.tls]
+enabled = false
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
+enabled = true
+ip_version = "IPv4"
+max_header_length = 4096
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+openai_api_key = "env(OPENAI_API_KEY)"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+# Company logos — public CDN, 5 MiB cap, images only
+[storage.buckets.company-logos]
+public = true
+file_size_limit = "5MiB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"]
+objects_path = "./seed_storage/company-logos"
+
+# CycloneDX SBOM JSON files — private, service-role writes only
+[storage.buckets.sboms]
+public = false
+file_size_limit = "10MiB"
+allowed_mime_types = ["application/json"]
+
+# Maker asset uploads (spec sheets, product images) — private, company-scoped
+[storage.buckets.assets]
+public = false
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+# Adjust for the deployed Vercel frontend in production
+site_url = "http://localhost:5173"
+additional_redirect_urls = [
+  "https://missionbay.vercel.app",
+  "https://missionbay.vercel.app/**",
+  "http://localhost:5173/**",
+]
+# JWT access token TTL: 15 minutes (matches original Cognito spec)
+jwt_expiry = 900
+enable_signup = true
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+password_requirements = ""
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = true
+otp_expiry = 86400   # 24 hours for email links
+otp_length = 6
+
+[auth.sms]
+enabled = false
+
+# SSO providers — configure credentials in dashboard or .env.local.
+# Google Workspace for external company users
+[auth.external.google]
+enabled = false
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+redirect_uri = ""
+skip_nonce_check = false
+
+# Azure AD for Caliburn staff (@caliburn.us) and enterprise customers
+[auth.external.azure]
+enabled = false
+client_id = "env(AZURE_CLIENT_ID)"
+secret = "env(AZURE_CLIENT_SECRET)"
+url = ""
+redirect_uri = ""
+
+# Generic SAML/OIDC for enterprise customers (Okta, etc.)
+# Configured per-company in the Supabase dashboard under Auth > Providers.
+
+# Auth hooks
+# post-confirm is handled by the on_auth_user_created DB trigger (see migration).
+# No Edge Function hook needed for basic signup flow.
+[auth.hook.custom_access_token]
+enabled = false
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+inspector_port = 8083
+
+[analytics]
+enabled = false
+
+[experimental]
+orioledb_version = ""
+s3_host = "env(S3_HOST)"
+s3_region = "env(S3_REGION)"
+s3_access_key = "env(S3_ACCESS_KEY)"
+s3_secret_key = "env(S3_SECRET_KEY)"
