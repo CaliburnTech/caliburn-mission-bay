@@ -8,8 +8,6 @@ datasource db {
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-// AUDIT: Old values were PENDING, ACTIVE, SUSPENDED. Replaced for full approval lifecycle.
-// Migration backfill: PENDING → PENDING_APPROVAL, ACTIVE → APPROVED, SUSPENDED → BANNED.
 enum CompanyStatus {
   PENDING_APPROVAL
   APPROVED
@@ -22,7 +20,6 @@ enum BanType {
   HARD
 }
 
-// AUDIT: Old values were BUYER, SELLER, ADMIN. Replaced for v1 company-scoped role model.
 // SUPER_ADMIN is NOT stored here — derived at JWT validation from @caliburn.us email domain.
 enum UserRole {
   OWNER
@@ -35,7 +32,6 @@ enum UserStatus {
   SUSPENDED
 }
 
-// AUDIT: Already present with correct values. No change needed.
 enum ProductStatus {
   DRAFT
   IN_REVIEW
@@ -82,7 +78,6 @@ model Company {
   website         String?
   email           String?
   phone           String?
-  // AUDIT: Enum values replaced (PENDING/ACTIVE/SUSPENDED → PENDING_APPROVAL/APPROVED/BANNED).
   status          CompanyStatus @default(PENDING_APPROVAL)
   lastBanType     BanType?
   bannedAt        DateTime?
@@ -104,14 +99,11 @@ model Company {
 
 model User {
   id                 String     @id @default(cuid())
-  // AUDIT: clerkUserId is non-nullable — will need to become String? once Cognito migration lands.
   // Left as non-nullable to avoid breaking existing rows; flag for Stream B (auth migration).
-  clerkUserId        String     @unique
   cognitoSub         String?    @unique
   companyId          String?
   email              String     @unique
   name               String?
-  // AUDIT: Old enum values BUYER/SELLER/ADMIN replaced with OWNER/ADMIN/MEMBER.
   role               UserRole   @default(MEMBER)
   status             UserStatus @default(ACTIVE)
   suspendedAt        DateTime?

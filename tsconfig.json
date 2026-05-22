@@ -26,5 +26,6 @@
     "exactOptionalPropertyTypes": true
   },
   "include": ["src"],
+  "exclude": ["src/lambda", "src/lib"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
