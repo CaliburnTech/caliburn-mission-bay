@@ -164,6 +164,55 @@ const useDataStore = create((set, get) => ({
     return result;
   },
 
+  // ── User & Auth ──
+  getMe: async () => {
+    const { adapter } = get();
+    return adapter ? adapter.getMe() : null;
+  },
+
+  // ── Saved Configurations ──
+  getConfigs: async () => {
+    const { adapter } = get();
+    return adapter ? adapter.getConfigs() : [];
+  },
+
+  createConfig: async (data) => {
+    const { adapter } = get();
+    if (!adapter) return null;
+    return adapter.createConfig(data);
+  },
+
+  updateConfig: async (id, data) => {
+    const { adapter } = get();
+    if (!adapter) return null;
+    return adapter.updateConfig(id, data);
+  },
+
+  deleteConfig: async (id) => {
+    const { adapter } = get();
+    if (!adapter) return false;
+    return adapter.deleteConfig(id);
+  },
+
+  // ── Garage ──
+  getGarage: async () => {
+    const { adapter } = get();
+    return adapter ? adapter.getGarage() : [];
+  },
+
+  addToGarage: async (data) => {
+    const { adapter } = get();
+    if (!adapter) return null;
+    return adapter.addToGarage(data);
+  },
+
+  // ── Analytics ──
+  recordEvent: async (data) => {
+    const { adapter } = get();
+    if (!adapter) return;
+    return adapter.recordEvent(data);
+  },
+
   // ── Refresh (re-fetch all data from adapter) ──
   refresh: async () => {
     const { adapter } = get();
