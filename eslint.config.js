@@ -6,7 +6,7 @@ import react from 'eslint-plugin-react'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'backups', 'src_backup_*']),
+  globalIgnores(['dist', 'backups', 'src_backup_*', '.claude/', 'api/']),
   // Test files - allow vitest globals
   {
     files: ['**/*.{test,spec}.{js,jsx,ts,tsx}', '**/test/**/*.{js,jsx,ts,tsx}'],
