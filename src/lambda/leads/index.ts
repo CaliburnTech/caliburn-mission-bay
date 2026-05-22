@@ -3,7 +3,6 @@ import { prisma } from '../../lib/prisma';
 import { notifyNewLead, notifyPurchaseRequest } from '../../lib/ses';
 import { getAuthContext } from '../../lib/auth';
 import {
-  ok,
   created,
   badRequest,
   notFound,
