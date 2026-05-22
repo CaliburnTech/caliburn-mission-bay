@@ -19,18 +19,33 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/client-ses": "^3.1045.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
+    "@clerk/backend": "^3.4.7",
+    "@clerk/clerk-react": "^5.61.6",
     "@monaco-editor/react": "^4.7.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@types/pg": "^8.20.0",
     "@xyflow/react": "^12.10.1",
+    "dotenv": "^17.4.2",
     "html-to-image": "^1.11.13",
     "jspdf": "^4.2.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.576.0",
-    "mermaid": "^11.13.0",
+    "mermaid": "^11.15.0",
+    "pg": "^8.20.0",
+    "prisma": "^7.8.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-leaflet": "^5.0.0",
+    "svix": "^1.93.0",
     "tldraw": "^4.5.3",
     "zustand": "^5.0.8"
+  },
+  "prisma": {
+    "seed": "node --import tsx/esm prisma/seed.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
@@ -54,6 +69,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "^7.1.7",
+    "tsx": "^4.19.4",
     "vitest": "^3.2.4"
   }
 }
