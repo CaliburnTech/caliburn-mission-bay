@@ -33,7 +33,7 @@ export const requireAuth = async (req) => {
   if (error || !user) throw new Error('Invalid or expired token');
 
   return {
-    userId: user.id,              // Supabase UUID (stored in User.cognitoSub — rename pending)
+    userId: user.id,              // Supabase UUID (stored in User.authId)
     email: user.email,
     role: user.app_metadata?.role ?? 'BUYER',
   };

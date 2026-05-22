@@ -72,25 +72,25 @@ export const banCompany = async (
 
       await Promise.all(
         company.users
-          .filter((u) => u.cognitoSub !== null)
+          .filter((u) => u.authId !== null)
           .map(async (user) => {
             try {
               await cognito.send(
                 new AdminUserGlobalSignOutCommand({
                   UserPoolId: USER_POOL_ID,
-                  Username: user.cognitoSub!,
+                  Username: user.authId!,
                 }),
               );
             } catch (cognitoErr) {
-              console.error(`Cognito sign-out failed for ${user.cognitoSub}:`, cognitoErr);
+              console.error(`Cognito sign-out failed for ${user.authId}:`, cognitoErr);
             }
 
             // Deny-list entry keyed on the user's sub — authorizer checks by userId field too.
             await prisma.sessionDenyList.upsert({
-              where: { jwtJti: `sub:${user.cognitoSub}` },
+              where: { jwtJti: `sub:${user.authId}` },
               update: { expiresAt },
               create: {
-                jwtJti: `sub:${user.cognitoSub}`,
+                jwtJti: `sub:${user.authId}`,
                 userId: user.id,
                 reason: 'hard_ban',
                 expiresAt,
@@ -139,7 +139,7 @@ export const unbanCompany = async (
     if (company.lastBanType === 'HARD') {
       const users = await prisma.user.findMany({ where: { companyId } });
       const subs = users
-        .map((u) => `sub:${u.cognitoSub}`)
+        .map((u) => `sub:${u.authId}`)
         .filter((s) => s !== 'sub:null');
       const activeEntries = await prisma.sessionDenyList.findMany({
         where: { jwtJti: { in: subs } },

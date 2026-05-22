@@ -25,10 +25,10 @@ export const handler = async (
   if (isAdmin) {
     // Caliburn super-admins: create a User with no Company attachment.
     await prisma.user.upsert({
-      where: { cognitoSub: sub },
+      where: { authId: sub },
       update: {},
       create: {
-        cognitoSub: sub,
+        authId: sub,
         email,
         role: 'OWNER',
         status: 'ACTIVE',
@@ -49,7 +49,7 @@ export const handler = async (
 
   await prisma.user.create({
     data: {
-      cognitoSub: sub,
+      authId: sub,
       email,
       role: 'OWNER',
       status: 'ACTIVE',
@@ -66,7 +66,7 @@ export const handler = async (
       action: 'company.pending_approval',
       targetType: 'COMPANY',
       targetId: company.id,
-      metadata: { email, cognitoSub: sub },
+      metadata: { email, authId: sub },
     },
   });
 

@@ -56,7 +56,7 @@ export const handler = async (event: AuthorizerEvent): Promise<AuthorizerRespons
 
   // 4. Look up the user record.
   const user = await prisma.user.findUnique({
-    where: { cognitoSub: payload.sub },
+    where: { authId: payload.sub },
     include: { company: true },
   });
 

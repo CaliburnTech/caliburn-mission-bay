@@ -12,8 +12,7 @@ const CALIBURN_DOMAIN = 'caliburn.us';
  *   Table: auth.users  |  Events: INSERT, UPDATE  |  URL: <this endpoint>
  *   HTTP Header: x-webhook-secret: <SUPABASE_WEBHOOK_SECRET>
  *
- * NOTE: User.cognitoSub stores the Supabase user UUID. The column will be
- * renamed to authId in a future migration once all streams are merged.
+ * User.authId stores the Supabase user UUID (renamed from authId).
  */
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -42,10 +41,10 @@ export default async function handler(req, res) {
                               email.endsWith(`@${CALIBURN_DOMAIN}`);
 
       await prisma.user.upsert({
-        where: { cognitoSub: id },
+        where: { authId: id },
         update: { email, name },
         create: {
-          cognitoSub: id,
+          authId: id,
           email,
           name,
           role: isCaliburnStaff ? 'ADMIN' : 'MEMBER',
