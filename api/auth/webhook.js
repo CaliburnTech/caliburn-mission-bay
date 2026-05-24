@@ -12,7 +12,11 @@ const CALIBURN_DOMAIN = 'caliburn.us';
  *   Table: auth.users  |  Events: INSERT, UPDATE  |  URL: <this endpoint>
  *   HTTP Header: x-webhook-secret: <SUPABASE_WEBHOOK_SECRET>
  *
- * User.authId stores the Supabase user UUID (renamed from authId).
+ * INSERT: creates a Company (PENDING_APPROVAL) and an OWNER User linked to it.
+ * UPDATE: syncs mutable profile fields on the existing User row.
+ *
+ * Note: @caliburn.us accounts are treated as super-admins at JWT-validation time
+ * (derived from email domain). There is no isSuperAdmin column in the schema.
  */
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -31,25 +35,41 @@ export default async function handler(req, res) {
   const { type, record } = req.body ?? {};
   if (!record) return badRequest(res, 'Missing record');
 
-  if (type === 'INSERT' || type === 'UPDATE') {
-    try {
-      const { id, email, raw_user_meta_data } = record;
-      const name = raw_user_meta_data?.name ||
-                   raw_user_meta_data?.full_name ||
-                   null;
-      const isCaliburnStaff = typeof email === 'string' &&
-                              email.endsWith(`@${CALIBURN_DOMAIN}`);
+  if (type === 'INSERT') {
+    const { id: authId, email, raw_user_meta_data } = record;
+    const name = raw_user_meta_data?.name || raw_user_meta_data?.full_name || null;
+    // Company name placeholder derived from email domain; updated during onboarding.
+    const companyName = typeof email === 'string' ? email.split('@')[1] ?? email : 'Unknown';
 
-      await prisma.user.upsert({
-        where: { authId: id },
-        update: { email, name },
-        create: {
-          authId: id,
-          email,
-          name,
-          role: isCaliburnStaff ? 'ADMIN' : 'MEMBER',
-          onboardingComplete: isCaliburnStaff,
-        },
+    try {
+      await prisma.$transaction(async (tx) => {
+        const company = await tx.company.create({
+          data: { name: companyName, status: 'PENDING_APPROVAL' },
+        });
+
+        await tx.user.create({
+          data: {
+            authId,
+            email,
+            name,
+            role: 'OWNER',
+            companyId: company.id,
+          },
+        });
+      });
+    } catch (err) {
+      return serverError(res, err);
+    }
+  }
+
+  if (type === 'UPDATE') {
+    const { id: authId, email, raw_user_meta_data } = record;
+    const name = raw_user_meta_data?.name || raw_user_meta_data?.full_name || null;
+
+    try {
+      await prisma.user.update({
+        where: { authId },
+        data: { email, name },
       });
     } catch (err) {
       return serverError(res, err);
