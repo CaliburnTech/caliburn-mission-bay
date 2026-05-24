@@ -11,6 +11,7 @@
 
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { userClient, adminClient, errorResponse, jsonResponse } from '../_shared/supabase.ts'
+import { isSuperAdmin } from '../_shared/superadmin.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -66,15 +67,13 @@ Deno.serve(async (req) => {
       })
     }
 
-    const isSuperAdmin = user.email?.endsWith('@caliburn.us') ?? false
-
     return jsonResponse({
       valid: true,
       user_id: dbUser.id,
       auth_id: user.id,
       company_id: dbUser.company_id,
       role: dbUser.role,
-      is_super_admin: isSuperAdmin,
+      is_super_admin: isSuperAdmin(user),
       email: user.email,
     })
   } catch (err) {

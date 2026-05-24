@@ -17,12 +17,13 @@
 
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { userClient, adminClient, jsonResponse, errorResponse } from '../_shared/supabase.ts'
+import { isSuperAdmin } from '../_shared/superadmin.ts'
 
 async function requireSuperAdmin(req: Request) {
   const supabase = userClient(req)
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return null
-  if (!user.email?.endsWith('@caliburn.us')) return null
+  if (!isSuperAdmin(user)) return null
   return user
 }
 
