@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'crypto';
 import prisma from '../_lib/db.js';
 import { ok, badRequest, serverError } from '../_lib/respond.js';
+import { sendSignupAlert } from '../_lib/email.js';
 
 const CALIBURN_DOMAIN = 'caliburn.us';
 
@@ -60,6 +61,10 @@ export default async function handler(req, res) {
     } catch (err) {
       return serverError(res, err);
     }
+
+    // Fire-and-forget — email failure must not break signup
+    sendSignupAlert({ companyName, ownerEmail: email ?? '' })
+      .catch((err) => console.error('[webhook] signup alert email failed:', err));
   }
 
   if (type === 'UPDATE') {

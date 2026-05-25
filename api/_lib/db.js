@@ -1,21 +1,27 @@
 /**
- * Database Client (placeholder)
+ * Prisma database client — shared singleton for Vercel API functions.
  *
- * Phase 3 will add Prisma + Vercel Postgres here.
- * For now, exports a stub that logs warnings.
+ * Uses a global singleton to avoid exhausting connections during hot-reload
+ * in local dev (each module re-evaluation would create a new PrismaClient).
+ * In production Vercel functions each instance is isolated, so no issue there.
+ *
+ * Requires env vars:
+ *   DATABASE_URL  — pooled connection string (PgBouncer, port 6543)
+ *   DIRECT_URL    — direct connection string (port 5432, used by Prisma CLI only)
  */
 
-// Phase 3: Replace with:
-// import { PrismaClient } from '@prisma/client'
-// const prisma = new PrismaClient()
-// export default prisma
+import { PrismaClient } from '@prisma/client';
 
-export const db = {
-  _placeholder: true,
-  query: () => {
-    console.warn('[DB] Database not yet configured. Phase 3 will add Prisma + Vercel Postgres.');
-    return Promise.resolve([]);
-  }
-};
+const prisma =
+  globalThis.__prisma ??
+  new PrismaClient({
+    datasources: {
+      db: { url: process.env.DATABASE_URL },
+    },
+  });
 
-export default db;
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.__prisma = prisma;
+}
+
+export default prisma;

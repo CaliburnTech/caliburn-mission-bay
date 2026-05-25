@@ -1,5 +1,6 @@
 import prisma from '../../../_lib/db.js';
 import { requireCaliburnAdmin, handleAuthError } from '../../../_lib/auth.js';
+import { sendApprovalGranted } from '../../../_lib/email.js';
 import { ok, badRequest, notFound, serverError, methodNotAllowed } from '../../../_lib/respond.js';
 
 /**
@@ -24,15 +25,29 @@ export default async function handler(req, res) {
     return badRequest(res, `Application is already ${application.status}`);
   }
 
-  // Activate or create the company
+  // Approve or create the company (fix: 'ACTIVE' is not a valid CompanyStatus — use 'APPROVED')
   let company = application.companyId
-    ? await prisma.company.update({ where: { id: application.companyId }, data: { status: 'ACTIVE', isSeller: true } })
-    : await prisma.company.create({ data: { name: application.companyName, status: 'ACTIVE', isSeller: true } });
+    ? await prisma.company.update({
+        where: { id: application.companyId },
+        data: { status: 'APPROVED', isSeller: true, approvedAt: new Date(), approvedByEmail: admin.email },
+        include: { users: { where: { role: 'OWNER' }, select: { email: true }, take: 1 } },
+      })
+    : await prisma.company.create({
+        data: { name: application.companyName, status: 'APPROVED', isSeller: true, approvedAt: new Date(), approvedByEmail: admin.email },
+        include: { users: { where: { role: 'OWNER' }, select: { email: true }, take: 1 } },
+      });
 
   const updated = await prisma.vendorApplication.update({
     where: { id },
     data: { status: 'APPROVED', reviewedBy: admin.id, reviewedAt: new Date(), companyId: company.id },
   });
+
+  // Fire-and-forget approval email to company OWNER
+  const ownerEmail = company.users?.[0]?.email;
+  if (ownerEmail) {
+    sendApprovalGranted({ ownerEmail, companyName: company.name })
+      .catch((err) => console.error('[applications/approve] approval email failed:', err));
+  }
 
   return ok(res, { application: updated, company });
 }

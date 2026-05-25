@@ -1,0 +1,3617 @@
+{
+  "/MissionBayStack": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "maxAzs": "*",
+        "natGateways": "*",
+        "subnetConfiguration": [
+          {
+            "name": "*",
+            "subnetType": "Public",
+            "cidrMask": "*"
+          },
+          {
+            "name": "*",
+            "subnetType": "Private",
+            "cidrMask": "*"
+          }
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/Custom::VpcRestrictDefaultSGCustomResourceProvider": [
+    {
+      "type": "aws:cdk:is-custom-resource-handler-customResourceProvider",
+      "data": true
+    }
+  ],
+  "/MissionBayStack/LambdaSg": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "vpc": "*",
+        "description": "*",
+        "allowAllOutbound": true
+      }
+    }
+  ],
+  "/MissionBayStack/DbSg": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "vpc": "*",
+        "description": "*",
+        "allowAllOutbound": false
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addIngressRule": [
+          "*",
+          {},
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayUserPool": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "userPoolName": "*",
+        "selfSignUpEnabled": true,
+        "signInAliases": {
+          "email": true
+        },
+        "autoVerify": {
+          "email": true
+        },
+        "passwordPolicy": {
+          "minLength": "*",
+          "requireLowercase": true,
+          "requireUppercase": true,
+          "requireDigits": true,
+          "requireSymbols": false
+        },
+        "accountRecovery": 2,
+        "removalPolicy": "retain"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addTrigger": [
+          {},
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayClient": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "userPool": "*",
+        "authFlows": {
+          "userPassword": true,
+          "userSrp": true
+        },
+        "accessTokenValidity": "*",
+        "refreshTokenValidity": "*",
+        "idTokenValidity": "*",
+        "generateSecret": false
+      }
+    }
+  ],
+  "/MissionBayStack/LambdaRole": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "assumedBy": {
+          "principalAccount": "*",
+          "assumeRoleAction": "*"
+        },
+        "managedPolicies": [
+          {
+            "managedPolicyArn": "*"
+          },
+          {
+            "managedPolicyArn": "*"
+          }
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPrincipalPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "attachInlinePolicy": [
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "attachInlinePolicy": [
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPrincipalPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPrincipalPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPrincipalPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPrincipalPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPolicy": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addToPrincipalPolicy": [
+          {}
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/AssetsBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "bucketName": "*",
+        "blockPublicAccess": "*",
+        "encryption": "S3_MANAGED",
+        "lifecycleRules": [
+          {
+            "transitions": "*"
+          }
+        ],
+        "removalPolicy": "retain"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addLifecycleRule": [
+          {
+            "transitions": "*"
+          },
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/SbomBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "bucketName": "*",
+        "blockPublicAccess": "*",
+        "encryption": "S3_MANAGED",
+        "versioned": true,
+        "removalPolicy": "retain"
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayDb": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "engine": {
+          "engineType": "*",
+          "engineVersion": {
+            "fullVersion": "*",
+            "majorVersion": "*"
+          },
+          "parameterGroupFamily": "*",
+          "singleUserRotationApplication": "*",
+          "engineFamily": "*",
+          "defaultUsername": "*",
+          "supportedLogTypes": "*"
+        },
+        "writer": "*",
+        "serverlessV2MinCapacity": "*",
+        "serverlessV2MaxCapacity": "*",
+        "defaultDatabaseName": "*",
+        "credentials": "*",
+        "removalPolicy": "snapshot",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/CaliburnDomain": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "identity": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayBus": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {}
+    }
+  ],
+  "/MissionBayStack/AuthorizerFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/PostConfirmFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/CatalogFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/ConfigsFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/SbomFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/LeadsFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/AdminFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/AiBridgeFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/EventConsumerFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "runtime": "*",
+        "handler": "*",
+        "role": "*",
+        "environment": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "securityGroups": [
+          "*"
+        ],
+        "functionName": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEnvironment": [
+          "*",
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/HealthFn": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "functionName": "*",
+        "runtime": "*",
+        "handler": "*",
+        "code": "*",
+        "timeout": "*",
+        "memorySize": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/AllEventsRule": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "eventBus": "*",
+        "eventPattern": {
+          "source": "*"
+        },
+        "targets": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addEventPattern": [
+          {
+            "source": "*"
+          }
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addTarget": [
+          {}
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayApi": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/WarningBudget": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WarningBudget"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:369:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/UrgentBudget": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UrgentBudget"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:390:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/UserPoolId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:412:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/UserPoolClientId": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "UserPoolClientId"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:418:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/ApiUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ApiUrl"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:424:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AssetsBucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AssetsBucketName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:430:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/SbomBucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SbomBucketName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:436:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/EventBusName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EventBusName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:442:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/DbSecretArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbSecretArn"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:448:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MissionBayStack/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpc82422847"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": true,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": true,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {}
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addNatGateway": [
+          "*"
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet2": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": true,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": true,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {}
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet1": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": false,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": false,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {}
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet2": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": false,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "availabilityZone": "*",
+        "vpcId": "*",
+        "cidrBlock": "*",
+        "mapPublicIpOnLaunch": false,
+        "ipv6CidrBlock": "*",
+        "assignIpv6AddressOnCreation": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {}
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/IGW": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcIGW80F2205F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/VPCGW": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcVPCGW4B3050AE"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/RestrictDefaultSecurityGroupCustomResource": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/Custom::VpcRestrictDefaultSGCustomResourceProvider/Role": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/Custom::VpcRestrictDefaultSGCustomResourceProvider/Handler": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomVpcRestrictDefaultSGCustomResourceProviderHandlerDC833E5E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/LambdaSg/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LambdaSg30A6108C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new SecurityGroup2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:33:33)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/DbSg/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbSg495F8305"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new SecurityGroup2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:39:29)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/DbSg/from MissionBayStackLambdaSg7264B6FB:5432": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbSgfromMissionBayStackLambdaSg7264B6FB5432F7C52737"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:44:21)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayUserPool/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayUserPool14D397E2"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new UserPool2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:51:22)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayUserPool/PostConfirmationCognito": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayUserPoolPostConfirmationCognito0D020761"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:225:14)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayClient/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayClient27E59959"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new UserPoolClient2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:67:28)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/LambdaRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LambdaRole3A44B857"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Role2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:81:24)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/LambdaRole/DefaultPolicy": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "attachToRole": [
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "attachToRole": [
+          "*"
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addStatements": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addStatements": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addStatements": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addStatements": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addStatements": [
+          {}
+        ]
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:method",
+      "data": {
+        "addStatements": [
+          {}
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/AssetsBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AssetsBucket5CB76180"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:90:26)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/SbomBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SbomBucket8550FEE8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:107:24)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Subnets": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "description": "*",
+        "vpc": "*",
+        "vpcSubnets": {
+          "subnetType": "Private"
+        },
+        "removalPolicy": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Secret": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "encryptionKey": "*",
+        "secretName": "*",
+        "replicaRegions": "*"
+      }
+    },
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "username": "*",
+        "secretName": "*",
+        "encryptionKey": "*",
+        "excludeCharacters": "*",
+        "replaceOnPasswordCriteriaChanges": true,
+        "replicaRegions": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayDb80F06A7F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:121:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/writer": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/CaliburnDomain/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CaliburnDomainE63841F2"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new EmailIdentity2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:142:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayBus/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayBus4C882677"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new EventBus2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:147:22)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AuthorizerFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthorizerFn97B9AA7C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:207:26)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AuthorizerFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/PostConfirmFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PostConfirmFn06C759D2"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:215:27)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/PostConfirmFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/CatalogFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CatalogFnBCFD74AE"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:227:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/CatalogFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/ConfigsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConfigsFnAF0067A7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:235:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/ConfigsFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/SbomFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SbomFn53D5D662"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:243:20)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/SbomFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/LeadsFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LeadsFn185BD2D7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:251:21)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/LeadsFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/AdminFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AdminFn81E922BC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:259:21)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AdminFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/AiBridgeFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AiBridgeFn027129FA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:267:24)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AiBridgeFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/EventConsumerFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EventConsumerFnA14706E6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:275:29)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/EventConsumerFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/HealthFn/ServiceRole": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "assumedBy": {
+          "principalAccount": "*",
+          "assumeRoleAction": "*"
+        },
+        "managedPolicies": [
+          {
+            "managedPolicyArn": "*"
+          }
+        ]
+      }
+    }
+  ],
+  "/MissionBayStack/HealthFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthFn0EF18565"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:284:22)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/HealthFn/LogGroup": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "logGroupName": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/AllEventsRule/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AllEventsRule5A9710FA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Rule2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:299:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AllEventsRule/AllowEventRuleMissionBayStackEventConsumerFnE8298312": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AllEventsRuleAllowEventRuleMissionBayStackEventConsumerFnE82983121307A59E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Rule2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:299:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApi13BF9215"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new HttpApi2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:306:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/DefaultStage": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog--{proxy+}": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/MissionBayAuthorizer": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/MissionBayStackMissionBayApiMissionBayAuthorizerDE1FE42B-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiMissionBayStackMissionBayApiMissionBayAuthorizerDE1FE42BPermission1D77D092"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:353:5)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs--{proxy+}": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms--{proxy+}": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads--{proxy+}": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin--{proxy+}": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai--{proxy+}": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/GET--health": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib, node internals...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet1Subnet9AA8E5C4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:257 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet1RouteTable73514339"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:257 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet1RouteTableAssociationF9E64C42"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:257 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet1DefaultRoute49E72133"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:197 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1/EIP": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet1EIP86FB4966"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet1/NATGateway": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet1NATGateway15B220CB"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet2Subnet25E35813"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:257 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet2RouteTableCBE15919"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:257 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet2RouteTableAssociation6888991A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:257 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/publicSubnet2/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcpublicSubnet2DefaultRoute1AC19EF8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:197 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet1Subnet4D24B945"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:260 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet1RouteTableA583D409"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:260 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet1RouteTableAssociationBDA39CF7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:260 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet1/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet1DefaultRouteD7744F34"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet2Subnet9153B2E3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:260 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet2RouteTable4EE01BCF"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:260 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet2RouteTableAssociation40B871AE"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-ec2/lib/vpc.js:1:260 in aws-cdk-lib...",
+        "Array.forEach (:)",
+        "...aws-cdk-lib..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/privateSubnet2/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcprivateSubnet2DefaultRoute73788281"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayVpc/RestrictDefaultSecurityGroupCustomResource/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayVpcRestrictDefaultSecurityGroupCustomResourceE3B8FBAF"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Vpc2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:24:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/LambdaRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LambdaRoleDefaultPolicy75625A82"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Subnets/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayDbSubnetsA9D2AB07"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:121:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Secret/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayStackMissionBayDbSecretE73E87233fdaad7efa858a3daf9490cf0a702aeb"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:121:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Secret/Attachment": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": {
+        "secret": "*",
+        "target": "*"
+      }
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/writer/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayDbwriter5AF5D00F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:121:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AuthorizerFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/AuthorizerFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AuthorizerFnLogGroupA5DB7646"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:207:26)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/PostConfirmFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/PostConfirmFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PostConfirmFnLogGroup3C4DB3E6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:215:27)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/CatalogFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/CatalogFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CatalogFnLogGroup217D7A58"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:227:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/ConfigsFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/ConfigsFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ConfigsFnLogGroupFE5F167E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:235:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/SbomFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/SbomFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SbomFnLogGroup5753861C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:243:20)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/LeadsFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/LeadsFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "LeadsFnLogGroup8969EAA1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:251:21)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AdminFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/AdminFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AdminFnLogGroupD4348336"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:259:21)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/AiBridgeFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/AiBridgeFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AiBridgeFnLogGroupEFF231E4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:267:24)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/EventConsumerFn/Code/AssetBucket": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/EventConsumerFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EventConsumerFnLogGroup01279173"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:275:29)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/HealthFn/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthFnServiceRoleA02F5DA7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:284:22)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/HealthFn/LogGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthFnLogGroupE1E66832"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:284:22)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/DefaultStage/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiDefaultStageCF90CF88"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new HttpApi2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:306:17)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog--{proxy+}/CatalogFnIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog--{proxy+}/CatalogFnIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYcatalogproxyCatalogFnIntegrationPermissionF7487BC0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog--{proxy+}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYcatalogproxy928141F3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:353:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/MissionBayAuthorizer/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiMissionBayAuthorizerAA1F1CCB"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog/CatalogFnRootIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog/CatalogFnRootIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYcatalogCatalogFnRootIntegrationPermission113794CD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYcatalog39CF63ED"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:353:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs--{proxy+}/ConfigsFnIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs--{proxy+}/ConfigsFnIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYconfigsproxyConfigsFnIntegrationPermissionF313C3B3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs--{proxy+}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYconfigsproxy8553374A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:354:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs/ConfigsFnRootIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs/ConfigsFnRootIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYconfigsConfigsFnRootIntegrationPermission154886E9"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYconfigs5C9D11BA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:354:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms--{proxy+}/SbomFnIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms--{proxy+}/SbomFnIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYsbomsproxySbomFnIntegrationPermissionA19DC098"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms--{proxy+}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYsbomsproxy50830A33"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:355:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms/SbomFnRootIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms/SbomFnRootIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYsbomsSbomFnRootIntegrationPermission709B1003"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYsboms59D7F895"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:355:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads--{proxy+}/LeadsFnIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads--{proxy+}/LeadsFnIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYleadsproxyLeadsFnIntegrationPermissionB0FB8F43"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads--{proxy+}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYleadsproxyF2EFF2CF"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:356:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads/LeadsFnRootIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads/LeadsFnRootIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYleadsLeadsFnRootIntegrationPermission5795078F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYleads145E7A4A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:356:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin--{proxy+}/AdminFnIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin--{proxy+}/AdminFnIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYadminproxyAdminFnIntegrationPermissionFF2BF230"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin--{proxy+}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYadminproxyE2069011"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:357:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin/AdminFnRootIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin/AdminFnRootIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYadminAdminFnRootIntegrationPermission0D690340"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYadmin06863272"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:357:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai--{proxy+}/AiBridgeFnIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai--{proxy+}/AiBridgeFnIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYaiproxyAiBridgeFnIntegrationPermission42B063DD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai--{proxy+}/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYaiproxy8D3DF812"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:358:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai/AiBridgeFnRootIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai/AiBridgeFnRootIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYaiAiBridgeFnRootIntegrationPermissionA7C423A7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYai3F3B79B4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:358:5)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/GET--health/HealthIntegration": [
+    {
+      "type": "aws:cdk:analytics:construct",
+      "data": "*"
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/GET--health/HealthIntegration-Permission": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiGEThealthHealthIntegrationPermissionC64A2C77"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:361:9)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/GET--health/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiGEThealth5E235E10"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:361:9)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayDb/Secret/Attachment/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayDbSecretAttachment162ABB43"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new DatabaseCluster2 in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:121:23)",
+        "<anonymous> (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/bin/mission-bay.ts:6:1)",
+        "...node internals, ts-node..."
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog--{proxy+}/CatalogFnIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYcatalogproxyCatalogFnIntegration28A1B238"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--catalog/CatalogFnRootIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYcatalogCatalogFnRootIntegration0D9F477D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs--{proxy+}/ConfigsFnIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYconfigsproxyConfigsFnIntegrationCC6E943A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--configs/ConfigsFnRootIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYconfigsConfigsFnRootIntegration501B0EA7"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms--{proxy+}/SbomFnIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYsbomsproxySbomFnIntegrationFDE7A82F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--sboms/SbomFnRootIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYsbomsSbomFnRootIntegration857490BA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads--{proxy+}/LeadsFnIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYleadsproxyLeadsFnIntegrationE5AED1D8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--leads/LeadsFnRootIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYleadsLeadsFnRootIntegration54DFDE61"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin--{proxy+}/AdminFnIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYadminproxyAdminFnIntegrationC16BC122"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--admin/AdminFnRootIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYadminAdminFnRootIntegration95374CA9"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai--{proxy+}/AiBridgeFnIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYaiproxyAiBridgeFnIntegrationC753DB30"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:332:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/ANY--ai/AiBridgeFnRootIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiANYaiAiBridgeFnRootIntegration2631960E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "addRoutes (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:342:11)"
+      ]
+    }
+  ],
+  "/MissionBayStack/MissionBayApi/GET--health/HealthIntegration/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "MissionBayApiGEThealthHealthIntegrationD8296A19"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        ".../Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/node_modules/aws-cdk-lib/aws-apigatewayv2/lib/http/api.js:1:96 in aws-cdk-lib...",
+        "Array.map (:)",
+        "...WrappedClass.<anonymous> in aws-cdk-lib...",
+        "new MissionBayStack (/Users/alexbrodersen/Desktop/Backend Plan/caliburn-marketplace/infra/lib/mission-bay-stack.ts:361:9)"
+      ]
+    }
+  ]
+}

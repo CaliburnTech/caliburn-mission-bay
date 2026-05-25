@@ -1,5 +1,6 @@
 import prisma from '../_lib/db.js';
 import { requireAuth, handleAuthError } from '../_lib/auth.js';
+import { sendConfigSaved } from '../_lib/email.js';
 import { ok, created, badRequest, serverError, methodNotAllowed } from '../_lib/respond.js';
 
 /**
@@ -53,6 +54,10 @@ export default async function handler(req, res) {
       },
       include: { products: true },
     });
+
+    // Fire-and-forget — email failure must not block the save response
+    sendConfigSaved({ buyerEmail: user.email, configName: name ?? 'Untitled' })
+      .catch((err) => console.error('[configurations] config saved email failed:', err));
 
     return created(res, config);
   }

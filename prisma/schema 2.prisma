@@ -99,7 +99,8 @@ model Company {
 
 model User {
   id                 String     @id @default(cuid())
-  authId             String?    @unique
+  // Left as non-nullable to avoid breaking existing rows; flag for Stream B (auth migration).
+  cognitoSub         String?    @unique
   companyId          String?
   email              String     @unique
   name               String?

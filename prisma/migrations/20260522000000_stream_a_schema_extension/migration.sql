@@ -69,7 +69,7 @@ CREATE TABLE "Company" (
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "clerkUserId" TEXT NOT NULL,
-    "cognitoSub" TEXT,
+    "authId" TEXT,
     "companyId" TEXT,
     "email" TEXT NOT NULL,
     "name" TEXT,
