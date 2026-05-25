@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Shield, Clock, Building2, Eye, ScrollText } from 'lucide-react'
 import { PendingApprovals } from './pages/PendingApprovals'
 import { Companies } from './pages/Companies'
@@ -6,7 +6,9 @@ import { ImpersonateSelector } from './pages/ImpersonateSelector'
 import { AuditLog } from './pages/AuditLog'
 import { ImpersonationBanner } from './components/ImpersonationBanner'
 import { endImpersonation, setImpersonationSession } from './lib/api'
+import { supabase } from './lib/supabase'
 import type { ImpersonationSession } from './types'
+import type { Session } from '@supabase/supabase-js'
 
 type Page = 'pending' | 'companies' | 'impersonate' | 'audit'
 
@@ -20,9 +22,28 @@ const NAV: { id: Page; label: string; icon: React.ReactNode }[] = [
 export default function App() {
   const [page, setPage] = useState<Page>('pending')
   const [impersonationSession, setImpersonationSessionState] = useState<ImpersonationSession | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [loggingIn, setLoggingIn] = useState(false)
 
-  function handleImpersonate(session: ImpersonationSession) {
-    setImpersonationSessionState(session)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  function handleImpersonate(s: ImpersonationSession) {
+    setImpersonationSessionState(s)
     setPage('companies')
   }
 
@@ -34,6 +55,86 @@ export default function App() {
     }
     setImpersonationSession(null)
     setImpersonationSessionState(null)
+  }
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setLoginError(null)
+    setLoggingIn(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) setLoginError(error.message)
+    setLoggingIn(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm p-8">
+          <div className="flex items-center gap-2.5 mb-6">
+            <Shield size={20} className="text-blue-600" />
+            <h1 className="text-lg font-semibold text-gray-900">Caliburn Admin</h1>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            {loginError && (
+              <p className="text-sm text-red-600">{loginError}</p>
+            )}
+            <button
+              type="submit"
+              disabled={loggingIn}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm py-2 px-4 rounded-md transition-colors"
+            >
+              {loggingIn ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session.user.email?.endsWith('@caliburn.us')) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm p-8 text-center">
+          <Shield size={24} className="text-red-500 mx-auto mb-4" />
+          <h1 className="text-lg font-semibold text-gray-900 mb-2">Access denied</h1>
+          <p className="text-sm text-gray-600 mb-6">This portal is restricted to Caliburn staff.</p>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

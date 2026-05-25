@@ -1,15 +1,11 @@
 import { supabase } from './supabase'
 import type { BanPayload } from '../types'
 
-/**
- * Base URL for the Mission Bay admin API.
- * In production this points at Supabase Edge Functions:
- *   https://<project>.supabase.co/functions/v1
- * Override via VITE_API_URL in your .env file.
- */
-const API_URL =
-  import.meta.env.VITE_API_URL ??
-  `${import.meta.env.VITE_SUPABASE_URL ?? ''}/functions/v1`
+const API_URL = import.meta.env.VITE_API_URL as string
+
+if (!API_URL) {
+  console.warn('[admin] VITE_API_URL is not set — API calls will fail')
+}
 
 /** Server-side impersonation session ID, sent as X-Impersonation-Session-Id. */
 let impersonationSessionId: string | null = null
