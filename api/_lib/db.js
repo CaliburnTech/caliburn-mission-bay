@@ -12,9 +12,7 @@
  *   DATABASE_URL — pooled connection string (port 6543, ?pgbouncer=true)
  */
 
-// Prisma v7: client is generated to ./generated/prisma (not node_modules/@prisma/client)
-// Path from api/_lib/ → ../../generated/prisma/client
-import { PrismaClient } from '../../generated/prisma/client.js';
+import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const makeClient = () => {
