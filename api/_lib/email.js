@@ -117,3 +117,26 @@ export const sendConfigSaved = ({ buyerEmail, configName }) =>
     </p>
     `,
   );
+
+// ── Template 5 — Lead created (to Caliburn team) ─────────────────────────────
+// Fired: POST /api/purchase-requests
+export const sendLeadCreated = ({ buyerName, buyerEmail, companyName, configName, productNames }) =>
+  send(
+    NOTIFY,
+    `[Mission Bay] New purchase request — ${companyName}`,
+    `
+    <p>A buyer has submitted a purchase request on Mission Bay.</p>
+    <table style="border-collapse:collapse;margin:16px 0">
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Buyer</td><td><strong>${buyerName}</strong></td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Email</td><td>${buyerEmail}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Company</td><td>${companyName ?? '—'}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Configuration</td><td>${configName ?? 'Untitled'}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Products</td><td>${productNames?.join(', ') ?? '—'}</td></tr>
+    </table>
+    <p>
+      <a href="${APP_URL}/admin" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:#fff;text-decoration:none;border-radius:6px">
+        View in Admin Portal →
+      </a>
+    </p>
+    `,
+  );

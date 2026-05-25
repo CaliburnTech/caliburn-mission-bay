@@ -141,12 +141,12 @@ export const vesselHullData = [
     }
   },
   {
-    name: "Saildrone",
+    name: "Saildrone Surveyor",
     type: "Small USV",
     platformType: "USV",
     displacement: "< 2 tons",
     description: "Wind and solar powered autonomous surface vehicle for long-duration ISR missions",
-    icon: "Saildrone",
+    icon: "Saildrone Surveyor",
     specs: {
       speed: 5,         // knots (wind powered)
       range: 5000,      // nm (essentially unlimited with wind/solar)
@@ -250,6 +250,55 @@ export const vesselHullData = [
     }
   },
   // ============ MEDIUM USV CATEGORY ============
+  {
+    name: "Saildrone Voyager",
+    type: "Coastal ISR USV",
+    platformType: "USV",
+    displacement: "~5 tons",
+    description: "Saildrone 10m electric autonomous USV for coastal ISR, maritime domain awareness, and nearshore seafloor mapping. Starlink-connected with 100-day endurance between service stops.",
+    icon: "Saildrone Voyager",
+    manufacturer: "Saildrone, Inc.",
+    specs: {
+      speed: 5,
+      range: 5000,
+      rcs: 3
+    },
+    capacity: {
+      totalWeight: 300,
+      totalPower: 3.5
+    },
+    detailedSpecs: {
+      length: "10m",
+      wingHeight: "6m (Saildrone Wing)",
+      draft: "2m",
+      propulsion: "Electric motor (primary) + Saildrone Wing (aux)",
+      mappingSpeed: "5 knots",
+      endurance: "100 days between service stops",
+      payloadPower: "3.5 kW peak",
+      connectivity: "Starlink",
+      mbesSonarDepth: "300m (IHO-compliant)"
+    },
+    features: [
+      "Only survey USV capable of IHO-compliant multibeam surveys at extended endurance",
+      "Starlink connectivity",
+      "Electric + wind hybrid propulsion",
+      "AIS transceiver and PTZ infrared camera",
+      "MBES seafloor mapping to 300m depth",
+      "100-day autonomous endurance"
+    ],
+    applications: [
+      "Coastal ISR",
+      "Maritime domain awareness",
+      "Nearshore seafloor mapping",
+      "Border monitoring",
+      "Counter-drug operations",
+      "Illegal fishing detection"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.saildrone.com",
+      specSheet: "https://www.saildrone.com/platform/voyager"
+    }
+  },
   {
     name: "ZeroUSV Oceanus17",
     type: "Medium USV",
@@ -404,6 +453,103 @@ export const vesselHullData = [
       specSheet: "https://www.sncorp.com/capabilities/aegir-autonomous-usv/"
     }
   },
+  {
+    name: "M48",
+    type: "Large Uncrewed Surface Vessel (LUSV)",
+    platformType: "USV",
+    displacement: "~210 tons (est.)",
+    description: "Magnet Defense 48m autonomous catamaran LUSV for long-range maritime operations. Self-deploys San Diego to Arabian Gulf without refueling. Demonstrated Sea State 9 survivability.",
+    icon: "M48",
+    manufacturer: "Magnet Defense",
+    specs: {
+      speed: 27,
+      range: 17000,
+      rcs: 25
+    },
+    capacity: {
+      totalWeight: 100000,
+      totalPower: 500
+    },
+    detailedSpecs: {
+      length: "48m (157 ft)",
+      hull: "Catamaran",
+      cruiseSpeed: "15 knots",
+      payloadCapacity: "100 tons / up to 4 standard ISO containers",
+      autonomy: "Magnet DriveAI",
+      endurance: "390 days / 32,000 nm demonstrated",
+      status: "In production — first delivery Q2 2027"
+    },
+    features: [
+      "Fully autonomous — zero crew",
+      "Magnet DriveAI autonomy system",
+      "100-ton / 4 ISO container payload capacity",
+      "17,000 nm range at cruise",
+      "Sea State 9 survivability demonstrated",
+      "Self-deploy capable across ocean basins"
+    ],
+    applications: [
+      "IAMD and long-range kill chains",
+      "Anti-surface and anti-submarine warfare",
+      "Electronic warfare",
+      "Contested logistics",
+      "Search and rescue"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.magnetdefense.com"
+    }
+  },
+  {
+    name: "Saildrone Spectre",
+    type: "Large Combat USV",
+    platformType: "USV",
+    displacement: "250 tonnes",
+    description: "Saildrone 52m autonomous combat USV with 6+ month endurance. Two variants: Silent Endurance (ASW/ISR, 43m wing) and Stealth Strike (wingless, optimized for strike and EW). Mk 70 VLS capable.",
+    icon: "Saildrone Spectre",
+    manufacturer: "Saildrone, Inc.",
+    specs: {
+      speed: 30,
+      range: 8000,
+      rcs: 10
+    },
+    capacity: {
+      totalWeight: 70000,
+      totalPower: 250
+    },
+    detailedSpecs: {
+      length: "52m (170 ft)",
+      draft: "3.2m (10.4 ft)",
+      displacement: "250 tonnes",
+      maxSpeed: "30 knots",
+      rangeAt25kts: "3,280 nm",
+      rangeAt12kts: ">8,000 nm",
+      payloadBay: "2× 40-ft containers OR 5× 20-ft containers",
+      endurance: "6+ months",
+      armament: "2× Lockheed Martin Mk 70 VLS capable",
+      variants: "Silent Endurance (with wing), Stealth Strike (wingless)"
+    },
+    features: [
+      "2× Lockheed Martin Mk 70 VLS integration capable",
+      "250 kW peak payload power",
+      "70-tonne max payload",
+      "6+ month autonomous endurance",
+      "43m height-of-eye advantage (Silent Endurance variant)",
+      "Lower radar profile wingless Stealth Strike variant",
+      "5× 20-ft or 2× 40-ft container payload bay"
+    ],
+    applications: [
+      "Anti-submarine warfare",
+      "Strike and power projection",
+      "Electronic warfare",
+      "Mine laying",
+      "Air and missile defense",
+      "C5ISR-T",
+      "Counter-UAS"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.saildrone.com",
+      specSheet: "https://www.saildrone.com/platform/spectre"
+    }
+  },
   // ============ AUSV (Autonomous Underwater/Surface Vehicle) ============
   {
     name: "Triton",
@@ -470,6 +616,51 @@ export const vesselHullData = [
     capacity: {
       totalWeight: 10000,
       totalPower: 200
+    }
+  },
+  {
+    name: "Freedom AUV",
+    type: "Large Displacement UUV (LDUUV)",
+    platformType: "UUV",
+    displacement: "Unknown",
+    description: "Oceaneering autonomous underwater vehicle selected by US Navy / DIU for LDUUV prototype program. 6,000m depth capability, 6 degrees of freedom, up to 6 months subsea endurance.",
+    icon: "Freedom AUV",
+    manufacturer: "Oceaneering International",
+    specs: {
+      speed: 6,
+      range: 108,
+      rcs: 0.01
+    },
+    capacity: {
+      totalWeight: 500,
+      totalPower: 10
+    },
+    detailedSpecs: {
+      speed: "6 knots",
+      range: "200 km",
+      maxDepth: "6,000m",
+      endurance: "Up to 6 months subsea",
+      maneuverability: "6 degrees of freedom",
+      program: "US Navy / DIU LDUUV prototype — demonstration completed May 2024"
+    },
+    features: [
+      "6,000m maximum operating depth",
+      "6 degrees of freedom maneuverability",
+      "Autonomous docking and undocking",
+      "Obstacle avoidance",
+      "Precision payload placement",
+      "US Navy / DIU LDUUV program selected"
+    ],
+    applications: [
+      "Subsea inspection",
+      "Undersea warfare",
+      "ISR",
+      "Precision survey",
+      "Autonomous docking operations"
+    ],
+    externalLinks: {
+      manufacturer: "https://oceaneering.com",
+      specSheet: "https://oceaneering.com/rov-services/next-generation-subsea-systems/freedom-autonomous-underwater-vehicle"
     }
   },
   // ============ UAV CATEGORY ============
@@ -787,7 +978,7 @@ export const vesselHullData = [
 export const vesselHullComponents = {
   // Small USV category
   "MetalShark": MetalSharkHull,
-  "Saildrone": SailboatHull,
+  "Saildrone Surveyor": SailboatHull,
   "SubSeaSail": SubSeaSailHull,
   "SubSeaSail Horus": SubSeaSailHull,
   "Otter X": SmallUSVHull,
@@ -802,6 +993,12 @@ export const vesselHullComponents = {
   "Triton": TritonAUSVHull,
   // Large/XLUUV category
   "Manta Ray": MantaRayHull,
+  "Freedom AUV": UUVHull,
+  // Magnet Defense
+  "M48": USVPatrolHull,
+  // Saildrone family
+  "Saildrone Voyager": SailboatHull,
+  "Saildrone Spectre": StealthHull,
   // UAV category
   "MQ-25 Stingray": MQ25StingrayHull,
   "MQ-9 Reaper": MQ9ReaperHull,
@@ -856,7 +1053,7 @@ export const vesselMountPoints = {
     "Navigation AI": { type: "UNMANNED SYSTEMS", x: 60, y: 35, category: "Autonomous Systems" },
     "EW Pod": { type: "ELECTRONIC SUPPORT", x: 70, y: 45, category: "Electronic Warfare" }
   },
-  "Saildrone": {
+  "Saildrone Surveyor": {
     "Sensor Suite": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
     "Communications": { type: "SATCOM", x: 50, y: 35, category: "Communications" },
     "Navigation": { type: "NAVIGATION", x: 45, y: 45, category: "Navigation" },
@@ -900,7 +1097,6 @@ export const vesselMountPoints = {
 export const VESSEL_SLOT_CAPACITY = {
   // Small USVs — EW merged into SENSORS, C2 slot added
   "MetalShark": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
-  "Saildrone": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   "SubSeaSail Horus": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   "Otter X": { SENSORS: 2, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
@@ -916,6 +1112,13 @@ export const VESSEL_SLOT_CAPACITY = {
   "Triton": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // Large UUV
   "Manta Ray": { SENSORS: 5, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
+  "Freedom AUV": { SENSORS: 4, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 2, AI: 2, UTILITY: 2, OTHER: 0 },
+  // Magnet Defense
+  "M48": { SENSORS: 6, COMMS: 3, WEAPONS: 4, C2: 2, NAV: 2, AI: 3, UTILITY: 4, OTHER: 0 },
+  // Saildrone family
+  "Saildrone Voyager": { SENSORS: 4, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "Saildrone Surveyor": { SENSORS: 5, COMMS: 2, WEAPONS: 0, C2: 2, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
+  "Saildrone Spectre": { SENSORS: 7, COMMS: 3, WEAPONS: 5, C2: 3, NAV: 2, AI: 3, UTILITY: 4, OTHER: 0 },
   // UAV platforms
   "MQ-25 Stingray": { SENSORS: 2, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
   "MQ-9 Reaper": { SENSORS: 5, COMMS: 2, WEAPONS: 2, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },

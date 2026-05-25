@@ -42,7 +42,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_002",
-    name: "Saildrone Autonomous Fleet",
+    name: "Saildrone Surveyor Fleet",
     type: "Wind-Powered USV",
     platformType: "USV",
     totalUnits: 117,
@@ -51,7 +51,7 @@ export const swarmSquadrons = [
       inRefit: 5,
       atSea: 23
     },
-    icon: "Saildrone",
+    icon: "Saildrone Surveyor",
     description: "Autonomous sailing vessel swarm for long-endurance ocean monitoring",
     isVariation: false,
     parentId: null,
@@ -204,6 +204,101 @@ export const swarmSquadrons = [
     },
     icon: "AEGIR-H",
     description: "SNC 49-foot multi-role platforms with dual payload bays. Supports ISR, EW, strike, and autonomous resupply.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_016",
+    name: "Magnet Defense M48 Strike Fleet",
+    type: "Large Uncrewed Surface Vessel (LUSV)",
+    platformType: "USV",
+    totalUnits: 6,
+    status: {
+      missionReady: 4,
+      deployed: 1,
+      charging: 0,
+      maintenance: 1
+    },
+    icon: "M48",
+    description: "Magnet Defense 48m autonomous catamaran LUSVs. 17,000 nm range, 100-ton payload capacity. First delivery Q2 2027.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_017",
+    name: "Saildrone Voyager Coastal Squadron",
+    type: "Coastal ISR USV",
+    platformType: "USV",
+    totalUnits: 18,
+    status: {
+      missionReady: 14,
+      deployed: 3,
+      charging: 0,
+      maintenance: 1
+    },
+    icon: "Saildrone Voyager",
+    description: "Saildrone 10m electric USVs for coastal ISR and nearshore seafloor mapping. Starlink-connected, 100-day endurance.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_019",
+    name: "Saildrone Spectre Combat Flotilla",
+    type: "Large Combat USV",
+    platformType: "USV",
+    totalUnits: 5,
+    status: {
+      missionReady: 3,
+      deployed: 2,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "Saildrone Spectre",
+    description: "Saildrone 52m autonomous combat USVs. Mk 70 VLS capable. Variants: Silent Endurance (ASW) and Stealth Strike.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_020",
+    name: "Oceaneering Freedom AUV Pack",
+    type: "Large Displacement UUV (LDUUV)",
+    platformType: "UUV",
+    totalUnits: 3,
+    status: {
+      missionReady: 2,
+      deployed: 1,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "Freedom AUV",
+    description: "Oceaneering LDUUV selected by US Navy / DIU. 6,000m depth, 6-month subsea endurance, 6 degrees of freedom.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_021",
+    name: "Ocean Aero Triton AUSV Squadron",
+    type: "AUSV (Surface/Subsurface)",
+    platformType: "USV",
+    totalUnits: 12,
+    status: {
+      missionReady: 9,
+      deployed: 2,
+      charging: 0,
+      maintenance: 1
+    },
+    icon: "Triton",
+    description: "Ocean Aero autonomous undersea and surface vehicles. Wind and solar powered, submersible for threat evasion. Radar cross section disappears at 1/4 mile.",
     isVariation: false,
     parentId: null,
     parentName: null,

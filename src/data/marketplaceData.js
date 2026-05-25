@@ -1471,7 +1471,320 @@ export const individualCapabilities = [
       missionTags: ["Vision Enhancement", "Sensor Processing", "AI Perception"],
       providerLogo: "/providers/absentia/assets/AT_LOGO_A.svg",
       bannerImage: "/providers/absentia/assets/banners/MYSTIC_banner.svg"
-    }
+    },
+  // ============ SONAR & UNDERSEA WARFARE ============
+  {
+    name: "Northrop Grumman µSAS",
+    provider: "Northrop Grumman",
+    type: "Synthetic Aperture Sonar",
+    description: "Low-SWaP interferometric Synthetic Aperture Sonar payload for UUV-mounted minehunting. Produces high-resolution 2D SAS imagery and 3D bathymetric imagery in real-time or post-mission. Information Assurance / Anti-Tamper enabled.",
+    capabilities: [
+      "High-resolution 2D SAS imagery",
+      "3D bathymetric imagery",
+      "Real-time onboard processing",
+      "Shallow water to full ocean depth",
+      "IA/AT enabled",
+      "Man-portable (µSAS-SV24) and large UUV (µSAS-MV) variants"
+    ],
+    trl: "TRL 9",
+    icon: TowedSonarIcon,
+    category: "ACOUSTIC/SONAR",
+    swap: {
+      weight: 25,
+      power: 0.3,
+      size: "small"
+    },
+    statImpacts: {
+      speed: -1,
+      power: -2,
+      weight: 2,
+      range: 0,
+      stealth: -1
+    },
+    securityLevel: ["IA Enabled", "Anti-Tamper"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      sonarType: "Interferometric Synthetic Aperture Sonar (SAS)",
+      formFactor: "Low-SWaP UUV payload",
+      depthRange: "Shallow water to full ocean depth",
+      processing: "Real-time onboard or post-mission",
+      output: "High-resolution 2D SAS + 3D bathymetric imagery",
+      variants: "µSAS-MV (large UUV / submarine), µSAS-SV24 (man-portable class)"
+    },
+    keyFeatures: [
+      "Captured highest-resolution images of USS Monitor wreck (NOAA collaboration)",
+      "Compatible with L3Harris IVER3-580, HII/REMUS 6000, and submarines",
+      "IA/AT enabled for classified operations",
+      "Low-SWaP — fits man-portable class UUVs"
+    ],
+    missionTags: ["Anti-Submarine Warfare", "Sea Control"]
+  },
+  {
+    name: "Thales CAPTAS-4",
+    provider: "Thales",
+    type: "Variable Depth Sonar — Towed Array",
+    description: "CAPTAS-4 Combined Active Passive Towed Array Sonar with detection range to the 2nd convergence zone (~150 km). Operational on 18 navies, 100+ units ordered or in service. Compact variant offers 20% weight reduction and 50% smaller footprint.",
+    capabilities: [
+      "Active and passive sonar modes",
+      "Detection to 2nd convergence zone (~150 km)",
+      "Wide FM, CW, and COMBO pulse types",
+      "Sea State 6 operational limit",
+      "Variable depth up to 235 m",
+      "Single or dual tow configuration"
+    ],
+    trl: "TRL 9",
+    icon: TowedSonarIcon,
+    category: "ACOUSTIC/SONAR",
+    swap: {
+      weight: 8000,
+      power: 15,
+      size: "large"
+    },
+    statImpacts: {
+      speed: -3,
+      power: -10,
+      weight: 5,
+      range: 5,
+      stealth: -2
+    },
+    securityLevel: ["NATO Qualified", "18 Navies Operational"],
+    securityIcons: ["nato"],
+    specs: {
+      transmitterRings: "4 free-flooded rings",
+      activeFrequency: "Below 2 kHz",
+      transmitBandwidth: "Wide FM",
+      pulseTypes: "FM, CW, COMBO",
+      operationalDepth: "Up to 235 m",
+      detectionRange: "Up to 2nd convergence zone (~150 km)",
+      seaStateLimit: "Sea State 6",
+      towingConfig: "Single tow or dual tow"
+    },
+    keyFeatures: [
+      "US Navy selected CAPTAS-4 transmitter for ASW Escort Mission Requirement",
+      "Compact variant: 20% weight reduction, 50% smaller footprint vs standard",
+      "Operational on frigates, destroyers, corvettes, and patrol vessels",
+      "18 navies — 100+ units ordered or in service"
+    ],
+    missionTags: ["Anti-Submarine Warfare", "Sea Control"]
+  },
+  {
+    name: "TB-37 Multi-Function Towed Array",
+    provider: "Lockheed Martin",
+    type: "Active/Passive Towed Array Sonar",
+    description: "US Navy TB-37 Multi-Function Towed Array (MFTA), component of the AN/SQQ-89(V) undersea warfare combat system. Active and passive modes across multiple ocean thermal layers. Operational on Arleigh Burke DDGs, Ticonderoga CGs, and LCS.",
+    capabilities: [
+      "Active and passive sonar modes",
+      "Multi-layer depth capability",
+      "AN/SQQ-89(V) combat system integration",
+      "Arleigh Burke and LCS compatible"
+    ],
+    trl: "TRL 9",
+    icon: TowedSonarIcon,
+    category: "ACOUSTIC/SONAR",
+    swap: {
+      weight: 3000,
+      power: 8,
+      size: "large"
+    },
+    statImpacts: {
+      speed: -2,
+      power: -8,
+      weight: 4,
+      range: 4,
+      stealth: -2
+    },
+    securityLevel: ["US Navy Program of Record"],
+    securityIcons: ["hardened"],
+    specs: {
+      arrayDiameter: "3 inches",
+      sonarModes: "Active and passive",
+      depthCapability: "Variable — multiple ocean thermal layers",
+      combatSystem: "AN/SQQ-89(V) USW/ASW Combat System",
+      designation: "TB-37 / AN/SQQ-89(V) component"
+    },
+    missionTags: ["Anti-Submarine Warfare", "Sea Control"]
+  },
+  {
+    name: "AN/UYQ-100 USW-DSS",
+    provider: "Leidos",
+    type: "ASW Command and Control Software",
+    description: "Undersea Warfare Decision Support System. Open-architecture ASW C2 software deployed on 35+ ships and carriers since 2010. Integrates sensor tracks, TDAs, and environmental analysis across Carrier Strike Groups via GCCS-M, Link-11, and Link-16.",
+    capabilities: [
+      "ASW search planning and execution",
+      "Multi-platform sensor track fusion",
+      "Environmental analysis and modeling",
+      "Force management and coordination",
+      "Search execution MOE",
+      "ASW briefing support"
+    ],
+    trl: "TRL 9",
+    icon: Brain,
+    category: "COMMAND & CONTROL",
+    swap: {
+      weight: 0,
+      power: 0.5,
+      size: "small"
+    },
+    statImpacts: {
+      speed: 0,
+      power: -1,
+      weight: 0,
+      range: 3,
+      stealth: 0
+    },
+    securityLevel: ["US Navy Program of Record", "CANES Hardware"],
+    securityIcons: ["hardened", "encrypted"],
+    specs: {
+      designation: "AN/UYQ-100",
+      hardware: "CANES (Consolidated Afloat Network and Enterprise Services)",
+      architecture: "Open-architecture software",
+      interfaces: "GCCS-M, Link-11, Link-16, AN/SQQ-89, CV-TSC",
+      deployment: "35+ ships and carriers, 3 shore commands, 5 training sites",
+      operational: "Since 2010"
+    },
+    keyFeatures: [
+      "Deployed on CVN, CG, DDG Carrier Strike Groups",
+      "Networked tactical picture combining sensor tracks and TDAs",
+      "Collaborative ASW search planning across distributed forces",
+      "SURTASS ship and Destroyer Squadron staff integration"
+    ],
+    missionTags: ["Anti-Submarine Warfare", "Sea Control"]
+  },
+  // ============ KINETIC WEAPONS ============
+  {
+    name: "Thales MEA Supercavitating Ammunition",
+    provider: "Thales",
+    type: "Dual-Environment Ammunition",
+    description: "Supercavitating Multi-Environment Ammunition effective both in air and underwater. Spin-stabilized in air, cavity-stabilized underwater. Available in 7.62mm to 30mm calibers. 12.7mm penetrates steel targets to 60m depth.",
+    capabilities: [
+      "Air and underwater engagement",
+      "Supercavitation at depth",
+      "Steel penetration to 60m (12.7mm)",
+      "Multiple calibers: 7.62mm, 12.7mm, 20mm, 25mm, 30mm",
+      "Anti-diver capability",
+      "Dual-environment threat neutralization"
+    ],
+    trl: "TRL 9",
+    icon: Target,
+    category: "KINETIC WEAPONS",
+    swap: {
+      weight: 50,
+      power: 0,
+      size: "small"
+    },
+    statImpacts: {
+      speed: 0,
+      power: 0,
+      weight: 3,
+      range: 0,
+      stealth: -1
+    },
+    specs: {
+      calibers: "7.62mm, 12.7mm, 20mm, 25mm, 30mm",
+      airBehavior: "Spin-stabilized",
+      underwaterBehavior: "Cavity-stabilized (supercavitation)",
+      underwaterPenetration: "Up to 60m depth (12.7mm vs steel)"
+    },
+    missionTags: ["Sea Denial", "Sea Control"]
+  },
+  {
+    name: "Hanwha CTM-MR / CTM-ASBM",
+    provider: "Hanwha Aerospace",
+    type: "Precision-Guided Rocket System",
+    description: "Hanwha High-Performance Rocket System family. CTM-MR: 50–160 km range, ~9m CEP. CTM-ASBM: IIR-guided anti-ship variant with 20%+ increased warhead, production target 2027. Fires in Sea State 5 from naval deck mount (HPMRL).",
+    capabilities: [
+      "50–160 km strike range (CTM-MR)",
+      "~9 m CEP precision guidance",
+      "Anti-ship IIR seeker (CTM-ASBM)",
+      "GPS + inertial guidance",
+      "Sea State 5 naval deck launch",
+      "C-130 transportable launcher"
+    ],
+    trl: "TRL 7",
+    icon: SM6MissileIcon,
+    category: "KINETIC WEAPONS",
+    swap: {
+      weight: 2000,
+      power: 1.0,
+      size: "large"
+    },
+    statImpacts: {
+      speed: -2,
+      power: -3,
+      weight: 5,
+      range: 0,
+      stealth: -3
+    },
+    specs: {
+      diameter: "280 mm",
+      rangeCTMMR: "50–160 km",
+      guidance: "GPS + inertial",
+      cep: "~9 m",
+      ctmASBMSeeker: "IIR (imaging infrared) anti-ship",
+      launcherSystem: "HPMRL — naval deck-mounted, fires in Sea State 5",
+      ctmASBMStatus: "Development — production target ~2027"
+    },
+    keyFeatures: [
+      "CTM-ASBM anti-ship seeker with 20%+ larger warhead vs CGR-080",
+      "HPMRL naval launcher fires in Sea State 5",
+      "Launcher system weight 19t, C-130 transportable",
+      "Partnered with Saildrone for Spectre platform integration"
+    ],
+    missionTags: ["Sea Denial", "Sea Control"]
+  },
+  // ============ AIRBORNE / TETHERED ISR ============
+  {
+    name: "DPI VULTURE Tethered UAS",
+    provider: "Dragonfly Pictures (DPI)",
+    type: "Maritime Tethered UAS",
+    description: "Shipboard tethered UAS extending radio line-of-sight from ~8 miles to ~30 miles at 500 ft AGL. Unlimited endurance via tether power. Deployed by US Navy and USCG. Rated for 30g vibration, indirect shell explosions, salt fog.",
+    capabilities: [
+      "500 ft AGL — 4× LOS communications range extension",
+      "Unlimited endurance (tether-powered)",
+      "35+ knot wind tolerance",
+      "15 lb payload capacity",
+      "RSS R/T 1944 and MIDS JTRS Link 16 payloads",
+      "< 3 minute deploy/retrieve",
+      "Ruggedized for shipboard environment"
+    ],
+    trl: "TRL 9",
+    icon: Eye,
+    category: "EO/IR SENSORS",
+    swap: {
+      weight: 4500,
+      power: 225,
+      size: "large"
+    },
+    statImpacts: {
+      speed: -1,
+      power: -15,
+      weight: 4,
+      range: 5,
+      stealth: -2
+    },
+    securityLevel: ["USN Qualified", "USCG Qualified", "ISO 9001:2015"],
+    securityIcons: ["hardened"],
+    specs: {
+      maxAltitude: "500 ft AGL",
+      windTolerance: "35+ knots",
+      payloadCapacity: "15 lbs (6.8 kg)",
+      deployRetrieve: "< 3 minutes",
+      endurance: "Unlimited (tether-powered)",
+      batteryBackup: "5 min flight time",
+      shipboardPower: "440 VAC 3-phase Delta",
+      powerConsumption: "< 225 kW",
+      uavConfig: "8× 29\" rotors",
+      commsRangeExtension: "~8 mi → ~30 mi (4× boost)"
+    },
+    keyFeatures: [
+      "Qualified for US Navy and USCG use",
+      "Elevates shipboard radio LOS from ~8 mi to ~30 mi",
+      "RSS R/T 1944 and MIDS JTRS Link 16 radio payloads deployed",
+      "Auto-retract on landing — ruggedized TRICON container housing",
+      "Rated for 30g vibration and indirect shell explosions"
+    ],
+    missionTags: ["ISR Operations", "PORT_SECURITY", "Sea Control"]
+  }
   ];
 export const capabilityCategories = {
   "COMMAND & CONTROL": {
@@ -1613,7 +1926,7 @@ export const squadrons = [
     },
     capabilities: ["Autonomous Resupply", "Squadron Sustainment", "Mobile Repair", "Predictive Logistics"],
     location: "Multi-Theater Operations",
-    readyTime: "CONTINUOUS OPERATIONS", 
+    readyTime: "CONTINUOUS OPERATIONS",
     icon: "logistics"
   }
 ];

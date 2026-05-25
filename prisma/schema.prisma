@@ -358,13 +358,12 @@ model ProductComponent {
   @@map("product_components")
 }
 
-// Metadata pointer to a generated CycloneDX JSON file in S3. The JSON itself lives at s3Key.
+// Metadata pointer to a generated CycloneDX JSON file in Supabase Storage. The path lives in storagePath.
 model Sbom {
   id                   String     @id @default(cuid())
   savedConfigurationId String
   format               SbomFormat @default(CYCLONEDX_1_5)
-  s3Key                String
-  s3Bucket             String     @default("mission-bay-sboms")
+  storagePath          String
   componentCount       Int        @default(0)
   topLevelCount        Int        @default(0)
   dependencyCount      Int        @default(0)
@@ -377,6 +376,7 @@ model Sbom {
 
   savedConfiguration SavedConfiguration @relation(fields: [savedConfigurationId], references: [id])
 
+  @@unique([savedConfigurationId])
   @@map("sboms")
 }
 
