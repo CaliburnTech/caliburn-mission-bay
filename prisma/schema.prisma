@@ -312,7 +312,7 @@ model License {
   spdxId            String?
   displayName       String
   governmentMarking String?
-  isProprietory     Boolean  @default(false)
+  isProprietary     Boolean  @default(false)
   notes             String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
