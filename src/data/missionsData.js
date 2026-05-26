@@ -356,5 +356,264 @@ export const initialMissions = [
       { action: "launched", timestamp: "2024-10-18T06:00:00Z" },
       { action: "completed", timestamp: "2024-12-01T16:00:00Z", details: "1,247 emitter intercepts catalogued" }
     ]
+  },
+  // ASW — Philippine Sea 7th Fleet
+  {
+    id: "mission-asw-7thfleet-001",
+    name: "PhilSea-ASW-BRAVO7-CAPTAS",
+    template: "ASW",
+    status: "active",
+    assignedSquadrons: ["sqdn_016", "sqdn_004"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Philippine Sea — Sector BRAVO-7 — PLAN Submarine Transit Route",
+      coordinates: [
+        { lat: 23.70, lng: 134.30 },
+        { lat: 25.10, lng: 134.30 },
+        { lat: 25.10, lng: 136.10 },
+        { lat: 23.70, lng: 136.10 },
+      ],
+      swarmSize: 9,
+      swarmFormation: "bistatic-mesh",
+    },
+    duration: "continuous",
+    missionProfile: {
+      type: "ASW",
+      lane: "SUBMARINE_BARRIER",
+      collectionTypes: ["ACTIVE_SONAR", "PASSIVE_SONAR", "ACOUSTIC_COMMS", "LINK16"],
+      commsArchitecture: {
+        primary: "HiveLink SDR / Link 16",
+        secondary: "OrbComm SATCOM (HORUS status)",
+        groundStation: "CTF-72 / Yokosuka, Japan",
+        homeBase: "USS Gerald R. Ford (CVN-78) CSG"
+      },
+      objectives: {
+        primary: "Detect, localize, and prosecute PLAN Type-093 submarines transiting Philippine Sea Sector BRAVO-7 using Magnet M48 CAPTAS/MFTA multistatic sonar geometry and SubSeaSail HORUS persistent passive acoustic mesh — zero crew exposure in the submarine threat envelope",
+        secondary: "Demonstrate sensor-to-shooter compression via USW-DSS network: multistatic triangulation → Virginia class ACOMMS cue → Mk 48 ADCAP and Hanwha surface missile dual prosecution within 12 minutes of first contact"
+      },
+      squadronComposition: {
+        captasVessel: "Magnet Defense M48 (CAPTAS) — 1× — lead/bait",
+        mftaVessels: "Magnet Defense M48 (MFTA + Hanwha) — 2× — passive receivers + prosecution",
+        sonobuoyMesh: "SubSeaSail HORUS (PAMELA acoustic array + HiveLink) — 6× — persistent listening field",
+        subsurface: "USS Virginia (SSN-774) — on station — prosecution asset"
+      },
+      threat: "PLAN Type-093 Shang-class nuclear attack submarines; potential PLAN UUVs; torpedo threat to lead CAPTAS M48 (crewless by design)",
+      whyThisConfig: "CAPTAS-4 on USV extends the multistatic sonar field without crew risk in the torpedo engagement zone. HORUS persistent sonobuoy field solves the battery endurance problem — submarines can't outlast wind-and-solar acoustic sensors. USW-DSS unifies the common ASW picture across all platforms. Hanwha missile adds surface prosecution arm to an otherwise sensor-only autonomous fleet.",
+      escalationTriggers: [
+        "CAPTAS echo return — SNR > threshold → USW-DSS triangulation tasked",
+        "3-bearing intersection confidence > 85% → contact established, Link 16 broadcast",
+        "Contact classified PLAN SSN → Virginia class cued via ACOMMS",
+        "Virginia firing solution confirmed → Hanwha missile armed as backup prosecution"
+      ],
+    },
+    stateHierarchies: {
+      default:          ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      contact_detected: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      prosecution:      ["Mission", "Payload", "Comms", "Navigation", "Vehicle"],
+      comms_degraded:   ["Navigation", "Payload", "Mission", "Vehicle", "Comms"],
+    },
+    createdAt: "2026-05-10T06:00:00Z",
+    updatedAt: "2026-05-25T08:00:00Z",
+    launchedAt: "2026-05-10T08:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-05-10T06:00:00Z", details: "7th Fleet CTF-72 Philippine Sea ASW barrier" },
+      { action: "launched", timestamp: "2026-05-10T08:00:00Z" },
+      { action: "updated", timestamp: "2026-05-20T00:00:00Z", details: "Hanwha missile integration confirmed — M48-BRAVO, M48-CHARLIE armed" },
+    ]
+  },
+  // MCM — Strait of Hormuz 5th Fleet
+  {
+    id: "mission-mcm-5thfleet-001",
+    name: "Hormuz-MCM-Alpha-Lane",
+    template: "MCM",
+    status: "active",
+    assignedSquadrons: ["sqdn_004"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Strait of Hormuz — Shipping Lane Alpha-7",
+      coordinates: [
+        { lat: 26.62, lng: 56.00 },
+        { lat: 26.62, lng: 56.60 },
+        { lat: 26.40, lng: 56.60 },
+        { lat: 26.40, lng: 56.00 },
+      ],
+      swarmSize: 3,
+      swarmFormation: "sequential",
+    },
+    duration: "72h",
+    missionProfile: {
+      type: "MCM",
+      lane: "STRAIT_CLEARANCE",
+      collectionTypes: ["SAS_SONAR", "ACOUSTIC_HOMING", "SATCOM_C2"],
+      commsArchitecture: {
+        primary: "OrbComm SATCOM",
+        secondary: "EvoLogics Acoustic Modem",
+        groundStation: "NSA Bahrain MOC",
+        homeBase: "USS Lewis B. Puller (ESB-3)"
+      },
+      objectives: {
+        primary: "Detect and neutralize Iranian-laid mines in Strait of Hormuz shipping lane Alpha-7 using Freedom AUV and SubSeaSail HORUS autonomous neutralization vessels",
+        secondary: "Restore safe transit for tanker traffic without exposing human EOD divers or airborne assets to MANPADS threat"
+      },
+      squadronComposition: {
+        auvHunter: "Freedom AUV (Oceaneering) — 1x",
+        neutralizationBoats: 3,
+        command: "NSA Bahrain MOC + USS Puller",
+      },
+      threat: "Moored contact mines, bottom influence mines; MANPADS threat to conventional MCM helicopters; hostile fast-attack craft",
+      whySubSeaSail: "Wind/solar AUSVs deployed from 100+ nm standoff — zero fuel logistics, no crew risk, radar cross-section 0.01m², can submerge to evade detection; replaces helicopter-towed minesled and EOD diver operations entirely",
+      escalationTriggers: [
+        "AUV contact confidence > 80% → acoustic marker auto-deployed",
+        "HORUS acoustic lock failure → re-task to alternate marker",
+        "Mine detonation outside expected pattern → halt ops, re-sweep sector"
+      ],
+    },
+    stateHierarchies: {
+      default:          ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      contact_detected: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      engaging:         ["Mission", "Payload", "Navigation", "Comms", "Vehicle"],
+      comms_degraded:   ["Navigation", "Mission", "Vehicle", "Comms", "Payload"],
+    },
+    createdAt: "2026-05-20T06:00:00Z",
+    updatedAt: "2026-05-25T08:00:00Z",
+    launchedAt: "2026-05-20T08:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-05-20T06:00:00Z", details: "5th Fleet MCM request — Hormuz lane Alpha-7" },
+      { action: "launched", timestamp: "2026-05-20T08:00:00Z" },
+    ]
+  },
+  // ISR — Task Force 59, Gulf-7, Abu Musa Approaches
+  {
+    id: "mission-isr-tf59-001",
+    name: "TF59-Gulf7-ISR-LANTERN",
+    template: "ISR",
+    status: "active",
+    assignedSquadrons: ["sqdn_magnet_001"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Abu Musa Approaches — Arabian Gulf Sector Gulf-7",
+      coordinates: [
+        { lat: 25.50, lng: 54.70 },
+        { lat: 26.10, lng: 54.70 },
+        { lat: 26.10, lng: 55.40 },
+        { lat: 25.50, lng: 55.40 },
+      ],
+      swarmSize: 1,
+      swarmFormation: "loiter",
+    },
+    duration: "continuous",
+    missionProfile: {
+      type: "ISR",
+      lane: "PERSISTENT_PATROL",
+      collectionTypes: ["EO_IR", "PASSIVE_RF", "SURFACE_RADAR", "AIR_RADAR"],
+      commsArchitecture: {
+        primary: "RazorChassis FC Network Link",
+        secondary: "OrbComm SATCOM",
+        groundStation: "NAVCENT / NSA Bahrain MOC",
+        homeBase: "Task Force 59, NSA Bahrain"
+      },
+      objectives: {
+        primary: "Provide 24/7 persistent ISR over Abu Musa Island approaches using Magnet Defense M48 with DPI LANTERN tethered drone — detect, classify, and cue engagement of hostile UAS and fast attack craft without crew exposure",
+        secondary: "Demonstrate sensor-to-shooter compression: HiddenLevel RF detection → LANTERN EO/IR confirmation → Scion AI classification → RazorChassis fire control cueing within 90 seconds of contact"
+      },
+      squadronComposition: {
+        hostVessel: "Magnet Defense M48 — 1x",
+        tetheredDrone: "DPI LANTERN — 1x (M48 deck-mounted)",
+        command: "NAVCENT / TF59"
+      },
+      threat: "Iranian Shahed-class loitering munitions launched from Abu Musa Island; IRGCN fast attack craft; commercial vessel spoofing; drone swarms targeting VLCC shipping lane",
+      whyThisConfig: "M48 + LANTERN stack provides helicopter-equivalent elevated sensor coverage with zero crew exposure and unlimited endurance. HiddenLevel passive sensing is undetectable — adversaries cannot tell they're being watched. RazorChassis compresses sensor-to-shooter from minutes to seconds by pushing fire-control-grade tracks directly to CIC.",
+      escalationTriggers: [
+        "HiddenLevel RF anomaly → auto-cue LANTERN EO/IR slew",
+        "Scion classification confidence > 85% → RazorChassis fire control track generated",
+        "Projected intercept with shipping lane < 10min → weapons free request to NAVCENT",
+        "Drone swarm > 3 contacts → alert TF59 and request additional assets"
+      ],
+    },
+    stateHierarchies: {
+      default:          ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      contact_detected: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      threat_confirmed: ["Mission", "Payload", "Comms", "Navigation", "Vehicle"],
+      comms_degraded:   ["Navigation", "Mission", "Vehicle", "Comms", "Payload"],
+    },
+    createdAt: "2026-05-01T06:00:00Z",
+    updatedAt: "2026-05-25T08:00:00Z",
+    launchedAt: "2026-05-01T08:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-05-01T06:00:00Z", details: "TF59 Task Force 59 standing ISR patrol — Abu Musa sector" },
+      { action: "launched", timestamp: "2026-05-01T08:00:00Z" },
+      { action: "updated", timestamp: "2026-05-15T08:00:00Z", details: "RazorChassis FC integration activated" },
+    ]
+  },
+  {
+    id: "mission-isr-7thfleet-taiwan-001",
+    name: "TaiwanStrait-CCSISR-LIMA4",
+    template: "ISR",
+    status: "active",
+    assignedSquadrons: ["sqdn_magnet_001"],
+    domain: "MARITIME",
+
+    zoneConfig: {
+      name: "Taiwan Strait — Median Line Sector LIMA-4 — Counter-C5ISR Patrol",
+      coordinates: [
+        { lat: 23.60, lng: 119.90 },
+        { lat: 24.80, lng: 119.90 },
+        { lat: 24.80, lng: 121.10 },
+        { lat: 23.60, lng: 121.10 },
+      ],
+      swarmSize: 1,
+      swarmFormation: "transit-patrol",
+    },
+
+    duration: "continuous",
+
+    missionProfile: {
+      type: "ISR",
+      lane: "COUNTER_C5ISR",
+      collectionTypes: ["EO_IR", "PASSIVE_RF", "EMITTER_GEO_LOCATION", "COVERAGE_GAP_ANALYSIS"],
+      commsArchitecture: {
+        primary: "RazorChassis Encrypted SATCOM → CTF-77",
+        secondary: "HiveLink SDR (INDOPACOM tactical net)",
+        groundStation: "7th Fleet CTF-77 / Yokosuka, Japan",
+        homeBase: "USS Gerald R. Ford (CVN-78) CSG"
+      },
+      objectives: {
+        primary: "Map PLA C5ISR sensor architecture in the Taiwan Strait — identify radar coverage gaps, duty cycle windows, and blind spots — push actionable routing data to 7th Fleet so submarines and surface assets can transit undetected",
+        secondary: "Simultaneously track PLA maritime patrol UAVs (BZK-005 class) approaching the median line — provide real-time threat picture to CTF-77 — maintain M48 stealth (RCS 0.01m²) throughout"
+      },
+      squadronComposition: {
+        hostVessel: "Magnet Defense M48 — 1x — median line patrol",
+        tetheredDrone: "DPI LANTERN — 1x — elevated EO/IR + emitter geo-location",
+        command: "CTF-77 / INDOPACOM"
+      },
+      threat: "PLA BZK-005 maritime patrol UAVs; PLAN coastal defense radar; PLA J-15 detection if M48 misidentified; PLAN Coast Guard harassment",
+      counterC5ISRValue: "By mapping PLA sensor coverage gaps and timing windows, M48-DELTA enabled USS Connecticut to transit inside PLA-claimed waters undetected — a mission that would have required either accepting detection or not doing at all with a crewed platform.",
+      escalationTriggers: [
+        "PLA radar emitter geo-located → add to coverage model → recompute gaps",
+        "Coverage gap > 10nm and window > 20min → RazorChassis routing data transmitted to CTF-77",
+        "PLA UAV within 15nm of M48 → assess detection probability → continue if RCS stealth maintained",
+        "PLA Coast Guard vessel within 5nm → submerge LANTERN to deck, reduce emissions, continue passive collection"
+      ],
+    },
+
+    stateHierarchies: {
+      default:          ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      emitter_mapping:  ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      pla_uav_contact:  ["Payload", "Navigation", "Mission", "Comms", "Vehicle"],
+      comms_degraded:   ["Navigation", "Mission", "Vehicle", "Comms", "Payload"],
+    },
+
+    createdAt: "2026-05-15T06:00:00Z",
+    updatedAt: "2026-05-25T08:00:00Z",
+    launchedAt: "2026-05-15T22:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-05-15T06:00:00Z", details: "7th Fleet CTF-77 Counter-C5ISR tasking — Taiwan Strait median line" },
+      { action: "launched", timestamp: "2026-05-15T22:00:00Z", details: "Night transit — lower PLA visual detection probability" },
+      { action: "updated", timestamp: "2026-05-20T04:12:00Z", details: "3 PLA emitters mapped — USS Connecticut routing gap transmitted" },
+    ]
   }
 ];

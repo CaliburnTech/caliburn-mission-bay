@@ -21,6 +21,10 @@ import MapZoneEditor from './MapZoneEditor';
 import SquadronAssignment from './SquadronAssignment';
 import AutonomyPopout from './AutonomyPopout';
 import PortSecurityMissionView from './PortSecurityMissionView';
+import MineClearanceMissionView from './MineClearanceMissionView';
+import ISRTetheredDroneMissionView from './ISRTetheredDroneMissionView';
+import ASWMissionView from './ASWMissionView';
+import TaiwanISRMissionView from './TaiwanISRMissionView';
 
 // Get default zone config based on mission type's geometry
 const getDefaultZoneConfig = (missionKey) => {
@@ -289,6 +293,21 @@ const MissionConfigView = ({ mission, onBack }) => {
 
   if (selectedMissionTemplate === 'PORT_SECURITY' || mission?.template === 'PORT_SECURITY') {
     return <PortSecurityMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'MCM' || mission?.template === 'MCM') {
+    return <MineClearanceMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'ISR' || mission?.template === 'ISR') {
+    if (mission?.missionProfile?.lane === 'COUNTER_C5ISR') {
+      return <TaiwanISRMissionView mission={mission} onBack={onBack} />;
+    }
+    return <ISRTetheredDroneMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'ASW' || mission?.template === 'ASW') {
+    return <ASWMissionView mission={mission} onBack={onBack} />;
   }
 
   return (

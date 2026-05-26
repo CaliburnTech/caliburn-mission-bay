@@ -21,6 +21,26 @@ export const isMaritimeSquadron = (squadron) => getSquadronDomain(squadron) === 
 
 export const swarmSquadrons = [
   {
+    id: "sqdn_magnet_001",
+    name: "Magnet Defense M48",
+    type: "Autonomous MUSV",
+    platformType: "USV",
+    totalUnits: 3,
+    status: {
+      missionReady: 2,
+      deployed: 1,
+      charging: 0,
+      maintenance: 0,
+      antxReserved: 0
+    },
+    icon: "MagnetDefense",
+    description: "AI-powered large autonomous USV with 17,000nm range. DriveAI navigation, modular mission payloads, 390+ days at sea validated. Built on Metal Shark hulls.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
     id: "sqdn_001",
     name: "MetalShark Patrol Drones",
     type: "High-Speed USV",
@@ -805,6 +825,110 @@ export const activeDeployments = [
     deployedAt: "2024-12-13T04:00:00Z",
     status: "active",
     healthStatus: { operational: 4, degraded: 1, offline: 0 }
+  },
+  // Magnet Defense M48 — TF59 Gulf-7 ISR (LANTERN tethered drone)
+  {
+    id: "deploy_isr_tf59_001",
+    missionId: "mission-isr-tf59-001",
+    missionName: "TF59-Gulf7-ISR-LANTERN",
+    squadronId: "sqdn_magnet_001",
+    hullType: "MagnetDefense",
+    vesselCount: 1,
+    loadoutName: "Persistent ISR / Fire Control Cueing Package",
+    loadout: {
+      SENSORS: ["DPI LANTERN Tethered UAS", "Trillium HD40 EO/IR", "Maritime Radar", "HiddenLevel Passive RF"],
+      COMMS:   ["OrbComm ST 6100", "Silvus StreamCaster 4200 (LANTERN)"],
+      WEAPONS: [],
+      C2:      ["Project Scion (Northrop Grumman)", "RazorChassis FC Integration"],
+      NAV:     ["DriveAI Autonomous Navigation"],
+      AI:      ["TempestOS Core", "HAL"],
+    },
+    deployedAt: "2026-05-01T08:00:00Z",
+    status: "active",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
+  },
+  // Magnet M48 — Philippine Sea ASW (CAPTAS + MFTA + Hanwha)
+  {
+    id: "deploy_asw_philippinesea_001",
+    missionId: "mission-asw-7thfleet-001",
+    missionName: "PhilSea-ASW-BRAVO7-CAPTAS",
+    squadronId: "sqdn_016",
+    hullType: "MagnetDefense",
+    vesselCount: 3,
+    loadoutName: "Multistatic ASW Package — CAPTAS + MFTA + Hanwha",
+    loadout: {
+      SENSORS:  ["CAPTAS-4 Variable Depth Sonar (Thales)", "MFTA Towed Array (Thales)"],
+      COMMS:    ["HiveLink SDR (Link 16, WaveformX, WaveformY)", "OrbComm SATCOM"],
+      WEAPONS:  ["Hanwha Naval Missile System"],
+      C2:       ["USW-DSS AN/UYQ-100 (Leidos)"],
+      NAV:      ["DriveAI Autonomous Navigation"],
+      AI:       ["TempestOS Core"],
+    },
+    deployedAt: "2026-05-10T08:00:00Z",
+    status: "active",
+    healthStatus: { operational: 3, degraded: 0, offline: 0 }
+  },
+  // SubSeaSail HORUS — Philippine Sea ASW (PAMELA persistent sonobuoy mesh)
+  {
+    id: "deploy_asw_philippinesea_002",
+    missionId: "mission-asw-7thfleet-001",
+    missionName: "PhilSea-ASW-BRAVO7-CAPTAS",
+    squadronId: "sqdn_004",
+    hullType: "SubSeaSail",
+    vesselCount: 6,
+    loadoutName: "Persistent Sonobuoy Mesh — PAMELA + HiveLink",
+    loadout: {
+      SENSORS:  ["PAMELA™ Passive Acoustic Array (SubSeaSail)"],
+      COMMS:    ["HiveLink SDR", "OrbComm ST 6100"],
+      WEAPONS:  [],
+      C2:       ["USW-DSS Software Agent (Leidos)"],
+      NAV:      ["MOOS-IvP Autonomous Navigation"],
+      AI:       ["HAL"],
+    },
+    deployedAt: "2026-05-10T08:00:00Z",
+    status: "active",
+    healthStatus: { operational: 6, degraded: 0, offline: 0 }
+  },
+  // MCM — Hormuz mine neutralization
+  {
+    id: "deploy_mcm_hormuz_001",
+    missionId: "mission-mcm-5thfleet-001",
+    missionName: "Hormuz-MCM-Alpha-Lane",
+    squadronId: "sqdn_004",
+    hullType: "SubSeaSail",
+    vesselCount: 3,
+    loadoutName: "MCM Mine Neutralization Package",
+    loadout: {
+      SENSORS: ["Acoustic Marker Receiver (Thales)"],
+      COMMS:   ["OrbComm ST 6100"],
+      WEAPONS: ["M30 Supercavitating Round (Thales)"],
+      C2:      ["TempestOS Core"],
+      NAV:     ["MOOS-IvP Autonomous Navigation"],
+      AI:      ["HAL"],
+    },
+    deployedAt: "2026-05-20T08:00:00Z",
+    status: "active",
+    healthStatus: { operational: 3, degraded: 0, offline: 0 }
+  },
+  {
+    id: "deploy_isr_taiwan_001",
+    missionId: "mission-isr-7thfleet-taiwan-001",
+    missionName: "TaiwanStrait-CCSISR-LIMA4",
+    squadronId: "sqdn_magnet_001",
+    hullType: "MagnetDefense",
+    vesselCount: 1,
+    loadoutName: "Counter-C5ISR Package — Taiwan Strait Median Line",
+    loadout: {
+      SENSORS:  ["DPI LANTERN Tethered UAS", "Trillium HD40 EO/IR", "Emitter Geo-Location Sensor", "HiddenLevel Passive RF"],
+      COMMS:    ["OrbComm ST 6100", "HiveLink SDR (INDOPACOM tactical net)"],
+      WEAPONS:  [],
+      C2:       ["Project Scion (Northrop Grumman)", "RazorChassis C5ISR Link"],
+      NAV:      ["DriveAI Autonomous Navigation"],
+      AI:       ["TempestOS Core", "HAL"],
+    },
+    deployedAt: "2026-05-15T22:00:00Z",
+    status: "active",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
   }
 ];
 
