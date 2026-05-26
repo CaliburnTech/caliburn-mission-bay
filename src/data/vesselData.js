@@ -26,7 +26,8 @@ import {
   AEGIRHHull,
   BlackWidowHull,
   SwitchbladeHull,
-  ZeroUSVOceanus17Hull
+  ZeroUSVOceanus17Hull,
+  M48Hull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -995,10 +996,10 @@ export const vesselHullComponents = {
   "Manta Ray": MantaRayHull,
   "Freedom AUV": UUVHull,
   // Magnet Defense
-  "M48": USVPatrolHull,
+  "M48": M48Hull,
   // Saildrone family
   "Saildrone Voyager": SailboatHull,
-  "Saildrone Spectre": StealthHull,
+  "Saildrone Spectre": SailboatHull,
   // UAV category
   "MQ-25 Stingray": MQ25StingrayHull,
   "MQ-9 Reaper": MQ9ReaperHull,

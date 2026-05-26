@@ -2464,6 +2464,101 @@ export const missionFlowTemplates = {
       { from: 'cue_moc', to: 'maintain_track', label: 'Hold — Continue Track' }
     ],
     loopBack: { from: 'log_baseline', to: 'patrol', label: 'Continue Patrol' }
+  },
+  MCM: {
+    name: "Mine Countermeasures",
+    category: "MCM",
+    nodes: [
+      { id: 'deploy_auv',    type: 'trigger',          label: 'Deploy Freedom AUV',              position: { x: 50,   y: 150 } },
+      { id: 'sas_sweep',     type: 'action',           label: 'SAS Lawnmower Sweep\n(150m swath)', position: { x: 220, y: 150 } },
+      { id: 'contact',       type: 'decision',         label: 'Mine Contact?',                   position: { x: 420,  y: 150 } },
+      { id: 'classify',      type: 'sense',            label: 'Multi-Aspect\nClassification',    position: { x: 600,  y: 80  } },
+      { id: 'confirmed',     type: 'decision',         label: 'Confirmed\nMine?',                position: { x: 780,  y: 80  } },
+      { id: 'log_clear',     type: 'action',           label: 'Log — No Mine\nResume Sweep',     position: { x: 600,  y: 280 } },
+      { id: 'deploy_marker', type: 'action',           label: 'Deploy Acoustic\nMarker Beacon',  position: { x: 960,  y: 80  } },
+      { id: 'cue_horus',     type: 'human_checkpoint', label: 'MOC Authorize\nEngagement',       position: { x: 1130, y: 80  } },
+      { id: 'horus_inbound', type: 'action',           label: 'HORUS Inbound\n(Acoustic Homing)',position: { x: 1300, y: 80  } },
+      { id: 'engage',        type: 'action',           label: 'Fire Supercavitating\nRound',     position: { x: 1470, y: 80  } },
+      { id: 'lane_clear',    type: 'end',              label: 'Lane Clear\n— Notify NAVCENT',    position: { x: 1640, y: 150 } }
+    ],
+    connections: [
+      { from: 'deploy_auv',    to: 'sas_sweep' },
+      { from: 'sas_sweep',     to: 'contact' },
+      { from: 'contact',       to: 'classify',      label: 'Yes' },
+      { from: 'contact',       to: 'log_clear',     label: 'No' },
+      { from: 'classify',      to: 'confirmed' },
+      { from: 'confirmed',     to: 'deploy_marker', label: 'Yes (>80%)' },
+      { from: 'confirmed',     to: 'sas_sweep',     label: 'No — Re-sweep' },
+      { from: 'deploy_marker', to: 'cue_horus' },
+      { from: 'cue_horus',     to: 'horus_inbound', label: 'Authorized' },
+      { from: 'horus_inbound', to: 'engage' },
+      { from: 'engage',        to: 'lane_clear' }
+    ],
+    loopBack: { from: 'log_clear', to: 'sas_sweep', label: 'Continue Sweep' }
+  },
+  ISR: {
+    name: "ISR — Tethered Drone",
+    category: "ISR",
+    nodes: [
+      { id: 'on_station',   type: 'trigger',          label: 'M48 On Station\n(DriveAI Patrol)',       position: { x: 50,   y: 150 } },
+      { id: 'lantern_up',   type: 'action',           label: 'Deploy LANTERN\n(200ft Tethered)',       position: { x: 220,  y: 150 } },
+      { id: 'sensor_fuse',  type: 'sense',            label: 'Multi-Sensor Sweep\n(RF+Radar+EO/IR)',   position: { x: 410,  y: 150 } },
+      { id: 'contact',      type: 'decision',         label: 'Contact?',                               position: { x: 590,  y: 150 } },
+      { id: 'scion_class',  type: 'orient',           label: 'Scion AI\nClassification',               position: { x: 760,  y: 80  } },
+      { id: 'log_clear',    type: 'action',           label: 'Log — No Threat\nContinue Patrol',       position: { x: 590,  y: 300 } },
+      { id: 'threat_conf',  type: 'decision',         label: 'Threat\nConfirmed?',                     position: { x: 930,  y: 80  } },
+      { id: 'razor_cue',    type: 'action',           label: 'RazorChassis\nFC Track Generated',       position: { x: 1100, y: 80  } },
+      { id: 'human_auth',   type: 'human_checkpoint', label: 'NAVCENT\nWeapons Free',                  position: { x: 1270, y: 80  } },
+      { id: 'engage',       type: 'action',           label: 'DDG Engagement\n(ESSM)',                 position: { x: 1440, y: 80  } },
+      { id: 'lane_secure',  type: 'end',              label: 'Lane Secure\n— Patrol Resumes',          position: { x: 1610, y: 150 } }
+    ],
+    connections: [
+      { from: 'on_station',  to: 'lantern_up' },
+      { from: 'lantern_up',  to: 'sensor_fuse' },
+      { from: 'sensor_fuse', to: 'contact' },
+      { from: 'contact',     to: 'scion_class',  label: 'Yes' },
+      { from: 'contact',     to: 'log_clear',    label: 'No' },
+      { from: 'scion_class', to: 'threat_conf' },
+      { from: 'threat_conf', to: 'razor_cue',    label: '>85% Confidence' },
+      { from: 'threat_conf', to: 'sensor_fuse',  label: 'Inconclusive' },
+      { from: 'razor_cue',   to: 'human_auth' },
+      { from: 'human_auth',  to: 'engage',       label: 'Authorized' },
+      { from: 'human_auth',  to: 'razor_cue',    label: 'Hold — Continue Track' },
+      { from: 'engage',      to: 'lane_secure' }
+    ],
+    loopBack: { from: 'log_clear', to: 'sensor_fuse', label: 'Continue Patrol' }
+  },
+  ASW: {
+    name: "ASW — CAPTAS/MFTA Multistatic + HORUS Mesh",
+    category: "ASW",
+    nodes: [
+      { id: 'deploy',      type: 'trigger',          label: 'Deploy M48 + HORUS\n(CTF-72 Tasking)',        position: { x: 50,   y: 150 } },
+      { id: 'captas_ping', type: 'action',            label: 'CAPTAS-4 Active Ping\n(900-2100Hz / 150km)', position: { x: 220,  y: 150 } },
+      { id: 'echo_return', type: 'sense',             label: 'Echo Return +\nHORUS Passive',               position: { x: 410,  y: 150 } },
+      { id: 'contact',     type: 'decision',          label: 'Contact?',                                   position: { x: 590,  y: 150 } },
+      { id: 'usw_dss',     type: 'orient',            label: 'USW-DSS\nTriangulation',                     position: { x: 760,  y: 80  } },
+      { id: 'log_clear',   type: 'action',            label: 'Log — No Contact\nContinue Ping',            position: { x: 590,  y: 300 } },
+      { id: 'classify',    type: 'decision',          label: 'PLAN SSN\nConfirmed?',                       position: { x: 930,  y: 80  } },
+      { id: 'acomms_cue',  type: 'action',            label: 'ACOMMS →\nVirginia SSN-774',                 position: { x: 1100, y: 80  } },
+      { id: 'human_auth',  type: 'human_checkpoint',  label: 'CTF-72\nWeapons Free',                       position: { x: 1270, y: 80  } },
+      { id: 'engage',      type: 'action',            label: 'Mk 48 ADCAP +\nHanwha Missile',             position: { x: 1440, y: 80  } },
+      { id: 'sector_clear', type: 'end',              label: 'SIERRA-7 Prosecuted\n— Sector Clear',        position: { x: 1610, y: 150 } }
+    ],
+    connections: [
+      { from: 'deploy',      to: 'captas_ping' },
+      { from: 'captas_ping', to: 'echo_return' },
+      { from: 'echo_return', to: 'contact' },
+      { from: 'contact',     to: 'usw_dss',      label: 'Return Detected' },
+      { from: 'contact',     to: 'log_clear',    label: 'No Return' },
+      { from: 'usw_dss',     to: 'classify' },
+      { from: 'classify',    to: 'acomms_cue',   label: '>85% Confidence' },
+      { from: 'classify',    to: 'echo_return',  label: 'Inconclusive' },
+      { from: 'acomms_cue',  to: 'human_auth' },
+      { from: 'human_auth',  to: 'engage',       label: 'Authorized' },
+      { from: 'human_auth',  to: 'acomms_cue',   label: 'Hold — Continue Track' },
+      { from: 'engage',      to: 'sector_clear' }
+    ],
+    loopBack: { from: 'log_clear', to: 'captas_ping', label: 'Continue Barrier Patrol' }
   }
 };
 

@@ -1298,4 +1298,18 @@ export const ZeroUSVOceanus17Hull = ({ size = 200, className = "" }) => {
   );
 };
 
+// Magnet Defense M48 LUSV
+import m48Img from '../assets/images/M48.png';
+
+export const M48Hull = ({ size = 200, className = "" }) => (
+  <img
+    src={m48Img}
+    alt="Magnet Defense M48"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.2)', filter: 'brightness(0.9)' }}
+  />
+);
+
 // Note: Vessel data and mappings have been moved to src/data/vesselData.js to fix fast refresh violations
