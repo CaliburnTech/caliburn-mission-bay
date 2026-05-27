@@ -490,7 +490,7 @@ export const initialMissions = [
     name: "TF59-Gulf7-ISR-LANTERN",
     template: "ISR",
     status: "active",
-    assignedSquadrons: ["sqdn_magnet_001"],
+    assignedSquadrons: ["sqdn_016"],
     domain: "MARITIME",
     zoneConfig: {
       name: "Abu Musa Approaches — Arabian Gulf Sector Gulf-7",
@@ -553,7 +553,7 @@ export const initialMissions = [
     name: "TaiwanStrait-CCSISR-LIMA4",
     template: "ISR",
     status: "active",
-    assignedSquadrons: ["sqdn_magnet_001"],
+    assignedSquadrons: ["sqdn_016"],
     domain: "MARITIME",
 
     zoneConfig: {

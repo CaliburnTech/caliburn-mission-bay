@@ -692,26 +692,18 @@ export const SubmarineHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
+// Freedom AUV (Oceaneering) - Image
+import freedomAUVImg from '../assets/images/FreedomAUV.png';
+
 export const UUVHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.6} viewBox="0 0 400 200" className={className}>
-    <g className="stroke-lime-brand stroke-[1.5] fill-none opacity-30" transform="translate(30, 50)">
-      <ellipse cx="200" cy="100" rx="120" ry="15" />
-      <path d="M 80 100
-               C 80 90, 60 90, 60 100
-               C 60 110, 80 110, 80 100 Z"
-      />
-      <path d="M 320 100
-               C 320 90, 340 90, 340 100
-               C 340 110, 320 110, 320 100 Z"
-      />
-      <path d="M 310 85 L 330 70 L 330 85 Z" />
-      <path d="M 310 115 L 330 130 L 330 115 Z" />
-      <rect x="100" y="92.5" width="40" height="15" strokeDasharray="2,2" />
-      <rect x="180" y="92.5" width="40" height="15" strokeDasharray="2,2" />
-      <rect x="260" y="92.5" width="40" height="15" strokeDasharray="2,2" />
-      <circle cx="75" cy="100" r="8" strokeDasharray="1,1" />
-    </g>
-  </svg>
+  <img
+    src={freedomAUVImg}
+    alt="Freedom AUV"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.1)' }}
+  />
 );
 
 export const StealthHull = ({ size = 200, className = "" }) => (
@@ -908,9 +900,22 @@ export const SaildroneHull = ({ size = 200, className = "" }) => {
 // Legacy alias
 export const SailboatHull = SaildroneHull;
 
-// Ocean Aero Triton AUSV - Autonomous Underwater and Surface Vehicle
-// Wind and solar powered, can dive to avoid detection, stealth signature
+// Ocean Aero Triton AUSV - Image
+import oceanAeroTritonImg from '../assets/images/OceanAeroTriton.png';
+
 export const TritonAUSVHull = ({ size = 200, className = "" }) => (
+  <img
+    src={oceanAeroTritonImg}
+    alt="Ocean Aero Triton AUSV"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.35)', transform: 'scale(1.15)' }}
+  />
+);
+
+// Ocean Aero Triton AUSV SVG fallback (unused, kept for reference)
+const _TritonAUSVHullSVG = ({ size = 200, className = "" }) => (
   <svg width={size} height={size * 0.6} viewBox="0 0 450 200" className={className}>
     <defs>
       <linearGradient id="tritonHullGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1308,7 +1313,13 @@ export const M48Hull = ({ size = 200, className = "" }) => (
     width={size}
     height={size * 0.6}
     className={className}
-    style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.2)', filter: 'brightness(0.9)' }}
+    style={{
+      objectFit: 'contain',
+      mixBlendMode: 'lighten',
+      transform: 'scale(1.2)',
+      filter: 'brightness(1.15) saturate(1.1)',
+      clipPath: 'inset(2% 1% 4% 1%)',
+    }}
   />
 );
 

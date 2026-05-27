@@ -21,26 +21,6 @@ export const isMaritimeSquadron = (squadron) => getSquadronDomain(squadron) === 
 
 export const swarmSquadrons = [
   {
-    id: "sqdn_magnet_001",
-    name: "Magnet Defense M48",
-    type: "Autonomous MUSV",
-    platformType: "USV",
-    totalUnits: 3,
-    status: {
-      missionReady: 2,
-      deployed: 1,
-      charging: 0,
-      maintenance: 0,
-      antxReserved: 0
-    },
-    icon: "MagnetDefense",
-    description: "AI-powered large autonomous USV with 17,000nm range. DriveAI navigation, modular mission payloads, 390+ days at sea validated. Built on Metal Shark hulls.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
     id: "sqdn_001",
     name: "MetalShark Patrol Drones",
     type: "High-Speed USV",
@@ -231,18 +211,18 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_016",
-    name: "Magnet Defense M48 Strike Fleet",
+    name: "Magnet Defense M48",
     type: "Large Uncrewed Surface Vessel (LUSV)",
     platformType: "USV",
-    totalUnits: 6,
+    totalUnits: 9,
     status: {
-      missionReady: 4,
-      deployed: 1,
+      missionReady: 6,
+      deployed: 3,
       charging: 0,
       maintenance: 1
     },
     icon: "M48",
-    description: "Magnet Defense 48m autonomous catamaran LUSVs. 17,000 nm range, 100-ton payload capacity. First delivery Q2 2027.",
+    description: "Magnet Defense 48m autonomous catamaran LUSVs. 17,000 nm range, 100-ton payload capacity, DriveAI navigation, 390+ days at sea validated. ISR, ASW, and strike-configured variants.",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -831,8 +811,8 @@ export const activeDeployments = [
     id: "deploy_isr_tf59_001",
     missionId: "mission-isr-tf59-001",
     missionName: "TF59-Gulf7-ISR-LANTERN",
-    squadronId: "sqdn_magnet_001",
-    hullType: "MagnetDefense",
+    squadronId: "sqdn_016",
+    hullType: "M48",
     vesselCount: 1,
     loadoutName: "Persistent ISR / Fire Control Cueing Package",
     loadout: {
@@ -853,7 +833,7 @@ export const activeDeployments = [
     missionId: "mission-asw-7thfleet-001",
     missionName: "PhilSea-ASW-BRAVO7-CAPTAS",
     squadronId: "sqdn_016",
-    hullType: "MagnetDefense",
+    hullType: "M48",
     vesselCount: 3,
     loadoutName: "Multistatic ASW Package — CAPTAS + MFTA + Hanwha",
     loadout: {
@@ -914,8 +894,8 @@ export const activeDeployments = [
     id: "deploy_isr_taiwan_001",
     missionId: "mission-isr-7thfleet-taiwan-001",
     missionName: "TaiwanStrait-CCSISR-LIMA4",
-    squadronId: "sqdn_magnet_001",
-    hullType: "MagnetDefense",
+    squadronId: "sqdn_016",
+    hullType: "M48",
     vesselCount: 1,
     loadoutName: "Counter-C5ISR Package — Taiwan Strait Median Line",
     loadout: {

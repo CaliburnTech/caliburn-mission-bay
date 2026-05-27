@@ -141,15 +141,15 @@ const getPhaseBadge = (phase) => {
 
 // ─── Loadouts ─────────────────────────────────────────────────────────────────
 const M48_MOUNTS = [
-  { slot: 'ISR DRONE',          name: 'DPI LANTERN Tethered UAS',        vendor: 'Dragonfly Pictures Inc.' },
-  { slot: 'RF / PASSIVE RADAR', name: 'HiddenLevel Passive RF Sensor',   vendor: 'HiddenLevel'             },
-  { slot: 'AUTONOMY',           name: 'Project Scion (Northrop Grumman)',vendor: 'Northrop Grumman'        },
-  { slot: 'FIRE CONTROL LINK',  name: 'RazorChassis C5ISR Link',         vendor: 'RazorChassis'            },
+  { slot: 'ISR DRONE',          name: 'DPI LANTERN Tethered UAS',        vendor: 'Dragonfly Pictures Inc.', description: '200ft elevation — EO/IR tracks PLA UAVs — radar sensor geo-locates PLA emitters' },
+  { slot: 'RF / PASSIVE RADAR', name: 'HiddenLevel Passive RF Sensor',   vendor: 'HiddenLevel',             description: 'Zero-emission passive RF — maps PLA coastal radar coverage — identifies blind spots' },
+  { slot: 'AUTONOMY',           name: 'Project Scion (Northrop Grumman)',vendor: 'Northrop Grumman',        description: 'Classifies PLA emitter types — models combined coverage geometry — identifies routing windows' },
+  { slot: 'FIRE CONTROL LINK',  name: 'RazorChassis C5ISR Link',         vendor: 'RazorChassis',            description: 'Formats PLA gap picture as actionable routing data — pushes to 7th Fleet CTF-77 CIC' },
 ];
 
 const LANTERN_MOUNTS = [
-  { slot: 'EO/IR', name: 'Trillium HD40 EO/IR',        vendor: 'L3Harris Trillium' },
-  { slot: 'RADAR', name: 'Emitter Geo-Location Sensor', vendor: '[Classified]'     },
+  { slot: 'EO/IR', name: 'Trillium HD40 EO/IR',        vendor: 'L3Harris Trillium', description: 'Tracks PLA BZK-005 UAVs and PLAN vessels — day/night — auto-cued by HiddenLevel' },
+  { slot: 'RADAR', name: 'Emitter Geo-Location Sensor', vendor: '[Classified]',      description: '200ft elevation enables passive triangulation of PLA coastal radar positions at range' },
 ];
 
 // ─── MapInvalidateSize ────────────────────────────────────────────────────────
@@ -179,11 +179,13 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
   const [running,         setRunning]         = useState(false);
   const [complete,        setComplete]        = useState(false);
 
-  const tickRef      = useRef(0);
-  const mainTimer    = useRef(null);
-  const pulseTimer   = useRef(null);
-  const lanternTimer = useRef(null);
-  const addEvtRef    = useRef(null);
+  const tickRef         = useRef(0);
+  const mainTimer       = useRef(null);
+  const pulseTimer      = useRef(null);
+  const lanternTimer    = useRef(null);
+  const loopTimer       = useRef(null);
+  const addEvtRef       = useRef(null);
+  const runScenarioRef  = useRef(null);
 
   const phase   = getPhase(currentTick);
   const m48Pos  = getM48Pos(currentTick);
@@ -224,7 +226,8 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
     clearInterval(mainTimer.current);
     clearInterval(pulseTimer.current);
     clearInterval(lanternTimer.current);
-    mainTimer.current = pulseTimer.current = lanternTimer.current = null;
+    clearTimeout(loopTimer.current);
+    mainTimer.current = pulseTimer.current = lanternTimer.current = loopTimer.current = null;
   }, []);
 
   const reset = useCallback(() => {
@@ -325,12 +328,18 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
       }
       if (tick >= TOTAL_TICKS) {
         clearInterval(mainTimer.current);
+        mainTimer.current = null;
         setRunning(false);
         setComplete(true);
+        // Auto-loop: 5-second pause then restart
+        loopTimer.current = setTimeout(() => {
+          if (loopTimer.current !== null) runScenarioRef.current?.();
+        }, 5000);
       }
-    }, 300);
+    }, 180);
   }, [stopAll]);
 
+  useLayoutEffect(() => { runScenarioRef.current = runScenario; });
   useEffect(() => () => stopAll(), [stopAll]);
 
   const handleSave = () => {
@@ -352,7 +361,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
         swarmSize: 1,
         swarmFormation: 'transit-patrol',
       },
-      assignedSquadrons: ['sqdn_magnet_001'],
+      assignedSquadrons: ['sqdn_016'],
       missionProfile: {
         type: 'ISR',
         lane: 'COUNTER_C5ISR',
@@ -724,6 +733,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                   <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
                   <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
                   <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
+                  {mount.description && <div className="text-[0.60rem] text-gray-600 mt-0.5 leading-tight">{mount.description}</div>}
                 </div>
                 <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
                   <Check size={9} color="#3b82f6" strokeWidth={3} />
@@ -754,6 +764,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                   <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
                   <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
                   <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
+                  {mount.description && <div className="text-[0.60rem] text-gray-600 mt-0.5 leading-tight">{mount.description}</div>}
                 </div>
                 <div className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
                   <Check size={9} color="#22d3ee" strokeWidth={3} />

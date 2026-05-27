@@ -330,7 +330,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         swarmSize: 1,
         swarmFormation: 'loiter',
       },
-      assignedSquadrons: ['sqdn_magnet_001'],
+      assignedSquadrons: ['sqdn_016'],
       stateHierarchies: {
         default:          ['Navigation', 'Payload', 'Comms', 'Mission', 'Vehicle'],
         contact_detected: ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
