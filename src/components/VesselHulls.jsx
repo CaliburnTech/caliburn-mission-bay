@@ -797,7 +797,7 @@ const MagnetWireframeHull = ({ size = 200, className = "", alt = "Magnet Defense
     width={size}
     height={size * 0.6}
     className={className}
-    style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
+    style={{ objectFit: 'contain' }}
   />
 );
 
