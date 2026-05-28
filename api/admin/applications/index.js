@@ -2,12 +2,14 @@ import prisma from '../../_lib/db.js';
 import { requireCaliburnAdmin, handleAuthError } from '../../_lib/auth.js';
 import { ok, created, badRequest, serverError, methodNotAllowed } from '../../_lib/respond.js';
 import { notifyVendorApplication } from '../../_lib/ses.js';
+import { handleCors } from '../../_lib/cors.js';
 
 /**
  * GET  /api/admin/applications  — list all vendor applications
  * POST /api/admin/applications  — submit a new vendor application (public, no auth)
  */
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   if (req.method === 'POST') {
     const { companyName, contactName, email, website, message } = req.body ?? {};
 

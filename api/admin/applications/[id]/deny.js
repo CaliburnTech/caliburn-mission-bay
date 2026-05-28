@@ -1,11 +1,13 @@
 import prisma from '../../../_lib/db.js';
 import { requireCaliburnAdmin, handleAuthError } from '../../../_lib/auth.js';
 import { ok, badRequest, notFound, serverError, methodNotAllowed } from '../../../_lib/respond.js';
+import { handleCors } from '../../../_lib/cors.js';
 
 /**
  * POST /api/admin/applications/:id/deny
  */
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   if (req.method !== 'POST') return methodNotAllowed(res);
 
   let admin;

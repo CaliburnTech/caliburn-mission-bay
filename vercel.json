@@ -8,7 +8,10 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Authorization, Content-Type, X-Impersonation-Session-Id" }
       ]
     }
   ]

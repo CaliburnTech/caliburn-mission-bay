@@ -2,6 +2,7 @@ import prisma from '../../../_lib/db.js';
 import { requireCaliburnAdmin, handleAuthError } from '../../../_lib/auth.js';
 import { sendBanNotice } from '../../../_lib/email.js';
 import { ok, badRequest, notFound, serverError, methodNotAllowed } from '../../../_lib/respond.js';
+import { handleCors } from '../../../_lib/cors.js';
 
 /**
  * POST /api/admin/companies/:id/ban
@@ -15,6 +16,7 @@ import { ok, badRequest, notFound, serverError, methodNotAllowed } from '../../.
  * Sends a ban notice email to the company OWNER.
  */
 export default async function handler(req, res) {
+  if (handleCors(req, res)) return;
   if (req.method !== 'POST') return methodNotAllowed(res);
 
   let admin;
