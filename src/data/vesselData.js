@@ -10,7 +10,7 @@ import {
   M48Hull,
   M68Hull,
   HSMUSVHull,
-  H48Hull,
+  H38Hull,
   SailboatHull,
   UUVHull,
   StealthHull,
@@ -222,32 +222,68 @@ export const vesselHullData = [
     }
   },
   {
-    name: "HSM-USV",
-    type: "Multi-Mission USV",
+    name: "HSMUSV",
+    type: "High Speed Maneuverable USV",
     platformType: "USV",
-    displacement: "210 tons",
-    description: "Magnet Defense HSM-USV variant. Specifications pending; placeholder data mirrored from M48 baseline.",
-    icon: "HSM-USV",
+    displacement: "3.4 tons",
+    description: "High Speed Maneuverable Unmanned Surface Vessel. A 25-foot multi-payload USV designed for low-cost, rapidly fielded operations with human-in-the-loop autonomy. Forward and aft payload bays support tethered or untethered UAV systems, surveillance, munitions, or organically explosive charges.",
+    icon: "HSMUSV",
     manufacturer: "Magnet Defense",
-    specs: { speed: 27, range: 17000, rcs: 15 },
-    capacity: { totalWeight: 100000, totalPower: 500 },
-    detailedSpecs: {
-      note: "Placeholder using M48 stats. Final specs forthcoming from Magnet Defense."
+    specs: {
+      speed: 38,        // knots sprint (25 kt cruise)
+      range: 500,       // nautical miles at cruise
+      rcs: 1            // m² (low-signature 25ft craft)
     },
+    capacity: {
+      totalWeight: 340,   // kg payload (750 lbs)
+      totalPower: 3       // kW (Paguro 4000 3.2kW diesel generator)
+    },
+    detailedSpecs: {
+      loa: "25' 6\"",
+      beam: "8' 1\"",
+      draft: "1' 9\"",
+      dryWeight: "7,500 lbs",
+      fuelCapacity: "200 gallons",
+      propulsion: "Single 225 HP 4-stroke outboard (gas & diesel options)",
+      sprintSpeed: "38 kts",
+      cruiseSpeed: "25 kts",
+      range: "500 NM at cruise",
+      payload: "750 lbs",
+      loiterEndurance: "Up to 10 days",
+      electrical: "Lithium-ion and diesel generator options",
+      autonomy: "Supports COLREGS, ATR, and AI software packages"
+    },
+    features: [
+      "Forward and aft payload bays for modular mission kits",
+      "Folding sensor mast",
+      "Furuno DRS4D-NXT radar + FLIR M364C thermal imaging",
+      "VeroStar triple-band GNSS",
+      "Starlink satellite and HF radio comms (BLOS + LOS)",
+      "Human-in-the-loop autonomy, brand-agnostic (UMAA, MOOS-IVP, DDS, ROS)",
+      "Up to 10-day loitering endurance"
+    ],
+    applications: [
+      "Surveillance & Reconnaissance",
+      "UAV Launch & Recovery",
+      "Munitions Delivery",
+      "Force Protection",
+      "Harbor & Coastal Security",
+      "Mine Countermeasures"
+    ],
     externalLinks: { manufacturer: "https://magnetdefense.com" }
   },
   {
-    name: "H48",
-    type: "Multi-Mission USV",
+    name: "H-38",
+    type: "Strike USV",
     platformType: "USV",
-    displacement: "210 tons",
-    description: "Magnet Defense H48 variant. Specifications pending; placeholder data mirrored from M48 baseline.",
-    icon: "H48",
+    displacement: "Pending",
+    description: "Magnet Defense H-38 strike variant: containerized launch and missile-capable autonomous surface vessel. Detailed specifications pending; placeholder performance shown.",
+    icon: "H-38",
     manufacturer: "Magnet Defense",
     specs: { speed: 27, range: 17000, rcs: 15 },
     capacity: { totalWeight: 100000, totalPower: 500 },
     detailedSpecs: {
-      note: "Placeholder using M48 stats. Final specs forthcoming from Magnet Defense."
+      note: "Placeholder performance pending the H-38 brief from Magnet Defense."
     },
     externalLinks: { manufacturer: "https://magnetdefense.com" }
   },
@@ -275,8 +311,8 @@ export const vesselHullComponents = {
   // Magnet Defense fleet
   "M48": M48Hull,
   "M68": M68Hull,
-  "HSM-USV": HSMUSVHull,
-  "H48": H48Hull,
+  "HSMUSV": HSMUSVHull,
+  "H-38": H38Hull,
   // Small USV category
   "Saildrone": SailboatHull,
   "SubSeaSail": SubSeaSailHull,
@@ -363,17 +399,15 @@ export const vesselMountPoints = {
     "DRIVE AI": { type: "UNMANNED SYSTEMS", x: 65, y: 80, category: "Autonomous Systems" },
     "TRACK AI": { type: "COMMAND & CONTROL", x: 35, y: 80, category: "Control Systems" }
   },
-  "HSM-USV": {
-    "Forward ISO Bay": { type: "UTILITY", x: 25, y: 30, category: "Payload" },
-    "Aft ISO Bay": { type: "UTILITY", x: 70, y: 30, category: "Payload" },
-    "Primary Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
-    "Surface Radar": { type: "RADAR/RF", x: 50, y: 28, category: "Sensors" },
-    "VLS Cells": { type: "KINETIC WEAPONS", x: 35, y: 50, category: "Missile Systems" },
-    "Communications": { type: "SATCOM", x: 55, y: 45, category: "Communications" },
-    "DRIVE AI": { type: "UNMANNED SYSTEMS", x: 60, y: 60, category: "Autonomous Systems" },
-    "TRACK AI": { type: "COMMAND & CONTROL", x: 45, y: 60, category: "Control Systems" }
+  "HSMUSV": {
+    "Forward Payload Bay": { type: "UTILITY", x: 28, y: 45, category: "Payload" },
+    "Aft Payload Bay": { type: "UTILITY", x: 68, y: 45, category: "Payload" },
+    "Folding Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 22, category: "Sensors" },
+    "Furuno Radar": { type: "RADAR/RF", x: 52, y: 28, category: "Sensors" },
+    "Starlink / HF Comms": { type: "SATCOM", x: 45, y: 30, category: "Communications" },
+    "SharkTech Autonomy": { type: "UNMANNED SYSTEMS", x: 55, y: 50, category: "Autonomous Systems" }
   },
-  "H48": {
+  "H-38": {
     "Forward ISO Bay": { type: "UTILITY", x: 25, y: 30, category: "Payload" },
     "Aft ISO Bay": { type: "UTILITY", x: 70, y: 30, category: "Payload" },
     "Primary Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
@@ -428,8 +462,8 @@ export const VESSEL_SLOT_CAPACITY = {
   // Small USVs — EW merged into SENSORS, C2 slot added
   "M48": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
   "M68": { SENSORS: 8, COMMS: 5, WEAPONS: 6, C2: 4, NAV: 3, AI: 5, UTILITY: 8, OTHER: 0 },
-  "HSM-USV": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
-  "H48": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
+  "HSMUSV": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "H-38": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
   "Saildrone": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   "SubSeaSail Horus": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },

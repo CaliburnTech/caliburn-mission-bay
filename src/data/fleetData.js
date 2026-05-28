@@ -98,7 +98,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_005",
-    name: "HSM-USV Loitering Munition Arsenal",
+    name: "HSMUSV Loitering Munition Arsenal",
     type: "Tactical UAV",
     platformType: "UAV",
     totalUnits: 892,
@@ -107,7 +107,7 @@ export const swarmSquadrons = [
       deployed: 24,
       maintenance: 12
     },
-    icon: "HSM-USV",
+    icon: "HSMUSV",
     description: "Precision strike loitering munition swarm for tactical engagement",
     isVariation: false,
     parentId: null,
@@ -154,7 +154,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_008",
-    name: "HSM-USV Kinetic Strike Swarm",
+    name: "HSMUSV Kinetic Strike Swarm",
     type: "Kinetic USV",
     platformType: "USV",
     totalUnits: 48,
@@ -164,7 +164,7 @@ export const swarmSquadrons = [
       charging: 4,
       maintenance: 2
     },
-    icon: "HSM-USV",
+    icon: "HSMUSV",
     description: "SNC stealth kinetic USVs for final-mile strike missions. Electric propulsion, single-use capability.",
     isVariation: false,
     parentId: null,
@@ -211,7 +211,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_015",
-    name: "H48 ASW Flotilla",
+    name: "H-38 ASW Flotilla",
     type: "ASW/Survey USV",
     platformType: "USV",
     totalUnits: 4,
@@ -221,8 +221,8 @@ export const swarmSquadrons = [
       charging: 0,
       maintenance: 0
     },
-    icon: "H48",
-    description: "Magnet Defense H48 USVs configured for REPMUS 2026. Long endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
+    icon: "H-38",
+    description: "Magnet Defense H-38 USVs configured for REPMUS 2026. Long endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -285,7 +285,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_014",
-    name: "HSM-USV Flight",
+    name: "HSMUSV Flight",
     type: "Small Tactical UAS",
     platformType: "UAV",
     totalUnits: 36,
@@ -294,7 +294,7 @@ export const swarmSquadrons = [
       deployed: 6,
       maintenance: 2
     },
-    icon: "HSM-USV",
+    icon: "HSMUSV",
     description: "Boeing/Insitu small tactical UAS for ship-based reconnaissance and surveillance missions",
     isVariation: false,
     parentId: null,
@@ -400,7 +400,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_008": { // HSM-USV Kinetic Strike Swarm
+  "sqdn_008": { // HSMUSV Kinetic Strike Swarm
     outfits: [
       {
         name: "Anti-Ship Strike Package",
@@ -448,7 +448,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_015": { // H48 ASW Flotilla
+  "sqdn_015": { // H-38 ASW Flotilla
     outfits: [
       {
         name: "REPMUS ASW Package",
@@ -518,7 +518,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_014": { // HSM-USV Flight
+  "sqdn_014": { // HSMUSV Flight
     outfits: [
       {
         name: "Ship-Based ISR Package",

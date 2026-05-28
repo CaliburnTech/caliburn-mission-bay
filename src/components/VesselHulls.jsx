@@ -787,12 +787,14 @@ export const CatamaranHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-// Magnet Defense fleet: shared green wireframe icon across all variants
-const magnetWireframeImg = '/providers/magnet-defense/assets/M68.png';
+// Magnet Defense fleet green wireframe icons
+const magnetCatamaranImg = '/providers/magnet-defense/assets/M68.png';   // catamaran, shared by M48 + M68
+const hsmusvImg = '/providers/magnet-defense/assets/HSMUSV.png';         // 25ft monohull (Metal Shark HSMUSV)
+const h38Img = '/providers/magnet-defense/assets/H-38.png';             // strike catamaran
 
-const MagnetWireframeHull = ({ size = 200, className = "", alt = "Magnet Defense" }) => (
+const WireframeHull = ({ src, alt, size = 200, className = "" }) => (
   <img
-    src={magnetWireframeImg}
+    src={src}
     alt={alt}
     width={size}
     height={size * 0.6}
@@ -801,10 +803,10 @@ const MagnetWireframeHull = ({ size = 200, className = "", alt = "Magnet Defense
   />
 );
 
-export const M48Hull = (props) => <MagnetWireframeHull {...props} alt="Magnet Defense M48" />;
-export const M68Hull = (props) => <MagnetWireframeHull {...props} alt="Magnet Defense M68" />;
-export const HSMUSVHull = (props) => <MagnetWireframeHull {...props} alt="Magnet Defense HSM-USV" />;
-export const H48Hull = (props) => <MagnetWireframeHull {...props} alt="Magnet Defense H48" />;
+export const M48Hull = (props) => <WireframeHull {...props} src={magnetCatamaranImg} alt="Magnet Defense M48" />;
+export const M68Hull = (props) => <WireframeHull {...props} src={magnetCatamaranImg} alt="Magnet Defense M68" />;
+export const HSMUSVHull = (props) => <WireframeHull {...props} src={hsmusvImg} alt="Magnet Defense HSMUSV" />;
+export const H38Hull = (props) => <WireframeHull {...props} src={h38Img} alt="Magnet Defense H-38" />;
 
 // Backwards-compat alias kept by callers that referenced the old name
 export const RIBHull = M48Hull;

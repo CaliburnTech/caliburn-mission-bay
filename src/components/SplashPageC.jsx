@@ -61,7 +61,7 @@ const SplashPageC = ({ onEnter }) => {
 
   const surfaceMissions = [
     { id: 2, name: 'SEA DENIAL', platform: 'M48', icon: Ship, count: 280, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], status: 'ACTIVE', x: 20, y: 42 },
-    { id: 3, name: 'PORT SECURITY', platform: 'HSM-USV', icon: Ship, count: 24, caps: ['DRAKE Counter-UAS', 'Scion ESM'], status: 'MAINTENANCE', x: 65, y: 52 },
+    { id: 3, name: 'PORT SECURITY', platform: 'HSMUSV', icon: Ship, count: 24, caps: ['DRAKE Counter-UAS', 'Scion ESM'], status: 'MAINTENANCE', x: 65, y: 52 },
   ];
 
   const subsurfaceMissions = [
@@ -77,7 +77,7 @@ const SplashPageC = ({ onEnter }) => {
     { id: 'ms-guardian', name: 'M48 Guardian', platform: 'M48', icon: Ship, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
     { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, caps: ['Towed Sonar', 'SeaFIND Nav'] },
     { id: 'sd-survey', name: 'SubSeaSail Horus Survey', platform: 'SubSeaSail Horus', icon: Ship, caps: ['Scion ESM', 'Marine AI'] },
-    { id: 'aegir-strike', name: 'HSM-USV Strike', platform: 'HSM-USV', icon: Ship, caps: ['Jackal Missile', 'NGHTS Targeting', 'Lattice Mesh'] },
+    { id: 'aegir-strike', name: 'HSMUSV Strike', platform: 'HSMUSV', icon: Ship, caps: ['Jackal Missile', 'NGHTS Targeting', 'Lattice Mesh'] },
     { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, caps: ['Hidden Level Radar', 'Scion ESM'] },
     { id: 'ms-swarm', name: 'M48 Swarm', platform: 'M48', icon: Ship, caps: ['Swarm Coordination', 'Guardian AI'] },
     { id: 'sd-relay', name: 'SubSeaSail Horus Relay', platform: 'SubSeaSail Horus', icon: Ship, caps: ['Lattice Mesh', 'Marine AI'] },
