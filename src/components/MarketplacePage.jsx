@@ -55,14 +55,21 @@ const MarketplacePage = ({ onLogoClick }) => {
   // Squadron store for opening squadron management modal
   const { openSquadronManagement } = useSquadronStore();
 
-  // Persist view state and update URL
+  // Persist view state and update URL.
+  // pushState (not replaceState) so each view change is its own history entry,
+  // letting the browser back button retrace view-to-view instead of jumping to splash.
+  // Guard against pushing when selectedView already matches the hash (happens when
+  // the change came from a back/forward event, not a user click).
   useEffect(() => {
     try {
       localStorage.setItem('caliburn-marketplace-view', selectedView);
     } catch {
       // Silently fail in private browsing mode
     }
-    window.history.replaceState(null, '', `#${selectedView}`);
+    const currentHash = window.location.hash.replace('#', '');
+    if (currentHash !== selectedView) {
+      window.history.pushState(null, '', `#${selectedView}`);
+    }
   }, [selectedView]);
 
   // Handle browser back/forward navigation (setSelectedView validates the view)
