@@ -55,18 +55,18 @@ const SplashPageC = ({ onEnter }) => {
   // Icons: Plane=UAV, Ship=USV, Waves=UUV
   // Each mission shows multiple capabilities (the whole point of modular payloads!)
   const aerialMissions = [
-    { id: 0, name: 'CONVOY ESCORT', platform: 'MQ-9B', icon: Plane, count: 48, caps: ['NGHTS Targeting', 'Jackal Missile', 'Lattice Mesh'], status: 'ACTIVE', x: 70, y: 12 },
-    { id: 1, name: 'ISR PATROL', platform: 'MQ-4C', icon: Plane, count: 12, caps: ['Scion ESM', 'Hidden Level Radar', 'SeaFIND Nav'], status: 'ACTIVE', x: 25, y: 20 },
+    { id: 0, name: 'CONVOY ESCORT', platform: 'M48', icon: Ship, count: 48, caps: ['NGHTS Targeting', 'Jackal Missile', 'Lattice Mesh'], status: 'ACTIVE', x: 70, y: 12 },
+    { id: 1, name: 'ISR PATROL', platform: 'M68', icon: Ship, count: 12, caps: ['Scion ESM', 'Hidden Level Radar', 'SeaFIND Nav'], status: 'ACTIVE', x: 25, y: 20 },
   ];
 
   const surfaceMissions = [
     { id: 2, name: 'SEA DENIAL', platform: 'M48', icon: Ship, count: 280, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], status: 'ACTIVE', x: 20, y: 42 },
-    { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Ship, count: 24, caps: ['DRAKE Counter-UAS', 'Scion ESM'], status: 'MAINTENANCE', x: 65, y: 52 },
+    { id: 3, name: 'PORT SECURITY', platform: 'HSM-USV', icon: Ship, count: 24, caps: ['DRAKE Counter-UAS', 'Scion ESM'], status: 'MAINTENANCE', x: 65, y: 52 },
   ];
 
   const subsurfaceMissions = [
     { id: 4, name: 'ASW PATROL', platform: 'SubSeaSail', icon: Ship, count: 45, caps: ['Towed Sonar', 'SeaFIND Nav', 'Lattice Mesh'], status: 'ACTIVE', x: 45, y: 75 },
-    { id: 5, name: 'CABLE SURVEY', platform: 'Saildrone', icon: Ship, count: 12, caps: ['Marine AI', 'Scion ESM'], status: 'ACTIVE', x: 75, y: 82 },
+    { id: 5, name: 'CABLE SURVEY', platform: 'SubSeaSail Horus', icon: Ship, count: 12, caps: ['Marine AI', 'Scion ESM'], status: 'ACTIVE', x: 75, y: 82 },
     { id: 6, name: 'SEABED RECON', platform: 'SubSeaSail', icon: Ship, count: 8, caps: ['Hidden Level Radar', 'Towed Sonar'], status: 'ACTIVE', x: 20, y: 88 },
   ];
 
@@ -76,21 +76,21 @@ const SplashPageC = ({ onEnter }) => {
   const pierItems = [
     { id: 'ms-guardian', name: 'M48 Guardian', platform: 'M48', icon: Ship, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
     { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, caps: ['Towed Sonar', 'SeaFIND Nav'] },
-    { id: 'sd-survey', name: 'Saildrone Survey', platform: 'Saildrone', icon: Ship, caps: ['Scion ESM', 'Marine AI'] },
-    { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Ship, caps: ['Jackal Missile', 'NGHTS Targeting', 'Lattice Mesh'] },
+    { id: 'sd-survey', name: 'SubSeaSail Horus Survey', platform: 'SubSeaSail Horus', icon: Ship, caps: ['Scion ESM', 'Marine AI'] },
+    { id: 'aegir-strike', name: 'HSM-USV Strike', platform: 'HSM-USV', icon: Ship, caps: ['Jackal Missile', 'NGHTS Targeting', 'Lattice Mesh'] },
     { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, caps: ['Hidden Level Radar', 'Scion ESM'] },
     { id: 'ms-swarm', name: 'M48 Swarm', platform: 'M48', icon: Ship, caps: ['Swarm Coordination', 'Guardian AI'] },
-    { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Ship, caps: ['Lattice Mesh', 'Marine AI'] },
+    { id: 'sd-relay', name: 'SubSeaSail Horus Relay', platform: 'SubSeaSail Horus', icon: Ship, caps: ['Lattice Mesh', 'Marine AI'] },
   ];
 
   const hangarItems = [
-    { id: 'mq25-tanker', name: 'MQ-25 Tanker', platform: 'MQ-25', icon: Plane, caps: ['Refueling Drogue', 'SeaFIND Nav', 'Lattice Mesh'], targetDomain: 'AERIAL', deployX: 50, deployY: 18 },
-    { id: 'mq9b-strike', name: 'MQ-9B Strike', platform: 'MQ-9B', icon: Plane, caps: ['NGHTS Targeting', 'Jackal Missile', 'Scion ESM'] },
-    { id: 'mq4c-sigint', name: 'MQ-4C SIGINT', platform: 'MQ-4C', icon: Plane, caps: ['Scion ESM', 'Hidden Level Radar', 'SeaFIND Nav'] },
-    { id: 'mq9b-recon', name: 'MQ-9B Recon', platform: 'MQ-9B', icon: Plane, caps: ['Scion ESM', 'Marine AI', 'Lattice Mesh'] },
-    { id: 'mq8c-asw', name: 'MQ-8C ASW', platform: 'MQ-8C', icon: Plane, caps: ['Towed Sonar', 'SeaFIND Nav'] },
-    { id: 'mq4c-ew', name: 'MQ-4C EW', platform: 'MQ-4C', icon: Plane, caps: ['DRAKE Counter-UAS', 'Scion ESM'] },
-    { id: 'mq8c-mesh', name: 'MQ-8C Mesh Node', platform: 'MQ-8C', icon: Plane, caps: ['Lattice Mesh', 'Marine AI'] },
+    { id: 'mq25-tanker', name: 'M68 Tanker', platform: 'M68', icon: Ship, caps: ['Refueling Drogue', 'SeaFIND Nav', 'Lattice Mesh'], targetDomain: 'AERIAL', deployX: 50, deployY: 18 },
+    { id: 'mq9b-strike', name: 'M48 Strike', platform: 'M48', icon: Ship, caps: ['NGHTS Targeting', 'Jackal Missile', 'Scion ESM'] },
+    { id: 'mq4c-sigint', name: 'M68 SIGINT', platform: 'M68', icon: Ship, caps: ['Scion ESM', 'Hidden Level Radar', 'SeaFIND Nav'] },
+    { id: 'mq9b-recon', name: 'M48 Recon', platform: 'M48', icon: Ship, caps: ['Scion ESM', 'Marine AI', 'Lattice Mesh'] },
+    { id: 'mq8c-asw', name: 'M48 ASW', platform: 'M48', icon: Ship, caps: ['Towed Sonar', 'SeaFIND Nav'] },
+    { id: 'mq4c-ew', name: 'M68 EW', platform: 'M68', icon: Ship, caps: ['DRAKE Counter-UAS', 'Scion ESM'] },
+    { id: 'mq8c-mesh', name: 'M48 Mesh Node', platform: 'M48', icon: Ship, caps: ['Lattice Mesh', 'Marine AI'] },
   ];
 
   const getStatusColor = (status) => {

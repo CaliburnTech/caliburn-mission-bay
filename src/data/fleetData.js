@@ -42,7 +42,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_002",
-    name: "Saildrone Autonomous Fleet",
+    name: "SubSeaSail Horus Autonomous Fleet",
     type: "Wind-Powered USV",
     platformType: "USV",
     totalUnits: 117,
@@ -51,7 +51,7 @@ export const swarmSquadrons = [
       inRefit: 5,
       atSea: 23
     },
-    icon: "Saildrone",
+    icon: "SubSeaSail Horus",
     description: "Autonomous sailing vessel swarm for long-endurance ocean monitoring",
     isVariation: false,
     parentId: null,
@@ -60,7 +60,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_003",
-    name: "MQ-9 Reaper Drone Wing",
+    name: "M48 Drone Wing",
     type: "Hunter-Killer UAV",
     platformType: "UAV",
     totalUnits: 168,
@@ -69,7 +69,7 @@ export const swarmSquadrons = [
       deployed: 8,
       maintenance: 4
     },
-    icon: "MQ-9 Reaper",
+    icon: "M48",
     description: "General Atomics medium-altitude long-endurance UAV for persistent ISR and precision strike missions",
     isVariation: false,
     parentId: null,
@@ -98,7 +98,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_005",
-    name: "Switchblade Loitering Munition Arsenal",
+    name: "HSM-USV Loitering Munition Arsenal",
     type: "Tactical UAV",
     platformType: "UAV",
     totalUnits: 892,
@@ -107,7 +107,7 @@ export const swarmSquadrons = [
       deployed: 24,
       maintenance: 12
     },
-    icon: "Switchblade",
+    icon: "HSM-USV",
     description: "Precision strike loitering munition swarm for tactical engagement",
     isVariation: false,
     parentId: null,
@@ -116,7 +116,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_006",
-    name: "Black Widow Micro-Drone Swarm",
+    name: "M48 Micro-Drone Swarm",
     type: "Micro UAV",
     platformType: "UAV",
     totalUnits: 1247,
@@ -126,7 +126,7 @@ export const swarmSquadrons = [
       deployed: 15,
       maintenance: 2
     },
-    icon: "Black Widow",
+    icon: "M48",
     description: "Ultra-small reconnaissance drone swarm for urban and confined operations",
     isVariation: false,
     parentId: null,
@@ -135,7 +135,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_007",
-    name: "GARC",
+    name: "M68",
     type: "Research Vessel",
     platformType: "USV",
     totalUnits: 1,
@@ -145,7 +145,7 @@ export const swarmSquadrons = [
       charging: 0,
       maintenance: 0
     },
-    icon: "GARC",
+    icon: "M68",
     description: "Global Autonomous Research Craft",
     isVariation: false,
     parentId: null,
@@ -154,7 +154,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_008",
-    name: "AEGIR-F Kinetic Strike Swarm",
+    name: "HSM-USV Kinetic Strike Swarm",
     type: "Kinetic USV",
     platformType: "USV",
     totalUnits: 48,
@@ -164,7 +164,7 @@ export const swarmSquadrons = [
       charging: 4,
       maintenance: 2
     },
-    icon: "AEGIR-F",
+    icon: "HSM-USV",
     description: "SNC stealth kinetic USVs for final-mile strike missions. Electric propulsion, single-use capability.",
     isVariation: false,
     parentId: null,
@@ -173,7 +173,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_009",
-    name: "AEGIR-W Combat Squadron",
+    name: "M48 Combat Squadron",
     type: "Combat USV",
     platformType: "USV",
     totalUnits: 24,
@@ -183,7 +183,7 @@ export const swarmSquadrons = [
       charging: 1,
       maintenance: 1
     },
-    icon: "AEGIR-W",
+    icon: "M48",
     description: "SNC long-endurance combat USVs for maritime defense and patrol operations with Digital Grid integration.",
     isVariation: false,
     parentId: null,
@@ -192,7 +192,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_010",
-    name: "AEGIR-H Multi-Role Flotilla",
+    name: "M68 Multi-Role Flotilla",
     type: "Multi-Role USV",
     platformType: "USV",
     totalUnits: 8,
@@ -202,7 +202,7 @@ export const swarmSquadrons = [
       charging: 0,
       maintenance: 1
     },
-    icon: "AEGIR-H",
+    icon: "M68",
     description: "SNC 49-foot multi-role platforms with dual payload bays. Supports ISR, EW, strike, and autonomous resupply.",
     isVariation: false,
     parentId: null,
@@ -211,7 +211,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_015",
-    name: "ZeroUSV Oceanus17 ASW Flotilla",
+    name: "H48 ASW Flotilla",
     type: "ASW/Survey USV",
     platformType: "USV",
     totalUnits: 4,
@@ -221,8 +221,8 @@ export const swarmSquadrons = [
       charging: 0,
       maintenance: 0
     },
-    icon: "ZeroUSV Oceanus17",
-    description: "ZeroUSV 17m electric USVs configured for REPMUS 2026. 50+ day endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
+    icon: "H48",
+    description: "Magnet Defense H48 USVs configured for REPMUS 2026. Long endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -231,7 +231,7 @@ export const swarmSquadrons = [
   // ============ UAV SQUADRONS ============
   {
     id: "sqdn_011",
-    name: "MQ-25 Stingray Tanker Wing",
+    name: "M68 Tanker Wing",
     type: "Carrier-Based Tanker UAV",
     platformType: "UAV",
     totalUnits: 12,
@@ -240,7 +240,7 @@ export const swarmSquadrons = [
       deployed: 2,
       maintenance: 1
     },
-    icon: "MQ-25 Stingray",
+    icon: "M68",
     description: "Boeing carrier-based aerial refueling UAVs extending Super Hornet combat range by 300+ nm",
     isVariation: false,
     parentId: null,
@@ -249,7 +249,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_012",
-    name: "MQ-4C Triton HALE Squadron",
+    name: "M68 HALE Squadron",
     type: "HALE Maritime ISR",
     platformType: "UAV",
     totalUnits: 8,
@@ -258,7 +258,7 @@ export const swarmSquadrons = [
       deployed: 3,
       maintenance: 0
     },
-    icon: "MQ-4C Triton",
+    icon: "M68",
     description: "Northrop Grumman high-altitude long-endurance UAVs for persistent maritime domain awareness",
     isVariation: false,
     parentId: null,
@@ -267,7 +267,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_013",
-    name: "MQ-8C Fire Scout Detachment",
+    name: "M48 Detachment",
     type: "Shipborne VTOL UAV",
     platformType: "UAV",
     totalUnits: 24,
@@ -276,7 +276,7 @@ export const swarmSquadrons = [
       deployed: 4,
       maintenance: 2
     },
-    icon: "MQ-8C Fire Scout",
+    icon: "M48",
     description: "Northrop Grumman autonomous helicopters for shipborne ISR and targeting from LCS and frigates",
     isVariation: false,
     parentId: null,
@@ -285,7 +285,7 @@ export const swarmSquadrons = [
   },
   {
     id: "sqdn_014",
-    name: "RQ-21A Blackjack Flight",
+    name: "HSM-USV Flight",
     type: "Small Tactical UAS",
     platformType: "UAV",
     totalUnits: 36,
@@ -294,7 +294,7 @@ export const swarmSquadrons = [
       deployed: 6,
       maintenance: 2
     },
-    icon: "RQ-21A Blackjack",
+    icon: "HSM-USV",
     description: "Boeing/Insitu small tactical UAS for ship-based reconnaissance and surveillance missions",
     isVariation: false,
     parentId: null,
@@ -334,7 +334,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_002": { // Saildrone Autonomous Fleet
+  "sqdn_002": { // SubSeaSail Horus Autonomous Fleet
     outfits: [
       {
         name: "Ocean Monitoring Package",
@@ -356,7 +356,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_003": { // MQ-9 Reaper Drone Wing
+  "sqdn_003": { // M48 Drone Wing
     outfits: [
       {
         name: "ISR Package",
@@ -400,7 +400,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_008": { // AEGIR-F Kinetic Strike Swarm
+  "sqdn_008": { // HSM-USV Kinetic Strike Swarm
     outfits: [
       {
         name: "Anti-Ship Strike Package",
@@ -416,7 +416,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_009": { // AEGIR-W Combat Squadron
+  "sqdn_009": { // M48 Combat Squadron
     outfits: [
       {
         name: "ISR Patrol Package",
@@ -432,7 +432,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_010": { // AEGIR-H Multi-Role Flotilla
+  "sqdn_010": { // M68 Multi-Role Flotilla
     outfits: [
       {
         name: "ISR/EW Multi-Mission Package",
@@ -448,7 +448,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_015": { // ZeroUSV Oceanus17 ASW Flotilla
+  "sqdn_015": { // H48 ASW Flotilla
     outfits: [
       {
         name: "REPMUS ASW Package",
@@ -464,7 +464,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_011": { // MQ-25 Stingray Tanker Wing
+  "sqdn_011": { // M68 Tanker Wing
     outfits: [
       {
         name: "Standard Tanker Configuration",
@@ -480,7 +480,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_012": { // MQ-4C Triton HALE Squadron
+  "sqdn_012": { // M68 HALE Squadron
     outfits: [
       {
         name: "Multi-INT Maritime Surveillance",
@@ -496,7 +496,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_013": { // MQ-8C Fire Scout Detachment
+  "sqdn_013": { // M48 Detachment
     outfits: [
       {
         name: "Surface Search Package",
@@ -518,7 +518,7 @@ export const squadronUnitConfigurations = {
       }
     ]
   },
-  "sqdn_014": { // RQ-21A Blackjack Flight
+  "sqdn_014": { // HSM-USV Flight
     outfits: [
       {
         name: "Ship-Based ISR Package",
@@ -586,13 +586,13 @@ export const activeDeployments = [
     status: "active",
     healthStatus: { operational: 2, degraded: 0, offline: 0 }
   },
-  // Saildrone deployments on Taiwan Strait ISR
+  // SubSeaSail Horus deployments on Taiwan Strait ISR
   {
     id: "deploy_003",
     missionId: "mission-recon-001",
     missionName: "Taiwan-Strait-ISR-Alpha",
     squadronId: "sqdn_002",
-    hullType: "Saildrone",
+    hullType: "SubSeaSail Horus",
     vesselCount: 3,
     loadoutName: "Long Endurance ISR",
     loadout: {
@@ -607,13 +607,13 @@ export const activeDeployments = [
     status: "active",
     healthStatus: { operational: 2, degraded: 1, offline: 0 }
   },
-  // MQ-9 Reaper deployments on Red Sea Escort
+  // M48 deployments on Red Sea Escort
   {
     id: "deploy_004",
     missionId: "mission-escort-001",
     missionName: "RedSea-Convoy-Guardian",
     squadronId: "sqdn_003",
-    hullType: "Saildrone", // Using Saildrone icon as placeholder
+    hullType: "SubSeaSail Horus", // Using SubSeaSail Horus icon as placeholder
     vesselCount: 3,
     loadoutName: "ISR Package",
     loadout: {
@@ -633,7 +633,7 @@ export const activeDeployments = [
     missionId: "mission-escort-001",
     missionName: "RedSea-Convoy-Guardian",
     squadronId: "sqdn_003",
-    hullType: "Saildrone",
+    hullType: "SubSeaSail Horus",
     vesselCount: 2,
     loadoutName: "Strike Package",
     loadout: {

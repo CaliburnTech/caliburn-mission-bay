@@ -247,7 +247,7 @@ const ShipyardView = ({
                 <Plane size={48} className="text-gray-600 mb-4" />
                 <h3 className="text-gray-300 text-lg font-semibold mb-2">No Aircraft Configured</h3>
                 <p className="text-gray-500 text-sm text-center max-w-md mb-6">
-                  Add UAV platforms like MQ-9 Reaper, MQ-25 Stingray, or MQ-8C Fire Scout to your air wing.
+                  Add Magnet Defense platforms like the M48 fleet operations USV or the M68 strategic defense vessel to your air wing.
                 </p>
               </>
             ) : (

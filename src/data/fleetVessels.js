@@ -2,8 +2,8 @@
 export const fleetVessels = [
   {
     id: "vessel-triton-001",
-    name: "Triton Alpha",
-    hull: "Triton",
+    name: "M48 Alpha",
+    hull: "M48",
     hullType: "AUSV (Surface/Subsurface)",
     manufacturer: "Ocean Aero",
     status: "mission-ready",
@@ -15,8 +15,8 @@ export const fleetVessels = [
   },
   {
     id: "vessel-triton-002",
-    name: "Triton Bravo",
-    hull: "Triton",
+    name: "M48 Bravo",
+    hull: "M48",
     hullType: "AUSV (Surface/Subsurface)",
     manufacturer: "Ocean Aero",
     status: "deployed",
@@ -54,10 +54,10 @@ export const fleetVessels = [
   },
   {
     id: "vessel-saildrone-001",
-    name: "Saildrone Explorer",
-    hull: "Saildrone",
+    name: "SubSeaSail Horus Explorer",
+    hull: "SubSeaSail Horus",
     hullType: "Small USV",
-    manufacturer: "Saildrone",
+    manufacturer: "SubSeaSail Horus",
     status: "mission-ready",
     capabilities: ["long-endurance", "ISR", "weather-monitoring"],
     configuredPayloads: ["Weather Station", "AIS", "Camera"],
@@ -67,8 +67,8 @@ export const fleetVessels = [
   },
   {
     id: "vessel-masc-001",
-    name: "MASC Overwatch",
-    hull: "MASC",
+    name: "M48 Overwatch",
+    hull: "M48",
     hullType: "Medium USV",
     manufacturer: "L3Harris",
     status: "mission-ready",
@@ -81,7 +81,7 @@ export const fleetVessels = [
   {
     id: "vessel-mantaray-001",
     name: "Manta One",
-    hull: "Manta Ray",
+    hull: "M68",
     hullType: "Extra-Large UUV (XLUUV)",
     manufacturer: "Northrop Grumman",
     status: "deployed",

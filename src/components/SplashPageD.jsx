@@ -27,7 +27,7 @@ const SplashPageD = ({ onEnter }) => {
     {
       id: 'asw',
       flash: 'FLASH TRAFFIC: Submarine contact detected. ASW coverage required.',
-      platform: 'MQ-8C Fire Scout',
+      platform: 'M48',
       platformType: 'UAV',
       platformIcon: Plane,
       count: 24,
@@ -59,7 +59,7 @@ const SplashPageD = ({ onEnter }) => {
     {
       id: 'strike',
       flash: 'FLASH TRAFFIC: High-value target confirmed. Strike package authorized.',
-      platform: 'MQ-9B SeaGuardian',
+      platform: 'M68',
       platformType: 'UAV',
       platformIcon: Plane,
       count: 12,
