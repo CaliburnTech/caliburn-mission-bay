@@ -1391,6 +1391,50 @@ export const individualCapabilities = [
       missionTags: ["Vision Enhancement", "Sensor Processing", "AI Perception"],
       providerLogo: "/providers/absentia/assets/AT_LOGO_A.svg",
       bannerImage: "/providers/absentia/assets/banners/MYSTIC_banner.svg"
+    },
+    {
+      name: "RASOR Open Radio",
+      provider: "L3Harris Technologies",
+      type: "Multi-Mission Communications",
+      description: "Rapidly Adaptable Standards-Compliant Open Radio (RASOR) — a modular open systems approach (MOSA) platform supporting rapid multi-mission connectivity across available waveforms with beyond line-of-sight command and control via LEO satellite integration.",
+      capabilities: ["BLOS C2 Communications", "LEO Satellite Connectivity", "Multi-Waveform Support", "JADC2 Integration"],
+      trl: "TRL 7",
+      icon: Radio,
+      category: "RF COMMUNICATIONS",
+      swap: {
+        weight: 18,
+        power: 0.6,
+        size: "medium"
+      },
+      platformTypes: ["USV", "UAV", "Ship"],
+      missionTags: ["RECONNAISSANCE", "SEA_CONTROL", "SWARM_ORCHESTRATION", "FORCE_PROTECTION"],
+      specs: {
+        architecture: "Modular Open Systems Approach (MOSA)",
+        moduleSlots: "3–12 communication module slots",
+        transceivers: "Transceiver cards with active electronically scanned arrays",
+        connectivity: "Commercial LEO satellite internet (BLOS)",
+        chassis: "RARE — Rapidly Adaptable Ruggedized Enclosure (3D-printed)",
+        waveforms: "Multi-waveform support across available standards"
+      },
+      keyFeatures: [
+        "Modular 3–12 slot architecture for mission-tailored comms",
+        "Beyond line-of-sight C2 via commercial LEO satellite constellation",
+        "Active electronically scanned array transceiver cards",
+        "3D-printed ruggedized enclosure (RARE) for rapid fielding",
+        "MOSA-compliant for interoperability across joint platforms",
+        "Supports joint all-domain command and control (JADC2)"
+      ],
+      detailedDescription: "The L3Harris RASOR (Rapidly Adaptable Standards-Compliant Open Radio) is a modular open systems approach (MOSA) communications platform designed for rapid multi-mission connectivity.\n\nRASORA integrates commercial low-Earth orbit (LEO) satellite internet connectivity with transceiver cards and active electronically scanned arrays, enabling beyond line-of-sight command and control for unmanned and crewed platforms.\n\nHoused in the RARE (Rapidly Adaptable Ruggedized Enclosure), a 3D-printed chassis, RASOR accommodates 3 to 12 communication module slots based on mission requirements. This modular design allows operators to rapidly reconfigure communications packages for different operational scenarios.\n\nDemonstrated in live unmanned combat maneuver testing with General Atomics, RASOR supports joint all-domain command and control (JADC2) and near-peer combat operations for the U.S. Department of Defense.",
+      integrationNotes: "RASOR connects to TempestOS via standard IP interfaces, providing BLOS relay capability for autonomous platform C2 links. The modular slot architecture allows mission-specific waveform cards to be swapped without platform modifications.",
+      securityLevel: ["MOSA Compliant", "DDIL Capable"],
+      securityIcons: ["mosa", "ddil", "encrypted"],
+      statImpacts: {
+        speed: 0,
+        power: -3,
+        weight: 2,
+        range: 5,
+        stealth: -3
+      }
     }
   ];
 export const capabilityCategories = {
