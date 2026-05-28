@@ -1323,4 +1323,30 @@ export const M48Hull = ({ size = 200, className = "" }) => (
   />
 );
 
+// Magnet Defense HSMUSV + H-38 (transparent green wireframe PNGs via public/providers symlink)
+const hsmusvImg = '/providers/magnet-defense/assets/HSMUSV.png';
+const h38Img = '/providers/magnet-defense/assets/H-38.png';
+
+export const HSMUSVHull = ({ size = 200, className = "" }) => (
+  <img
+    src={hsmusvImg}
+    alt="Magnet Defense HSMUSV"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain' }}
+  />
+);
+
+export const H38Hull = ({ size = 200, className = "" }) => (
+  <img
+    src={h38Img}
+    alt="Magnet Defense H-38"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain' }}
+  />
+);
+
 // Note: Vessel data and mappings have been moved to src/data/vesselData.js to fix fast refresh violations

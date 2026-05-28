@@ -27,7 +27,9 @@ import {
   BlackWidowHull,
   SwitchbladeHull,
   ZeroUSVOceanus17Hull,
-  M48Hull
+  M48Hull,
+  HSMUSVHull,
+  H38Hull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -495,6 +497,76 @@ export const vesselHullData = [
       "Contested logistics",
       "Search and rescue"
     ],
+    externalLinks: {
+      manufacturer: "https://www.magnetdefense.com"
+    }
+  },
+  {
+    name: "HSMUSV",
+    type: "High Speed Maneuverable USV",
+    platformType: "USV",
+    displacement: "3.4 tons",
+    description: "High Speed Maneuverable Unmanned Surface Vessel. A 25-foot multi-payload USV designed for low-cost, rapidly fielded operations with human-in-the-loop autonomy. Forward and aft payload bays support tethered or untethered UAV systems, surveillance, munitions, or organically explosive charges.",
+    icon: "HSMUSV",
+    manufacturer: "Magnet Defense",
+    specs: {
+      speed: 38,
+      range: 500,
+      rcs: 1
+    },
+    capacity: {
+      totalWeight: 340,
+      totalPower: 3
+    },
+    detailedSpecs: {
+      loa: "25' 6\"",
+      beam: "8' 1\"",
+      draft: "1' 9\"",
+      dryWeight: "7,500 lbs",
+      fuelCapacity: "200 gallons",
+      propulsion: "Single 225 HP 4-stroke outboard (gas & diesel options)",
+      sprintSpeed: "38 kts",
+      cruiseSpeed: "25 kts",
+      range: "500 NM at cruise",
+      payload: "750 lbs",
+      loiterEndurance: "Up to 10 days",
+      electrical: "Lithium-ion and diesel generator options",
+      autonomy: "Supports COLREGS, ATR, and AI software packages"
+    },
+    features: [
+      "Forward and aft payload bays for modular mission kits",
+      "Folding sensor mast",
+      "Furuno DRS4D-NXT radar + FLIR M364C thermal imaging",
+      "VeroStar triple-band GNSS",
+      "Starlink satellite and HF radio comms (BLOS + LOS)",
+      "Human-in-the-loop autonomy, brand-agnostic (UMAA, MOOS-IVP, DDS, ROS)",
+      "Up to 10-day loitering endurance"
+    ],
+    applications: [
+      "Surveillance & Reconnaissance",
+      "UAV Launch & Recovery",
+      "Munitions Delivery",
+      "Force Protection",
+      "Harbor & Coastal Security",
+      "Mine Countermeasures"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.magnetdefense.com"
+    }
+  },
+  {
+    name: "H-38",
+    type: "Strike USV",
+    platformType: "USV",
+    displacement: "Pending",
+    description: "Magnet Defense H-38 strike variant: containerized launch and missile-capable autonomous surface vessel. Detailed specifications pending; placeholder performance shown.",
+    icon: "H-38",
+    manufacturer: "Magnet Defense",
+    specs: { speed: 27, range: 17000, rcs: 15 },
+    capacity: { totalWeight: 100000, totalPower: 500 },
+    detailedSpecs: {
+      note: "Placeholder performance pending the H-38 brief from Magnet Defense."
+    },
     externalLinks: {
       manufacturer: "https://www.magnetdefense.com"
     }
@@ -997,6 +1069,8 @@ export const vesselHullComponents = {
   "Freedom AUV": UUVHull,
   // Magnet Defense
   "M48": M48Hull,
+  "HSMUSV": HSMUSVHull,
+  "H-38": H38Hull,
   // Saildrone family
   "Saildrone Voyager": SailboatHull,
   "Saildrone Spectre": SailboatHull,
@@ -1024,6 +1098,23 @@ export const vesselHullComponents = {
 
 // Vessel Mount Points Configuration
 export const vesselMountPoints = {
+  "HSMUSV": {
+    "Forward Payload Bay": { type: "UTILITY", x: 28, y: 45, category: "Payload" },
+    "Aft Payload Bay": { type: "UTILITY", x: 68, y: 45, category: "Payload" },
+    "Folding Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 22, category: "Sensors" },
+    "Furuno Radar": { type: "RADAR/RF", x: 52, y: 28, category: "Sensors" },
+    "Starlink / HF Comms": { type: "RF COMMUNICATIONS", x: 45, y: 30, category: "Communications" },
+    "SharkTech Autonomy": { type: "UNMANNED SYSTEMS", x: 55, y: 50, category: "Autonomous Systems" }
+  },
+  "H-38": {
+    "Forward ISO Bay": { type: "UTILITY", x: 25, y: 30, category: "Payload" },
+    "Aft ISO Bay": { type: "UTILITY", x: 70, y: 30, category: "Payload" },
+    "Missile Launcher": { type: "KINETIC WEAPONS", x: 45, y: 40, category: "Missile Systems" },
+    "Primary Sensor Mast": { type: "EO/IR SENSORS", x: 60, y: 25, category: "Sensors" },
+    "Surface Radar": { type: "RADAR/RF", x: 62, y: 30, category: "Sensors" },
+    "Communications": { type: "RF COMMUNICATIONS", x: 55, y: 50, category: "Communications" },
+    "Autonomy Suite": { type: "UNMANNED SYSTEMS", x: 50, y: 60, category: "Autonomous Systems" }
+  },
   "Arleigh Burke": {
     "Forward VLS": { type: "KINETIC WEAPONS", x: 30, y: 25, category: "Missile Systems" },
     "Aft VLS": { type: "KINETIC WEAPONS", x: 30, y: 65, category: "Missile Systems" },
@@ -1116,6 +1207,8 @@ export const VESSEL_SLOT_CAPACITY = {
   "Freedom AUV": { SENSORS: 4, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 2, AI: 2, UTILITY: 2, OTHER: 0 },
   // Magnet Defense
   "M48": { SENSORS: 6, COMMS: 3, WEAPONS: 4, C2: 2, NAV: 2, AI: 3, UTILITY: 4, OTHER: 0 },
+  "HSMUSV": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "H-38": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
   // Saildrone family
   "Saildrone Voyager": { SENSORS: 4, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
   "Saildrone Surveyor": { SENSORS: 5, COMMS: 2, WEAPONS: 0, C2: 2, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
