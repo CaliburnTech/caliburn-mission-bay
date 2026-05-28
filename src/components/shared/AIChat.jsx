@@ -222,7 +222,7 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
             <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[
                 'Add a Starlink relay between cloud and vessel',
-                'What would a MetalShark recon config look like?',
+                'What would a M48 recon config look like?',
                 'Move MOOS-IvP under TempestOS',
                 'Add data flow labels between TMS and sensors'
               ].map((suggestion, i) => (

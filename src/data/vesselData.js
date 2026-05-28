@@ -7,7 +7,10 @@ import {
   MediumUSVHull,
   SmallUSVHull,
   SubmarineHull,
-  MetalSharkHull,
+  M48Hull,
+  M68Hull,
+  HSMUSVHull,
+  H48Hull,
   SailboatHull,
   UUVHull,
   StealthHull,
@@ -121,42 +124,134 @@ export const aerialBaselines = {
 
 // Vessel data array for outfitter view - organized by category
 export const vesselHullData = [
-  // ============ SMALL USV CATEGORY ============
+  // ============ MAGNET DEFENSE FLEET ============
   {
-    name: "MetalShark",
-    type: "Small USV",
+    name: "M48",
+    type: "Multi-Mission USV",
     platformType: "USV",
-    displacement: "< 5 tons",
-    description: "High-speed autonomous patrol boat for coastal and riverine operations",
-    icon: "MetalShark",
-    // Real performance specs
+    displacement: "210 tons",
+    description: "Multi-Mission, Long-Range Fleet Operations Variant. AI-enabled autonomous surface vessel for fleet power projection, missile defense, contested logistics, and personnel recovery.",
+    icon: "M48",
+    manufacturer: "Magnet Defense",
     specs: {
-      speed: 45,        // knots max
-      range: 150,       // nautical miles
-      rcs: 3            // m² radar cross section
+      speed: 27,         // knots burst speed
+      range: 17000,      // nautical miles
+      rcs: 15            // m² (estimate for 48m surface vessel)
     },
     capacity: {
-      totalWeight: 500,   // kg payload capacity
-      totalPower: 15      // kW available power
+      totalWeight: 100000,  // kg payload capacity (100 tons)
+      totalPower: 500       // kW available power
+    },
+    detailedSpecs: {
+      length: "48 m",
+      displacement: "210 tons",
+      containers: "4 x 40' ISO",
+      cruiseSpeed: "15 kts",
+      burstSpeed: "27 kts",
+      range: "17,000 NM",
+      payload: "100 tons",
+      role: "Multi-mission, long-range fleet operations"
+    },
+    features: [
+      "AI-enabled autonomous navigation (DRIVE AI)",
+      "Four 40' ISO container payload bays",
+      "17,000 NM transoceanic range",
+      "Fleet-scale 210-ton displacement",
+      "USV / UUV mothership capability",
+      "Manned and unmanned teaming ready"
+    ],
+    applications: [
+      "Integrated Air & Missile Defense",
+      "Contested Logistics",
+      "Long Range ISR&T",
+      "Anti-Submarine Warfare",
+      "Surface Warfare",
+      "USV / UUV Mothership",
+      "Search & Rescue",
+      "Fleet Resupply"
+    ],
+    externalLinks: {
+      manufacturer: "https://magnetdefense.com"
     }
   },
   {
-    name: "Saildrone",
-    type: "Small USV",
+    name: "M68",
+    type: "Strategic Defense USV",
     platformType: "USV",
-    displacement: "< 2 tons",
-    description: "Wind and solar powered autonomous surface vehicle for long-duration ISR missions",
-    icon: "Saildrone",
+    displacement: "650 tons",
+    description: "Strategic Missile Defense & Contested Logistics variant. Fleet-scale autonomous surface vessel sized for integrated air and missile defense.",
+    icon: "M68",
+    manufacturer: "Magnet Defense",
     specs: {
-      speed: 5,         // knots (wind powered)
-      range: 5000,      // nm (essentially unlimited with wind/solar)
-      rcs: 2            // m² (sailboat profile)
+      speed: 32,         // knots burst speed
+      range: 13900,
+      rcs: 25
     },
     capacity: {
-      totalWeight: 200,
-      totalPower: 8
+      totalWeight: 220000,  // 220 tons
+      totalPower: 1000
+    },
+    detailedSpecs: {
+      length: "68 m",
+      displacement: "650 tons",
+      containers: "8 x 40' ISO",
+      cruiseSpeed: "25 kts",
+      burstSpeed: "32 kts",
+      range: "13,900 NM",
+      payload: "220 tons",
+      role: "Strategic missile defense & contested logistics"
+    },
+    features: [
+      "AI-enabled autonomous navigation (DRIVE AI)",
+      "Eight 40' ISO container payload bays",
+      "Strategic missile defense host platform",
+      "650-ton displacement for fleet-scale operations",
+      "Integrated air & missile defense ready",
+      "TRACK AI threat detection and telemetry"
+    ],
+    applications: [
+      "Strategic Missile Defense",
+      "Integrated Air & Missile Defense",
+      "Contested Logistics",
+      "Long Range ISR&T",
+      "Manned & Unmanned Teaming",
+      "USV / UUV Mothership"
+    ],
+    externalLinks: {
+      manufacturer: "https://magnetdefense.com"
     }
   },
+  {
+    name: "HSM-USV",
+    type: "Multi-Mission USV",
+    platformType: "USV",
+    displacement: "210 tons",
+    description: "Magnet Defense HSM-USV variant. Specifications pending; placeholder data mirrored from M48 baseline.",
+    icon: "HSM-USV",
+    manufacturer: "Magnet Defense",
+    specs: { speed: 27, range: 17000, rcs: 15 },
+    capacity: { totalWeight: 100000, totalPower: 500 },
+    detailedSpecs: {
+      note: "Placeholder using M48 stats. Final specs forthcoming from Magnet Defense."
+    },
+    externalLinks: { manufacturer: "https://magnetdefense.com" }
+  },
+  {
+    name: "H48",
+    type: "Multi-Mission USV",
+    platformType: "USV",
+    displacement: "210 tons",
+    description: "Magnet Defense H48 variant. Specifications pending; placeholder data mirrored from M48 baseline.",
+    icon: "H48",
+    manufacturer: "Magnet Defense",
+    specs: { speed: 27, range: 17000, rcs: 15 },
+    capacity: { totalWeight: 100000, totalPower: 500 },
+    detailedSpecs: {
+      note: "Placeholder using M48 stats. Final specs forthcoming from Magnet Defense."
+    },
+    externalLinks: { manufacturer: "https://magnetdefense.com" }
+  },
+  // ============ AUTONOMOUS UNDERWATER/SURFACE VEHICLE ============
   {
     name: "SubSeaSail Horus",
     type: "Autonomous AUSV",
@@ -174,619 +269,15 @@ export const vesselHullData = [
       totalPower: 2
     }
   },
-  {
-    name: "Otter X",
-    type: "Small USV",
-    platformType: "USV",
-    displacement: "< 1 ton",
-    description: "Maritime Robotics compact catamaran USV for hydrographic survey and reconnaissance",
-    icon: "Otter X",
-    specs: {
-      speed: 6,         // knots
-      range: 80,        // nm
-      rcs: 0.5          // m² (very small)
-    },
-    capacity: {
-      totalWeight: 100,
-      totalPower: 5
-    }
-  },
-  {
-    name: "Mariner",
-    type: "Small USV",
-    platformType: "USV",
-    displacement: "< 3 tons",
-    description: "Maritime Robotics multi-mission USV for patrol, survey, and autonomous operations",
-    icon: "Mariner",
-    specs: {
-      speed: 12,        // knots
-      range: 120,       // nm
-      rcs: 1.5          // m²
-    },
-    capacity: {
-      totalWeight: 300,
-      totalPower: 12
-    }
-  },
-  {
-    name: "AEGIR-F",
-    type: "Small USV (Kinetic)",
-    platformType: "USV",
-    displacement: "< 0.5 tons",
-    description: "SNC stealth USV designed for single-use kinetic missions in the final operational mile. Electric propulsion for quiet operation.",
-    icon: "AEGIR-F",
-    manufacturer: "Sierra Nevada Corporation",
-    specs: {
-      speed: 7,         // knots (electric)
-      range: 50,        // nm (single-use mission profile)
-      rcs: 0.3          // m² (stealth optimized)
-    },
-    capacity: {
-      totalWeight: 50,    // kg payload (warhead/sensor)
-      totalPower: 2       // kW (electric drive)
-    },
-    detailedSpecs: {
-      length: "< 7 ft (2.1m)",
-      propulsion: "Electric",
-      role: "Kinetic strike, final mile delivery",
-      stealth: "Optimized for low signature approach"
-    },
-    features: [
-      "Stealth-optimized hull design",
-      "Electric propulsion for quiet operation",
-      "Single-use kinetic mission capability",
-      "Autonomous terminal guidance",
-      "Digital Grid™ integration"
-    ],
-    applications: [
-      "Anti-ship kinetic strike",
-      "Harbor denial operations",
-      "Final mile payload delivery",
-      "Swarm attack coordination"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.sncorp.com",
-      specSheet: "https://www.sncorp.com/capabilities/aegir-autonomous-usv/"
-    }
-  },
-  // ============ MEDIUM USV CATEGORY ============
-  {
-    name: "ZeroUSV Oceanus17",
-    type: "Medium USV",
-    platformType: "USV",
-    displacement: "~17.7 tons",
-    description: "ZeroUSV 17-meter electric autonomous surface vehicle designed for extended endurance maritime operations. Twin 40kW electric stern drives with 50+ day endurance for persistent surveillance and ASW missions.",
-    icon: "ZeroUSV Oceanus17",
-    manufacturer: "ZeroUSV",
-    specs: {
-      speed: 12,        // knots sprint (7kt cruise)
-      range: 2000,      // nm (50+ days at cruise)
-      rcs: 8            // m² (medium signature)
-    },
-    capacity: {
-      totalWeight: 2000,  // kg payload capacity
-      totalPower: 80      // kW available for payloads
-    },
-    detailedSpecs: {
-      length: "17m (55.8 ft)",
-      displacement: "17.7 tonnes",
-      propulsion: "Twin 40kW electric stern drives",
-      cruiseSpeed: "7 knots",
-      sprintSpeed: "12 knots",
-      endurance: "50+ days",
-      seaState: "Sea State 4 operations",
-      autonomy: "Level 4 autonomous operations",
-      certifications: "DNV-GL certification pending"
-    },
-    features: [
-      "50+ day autonomous endurance",
-      "Electric propulsion for quiet operations",
-      "Sea State 4 capable",
-      "Modular payload bay integration",
-      "Teledyne Webb Glider deployment capability",
-      "Sonobuoy launcher integration",
-      "Thin-line towed array compatible",
-      "MBES bathymetric survey ready"
-    ],
-    applications: [
-      "Persistent maritime surveillance",
-      "Anti-submarine warfare support",
-      "Oceanographic survey",
-      "Bathymetric mapping",
-      "Underwater glider deployment",
-      "ISR operations"
-    ],
-    externalLinks: {
-      manufacturer: "https://zerousv.com"
-    }
-  },
-  {
-    name: "AEGIR-W",
-    type: "Medium USV",
-    platformType: "USV",
-    displacement: "~5 tons",
-    description: "SNC long-endurance combat USV for maritime defense operations. Supports autonomous or human-controlled missions with Digital Grid™ integration.",
-    icon: "AEGIR-W",
-    manufacturer: "Sierra Nevada Corporation",
-    specs: {
-      speed: 25,        // knots (estimated based on class)
-      range: 500,       // nm (long endurance)
-      rcs: 5            // m² (combat vessel)
-    },
-    capacity: {
-      totalWeight: 1000,  // kg payload
-      totalPower: 50      // kW
-    },
-    detailedSpecs: {
-      endurance: "Long-endurance operations",
-      control: "Fully autonomous or human-operated",
-      integration: "SNC Digital Grid™",
-      role: "Maritime defense and combat"
-    },
-    features: [
-      "Long-endurance patrol capability",
-      "Modular payload integration",
-      "Advanced sensor suite",
-      "Electronic countermeasures support",
-      "Real-time allied force connectivity"
-    ],
-    applications: [
-      "Maritime defense patrols",
-      "Combat operations",
-      "ISR missions",
-      "Electronic warfare"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.sncorp.com",
-      specSheet: "https://www.sncorp.com/capabilities/aegir-autonomous-usv/"
-    }
-  },
-  {
-    name: "MASC",
-    type: "Medium USV",
-    platformType: "USV",
-    displacement: "~50 tons",
-    description: "Medium Autonomous Surface Craft for extended range autonomous missions",
-    icon: "MASC",
-    specs: {
-      speed: 25,        // knots
-      range: 500,       // nm
-      rcs: 15           // m² (medium vessel)
-    },
-    capacity: {
-      totalWeight: 5000,
-      totalPower: 100
-    }
-  },
-  {
-    name: "AEGIR-H",
-    type: "Large USV",
-    platformType: "USV",
-    displacement: "~15 tons",
-    description: "SNC 49-foot multi-role, multi-use platform with dual payload bays for diverse mission integration. Supports ISR, EW, offensive operations, and autonomous resupply.",
-    icon: "AEGIR-H",
-    manufacturer: "Sierra Nevada Corporation",
-    specs: {
-      speed: 30,        // knots (high-speed maneuvering)
-      range: 800,       // nm (long-range missions)
-      rcs: 8            // m² (medium signature)
-    },
-    capacity: {
-      totalWeight: 3000,  // kg (dual payload bays)
-      totalPower: 150     // kW
-    },
-    detailedSpecs: {
-      length: "49 ft (14.9m)",
-      payloadBays: "Dual payload bays",
-      control: "Fully autonomous or human-operated",
-      integration: "SNC Digital Grid™",
-      role: "Multi-role reconnaissance and delivery"
-    },
-    features: [
-      "49-foot multi-role platform",
-      "Dual payload bays for diverse integration",
-      "High-speed maneuverability",
-      "Exceptional payload capacity",
-      "Unparalleled modularity",
-      "Advanced sensors and ECM support",
-      "Digital Grid™ real-time connectivity"
-    ],
-    applications: [
-      "ISR missions",
-      "Electronic warfare",
-      "Offensive operations",
-      "Autonomous resupply",
-      "Loitering munition deployment",
-      "Long-range reconnaissance"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.sncorp.com",
-      specSheet: "https://www.sncorp.com/capabilities/aegir-autonomous-usv/"
-    }
-  },
-  // ============ AUSV (Autonomous Underwater/Surface Vehicle) ============
-  {
-    name: "Triton",
-    type: "AUSV (Surface/Subsurface)",
-    platformType: "USV/UUV",
-    displacement: "~1.5 tons",
-    description: "Ocean Aero autonomous underwater and surface vehicle. Wind and solar powered for unlimited range. Can dive to evade detection.",
-    icon: "Triton",
-    manufacturer: "Ocean Aero",
-    specs: {
-      speed: 5,         // knots surface (wind powered)
-      range: 10000,     // nm (unlimited with wind/solar)
-      rcs: 0.1          // m² (can submerge, stealth design)
-    },
-    capacity: {
-      totalWeight: 400,
-      totalPower: 10
-    },
-    detailedSpecs: {
-      length: "22 ft (6.7m)",
-      weight: "3,000 lbs (1,360 kg)",
-      surfaceSpeed: "Up to 5 knots",
-      diveSpeed: "2 knots",
-      endurance: "30+ days autonomous sailing",
-      submergence: "5+ days submerged",
-      radarSignature: "Disappears at 1/4 mile",
-      visualSignature: "100m detection range",
-      power: "Wind sail + Solar arrays",
-      comms: "Iridium, WiFi, 900MHz, Mesh",
-      launchRecovery: "1-2 people, single-point davit or shore ramp"
-    },
-    features: [
-      "100% wind and solar powered - no fuel required",
-      "Autonomous deep dive evasion capability",
-      "Stealth profile - minimal radar/visual signature",
-      "Above and below surface data collection",
-      "Payload agnostic - supports custom sensors",
-      "100% USA manufactured"
-    ],
-    applications: [
-      "Defense - persistent ISR, anti-submarine warfare",
-      "Research - oceanographic, water chemistry, animal tracking",
-      "Energy - offshore monitoring, predictive algorithms",
-      "Weather observation and seabed mapping"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.oceanaero.com",
-      specSheet: "https://www.oceanaero.com/the-triton"
-    }
-  },
-  // ============ LARGE/XLUUV CATEGORY ============
-  {
-    name: "Manta Ray",
-    type: "Extra-Large UUV (XLUUV)",
-    platformType: "UUV",
-    displacement: "Classified",
-    description: "Northrop Grumman autonomous glider UUV for long-duration, long-range undersea missions with energy harvesting",
-    icon: "Manta Ray",
-    specs: {
-      speed: 4,         // knots (glider)
-      range: 6000,      // nm (energy harvesting)
-      rcs: 0.05         // m² (underwater, stealth design)
-    },
-    capacity: {
-      totalWeight: 10000,
-      totalPower: 200
-    }
-  },
-  // ============ UAV CATEGORY ============
-  {
-    name: "MQ-25 Stingray",
-    type: "Carrier-Based UAV",
-    platformType: "UAV",
-    displacement: "~20,000 lbs MTOW",
-    description: "Boeing carrier-based unmanned aerial refueling drone. First operational carrier-based UAV for the U.S. Navy, extending Super Hornet combat range.",
-    icon: "MQ-25 Stingray",
-    manufacturer: "Boeing",
-    specs: {
-      speed: 335,       // knots max
-      range: 500,       // nm operational refueling range (2500 nm ferry)
-      rcs: 0.5          // m² - stealth optimized
-    },
-    capacity: {
-      totalWeight: 6800,  // kg fuel offload capacity
-      totalPower: 50      // kW available for systems
-    },
-    // Aerial-specific specs
-    aerialSpecs: {
-      endurance: 14,      // hours
-      missionRadius: 500, // nm (refueling radius)
-      ceiling: 40000,     // ft
-      datalinkTier: 3,    // Advanced (carrier integration)
-      burnRateType: 'Tanker'
-    },
-    detailedSpecs: {
-      length: "51 ft (15.5m)",
-      wingspan: "75 ft (22.9m) / 31.2 ft folded",
-      engine: "Rolls-Royce AE 3007N turbofan",
-      thrust: "10,000 lbf",
-      fuelCapacity: "15,000 lbs transferable",
-      serviceCeiling: "40,000 ft"
-    },
-    features: [
-      "Carrier deck operations (arrestor hook, folding wings)",
-      "V-tail configuration for reduced RCS",
-      "Flush inlet stealth design",
-      "Extends F/A-18 combat radius from 450 to 700+ nmi",
-      "Advanced composite airframe"
-    ],
-    applications: [
-      "Carrier strike group aerial refueling",
-      "Extended strike mission support",
-      "ISR (secondary capability)"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.boeing.com/defense/mq25"
-    }
-  },
-  {
-    name: "MQ-9 Reaper",
-    type: "Hunter-Killer UAV",
-    platformType: "UAV",
-    displacement: "~10,500 lbs MTOW",
-    description: "General Atomics medium-altitude long-endurance (MALE) UAV for persistent ISR and precision strike missions.",
-    icon: "MQ-9 Reaper",
-    manufacturer: "General Atomics",
-    specs: {
-      speed: 260,       // knots max
-      range: 1000,      // nm combat radius
-      rcs: 1.0          // m² estimated
-    },
-    capacity: {
-      totalWeight: 1724,  // kg external payload
-      totalPower: 75      // kW available
-    },
-    // Aerial-specific specs
-    aerialSpecs: {
-      endurance: 27,       // hours (34 with ER variant)
-      missionRadius: 1000, // nm combat radius
-      ceiling: 50000,      // ft
-      datalinkTier: 3,     // Advanced (SATCOM, anti-jam)
-      burnRateType: 'MALE'
-    },
-    detailedSpecs: {
-      length: "36 ft (11m)",
-      wingspan: "66 ft (20m) / 79 ft extended range",
-      engine: "Honeywell TPE331-10GD turboprop",
-      power: "950 hp",
-      endurance: "27 hours (40+ extended range)",
-      serviceCeiling: "50,000 ft",
-      hardpoints: "7 (1500 lbs inboard, 600 lbs middle, 200 lbs outboard)"
-    },
-    features: [
-      "Multi-mission ISR and strike",
-      "MTS-B EO/IR targeting system",
-      "Lynx SAR radar",
-      "Automatic takeoff and landing",
-      "Satellite datalink"
-    ],
-    applications: [
-      "Persistent surveillance",
-      "Close air support",
-      "Precision strike",
-      "Combat search and rescue support"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.ga-asi.com/remotely-piloted-aircraft/mq-9a"
-    }
-  },
-  {
-    name: "MQ-4C Triton",
-    type: "HALE Maritime ISR",
-    platformType: "UAV",
-    displacement: "~32,250 lbs MTOW",
-    description: "Northrop Grumman high-altitude long-endurance maritime surveillance UAV. Complements P-8A Poseidon for persistent maritime domain awareness.",
-    icon: "MQ-4C Triton",
-    manufacturer: "Northrop Grumman",
-    specs: {
-      speed: 310,       // knots max
-      range: 7400,      // nm (8000+ with mission profile)
-      rcs: 0.8          // m² estimated
-    },
-    capacity: {
-      totalWeight: 1452,  // kg sensor payload
-      totalPower: 100     // kW available
-    },
-    // Aerial-specific specs
-    aerialSpecs: {
-      endurance: 30,       // hours
-      missionRadius: 2000, // nm station radius
-      ceiling: 56000,      // ft
-      datalinkTier: 4,     // Resilient (full spectrum, SIGINT)
-      burnRateType: 'HALE'
-    },
-    detailedSpecs: {
-      length: "47.6 ft (14.5m)",
-      wingspan: "130.9 ft (39.9m)",
-      engine: "Rolls-Royce AE 3007H turbofan",
-      thrust: "9,660 lbf",
-      endurance: "24+ hours",
-      serviceCeiling: "56,000 ft"
-    },
-    features: [
-      "360° multi-INT sensor coverage",
-      "AN/ZPY-3 MFAS radar",
-      "EO/IR sensor suite",
-      "SIGINT capability",
-      "De-icing for sustained high-altitude ops",
-      "AIS receiver"
-    ],
-    applications: [
-      "Maritime surveillance",
-      "Signals intelligence",
-      "Search and rescue support",
-      "Port and coastal monitoring"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/triton"
-    }
-  },
-  {
-    name: "MQ-8C Fire Scout",
-    type: "Shipborne VTOL UAV",
-    platformType: "UAV",
-    displacement: "~6,000 lbs MTOW",
-    description: "Northrop Grumman autonomous helicopter for shipborne ISR operations. Based on Bell 407 airframe, operates from LCS and other surface combatants.",
-    icon: "MQ-8C Fire Scout",
-    manufacturer: "Northrop Grumman",
-    specs: {
-      speed: 115,       // knots max
-      range: 150,       // nm combat radius
-      rcs: 2.0          // m² - helicopter profile
-    },
-    capacity: {
-      totalWeight: 318,   // kg payload
-      totalPower: 25      // kW available
-    },
-    // Aerial-specific specs
-    aerialSpecs: {
-      endurance: 12,      // hours
-      missionRadius: 150, // nm
-      ceiling: 20000,     // ft
-      datalinkTier: 3,    // Advanced (Link 16, ship integration)
-      burnRateType: 'VTOL'
-    },
-    detailedSpecs: {
-      length: "41.4 ft (12.6m)",
-      rotorDiameter: "35 ft (10.7m)",
-      engine: "Rolls-Royce 250-C47E turboshaft",
-      power: "650 shp",
-      endurance: "12 hours",
-      serviceCeiling: "20,000 ft",
-      hardpoints: "2"
-    },
-    features: [
-      "Autonomous shipboard takeoff/landing",
-      "AN/ZPY-4(V)1 AESA radar",
-      "Brite Star II EO/IR",
-      "Link 16 datalink",
-      "Laser target designator"
-    ],
-    applications: [
-      "Surface vessel ISR",
-      "Target acquisition",
-      "Mine detection",
-      "ASW support",
-      "Communications relay"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/fire-scout"
-    }
-  },
-  {
-    name: "RQ-21A Blackjack",
-    type: "Small Tactical UAS",
-    platformType: "UAV",
-    displacement: "~135 lbs MTOW",
-    description: "Boeing/Insitu small tactical UAS for reconnaissance, surveillance, and target acquisition. Ship and expeditionary-capable with pneumatic launch and SkyHook recovery.",
-    icon: "RQ-21A Blackjack",
-    manufacturer: "Boeing/Insitu",
-    specs: {
-      speed: 55,        // knots cruise
-      range: 50,        // nm LOS radius
-      rcs: 0.1          // m² - small profile
-    },
-    capacity: {
-      totalWeight: 18,    // kg payload (39 lbs)
-      totalPower: 5       // kW available
-    },
-    // Aerial-specific specs
-    aerialSpecs: {
-      endurance: 12,      // hours (can exceed 16)
-      missionRadius: 50,  // nm with LOS datalink
-      ceiling: 20000,     // ft
-      datalinkTier: 2,    // Standard (LOS + basic SATCOM)
-      burnRateType: 'Small UAS'
-    },
-    detailedSpecs: {
-      length: "8.2 ft (2.5m)",
-      wingspan: "16 ft (4.9m)",
-      engine: "Heavy fuel engine",
-      power: "8 hp",
-      endurance: "12-16 hours",
-      serviceCeiling: "20,000 ft",
-      launch: "Pneumatic SuperWedge launcher",
-      recovery: "SkyHook retrieval system"
-    },
-    features: [
-      "Ship and shore-based operations",
-      "Pneumatic launch - no runway required",
-      "SkyHook recovery system",
-      "Modular payload bay",
-      "Encrypted datalink beyond 50 nm",
-      "Heavy fuel capable"
-    ],
-    applications: [
-      "Tactical reconnaissance",
-      "Surveillance and target acquisition",
-      "Battle damage assessment",
-      "Communications relay",
-      "Route clearance support"
-    ],
-    externalLinks: {
-      manufacturer: "https://www.insitu.com/products/rq21a"
-    }
-  },
-  // ============ CREWED VESSELS ============
-  {
-    name: "Arleigh Burke",
-    type: "Guided Missile Destroyer (DDG)",
-    platformType: "Ship",
-    displacement: "9,200 tons",
-    description: "Advanced destroyer with Aegis combat system and SPY-1 radar",
-    icon: "Arleigh Burke",
-    specs: {
-      speed: 31,        // knots
-      range: 4400,      // nm at 20 knots
-      rcs: 1000         // m² (large warship, reduced signature design)
-    },
-    capacity: {
-      totalWeight: 500000,
-      totalPower: 5000
-    }
-  },
-  {
-    name: "Virginia Class",
-    type: "Nuclear Attack Submarine",
-    platformType: "Submarine",
-    displacement: "7,800 tons",
-    description: "Fast attack submarine for deep water operations",
-    icon: "Virginia Class",
-    specs: {
-      speed: 25,        // knots submerged
-      range: 100000,    // nm (nuclear = essentially unlimited)
-      rcs: 0.001        // m² (underwater, stealth optimized)
-    },
-    capacity: {
-      totalWeight: 100000,
-      totalPower: 3000
-    }
-  },
-  {
-    name: "GARC",
-    type: "Research Vessel",
-    platformType: "Ship",
-    displacement: "Unknown",
-    description: "Global Autonomous Research Craft - advanced research platform",
-    icon: "GARC",
-    specs: {
-      speed: 15,
-      range: 5000,
-      rcs: 50
-    },
-    capacity: {
-      totalWeight: 50000,
-      totalPower: 1000
-    }
-  }
 ];
 
 export const vesselHullComponents = {
+  // Magnet Defense fleet
+  "M48": M48Hull,
+  "M68": M68Hull,
+  "HSM-USV": HSMUSVHull,
+  "H48": H48Hull,
   // Small USV category
-  "MetalShark": MetalSharkHull,
   "Saildrone": SailboatHull,
   "SubSeaSail": SubSeaSailHull,
   "SubSeaSail Horus": SubSeaSailHull,
@@ -849,12 +340,48 @@ export const vesselMountPoints = {
     "Communications": { type: "RF COMMUNICATIONS", x: 65, y: 35, category: "Communications" },
     "Torpedo Tubes": { type: "KINETIC WEAPONS", x: 35, y: 75, category: "Anti-Submarine" }
   },
-  "MetalShark": {
-    "Bow Mount": { type: "KINETIC WEAPONS", x: 20, y: 30, category: "Weapons" },
-    "Sensor Array": { type: "EO/IR SENSORS", x: 50, y: 25, category: "Sensors" },
-    "Communications": { type: "RF COMMUNICATIONS", x: 50, y: 40, category: "Communications" },
-    "Navigation AI": { type: "UNMANNED SYSTEMS", x: 60, y: 35, category: "Autonomous Systems" },
-    "EW Pod": { type: "ELECTRONIC SUPPORT", x: 70, y: 45, category: "Electronic Warfare" }
+  "M48": {
+    "Forward ISO Bay": { type: "UTILITY", x: 25, y: 30, category: "Payload" },
+    "Aft ISO Bay": { type: "UTILITY", x: 70, y: 30, category: "Payload" },
+    "Primary Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
+    "Surface Radar": { type: "RADAR/RF", x: 50, y: 28, category: "Sensors" },
+    "VLS Cells": { type: "KINETIC WEAPONS", x: 35, y: 50, category: "Missile Systems" },
+    "Communications": { type: "SATCOM", x: 55, y: 45, category: "Communications" },
+    "DRIVE AI": { type: "UNMANNED SYSTEMS", x: 60, y: 60, category: "Autonomous Systems" },
+    "TRACK AI": { type: "COMMAND & CONTROL", x: 45, y: 60, category: "Control Systems" }
+  },
+  "M68": {
+    "ISO Bay 1": { type: "UTILITY", x: 20, y: 30, category: "Payload" },
+    "ISO Bay 2": { type: "UTILITY", x: 40, y: 30, category: "Payload" },
+    "ISO Bay 3": { type: "UTILITY", x: 60, y: 30, category: "Payload" },
+    "ISO Bay 4": { type: "UTILITY", x: 80, y: 30, category: "Payload" },
+    "IAMD Radar": { type: "RADAR/RF", x: 50, y: 15, category: "Sensors" },
+    "Forward VLS": { type: "KINETIC WEAPONS", x: 30, y: 50, category: "Missile Systems" },
+    "Aft VLS": { type: "KINETIC WEAPONS", x: 70, y: 50, category: "Missile Systems" },
+    "CIWS": { type: "DIRECTED ENERGY", x: 50, y: 60, category: "Point Defense" },
+    "Communications": { type: "SATCOM", x: 50, y: 70, category: "Communications" },
+    "DRIVE AI": { type: "UNMANNED SYSTEMS", x: 65, y: 80, category: "Autonomous Systems" },
+    "TRACK AI": { type: "COMMAND & CONTROL", x: 35, y: 80, category: "Control Systems" }
+  },
+  "HSM-USV": {
+    "Forward ISO Bay": { type: "UTILITY", x: 25, y: 30, category: "Payload" },
+    "Aft ISO Bay": { type: "UTILITY", x: 70, y: 30, category: "Payload" },
+    "Primary Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
+    "Surface Radar": { type: "RADAR/RF", x: 50, y: 28, category: "Sensors" },
+    "VLS Cells": { type: "KINETIC WEAPONS", x: 35, y: 50, category: "Missile Systems" },
+    "Communications": { type: "SATCOM", x: 55, y: 45, category: "Communications" },
+    "DRIVE AI": { type: "UNMANNED SYSTEMS", x: 60, y: 60, category: "Autonomous Systems" },
+    "TRACK AI": { type: "COMMAND & CONTROL", x: 45, y: 60, category: "Control Systems" }
+  },
+  "H48": {
+    "Forward ISO Bay": { type: "UTILITY", x: 25, y: 30, category: "Payload" },
+    "Aft ISO Bay": { type: "UTILITY", x: 70, y: 30, category: "Payload" },
+    "Primary Sensor Mast": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
+    "Surface Radar": { type: "RADAR/RF", x: 50, y: 28, category: "Sensors" },
+    "VLS Cells": { type: "KINETIC WEAPONS", x: 35, y: 50, category: "Missile Systems" },
+    "Communications": { type: "SATCOM", x: 55, y: 45, category: "Communications" },
+    "DRIVE AI": { type: "UNMANNED SYSTEMS", x: 60, y: 60, category: "Autonomous Systems" },
+    "TRACK AI": { type: "COMMAND & CONTROL", x: 45, y: 60, category: "Control Systems" }
   },
   "Saildrone": {
     "Sensor Suite": { type: "EO/IR SENSORS", x: 50, y: 20, category: "Sensors" },
@@ -899,7 +426,10 @@ export const vesselMountPoints = {
  */
 export const VESSEL_SLOT_CAPACITY = {
   // Small USVs — EW merged into SENSORS, C2 slot added
-  "MetalShark": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "M48": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
+  "M68": { SENSORS: 8, COMMS: 5, WEAPONS: 6, C2: 4, NAV: 3, AI: 5, UTILITY: 8, OTHER: 0 },
+  "HSM-USV": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
+  "H48": { SENSORS: 6, COMMS: 4, WEAPONS: 4, C2: 3, NAV: 2, AI: 4, UTILITY: 6, OTHER: 0 },
   "Saildrone": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   "SubSeaSail Horus": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },

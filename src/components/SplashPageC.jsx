@@ -60,7 +60,7 @@ const SplashPageC = ({ onEnter }) => {
   ];
 
   const surfaceMissions = [
-    { id: 2, name: 'SEA DENIAL', platform: 'MetalShark', icon: Ship, count: 280, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], status: 'ACTIVE', x: 20, y: 42 },
+    { id: 2, name: 'SEA DENIAL', platform: 'M48', icon: Ship, count: 280, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], status: 'ACTIVE', x: 20, y: 42 },
     { id: 3, name: 'PORT SECURITY', platform: 'AEGIR-F', icon: Ship, count: 24, caps: ['DRAKE Counter-UAS', 'Scion ESM'], status: 'MAINTENANCE', x: 65, y: 52 },
   ];
 
@@ -74,12 +74,12 @@ const SplashPageC = ({ onEnter }) => {
   // Each configuration has multiple capabilities - that's the whole point of modular payloads!
   // Deploy positions: AERIAL y<30, SURFACE y 40-60, SUBSURFACE y>70
   const pierItems = [
-    { id: 'ms-guardian', name: 'MetalShark Guardian', platform: 'MetalShark', icon: Ship, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
+    { id: 'ms-guardian', name: 'M48 Guardian', platform: 'M48', icon: Ship, caps: ['Guardian AI', 'Marine AI', 'Lattice Mesh'], targetDomain: 'SURFACE', deployX: 85, deployY: 48 },
     { id: 'sss-asw', name: 'SubSeaSail ASW', platform: 'SubSeaSail', icon: Ship, caps: ['Towed Sonar', 'SeaFIND Nav'] },
     { id: 'sd-survey', name: 'Saildrone Survey', platform: 'Saildrone', icon: Ship, caps: ['Scion ESM', 'Marine AI'] },
     { id: 'aegir-strike', name: 'AEGIR-F Strike', platform: 'AEGIR-F', icon: Ship, caps: ['Jackal Missile', 'NGHTS Targeting', 'Lattice Mesh'] },
     { id: 'sss-sigint', name: 'SubSeaSail SIGINT', platform: 'SubSeaSail', icon: Ship, caps: ['Hidden Level Radar', 'Scion ESM'] },
-    { id: 'ms-swarm', name: 'MetalShark Swarm', platform: 'MetalShark', icon: Ship, caps: ['Swarm Coordination', 'Guardian AI'] },
+    { id: 'ms-swarm', name: 'M48 Swarm', platform: 'M48', icon: Ship, caps: ['Swarm Coordination', 'Guardian AI'] },
     { id: 'sd-relay', name: 'Saildrone Relay', platform: 'Saildrone', icon: Ship, caps: ['Lattice Mesh', 'Marine AI'] },
   ];
 

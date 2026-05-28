@@ -22,7 +22,7 @@ export const isMaritimeSquadron = (squadron) => getSquadronDomain(squadron) === 
 export const swarmSquadrons = [
   {
     id: "sqdn_001",
-    name: "MetalShark Patrol Drones",
+    name: "M48 Patrol Drones",
     type: "High-Speed USV",
     platformType: "USV",
     totalUnits: 280,
@@ -32,7 +32,7 @@ export const swarmSquadrons = [
       deployed: 12,
       maintenance: 3
     },
-    icon: "MetalShark",
+    icon: "M48",
     description: "High-speed autonomous patrol vessel swarm for coastal defense and reconnaissance",
     // Variation fields
     isVariation: false,
@@ -306,7 +306,7 @@ export const swarmSquadrons = [
 // Fleet Unit Configurations - Mock data for capability outfits
 // Keyed by squadron ID for variation support
 export const squadronUnitConfigurations = {
-  "sqdn_001": { // MetalShark Patrol Drones
+  "sqdn_001": { // M48 Patrol Drones
     outfits: [
       {
         name: "Coastal Defense Package",
@@ -545,13 +545,13 @@ export const getSquadronConfigByIndex = (index) => {
 
 // Active Deployments - Shows which vessels are deployed to which missions with what loadouts
 export const activeDeployments = [
-  // MetalShark deployments on Hormuz Sea Denial
+  // M48 deployments on Hormuz Sea Denial
   {
     id: "deploy_001",
     missionId: "mission-denial-001",
     missionName: "Hormuz-Denial-Ops",
     squadronId: "sqdn_001",
-    hullType: "MetalShark",
+    hullType: "M48",
     vesselCount: 4,
     loadoutName: "Coastal Defense Package",
     loadout: {
@@ -571,7 +571,7 @@ export const activeDeployments = [
     missionId: "mission-denial-001",
     missionName: "Hormuz-Denial-Ops",
     squadronId: "sqdn_001",
-    hullType: "MetalShark",
+    hullType: "M48",
     vesselCount: 2,
     loadoutName: "Fast Response Package",
     loadout: {
@@ -690,13 +690,13 @@ export const activeDeployments = [
     status: "staging",
     healthStatus: { operational: 1, degraded: 0, offline: 0 }
   },
-  // MetalShark reconnaissance deployment
+  // M48 reconnaissance deployment
   {
     id: "deploy_007",
     missionId: "mission-recon-001",
     missionName: "Taiwan-Strait-ISR-Alpha",
     squadronId: "sqdn_001",
-    hullType: "MetalShark",
+    hullType: "M48",
     vesselCount: 5,
     loadoutName: "Reconnaissance Package",
     loadout: {

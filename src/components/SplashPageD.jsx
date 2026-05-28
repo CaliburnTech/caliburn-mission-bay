@@ -93,7 +93,7 @@ const SplashPageD = ({ onEnter }) => {
     {
       id: 'denial',
       flash: 'FLASH TRAFFIC: Hostile surface contacts. Sea denial posture.',
-      platform: 'MetalShark',
+      platform: 'M48',
       platformType: 'USV',
       platformIcon: Ship,
       count: 48,

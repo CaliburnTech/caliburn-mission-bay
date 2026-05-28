@@ -255,7 +255,7 @@ const ShipyardView = ({
                 <Anchor size={48} className="text-gray-600 mb-4" />
                 <h3 className="text-gray-300 text-lg font-semibold mb-2">No Vessels Configured</h3>
                 <p className="text-gray-500 text-sm text-center max-w-md mb-6">
-                  Add maritime platforms like MetalShark patrol boats, Saildrone USVs, or autonomous UUVs to your fleet.
+                  Add maritime platforms like M48 fleet operations USVs, M68 strategic defense vessels, or SubSeaSail Horus AUSVs to your fleet.
                 </p>
               </>
             )}

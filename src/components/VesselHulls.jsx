@@ -787,21 +787,40 @@ export const CatamaranHull = ({ size = 200, className = "" }) => (
   </svg>
 );
 
-// MetalShark Autonomous Patrol Boat - Image
-import metalSharkImg from '../assets/images/MetalShark.png';
+// Magnet Defense M48: Multi-Mission, Long-Range Fleet Operations Variant
+const m48Img = '/providers/magnet-defense/assets/M48-spec-card.png';
 
-export const MetalSharkHull = ({ size = 200, className = "" }) => (
+export const M48Hull = ({ size = 200, className = "" }) => (
   <img
-    src={metalSharkImg}
-    alt="MetalShark Patrol Boat"
+    src={m48Img}
+    alt="Magnet Defense M48"
     width={size}
-    height={size * 0.6}
+    height={size * 1.4}
     className={className}
-    style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', filter: 'brightness(0.8)', clipPath: 'inset(5% 10% 10% 5% round 12px)' }}
+    style={{ objectFit: 'contain' }}
   />
 );
 
-export const RIBHull = MetalSharkHull;
+// Magnet Defense M68: Strategic Missile Defense & Contested Logistics
+const m68Img = '/providers/magnet-defense/assets/M68.png';
+
+export const M68Hull = ({ size = 200, className = "" }) => (
+  <img
+    src={m68Img}
+    alt="Magnet Defense M68"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
+  />
+);
+
+// HSM-USV and H48: Magnet Defense variants, specs TBD. Reuse M48 hull image for now.
+export const HSMUSVHull = M48Hull;
+export const H48Hull = M48Hull;
+
+// Backwards-compat alias kept by callers that referenced the old name
+export const RIBHull = M48Hull;
 
 export const PatrolBoatHull = ({ size = 200, className = "" }) => (
   <svg width={size} height={size * 0.6} viewBox="0 0 400 200" className={className}>

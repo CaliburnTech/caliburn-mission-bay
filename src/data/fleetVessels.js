@@ -29,7 +29,7 @@ export const fleetVessels = [
   {
     id: "vessel-metalshark-001",
     name: "Shark One",
-    hull: "MetalShark",
+    hull: "M48",
     hullType: "Small USV",
     manufacturer: "Metal Shark",
     status: "mission-ready",
@@ -42,7 +42,7 @@ export const fleetVessels = [
   {
     id: "vessel-metalshark-002",
     name: "Shark Two",
-    hull: "MetalShark",
+    hull: "M48",
     hullType: "Small USV",
     manufacturer: "Metal Shark",
     status: "deployed",
