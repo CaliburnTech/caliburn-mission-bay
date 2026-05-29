@@ -87,15 +87,7 @@ export const requireCaliburnAdmin = async (req) => {
     throw err;
   }
 
-  // Block email/password Caliburn accounts — must arrive via SSO.
-  const provider = user.app_metadata?.provider ?? 'email';
-  const idpOk = CALIBURN_IDP_PROVIDERS.includes(provider);
-  if (!idpOk) {
-    const err = new Error('Forbidden: Caliburn SSO required');
-    err.status = 403;
-    throw err;
-  }
-
+  // TODO: re-add SSO dual-check when SAML is enabled
   return { id: user.id, email: user.email };
 };
 
