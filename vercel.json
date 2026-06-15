@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
+    { "src": "/api/admin/companies/([^/]+)/approve", "dest": "/api/admin/companies/approve/$1" },
+    { "src": "/api/admin/companies/([^/]+)/ban",     "dest": "/api/admin/companies/ban/$1"     },
+    { "src": "/api/admin/companies/([^/]+)/unban",   "dest": "/api/admin/companies/unban/$1"   },
     {
       "src": "/api/(.*)",
       "headers": {
