@@ -79,6 +79,11 @@ const useConfigurationStore = create(
       // ACTIVE CONFIGURATION (being edited)
       // ============================================
       activeConfig: null,
+      pendingMissionSetKey: null,
+      pendingMissionSetCaps: null,
+      pendingRoleKey: null,
+      appliedMissionSetKey: null,
+      appliedMissionSetCaps: null,
       // Structure when active:
       // {
       //   id: string | null (null = new unsaved config),
@@ -110,7 +115,9 @@ const useConfigurationStore = create(
             hullName,
             slots: createEmptySlots(hullName),
             isDirty: false
-          }
+          },
+          appliedMissionSetKey: null,
+          appliedMissionSetCaps: null,
         });
         return true;
       },
@@ -346,6 +353,12 @@ const useConfigurationStore = create(
       closeActiveConfiguration: () => {
         set({ activeConfig: null });
       },
+
+      setPendingMissionSetKey: (key) => set({ pendingMissionSetKey: key }),
+      setPendingMissionSetCaps: (caps) => set({ pendingMissionSetCaps: caps }),
+      setPendingRoleKey: (key) => set({ pendingRoleKey: key }),
+      setAppliedMissionSet: (key, caps) => set({ appliedMissionSetKey: key, appliedMissionSetCaps: caps }),
+      clearAppliedMissionSet: () => set({ appliedMissionSetKey: null, appliedMissionSetCaps: null }),
 
       // Get configurations for a specific squadron
       getConfigurationsForSquadron: (squadronId) => {

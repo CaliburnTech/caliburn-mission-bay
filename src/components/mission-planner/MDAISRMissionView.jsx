@@ -1,0 +1,791 @@
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import {
+  MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
+} from 'react-leaflet';
+import {
+  Play, Pause, RotateCcw, ChevronLeft, Check, Satellite, Radio, Eye, Waves,
+  DollarSign, AlertTriangle, ArrowRight, Settings
+} from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgM48      from '../../assets/images/M48.png';
+// imgSaildrone unused — Voyager rendered as CircleMarker
+import imgTriton   from '../../assets/images/MQ4C Triton.png';
+
+const VESSEL_ROSTER = [
+  { name: 'M48 ISR',           image: imgM48,       hullName: 'M48',              capabilities: ['Passive ESM/SIGINT Collection Module', 'AIS Dark Ship Detection', 'Pattern-of-Life Engine', '100-Day Endurance'] },
+  { name: 'MQ-4C Triton',     image: imgTriton,   hullName: 'MQ-4C Triton',       capabilities: ['AN/ZPY-3 MFAS Wide-Area Radar', 'ISAR Contact Classification', 'Link 16 / SATCOM Broadcast', '55,000 ft BAMS Persistent Orbit'] },
+];
+
+const MISSION_SET_KEY = 'MDA_ISR';
+const MISSION_SET_CAPS = ['Passive ESM/SIGINT Collection Module'];
+
+// ─── Geography ────────────────────────────────────────────────────────────────
+const NM_TO_M = 1852;
+
+const MAP_CENTER = [19.8, 119.5];
+const MAP_ZOOM   = 6;
+const MAP_ZOOM_IN = 8;
+
+// ISR Platform Positions — South China Sea / Philippine Sea
+const VOYAGER_POS         = [21.0, 116.5];   // Saildrone Voyager — SIGINT loiter
+const TRITON_START        = [15.5, 122.5];   // MQ-4C Triton — initially on station south
+const TRITON_ORBIT_R      = 0.38;            // orbit radius in degrees (~25nm visual)
+const TRITON_ORBIT_PERIOD = 20;              // ticks per full orbit
+
+// Dark ship contact — appears on radar, no AIS
+const DARK_SHIP_POS  = [21.2, 117.8];
+
+// Tipping output — 7th Fleet MOC, Yokosuka
+const MOC_POS = [35.28, 139.67];
+
+// Coverage radii in NM
+const VOYAGER_ESM_NM   = 80;
+const OCEANUS_RADAR_NM = 30;
+const TRITON_MFAS_NM   = 200;
+
+// ─── Tick milestones ──────────────────────────────────────────────────────────
+const T_DEPLOYED        = 10;
+const T_DARK_SHIP       = 20;
+const T_AIS_ANOMALY     = 30;
+const T_POL_FLAG        = 42;
+const T_ALERT_GEN       = 52;
+const T_LINK16_TX       = 62;
+const T_TRITON_VECTORS  = 72;
+const T_TRITON_ON_STN   = 88;
+const T_CLASSIFIED      = 98;
+const TOTAL_TICKS       = 115;
+
+const TICK_MS = 280;
+
+// ─── Phase definitions ────────────────────────────────────────────────────────
+const getPhase = (tick) => {
+  if (tick < T_DEPLOYED)       return 'idle';
+  if (tick < T_DARK_SHIP)      return 'deployed';
+  if (tick < T_AIS_ANOMALY)    return 'dark_ship';
+  if (tick < T_POL_FLAG)       return 'ais_check';
+  if (tick < T_ALERT_GEN)      return 'pol_flag';
+  if (tick < T_LINK16_TX)      return 'alert_gen';
+  if (tick < T_TRITON_VECTORS) return 'link16_tx';
+  if (tick < T_TRITON_ON_STN)  return 'triton_vectors';
+  if (tick < T_CLASSIFIED)     return 'triton_on_stn';
+  return 'classified';
+};
+
+const PHASE_NARRATIVE = {
+  idle:            null,
+  deployed:        { title: 'Barrier Patrol On Station', body: 'All ISR platforms on station. Saildrone Voyager passive ESM loiter active. Oceanus17 SharpEye radar scanning Luzon Strait sector. MQ-4C Triton on wide-area orbit.' },
+  dark_ship:       { title: 'Dark Contact Detected', body: 'Kelvin Hughes SharpEye radar on CUSV detects surface contact at bearing 285. Contact present on radar — no corresponding AIS signal. Forwarding to PoL engine.' },
+  ais_check:       { title: 'AIS Correlation Failure', body: 'PoL engine checks MMSI database — no match within 8 NM of radar return. Vessel operating with AIS off or spoofed. Flagging as DARK CONTACT.' },
+  pol_flag:        { title: 'Behavioral Anomaly — Loitering', body: 'Pattern-of-Life engine: vessel has loitered for 6+ hrs at same position. Track history shows repeated transits matching known militia rendezvous pattern. Confidence: HIGH.' },
+  alert_gen:       { title: 'Alert Generated — CoT Track Pushed', body: 'ISR alert generated: 21°12\'N 117°48\'E — DARK CONTACT — MILITIA INDICATOR — confidence 82%. CoT track pushed to ATAK operators. Link 16 broadcast pending.' },
+  link16_tx:       { title: 'Link 16 Broadcast to Triton / P-8A', body: 'Track ID HOTEL-7 broadcast over Link 16. MQ-4C Triton tasked for positive ID. P-8A Poseidon notified. 7th Fleet MOC notified via SATCOM. Contact arrives to execute — not search.' },
+  triton_vectors:  { title: 'MQ-4C Triton Vectored to Contact', body: 'Triton orbiting at 55,000 ft. AN/ZPY-3 MFAS slewing to contact. ETA 14 min. Pre-fused contact solution transmitted — Triton knows exact position before arrival.' },
+  triton_on_stn:   { title: 'Triton On Station — ISAR Imaging', body: 'Triton overhead. Inverse Synthetic Aperture Radar imaging. Vessel silhouette: 130-ft steel-hull fishing vessel type. Crew count: 8. No fishing gear deployed.' },
+  classified:      { title: 'CONTACT CLASSIFIED — Maritime Militia', body: 'ISAR cross-referenced with ONI vessel database: PLAN Maritime Militia vessel, hull number confirmed. Report transmitted to 7th Fleet MOC. Prosecution authority requested.' },
+};
+
+const getPhaseBadge = (phase) => {
+  const m = {
+    deployed:        { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '● Barrier Patrol Active' },
+    dark_ship:       { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Dark Contact Detected' },
+    ais_check:       { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40',               label: '◈ AIS Correlation Failure' },
+    pol_flag:        { cls: 'bg-orange-900/80 text-orange-300 border-orange-400/50 animate-pulse', label: '⚠ Behavioral Anomaly — Loitering' },
+    alert_gen:       { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                     label: '● CoT Alert Generated — ATAK Push' },
+    link16_tx:       { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',    label: '⚡ Link 16 Broadcast — HOTEL-7' },
+    triton_vectors:  { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40',            label: '→ MQ-4C Triton Vectored' },
+    triton_on_stn:   { cls: 'bg-violet-900/80 text-violet-200 border-violet-400/60',            label: '◈ Triton On Station — ISAR' },
+    classified:      { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Contact Classified — Militia' },
+  };
+  return m[phase] || null;
+};
+
+const EVENT_COLORS = {
+  warn:    'text-amber-400',
+  alert:   'text-red-400',
+  info:    'text-cyan-400',
+  success: 'text-emerald-400',
+};
+
+const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
+
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+const getTritonPos = (tick) => {
+  if (tick < T_TRITON_VECTORS) return TRITON_START;
+  // Orbit entry point — east of dark ship, so approach comes from the south-east
+  const orbitEntry = [DARK_SHIP_POS[0], DARK_SHIP_POS[1] + TRITON_ORBIT_R];
+  if (tick < T_TRITON_ON_STN) {
+    const t = (tick - T_TRITON_VECTORS) / (T_TRITON_ON_STN - T_TRITON_VECTORS);
+    return lerp2(TRITON_START, orbitEntry, Math.min(t, 1));
+  }
+  // Circular orbit around dark ship
+  const angle = ((tick - T_TRITON_ON_STN) / TRITON_ORBIT_PERIOD) * 2 * Math.PI;
+  return [
+    DARK_SHIP_POS[0] + TRITON_ORBIT_R * Math.sin(angle),
+    DARK_SHIP_POS[1] + TRITON_ORBIT_R * Math.cos(angle),
+  ];
+};
+
+// ─── Map sub-components ───────────────────────────────────────────────────────
+const MapController = () => null;
+
+const MapInvalidateSize = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timers = [100, 300, 600].map(d => setTimeout(() => map.invalidateSize(), d));
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(map.getContainer());
+    return () => { timers.forEach(clearTimeout); ro.disconnect(); };
+  }, [map]);
+  return null;
+};
+
+// ─── PoL Contacts mini-table ──────────────────────────────────────────────────
+const POL_CONTACTS_BASE = [
+  { id: 'TRACK-001', lat: '19°28\'N', lng: '120°29\'E', ais: 'PRESENT', mmsi: '477123456', vessel: 'Bulk Carrier', flag: null, speed: '8.4 kts', bearing: '042' },
+  { id: 'TRACK-002', lat: '21°12\'N', lng: '117°48\'E', ais: 'DARK',    mmsi: null,        vessel: 'Unknown Surface', flag: 'ANOMALY', speed: '0.3 kts', bearing: '—' },
+  { id: 'TRACK-003', lat: '22°49\'N', lng: '121°11\'E', ais: 'PRESENT', mmsi: '412845023', vessel: 'Fishing Vessel', flag: 'LOITER',  speed: '1.1 kts', bearing: '188' },
+];
+
+// ─── Payload Catalog ──────────────────────────────────────────────────────────
+const ISR_PAYLOADS = [
+  {
+    id: 'MSR',
+    slot: 'SURVEILLANCE RADAR',
+    name: 'Kelvin Hughes Mk11 SharpEye',
+    vendor: 'Kelvin Hughes',
+    color: '#06b6d4',
+    spec: 'X/S-band solid-state coherent · 0.5 m² RCS · ISAR classification',
+    format: 'Integrated or 20-ft TEU mast mount',
+    vessels: ['M48', 'CUSV', 'Ghost Fleet Overlord'],
+  },
+  {
+    id: 'EOIR',
+    slot: 'EO/IR SUITE',
+    name: 'L3Harris WESCAM MX-10/15 MS',
+    vendor: 'L3Harris Technologies',
+    color: '#8b5cf6',
+    spec: 'Multi-spectral day/night · Vessel ID at extended range · MX-10 (small) / MX-15 (MUSV)',
+    format: 'Turret mount (integrated) or containerized gimbal',
+    vessels: ['All platforms'],
+  },
+  {
+    id: 'AIS',
+    slot: 'AIS RECEIVER / CORRELATOR',
+    name: 'Class A/B AIS Ingestion + Dark Ship Detection',
+    vendor: 'Baseline Capability',
+    color: '#10b981',
+    spec: 'Real-time cross-correlation with radar tracks · Dark ship flagging · AIS spoofing detection',
+    format: 'Integrated baseline — all platforms',
+    vessels: ['All platforms'],
+  },
+  {
+    id: 'SIGINT',
+    slot: 'SIGINT / ESM MODULE',
+    name: 'Leonardo SAGE 750 / SDR Equivalent',
+    vendor: 'Leonardo DRS / SDR',
+    color: '#f97316',
+    spec: 'Passive intercept · EOB classification · Frequency / pulse / waveform analysis',
+    format: '20-ft TEU (large USV) or SDR (small platform)',
+    vessels: ['Saildrone Voyager', 'CUSV', 'M48', 'Spectre MUSV'],
+  },
+  {
+    id: 'TOWED',
+    slot: 'PASSIVE TOWED ARRAY',
+    name: 'LM TB29 Variant (USV-optimized)',
+    vendor: 'Lockheed Martin',
+    color: '#3b82f6',
+    spec: 'Near-zero acoustic self-noise · Contacts ≤2,400 Hz · Diesel-electric sub detection',
+    format: 'Stern deployment rig · 20-ft TEU packaging',
+    vessels: ['Saildrone Spectre Silent Endurance'],
+  },
+  {
+    id: 'SONOBUOY',
+    slot: 'SONOBUOY DISPENSER',
+    name: 'Active Sonobuoy Dispenser (MQ-9B)',
+    vendor: 'Various / NAVSEA',
+    color: '#eab308',
+    spec: '4× SDS pods · 40–80 buoys total · DIFAR / DICASS / MAC types · First UAV MAC Jan 2026',
+    format: '4× SDS pods per SeaGuardian',
+    vessels: ['MQ-9B SeaGuardian'],
+  },
+];
+
+// ─── Platform → payload mapping ───────────────────────────────────────────────
+const PLATFORM_PAYLOAD_MAP = [
+  { platform: 'Saildrone Explorer',   role: 'Persistent Coastal PoL',   color: '#06b6d4', payloadIds: ['EOIR', 'AIS'] },
+  { platform: 'Saildrone Voyager',    role: 'SIGINT Collection',         color: '#22d3ee', payloadIds: ['EOIR', 'AIS', 'SIGINT'] },
+  { platform: 'CUSV Gen5',            role: 'Littoral ISR',              color: '#06b6d4', payloadIds: ['MSR', 'EOIR', 'AIS', 'SIGINT'] },
+  { platform: 'Sea Hunter',           role: 'ASW Continuous Trail',      color: '#3b82f6', payloadIds: ['EOIR', 'AIS'] },
+  { platform: 'Saildrone Spectre SE', role: 'ASW Barrier',               color: '#8b5cf6', payloadIds: ['EOIR', 'AIS', 'TOWED'] },
+  { platform: 'MQ-9B SeaGuardian',    role: 'Area ASW',                  color: '#38bdf8', payloadIds: ['EOIR', 'AIS', 'SONOBUOY'] },
+  { platform: 'MQ-4C Triton',         role: 'BAMS Wide Area',            color: '#a78bfa', payloadIds: ['EOIR', 'AIS'] },
+];
+
+// ─── Cost Calculator data ─────────────────────────────────────────────────────
+const COST_CONFIGS = [
+  {
+    name: 'Persistent Coastal PoL',
+    platforms: '3× Saildrone Explorer',
+    icon: Eye,
+    color: '#06b6d4',
+    costPerDay: 3600,
+    coverageNM2: 450,
+    endurance: '365 days',
+    notes: 'AIS + nav radar + EO/IR + acoustic',
+  },
+  {
+    name: 'SIGINT Collection',
+    platforms: '2× Saildrone Voyager',
+    icon: Radio,
+    color: '#f97316',
+    costPerDay: 6400,
+    coverageNM2: 1200,
+    endurance: 'Diesel — rotation',
+    notes: 'AIS + ESM + SDR',
+  },
+  {
+    name: 'ASW Barrier',
+    platforms: '2× Saildrone Spectre SE',
+    icon: Waves,
+    color: '#3b82f6',
+    costPerDay: 9000,
+    coverageNM2: 2400,
+    endurance: 'Months (wind-driven)',
+    notes: 'TB29 towed array passive barrier',
+  },
+  {
+    name: 'Full ISR Package',
+    platforms: '3× Explorer + 2× Voyager + 1× CUSV',
+    icon: Satellite,
+    color: '#8b5cf6',
+    costPerDay: 34800,
+    coverageNM2: 8200,
+    endurance: 'Continuous (rotation)',
+    notes: 'All sensors — full-spectrum persistent MDA',
+  },
+];
+
+const P8A_COST_PER_DAY  = 110000;
+const P8A_COVERAGE_NM2  = 1200;
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+const MDAISRMissionView = ({ mission, onBack }) => {
+  const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return vessel;
+    return {
+      ...vessel,
+      name: assignment.vesselLabel || assignment.hullName,
+      hullName: assignment.hullName,
+    };
+  });
+  const [missionName, setMissionName] = useState(mission?.name || '');
+
+  const [currentTick, setCurrentTick] = useState(0);
+  const [events,      setEvents]      = useState([]);
+  const [running,     setRunning]     = useState(false);
+  const [paused,        setPaused]        = useState(false);
+  const [complete,    setComplete]    = useState(false);
+  const [contactPulse, setContactPulse] = useState(false);
+
+  const tickRef    = useRef(0);
+  const tickCallbackRef = useRef(null);
+  const mainTimer  = useRef(null);
+  const pulseTimer = useRef(null);
+  const resetTimer = useRef(null);
+  const addEvtRef  = useRef(null);
+  const runScenRef = useRef(null);
+
+  const phase       = getPhase(currentTick);
+  const tritonPos   = getTritonPos(currentTick);
+  const narrative   = PHASE_NARRATIVE[phase] || null;
+  const badge       = getPhaseBadge(phase);
+
+  const showPlatforms    = true;
+  const showCoverage     = true;
+  const showTriton       = currentTick >= T_LINK16_TX;
+  const showDarkShip     = currentTick >= T_DARK_SHIP;
+  const darkShipAlerted  = currentTick >= T_ALERT_GEN;
+  const darkShipConfirmed = currentTick >= T_CLASSIFIED;
+
+  // PoL contacts that are visible
+  const _polContacts = currentTick >= T_AIS_ANOMALY
+    ? POL_CONTACTS_BASE
+    : currentTick >= T_DARK_SHIP
+    ? [POL_CONTACTS_BASE[0], { ...POL_CONTACTS_BASE[1], flag: null }, POL_CONTACTS_BASE[2]]
+    : currentTick >= T_DEPLOYED
+    ? [POL_CONTACTS_BASE[0], POL_CONTACTS_BASE[2]]
+    : [];
+
+  const _addEvent = (msg, type = 'info') => {
+    const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 40));
+  };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    clearTimeout(resetTimer.current);
+    resetTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, TICK_MS);
+  }, []);
+
+
+  useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+
+  useEffect(() => {
+    clearInterval(pulseTimer.current);
+    const needsPulse = ['dark_ship', 'ais_check', 'pol_flag', 'alert_gen', 'link16_tx'].includes(phase);
+    if (needsPulse) {
+      pulseTimer.current = setInterval(() => setContactPulse(p => !p), 380);
+      return () => clearInterval(pulseTimer.current);
+    }
+    setContactPulse(false);
+  }, [phase]);
+
+  const stopAll = useCallback(() => {
+    clearInterval(mainTimer.current);
+    clearInterval(pulseTimer.current);
+    clearTimeout(resetTimer.current);
+    mainTimer.current = pulseTimer.current = resetTimer.current = null;
+  }, []);
+
+  const reset = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setPaused(false);
+    setCurrentTick(0);
+    setContactPulse(false);
+    setEvents([]);
+    setRunning(false);
+    setComplete(false);
+  }, [stopAll]);
+
+  const runScenario = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setCurrentTick(0);
+    setContactPulse(false);
+    setEvents([]);
+    setRunning(true);
+    setPaused(false);
+    setComplete(false);
+
+    const cb = () => {
+      const tick = ++tickRef.current;
+      setCurrentTick(tick);
+
+      if (tick === T_DEPLOYED) {
+        addEvtRef.current('TF-72: ISR barrier patrol — South China Sea — all platforms on station', 'info');
+        addEvtRef.current('Saildrone Voyager ECHO-1: ESM passive loiter active — Hainan approaches', 'info');
+        addEvtRef.current('Oceanus17 DELTA-4: SharpEye radar active — Luzon Strait sector', 'info');
+      }
+      if (tick === T_DARK_SHIP) {
+        addEvtRef.current('Oceanus17 DELTA-4: SharpEye return — bearing 285, range 18 NM — surface contact', 'warn');
+        addEvtRef.current('Oceanus17 DELTA-4: No AIS signal within 8 NM of radar return — forwarding to PoL engine', 'warn');
+      }
+      if (tick === T_AIS_ANOMALY) {
+        addEvtRef.current('PoL Engine: MMSI lookup failed — no vessel registration match — DARK CONTACT', 'alert');
+        addEvtRef.current('PoL Engine: TRACK-002 assigned — 21°12\'N 117°48\'E — monitoring', 'warn');
+        addEvtRef.current('Saildrone Voyager ECHO-1: ESM intercept — encrypted UHF burst — bearing 284 — corroborates radar return', 'warn');
+      }
+      if (tick === T_POL_FLAG) {
+        addEvtRef.current('PoL Engine: TRACK-002 — 6.4 hrs stationary loiter — deviation from baseline', 'warn');
+        addEvtRef.current('PoL Engine: TRACK-002 — position matches known militia rendezvous pattern', 'alert');
+        addEvtRef.current('PoL Engine: BEHAVIORAL ANOMALY — confidence 82% — MILITIA INDICATOR', 'alert');
+        addEvtRef.current('Saildrone Voyager ECHO-1: Second UHF burst intercepted — periodic cadence — SIGINT flag raised', 'alert');
+      }
+      if (tick === T_ALERT_GEN) {
+        addEvtRef.current('ALERT: HOTEL-7 — 21°12\'N 117°48\'E — DARK / LOITER / MILITIA INDICATOR', 'alert');
+        addEvtRef.current('TempestOS: CoT track HOTEL-7 pushed to ATAK tactical operators', 'info');
+        addEvtRef.current('ATAK: CoT received — operators have position, bearing, confidence score', 'success');
+      }
+      if (tick === T_LINK16_TX) {
+        addEvtRef.current('Link 16: HOTEL-7 broadcast — all INDOPACOM tactical nets', 'info');
+        addEvtRef.current('7th Fleet MOC: SATCOM report transmitted — prosecution authority requested', 'info');
+        addEvtRef.current('MQ-4C Triton: HOTEL-7 track received — vectoring for positive ID', 'warn');
+      }
+      if (tick === T_TRITON_VECTORS) {
+        addEvtRef.current('MQ-4C Triton: AN/ZPY-3 MFAS slewing to HOTEL-7 bearing', 'info');
+        addEvtRef.current('MQ-4C Triton: ETA 14 min — contact position already known — no search required', 'info');
+      }
+      if (tick === T_TRITON_ON_STN) {
+        addEvtRef.current('MQ-4C Triton: On station overhead HOTEL-7 — ISAR imaging initiated', 'info');
+        addEvtRef.current('MQ-4C Triton: 130-ft steel hull — no fishing gear — 8 personnel on deck', 'warn');
+        addEvtRef.current('MQ-4C Triton: Vessel silhouette matches ONI database — cross-referencing', 'info');
+      }
+      if (tick === T_CLASSIFIED) {
+        addEvtRef.current('ONI: HOTEL-7 CLASSIFIED — PLAN Maritime Militia — hull number confirmed', 'alert');
+        addEvtRef.current('7th Fleet MOC: Report received — prosecution authority GRANTED', 'success');
+        addEvtRef.current('CTF-72: HOTEL-7 passed to P-8A Poseidon for continued surveillance', 'success');
+        addEvtRef.current('TOTAL DETECT-TO-CLASSIFY: 46 min — zero crew exposure throughout', 'success');
+      }
+
+      if (tick >= TOTAL_TICKS) {
+        clearInterval(mainTimer.current);
+        setRunning(false);
+        setComplete(true);
+        resetTimer.current = setTimeout(() => {
+          if (runScenRef.current) runScenRef.current();
+        }, 6000);
+      }
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, TICK_MS);
+  }, [stopAll]);
+
+  useLayoutEffect(() => { runScenRef.current = runScenario; });
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    startNewConfiguration(vessel.hullName);
+
+    setPendingMissionSetCaps(vessel.capabilities);
+
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    setSelectedView('outfitter');
+  };
+
+  const handleSave = () => {
+    if (!missionName.trim()) return;
+    const data = {
+      name: missionName.trim(),
+      template: 'MDA_ISR',
+      domain: 'MARITIME',
+      status: 'draft',
+      duration: 'continuous',
+      missionProfile: {
+        type: 'MDA_ISR',
+        lane: 'PERSISTENT_MDA',
+        missionManager: 'LCDR Will Day',
+        collectionTypes: ['AIS', 'SURFACE_RADAR', 'EO_IR', 'SIGINT_ESM', 'PASSIVE_ACOUSTIC'],
+        commsArchitecture: {
+          primary: 'Link 16 (P-8A, MQ-4C Triton)',
+          secondary: 'ATAK CoT (tactical operators)',
+          groundStation: '7th Fleet MOC — Yokosuka, Japan',
+          fusion: 'Project Overmatch (JADC2 AI fusion layer)'
+        },
+        objectives: {
+          primary: 'Persistent pattern-of-life surveillance, dark ship detection, and anomaly flagging across 7th Fleet AOR',
+          secondary: 'Tipping/cueing manned P-8A and MQ-4C Triton assets with pre-fused contact solutions — arrive to execute, not search'
+        }
+      },
+      zoneConfig: {
+        name: 'South China Sea — 7th Fleet ISR Barrier',
+        coordinates: [
+          { lat: 22.0, lng: 115.0 },
+          { lat: 22.0, lng: 123.0 },
+          { lat: 16.0, lng: 123.0 },
+          { lat: 16.0, lng: 115.0 },
+        ],
+        swarmSize: 6,
+        swarmFormation: 'distributed-barrier',
+      },
+      assignedSquadrons: [],
+      stateHierarchies: {
+        default:         ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
+        dark_contact:    ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
+        alert_generated: ['Mission', 'Comms', 'Payload', 'Navigation', 'Vehicle'],
+        comms_degraded:  ['Navigation', 'Mission', 'Vehicle', 'Comms', 'Payload'],
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      launchedAt: null,
+      history: [{ action: 'created', timestamp: new Date().toISOString() }],
+    };
+    if (mission?.id) updateMission(mission.id, data);
+    else saveMission(data);
+    onBack();
+  };
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col h-full bg-darkest overflow-hidden">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
+          <ChevronLeft size={13} /> Back to Library
+        </button>
+        <div className="w-px h-4 bg-gray-700/60" />
+        <Satellite size={13} className="text-cyan-400" />
+        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">MDA ISR — Persistent Maritime Domain Awareness</span>
+        <span className="text-gray-600 text-[0.7rem]">·</span>
+        <span className="text-gray-500 text-[0.68rem]">7th Fleet AOR · LCDR Will Day, Mission Manager</span>
+        <div className="flex-1" />
+        <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">PRIORITY 1</span>
+        <input
+          value={missionName}
+          onChange={e => setMissionName(e.target.value)}
+          placeholder="Mission name…"
+          className="bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+        />
+        <button
+          onClick={handleSave}
+          disabled={!missionName.trim()}
+          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+        >
+          Save Draft
+        </button>
+      </div>
+
+      {/* ── Scrollable body ── */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+
+        {/* ── Animation row ── */}
+        <div className="flex" style={{ height: '460px' }}>
+
+          {/* ── Map ── */}
+          <div className="flex-1 relative overflow-hidden">
+            <MapContainer
+              center={MAP_CENTER}
+              zoom={MAP_ZOOM}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={false}
+              scrollWheelZoom
+              attributionControl={false}
+            >
+              <ZoomControl position="topright" />
+              <TileLayer url={TILE_BASE} />
+              <TileLayer url={TILE_SEAMARK} opacity={0.35} />
+              <MapInvalidateSize />
+              <MapController />
+
+              {/* ── Coverage circles ── */}
+              {showCoverage && (
+                <Circle center={VOYAGER_POS} radius={VOYAGER_ESM_NM * NM_TO_M}
+                  pathOptions={{ color: '#22d3ee', weight: 1, fill: true, fillColor: '#22d3ee', fillOpacity: 0.04, opacity: 0.30, dashArray: '6 8' }}
+                />
+              )}
+
+              {/* ── Triton MFAS coverage (massive) ── */}
+              {showTriton && (
+                <Circle center={tritonPos} radius={TRITON_MFAS_NM * NM_TO_M}
+                  pathOptions={{ color: '#a78bfa', weight: 1, fill: true, fillColor: '#a78bfa', fillOpacity: 0.03, opacity: 0.20, dashArray: '8 12' }}
+                />
+              )}
+
+              {/* ── Triton track line ── */}
+              {currentTick >= T_TRITON_VECTORS && currentTick < T_TRITON_ON_STN && (
+                <Polyline
+                  positions={[TRITON_START, tritonPos]}
+                  pathOptions={{ color: '#a78bfa', weight: 2, opacity: 0.60, dashArray: '5 6' }}
+                />
+              )}
+
+
+              {/* ── Dark ship contact ── */}
+              {showDarkShip && (
+                <>
+                  <CircleMarker
+                    center={DARK_SHIP_POS}
+                    radius={darkShipConfirmed ? 10 : (contactPulse ? 13 : 10)}
+                    pathOptions={{
+                      color:       darkShipConfirmed ? '#dc2626' : '#ef4444',
+                      fillColor:   darkShipConfirmed ? '#dc2626' : '#ef4444',
+                      fillOpacity: darkShipConfirmed ? 0.95 : (contactPulse ? 0.85 : 0.55),
+                      weight: 2,
+                    }}
+                  >
+                    <Tooltip direction="top" offset={[0, -10]} permanent={darkShipAlerted}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: darkShipConfirmed ? '#dc2626' : '#ef4444' }}>
+                        {darkShipConfirmed ? '⚠ MILITIA — HOTEL-7' : '⚠ DARK CONTACT — HOTEL-7'}
+                      </span>
+                    </Tooltip>
+                  </CircleMarker>
+                  {contactPulse && !darkShipConfirmed && (
+                    <CircleMarker center={DARK_SHIP_POS} radius={22}
+                      pathOptions={{ color: '#ef4444', fillOpacity: 0, weight: 1.5, opacity: 0.25 }}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* ── Saildrone Voyager dot ── */}
+              {showPlatforms && (
+                <CircleMarker center={VOYAGER_POS} radius={9}
+                  pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.90, weight: 2 }}
+                >
+                  <Tooltip direction="top" offset={[0, -8]}>
+                    <span style={{ fontSize: 10 }}>Saildrone Voyager — SIGINT</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+
+              {/* ── MQ-4C Triton ── */}
+              {showTriton && (
+                <CircleMarker center={tritonPos} radius={10}
+                  pathOptions={{ color: '#a78bfa', fillColor: '#a78bfa', fillOpacity: 0.95, weight: 2 }}
+                >
+                  <Tooltip direction="top" offset={[0, -8]}>
+                    <span style={{ fontSize: 10 }}>MQ-4C Triton — BAMS (55,000 ft)</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+            </MapContainer>
+
+            {/* ── Phase badge ── */}
+            {badge && (
+              <div className={`absolute top-3 left-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+                {badge.label}
+              </div>
+            )}
+
+            {/* ── Legend ── */}
+            {showPlatforms && (
+              <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-gray-700/50 backdrop-blur-sm">
+                <div className="flex flex-col gap-1">
+                  {[
+                    { color: '#22d3ee', label: 'Saildrone Voyager — SIGINT' },
+                    { color: '#a78bfa', label: 'MQ-4C Triton — BAMS (55K ft)' },
+                    { color: '#ef4444', label: 'HOTEL-7 — Dark Contact' },
+                  ].map(({ color, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 9.5, color: '#9ca3af' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-gray-700/50 overflow-hidden bg-darkest">
+
+            {/* Controls */}
+            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors $bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors $bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
+                <button
+                  onClick={reset}
+                  className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
+
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-cyan-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">
+                  6 platforms · 7th Fleet AOR · PAE RAS
+                </p>
+              )}
+            </div>
+
+            {/* Event log */}
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
+                Event Log
+              </p>
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
+                {events.length === 0 ? (
+                  <p className="text-gray-600 text-[0.7rem] px-1 pt-1">Run the scenario to see live events.</p>
+                ) : (
+                  events.map(e => (
+                    <div key={e.id} className="flex gap-2 text-[0.7rem] leading-snug">
+                      <span className="text-gray-600 tabular-nums flex-shrink-0 pt-px">{e.ts}</span>
+                      <span className={EVENT_COLORS[e.type] ?? 'text-gray-300'}>{e.msg}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>{/* /animation row */}
+
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-2 gap-3">
+          {effectiveRoster.map(vessel => (
+            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
+              </div>
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center mb-0.5">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
+                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>{/* /scrollable body */}
+
+    </div>
+  );
+};
+
+export default MDAISRMissionView;

@@ -21,20 +21,58 @@ export const isMaritimeSquadron = (squadron) => getSquadronDomain(squadron) === 
 
 export const swarmSquadrons = [
   {
-    id: "sqdn_001",
-    name: "MetalShark Patrol Drones",
-    type: "High-Speed USV",
+    id: "sqdn_004",
+    name: "SubSeaSail Horus",
+    type: "Autonomous AUSV",
     platformType: "USV",
-    totalUnits: 280,
+    totalUnits: 45,
     status: {
-      missionReady: 247,
-      charging: 18,
-      deployed: 12,
-      maintenance: 3
+      missionReady: 37,
+      deployed: 4,
+      charging: 2,
+      maintenance: 1,
+      antxReserved: 1
     },
-    icon: "MetalShark",
-    description: "High-speed autonomous patrol vessel swarm for coastal defense and reconnaissance",
-    // Variation fields
+    icon: "SubSeaSail Horus",
+    description: "SubSeaSail HORUS autonomous undersea and surface vehicles. 100% energy harvesting, ultra-low-signature AUSV capable of submersion. ANTX Coastal Trident 2026 participant.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_016",
+    name: "Magnet Defense M48",
+    type: "Medium Unmanned Surface Vessel (MUSV)",
+    platformType: "USV",
+    totalUnits: 9,
+    status: {
+      missionReady: 6,
+      deployed: 3,
+      charging: 0,
+      maintenance: 1
+    },
+    icon: "M48",
+    description: "Magnet Defense 48m autonomous catamaran MUSVs. 17,000 nm range, 100-ton payload capacity, DriveAI navigation, 390+ days at sea validated. ISR, ASW, and strike-configured variants.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_021",
+    name: "Ocean Aero Triton AUSV Squadron",
+    type: "AUSV (Surface/Subsurface)",
+    platformType: "USV",
+    totalUnits: 12,
+    status: {
+      missionReady: 9,
+      deployed: 2,
+      charging: 0,
+      maintenance: 1
+    },
+    icon: "Triton",
+    description: "Ocean Aero autonomous undersea and surface vehicles. Wind and solar powered, submersible for threat evasion. Radar cross section disappears at 1/4 mile.",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -59,75 +97,58 @@ export const swarmSquadrons = [
     overrides: {}
   },
   {
-    id: "sqdn_003",
-    name: "MQ-9 Reaper Drone Wing",
-    type: "Hunter-Killer UAV",
-    platformType: "UAV",
-    totalUnits: 168,
-    status: {
-      missionReady: 156,
-      deployed: 8,
-      maintenance: 4
-    },
-    icon: "MQ-9 Reaper",
-    description: "General Atomics medium-altitude long-endurance UAV for persistent ISR and precision strike missions",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
-    id: "sqdn_004",
-    name: "SubSeaSail Horus",
-    type: "Autonomous AUSV",
+    id: "sqdn_017",
+    name: "Saildrone Voyager Coastal Squadron",
+    type: "Coastal ISR USV",
     platformType: "USV",
-    totalUnits: 45,
+    totalUnits: 18,
     status: {
-      missionReady: 37,
-      deployed: 4,
-      charging: 2,
-      maintenance: 1,
-      antxReserved: 1
+      missionReady: 14,
+      deployed: 3,
+      charging: 0,
+      maintenance: 1
     },
-    icon: "SubSeaSail",
-    description: "SubSeaSail HORUS autonomous undersea and surface vehicles. 100% energy harvesting, ultra-low-signature AUSV capable of submersion. ANTX Coastal Trident 2026 participant.",
+    icon: "Saildrone Voyager",
+    description: "Saildrone 10m electric USVs for coastal ISR and nearshore seafloor mapping. Starlink-connected, 100-day endurance.",
     isVariation: false,
     parentId: null,
     parentName: null,
     overrides: {}
   },
   {
-    id: "sqdn_005",
-    name: "Switchblade Loitering Munition Arsenal",
-    type: "Tactical UAV",
-    platformType: "UAV",
-    totalUnits: 892,
+    id: "sqdn_019",
+    name: "Saildrone Spectre Combat Flotilla",
+    type: "Large Combat USV",
+    platformType: "USV",
+    totalUnits: 5,
     status: {
-      missionReady: 856,
-      deployed: 24,
-      maintenance: 12
+      missionReady: 3,
+      deployed: 2,
+      charging: 0,
+      maintenance: 0
     },
-    icon: "Switchblade",
-    description: "Precision strike loitering munition swarm for tactical engagement",
+    icon: "Saildrone Spectre",
+    description: "Saildrone 52m autonomous combat USVs. Mk 70 VLS capable. Variants: Silent Endurance (ASW) and Stealth Strike.",
     isVariation: false,
     parentId: null,
     parentName: null,
     overrides: {}
   },
   {
-    id: "sqdn_006",
-    name: "Black Widow Micro-Drone Swarm",
-    type: "Micro UAV",
-    platformType: "UAV",
-    totalUnits: 1247,
+    id: "sqdn_001",
+    name: "MetalShark Patrol Drones",
+    type: "High-Speed USV",
+    platformType: "USV",
+    totalUnits: 280,
     status: {
-      missionReady: 1198,
-      charging: 32,
-      deployed: 15,
-      maintenance: 2
+      missionReady: 247,
+      charging: 18,
+      deployed: 12,
+      maintenance: 3
     },
-    icon: "Black Widow",
-    description: "Ultra-small reconnaissance drone swarm for urban and confined operations",
+    icon: "MetalShark",
+    description: "High-speed autonomous patrol vessel swarm for coastal defense and reconnaissance",
+    // Variation fields
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -210,63 +231,6 @@ export const swarmSquadrons = [
     overrides: {}
   },
   {
-    id: "sqdn_016",
-    name: "Magnet Defense M48",
-    type: "Large Uncrewed Surface Vessel (LUSV)",
-    platformType: "USV",
-    totalUnits: 9,
-    status: {
-      missionReady: 6,
-      deployed: 3,
-      charging: 0,
-      maintenance: 1
-    },
-    icon: "M48",
-    description: "Magnet Defense 48m autonomous catamaran LUSVs. 17,000 nm range, 100-ton payload capacity, DriveAI navigation, 390+ days at sea validated. ISR, ASW, and strike-configured variants.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
-    id: "sqdn_017",
-    name: "Saildrone Voyager Coastal Squadron",
-    type: "Coastal ISR USV",
-    platformType: "USV",
-    totalUnits: 18,
-    status: {
-      missionReady: 14,
-      deployed: 3,
-      charging: 0,
-      maintenance: 1
-    },
-    icon: "Saildrone Voyager",
-    description: "Saildrone 10m electric USVs for coastal ISR and nearshore seafloor mapping. Starlink-connected, 100-day endurance.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
-    id: "sqdn_019",
-    name: "Saildrone Spectre Combat Flotilla",
-    type: "Large Combat USV",
-    platformType: "USV",
-    totalUnits: 5,
-    status: {
-      missionReady: 3,
-      deployed: 2,
-      charging: 0,
-      maintenance: 0
-    },
-    icon: "Saildrone Spectre",
-    description: "Saildrone 52m autonomous combat USVs. Mk 70 VLS capable. Variants: Silent Endurance (ASW) and Stealth Strike.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
     id: "sqdn_020",
     name: "Oceaneering Freedom AUV Pack",
     type: "Large Displacement UUV (LDUUV)",
@@ -286,25 +250,6 @@ export const swarmSquadrons = [
     overrides: {}
   },
   {
-    id: "sqdn_021",
-    name: "Ocean Aero Triton AUSV Squadron",
-    type: "AUSV (Surface/Subsurface)",
-    platformType: "USV",
-    totalUnits: 12,
-    status: {
-      missionReady: 9,
-      deployed: 2,
-      charging: 0,
-      maintenance: 1
-    },
-    icon: "Triton",
-    description: "Ocean Aero autonomous undersea and surface vehicles. Wind and solar powered, submersible for threat evasion. Radar cross section disappears at 1/4 mile.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
     id: "sqdn_015",
     name: "ZeroUSV Oceanus17 ASW Flotilla",
     type: "ASW/Survey USV",
@@ -318,6 +263,61 @@ export const swarmSquadrons = [
     },
     icon: "ZeroUSV Oceanus17",
     description: "ZeroUSV 17m electric USVs configured for REPMUS 2026. 50+ day endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_003",
+    name: "MQ-9 Reaper Drone Wing",
+    type: "Hunter-Killer UAV",
+    platformType: "UAV",
+    totalUnits: 168,
+    status: {
+      missionReady: 156,
+      deployed: 8,
+      maintenance: 4
+    },
+    icon: "MQ-9 Reaper",
+    description: "General Atomics medium-altitude long-endurance UAV for persistent ISR and precision strike missions",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_005",
+    name: "Switchblade Loitering Munition Arsenal",
+    type: "Tactical UAV",
+    platformType: "UAV",
+    totalUnits: 892,
+    status: {
+      missionReady: 856,
+      deployed: 24,
+      maintenance: 12
+    },
+    icon: "Switchblade",
+    description: "Precision strike loitering munition swarm for tactical engagement",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_006",
+    name: "Black Widow Micro-Drone Swarm",
+    type: "Micro UAV",
+    platformType: "UAV",
+    totalUnits: 1247,
+    status: {
+      missionReady: 1198,
+      charging: 32,
+      deployed: 15,
+      maintenance: 2
+    },
+    icon: "Black Widow",
+    description: "Ultra-small reconnaissance drone swarm for urban and confined operations",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -391,6 +391,44 @@ export const swarmSquadrons = [
     },
     icon: "RQ-21A Blackjack",
     description: "Boeing/Insitu small tactical UAS for ship-based reconnaissance and surveillance missions",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_030",
+    name: "Virginia Class Attack Submarine Division",
+    type: "Nuclear Attack Submarine",
+    platformType: "Submarine",
+    totalUnits: 2,
+    status: {
+      missionReady: 1,
+      deployed: 1,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "Virginia Class",
+    description: "USS Virginia (SSN-774) class nuclear-powered fast attack submarines. 25+ kt submerged, unlimited range, Mk 48 ADCAP torpedoes, Tomahawk TLAM, AN/BQQ-10 sonar suite. Integrated with USV/UUV task groups for multistatic ASW kill chains.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  {
+    id: "sqdn_031",
+    name: "Lewis B. Puller Class ESB",
+    type: "Expeditionary Sea Base",
+    platformType: "Ship",
+    totalUnits: 1,
+    status: {
+      missionReady: 1,
+      deployed: 0,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "Lewis B. Puller Class ESB",
+    description: "USS Lewis B. Puller (ESB-3) afloat forward staging base. MCM C2 node, AUV/USV launch and recovery, SATCOM relay, aviation detachment capacity. Primary forward logistics hub for 5th Fleet autonomous MCM operations in the Strait of Hormuz.",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -909,7 +947,84 @@ export const activeDeployments = [
     deployedAt: "2026-05-15T22:00:00Z",
     status: "active",
     healthStatus: { operational: 1, degraded: 0, offline: 0 }
-  }
+  },
+
+  // Sea Jeep deployments
+  {
+    id: "deploy_seajeep_base_001",
+    missionId: "mission-seajeep-base-scs-001",
+    missionName: "Spratly-MDA-Alpha",
+    squadronId: "sqdn_seajeep_001",
+    hullType: "GP-USV Sea Jeep (Base)",
+    vesselCount: 1,
+    loadoutName: "Base MDA Package",
+    loadout: {
+      EO_IR: ["Trillium HD25e Gimbal Camera"],
+      COMMS: ["Iridium 9770 SATCOM"],
+      NAV: ["GPS/INS + AIS Receiver"],
+      POWER: ["Solar Wing + Li-ion Bank"],
+    },
+    deployedAt: "2026-06-01T10:00:00Z",
+    status: "active",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
+  },
+  {
+    id: "deploy_seajeep_isr_001",
+    missionId: "mission-seajeep-isr-redsea-001",
+    missionName: "BabElMandeb-DroneWatch-Alpha",
+    squadronId: "sqdn_seajeep_002",
+    hullType: "GP-USV Sea Jeep (ISR)",
+    vesselCount: 1,
+    loadoutName: "ISR Extended Mast Package",
+    loadout: {
+      EO_IR: ["Trillium HD25e (Mast-Mounted)"],
+      MAST: ["Extended ISR Mast + Counterweight Keel"],
+      COMMS: ["Iridium SATCOM", "900MHz Radio Mesh"],
+      NAV: ["GPS/INS"],
+    },
+    deployedAt: "2026-06-10T10:00:00Z",
+    status: "active",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
+  },
+  {
+    id: "deploy_seajeep_mcm_001",
+    missionId: "mission-seajeep-mcm-blacksea-001",
+    missionName: "OdessaCorridor-MineSurvey-Alpha",
+    squadronId: "sqdn_seajeep_003",
+    hullType: "GP-USV Sea Jeep (MCM)",
+    vesselCount: 1,
+    loadoutName: "MCM Survey Package",
+    loadout: {
+      SONAR_FWD: ["EdgeTech 2300-MS FLS"],
+      SONAR_TOWED: ["EdgeTech 4125 Side-Scan Sonar"],
+      DEPLOY: ["Smart Winch + A-Frame"],
+      NAV: ["GPS/INS (jam-resistant)"],
+      COMMS: ["Iridium SATCOM"],
+      POWER: ["Extended Fuel Tank (MCM config)"],
+    },
+    deployedAt: "2026-06-15T10:00:00Z",
+    status: "active",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
+  },
+  {
+    id: "deploy_seajeep_logistics_001",
+    missionId: "mission-seajeep-logistics-phil-001",
+    missionName: "Batanes-Resupply-WHISKEY3",
+    squadronId: "sqdn_seajeep_004",
+    hullType: "GP-USV Sea Jeep (Logistics)",
+    vesselCount: 1,
+    loadoutName: "Logistics Resupply Package",
+    loadout: {
+      CARGO: ["Sealed Dry Cargo Pod (~20kg)"],
+      NAV: ["GPS/INS + AIS Transponder"],
+      COMMS: ["Iridium SATCOM"],
+      POWER: ["Solar Wing + Li-ion Battery Bank"],
+      MAST: ["Low-Profile Logistics Mast"],
+    },
+    deployedAt: "2026-06-18T10:00:00Z",
+    status: "active",
+    healthStatus: { operational: 1, degraded: 0, offline: 0 }
+  },
 ];
 
 // Get deployments by mission ID

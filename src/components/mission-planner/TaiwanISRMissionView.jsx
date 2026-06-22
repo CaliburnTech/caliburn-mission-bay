@@ -2,24 +2,36 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, RotateCcw, Anchor, ChevronLeft, Check } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgM48 from '../../assets/images/M48.png';
+
+const MISSION_SET_KEY = 'ISR';
+const MISSION_SET_CAPS = ['HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis C5ISR Link'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
 
-const MAP_CENTER = [24.10, 120.60];
-const MAP_ZOOM   = 9;
+// Map centered on the strait itself — Fujian coast west, Taiwan east, water in the middle
+const MAP_CENTER = [24.10, 119.95];
+const MAP_ZOOM   = 8;
 
+// M48 patrol track along the median line — ~119.88°E is mid-strait water
+// (Fujian coast ≈119.3–119.6°E; Taiwan west coast ≈120.3–120.5°E at these latitudes)
 const M48_TRACK = [
-  [23.72, 120.55],
-  [23.95, 120.58],
-  [24.18, 120.56],
-  [24.40, 120.54],
-  [24.60, 120.52],
-  [24.40, 120.54],
-  [24.18, 120.56],
+  [23.72, 119.88],  // waypoint ALPHA (southern strait)
+  [23.95, 119.90],  // waypoint BRAVO
+  [24.18, 119.88],  // waypoint CHARLIE (median line, mid-strait)
+  [24.40, 119.86],  // waypoint DELTA
+  [24.60, 119.85],  // waypoint ECHO (northern approach)
+  [24.40, 119.86],  // return south
+  [24.18, 119.88],  // loop back
 ];
 
 const PLA_RADAR_1 = [25.02, 119.45];
@@ -30,24 +42,27 @@ const PLA_RADAR_RANGE_NM = 55;
 const PLA_UAV_ORIGIN = [25.05, 119.60];
 const PLA_UAV_TRACK  = [
   [25.05, 119.60],
-  [24.80, 119.95],
-  [24.55, 120.20],
-  [24.30, 120.45],
+  [24.80, 119.82],
+  [24.55, 119.92],
+  [24.30, 120.00],  // approaches median line over water
 ];
 
-const COVERAGE_GAP = [24.05, 120.40];
+// Gap at the eastern edge of PLA radar coverage — still water, well clear of Taiwan coast
+const COVERAGE_GAP = [24.05, 120.10];
+// Submarine: starts east of Taiwan, threads west through the gap into PLA-claimed western strait
 const SUBMARINE_THROUGH_GAP = [
-  [23.80, 121.00],
-  [24.00, 120.75],
-  [24.05, 120.42],
-  [24.08, 120.18],
+  [23.80, 121.00],  // east of Taiwan (safe)
+  [24.00, 120.60],  // rounding south of Taiwan
+  [24.05, 120.12],  // transiting through the gap — mid-strait water
+  [24.08, 119.78],  // through — western strait, PLA-claimed
 ];
 
 const CTF77_POS          = [35.28, 139.67];
 const LANTERN_RADAR_NM   = 17;
 const HIDDENLEVEL_NM     = 40;
 
-const MEDIAN_LINE = [[23.5, 120.55], [25.0, 120.55]];
+// Median line runs north–south at ~119.90°E — equidistant between Fujian and Taiwan coasts
+const MEDIAN_LINE = [[23.5, 119.90], [25.0, 119.90]];
 
 // ─── Tick milestones ──────────────────────────────────────────────────────────
 const T_PATROL_START    =  5;
@@ -64,6 +79,8 @@ const T_UAV_DETECT      = 88;
 const T_UAV_TRACKED     = 98;
 const T_PATROL_SECURE   = 108;
 const TOTAL_TICKS       = 120;
+
+const TICK_MS = 280;
 
 // ─── Tile layers ──────────────────────────────────────────────────────────────
 const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
@@ -84,6 +101,22 @@ const EVENT_COLORS = {
   alert:   'text-red-400',
   info:    'text-cyan-400',
   success: 'text-emerald-400',
+};
+
+// ─── Phase narratives ─────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:                  null,
+  patrol:                { title: 'M48-DELTA Median Line Patrol', body: 'M48-DELTA transits north along the Taiwan Strait median line at ~119.88°E — equidistant between Fujian coast and Taiwan. HiddenLevel passive RF array already listening. No emissions.' },
+  lantern_deployed:      { title: 'LANTERN UAS Ascending', body: 'DPI LANTERN tethered drone ascending to 200ft above M48-DELTA. Radar horizon expanding — 17nm sensor ring growing. EO/IR camera slewing. PLA coastal emissions first entering detection envelope.' },
+  pla_mapping:           { title: 'PLA Emissions Sweep', body: 'HiddenLevel passive RF: Fujian coastal radar architecture mapping underway. Three candidate emitters on bearing 265–290. SCION autonomy building PLA sensor coverage geometry model.' },
+  emission_alpha:        { title: 'PLA Emitter Alpha Detected', body: 'HiddenLevel: UHF-band long-range air surveillance radar geo-located at 25.02°N 119.45°E — classified YLC-8B long-range air defense radar. Coverage arc 055° to 175°. First emitter pinned.' },
+  emission_bravo:        { title: 'PLA Emitters Bravo & Charlie Mapped', body: 'Two more emitters geo-located: BRAVO is L-band acquisition radar at 24.20°N 119.35°E. CHARLIE is Dongshan Island OTH radar at 23.62°N 119.52°E. Three-emitter picture complete. SCION modeling combined coverage.' },
+  gap_identified:        { title: 'Coverage Gap Identified — 12nm Blind Spot', body: 'SCION: Intersection seam between BRAVO and CHARLIE coverage arcs creates a 12nm PLA radar blind spot at 24.05°N 120.40°E. Emitter duty cycles create intermittent window 0340–0520L. USS Connecticut can thread through undetected.' },
+  razorchassis_transmit: { title: 'RazorChassis Transmitting Gap to CTF-70', body: 'RazorChassis C5ISR link encrypts gap geometry and routing window — pushing to 7th Fleet CTF-70 MOC at Yokosuka via SATCOM. Uplink dot tracking. CTF-70 is tasking USS Connecticut SSN-22 now.' },
+  sub_routing:           { title: 'USS Connecticut Threading the Gap', body: 'USS Connecticut SSN-22 routing through 12nm PLA radar blind spot at depth 280m — speed 8kt. SCION monitoring EMITTER BRAVO duty cycle in real time. Gap holding. Connecticut clear of all PLA sensor coverage.' },
+  pla_uav_detected:      { title: 'PLA BZK-005 UAV Detected', body: 'HiddenLevel: unscheduled RF contact bearing 310, closing at ~85kt — emission pattern matches PLA BZK-005 maritime patrol UAV. LANTERN EO/IR slewing to acquire. RazorChassis transmitting UAV track to CTF-70.' },
+  uav_tracked:           { title: 'BZK-005 Tracked — M48 Stealth Maintained', body: 'LANTERN EO/IR: visual contact — BZK-005 at 20km approaching median line. SCION analysis: UAV on ISR profile, photographing M48-DELTA. M48 RCS 0.01m² — appearing as drifting debris. PLA UAV will not report threat.' },
+  patrol_secure:         { title: 'Counter-C5ISR Complete', body: '3 PLA emitters mapped, 1 coverage gap exploited, USS Connecticut routed through undetected, 1 PLA UAV tracked. Zero crew exposure throughout. M48-DELTA resuming median line patrol — LANTERN continuous watch.' },
 };
 
 // ─── Phase derivation ────────────────────────────────────────────────────────
@@ -130,7 +163,7 @@ const getPhaseBadge = (phase) => {
     case 'emission_alpha':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ PLA Emitter Alpha Detected' };
     case 'emission_bravo':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ PLA Emitters Bravo & Charlie Detected' };
     case 'gap_identified':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse', label: '◉ Coverage Gap — 12nm Blind Spot' };
-    case 'razorchassis_transmit':return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ RazorChassis Gap Data → CTF-77' };
+    case 'razorchassis_transmit':return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ RazorChassis Gap Data → CTF-70' };
     case 'sub_routing':         return { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',      label: '→ USS Connecticut Routing Through Gap' };
     case 'pla_uav_detected':    return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ PLA BZK-005 UAV Detected' };
     case 'uav_tracked':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                 label: '⚠ BZK-005 Tracked — M48 Stealth Maintained' };
@@ -144,12 +177,16 @@ const M48_MOUNTS = [
   { slot: 'ISR DRONE',          name: 'DPI LANTERN Tethered UAS',        vendor: 'Dragonfly Pictures Inc.', description: '200ft elevation — EO/IR tracks PLA UAVs — radar sensor geo-locates PLA emitters' },
   { slot: 'RF / PASSIVE RADAR', name: 'HiddenLevel Passive RF Sensor',   vendor: 'HiddenLevel',             description: 'Zero-emission passive RF — maps PLA coastal radar coverage — identifies blind spots' },
   { slot: 'AUTONOMY',           name: 'Project Scion (Northrop Grumman)',vendor: 'Northrop Grumman',        description: 'Classifies PLA emitter types — models combined coverage geometry — identifies routing windows' },
-  { slot: 'FIRE CONTROL LINK',  name: 'RazorChassis C5ISR Link',         vendor: 'RazorChassis',            description: 'Formats PLA gap picture as actionable routing data — pushes to 7th Fleet CTF-77 CIC' },
+  { slot: 'FIRE CONTROL LINK',  name: 'RazorChassis C5ISR Link',         vendor: 'RazorChassis',            description: 'Formats PLA gap picture as actionable routing data — pushes to 7th Fleet CTF-70 CIC' },
 ];
 
 const LANTERN_MOUNTS = [
   { slot: 'EO/IR', name: 'Trillium HD40 EO/IR',        vendor: 'L3Harris Trillium', description: 'Tracks PLA BZK-005 UAVs and PLAN vessels — day/night — auto-cued by HiddenLevel' },
   { slot: 'RADAR', name: 'Emitter Geo-Location Sensor', vendor: '[Classified]',      description: '200ft elevation enables passive triangulation of PLA coastal radar positions at range' },
+];
+
+const VESSEL_ROSTER = [
+  { name: 'M48 + DPI LANTERN', image: imgM48, hullName: 'M48', capabilities: ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis C5ISR Link'] },
 ];
 
 // ─── MapInvalidateSize ────────────────────────────────────────────────────────
@@ -167,6 +204,24 @@ const MapInvalidateSize = () => {
 // ─── Component ───────────────────────────────────────────────────────────────
 const TaiwanISRMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return vessel;
+    return {
+      ...vessel,
+      name: assignment.vesselLabel || assignment.hullName,
+      hullName: assignment.hullName,
+    };
+  });
 
   const [missionName,     setMissionName]     = useState(mission?.name || '');
   const [currentTick,     setCurrentTick]     = useState(0);
@@ -177,9 +232,11 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
   const [gapVisible,      setGapVisible]      = useState(false);
   const [events,          setEvents]          = useState([]);
   const [running,         setRunning]         = useState(false);
+  const [paused,        setPaused]        = useState(false);
   const [complete,        setComplete]        = useState(false);
 
   const tickRef         = useRef(0);
+  const tickCallbackRef = useRef(null);
   const mainTimer       = useRef(null);
   const pulseTimer      = useRef(null);
   const lanternTimer    = useRef(null);
@@ -198,6 +255,23 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
     });
     setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 30));
   };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    clearTimeout(loopTimer.current);
+    loopTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, TICK_MS);
+  }, []);
+
+
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
 
   useEffect(() => {
@@ -233,6 +307,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
   const reset = useCallback(() => {
     stopAll();
     tickRef.current = 0;
+    setPaused(false);
     setCurrentTick(0);
     setPulseTick(false);
     setLanternDeployed(false);
@@ -255,15 +330,16 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
     setGapVisible(false);
     setEvents([]);
     setRunning(true);
+    setPaused(false);
     setComplete(false);
 
-    mainTimer.current = setInterval(() => {
+    const cb = () => {
       const tick = ++tickRef.current;
       setCurrentTick(tick);
 
       if (tick === T_PATROL_START) {
         addEvtRef.current('M48-DELTA: Autonomous transit — Taiwan Strait Sector LIMA-4 — median line', 'info');
-        addEvtRef.current('7th Fleet CTF-77: M48-DELTA on station — Counter-C5ISR mission active', 'info');
+        addEvtRef.current('7th Fleet CTF-70: M48-DELTA on station — Counter-C5ISR mission active', 'info');
       }
       if (tick === T_LANTERN_DEPLOY) {
         addEvtRef.current('M48-DELTA: LANTERN deployed — ascending to 200ft', 'info');
@@ -282,8 +358,8 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_EMISSION_ALPHA) {
         setPlaRadars([true, false, false]);
-        addEvtRef.current('HiddenLevel: EMITTER ALPHA — S-band coastal surveillance radar — bearing 285, geo-located 25.02°N 119.45°E', 'warn');
-        addEvtRef.current('SCION: EMITTER ALPHA classified — Type YLC-8B long-range surveillance — coverage arc 055° to 175°', 'warn');
+        addEvtRef.current('HiddenLevel: EMITTER ALPHA — UHF-band long-range air surveillance radar — bearing 285, geo-located 25.02°N 119.45°E', 'warn');
+        addEvtRef.current('SCION: EMITTER ALPHA classified — Type YLC-8B long-range air defense radar — coverage arc 055° to 175°', 'warn');
       }
       if (tick === T_EMISSION_BRAVO) {
         setPlaRadars([true, true, true]);
@@ -298,9 +374,9 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
         addEvtRef.current('SCION: Window: 0340–0520 local — emitter duty cycle creates intermittent gap', 'success');
       }
       if (tick === T_RAZOR_TX) {
-        addEvtRef.current('RAZORCHASSIS: Gap geometry formatted — pushing to CTF-77 via encrypted SATCOM', 'alert');
+        addEvtRef.current('RAZORCHASSIS: Gap geometry formatted — pushing to CTF-70 via encrypted SATCOM', 'alert');
         addEvtRef.current('RAZORCHASSIS: Routing window transmitted — 24.05°N 120.40°E — valid 0340–0520L', 'alert');
-        addEvtRef.current('CTF-77: Gap received — tasking USS Connecticut (SSN-22) — standby for routing', 'info');
+        addEvtRef.current('CTF-70: Gap received — tasking USS Connecticut (SSN-22) — standby for routing', 'info');
       }
       if (tick === T_SUB_ROUTING) {
         addEvtRef.current('USS Connecticut: Routing through gap — depth 280m — speed 8kt', 'info');
@@ -318,12 +394,12 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
         addEvtRef.current('LANTERN EO/IR: Visual contact — BZK-005 class UAV — estimated 20km — approaching median line', 'warn');
         addEvtRef.current('SCION: UAV on ISR profile — photographing M48-DELTA — M48 RCS too small to positively identify', 'info');
         addEvtRef.current('SCION: M48 appearing as drifting debris — PLA UAV unlikely to report as threat', 'info');
-        addEvtRef.current('RAZORCHASSIS: PLA UAV track transmitted to CTF-77 — lat 24.55°N 120.20°E — bearing 135, 85kt', 'alert');
+        addEvtRef.current('RAZORCHASSIS: PLA UAV track transmitted to CTF-70 — lat 24.55°N 120.20°E — bearing 135, 85kt', 'alert');
       }
       if (tick === T_PATROL_SECURE) {
         addEvtRef.current('SCION: BZK-005 passing — no PLA ISR lock on M48-DELTA — stealth maintained', 'success');
         addEvtRef.current('USS Connecticut: SITREP — in position — thanks to M48-DELTA gap data', 'success');
-        addEvtRef.current('CTF-77: M48-DELTA Counter-C5ISR complete — 3 PLA emitters mapped — 1 gap exploited — 1 UAV tracked — 0 crew exposure', 'success');
+        addEvtRef.current('CTF-70: M48-DELTA Counter-C5ISR complete — 3 PLA emitters mapped — 1 gap exploited — 1 UAV tracked — 0 crew exposure', 'success');
         addEvtRef.current('M48-DELTA: Resuming median line patrol — LANTERN continuous watch', 'info');
       }
       if (tick >= TOTAL_TICKS) {
@@ -336,11 +412,27 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
           if (loopTimer.current !== null) runScenarioRef.current?.();
         }, 5000);
       }
-    }, 180);
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, TICK_MS);
   }, [stopAll]);
 
   useLayoutEffect(() => { runScenarioRef.current = runScenario; });
   useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    startNewConfiguration(vessel.hullName);
+
+    setPendingMissionSetCaps(vessel.capabilities);
+
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    setSelectedView('outfitter');
+  };
 
   const handleSave = () => {
     if (!missionName.trim()) return;
@@ -383,6 +475,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
   };
 
   // ── Derived visual state ──────────────────────────────────────────────────
+  const narrative = PHASE_NARRATIVE[phase] || null;
   const badge = getPhaseBadge(phase);
   const showFCLink = ['razorchassis_transmit', 'sub_routing', 'pla_uav_detected', 'uav_tracked', 'patrol_secure'].includes(phase);
 
@@ -402,7 +495,24 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
   const fcDotPos = fcDotT !== null ? lerp2(m48Pos, CTF77_POS, fcDotT) : null;
 
   return (
-    <div className="flex flex-col h-full bg-darkest overflow-hidden">
+    <div className="flex flex-col h-full bg-darkest overflow-hidden relative">
+
+      {/* ── Coming Soon Overlay ── */}
+      <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center"
+        style={{ background: 'rgba(3,7,18,0.72)', backdropFilter: 'blur(2px)' }}
+      >
+        <button
+          onClick={onBack}
+          className="absolute top-3 left-3 flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
+        >
+          <ChevronLeft size={13} /> Back to Library
+        </button>
+        <div className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl border border-violet-500/40 bg-gray-950/80">
+          <span className="text-[0.65rem] font-bold uppercase tracking-widest text-violet-400">Mission Preview</span>
+          <span className="text-white text-xl font-bold tracking-tight">Counter-C5ISR</span>
+          <span className="text-gray-400 text-[0.78rem]">Active suppression & deception coming soon</span>
+        </div>
+      </div>
 
       {/* ── Header ── */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0">
@@ -442,7 +552,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
 
       {/* ── Scrollable content ── */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex" style={{ height: '430px' }}>
+        <div className="flex" style={{ height: '460px' }}>
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -596,8 +706,8 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                 <CircleMarker center={CTF77_POS} radius={7}
                   pathOptions={{ color: '#6366f1', fillColor: '#4f46e5', fillOpacity: 0.9, weight: 2 }}
                 >
-                  <Tooltip permanent direction="right" offset={[10, 0]}>
-                    <span style={{ fontSize: 11, fontWeight: 700 }}>CTF-77 / Yokosuka</span>
+                  <Tooltip direction="right" offset={[10, 0]}>
+                    <span style={{ fontSize: 11, fontWeight: 700 }}>CTF-70 / Yokosuka</span>
                   </Tooltip>
                 </CircleMarker>
               )}
@@ -614,7 +724,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                     radius={7}
                     pathOptions={{ color: '#1e40af', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
                   >
-                    <Tooltip permanent direction="bottom" offset={[0, 10]}>
+                    <Tooltip direction="bottom" offset={[0, 10]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#93c5fd' }}>USS Connecticut SSN-22</span>
                     </Tooltip>
                   </CircleMarker>
@@ -649,7 +759,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                   radius={8}
                   pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2 }}
                 >
-                  <Tooltip permanent direction="top" offset={[0, -14]}>
+                  <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: lanternDeployed ? '#22d3ee' : lanternRising ? '#67e8f9' : '#93c5fd' }}>
                       {lanternDeployed ? 'M48-DELTA · LANTERN ↑ 200ft' : lanternRising ? 'M48-DELTA · LANTERN ↑ ascending…' : 'M48-DELTA'}
                     </span>
@@ -660,8 +770,30 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
             </MapContainer>
 
             {badge && (
-              <div className={`absolute top-3 left-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+              <div className={`absolute top-3 right-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
                 {badge.label}
+              </div>
+            )}
+
+            {/* ── Legend ── */}
+            {currentTick >= T_PATROL_START && (
+              <div className="absolute top-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+                <div className="flex flex-col gap-1">
+                  {[
+                    { color: '#3b82f6', label: 'M48-DELTA — Counter-C5ISR Patrol' },
+                    { color: '#22d3ee', label: 'LANTERN UAS — 200ft EO/IR + Radar' },
+                    { color: '#6366f1', label: 'CTF-70 / Yokosuka — Command Node' },
+                    { color: '#1e40af', label: 'USS Connecticut SSN-22 — Gap Transit' },
+                    { color: '#ef4444', label: 'PLA Coastal Radar Emitters' },
+                    { color: '#f97316', label: 'PLA BZK-005 UAV' },
+                    { color: '#22c55e', label: 'PLA Radar Coverage Gap' },
+                  ].map(({ color, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -670,19 +802,24 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
           <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-gray-700/50 overflow-hidden bg-darkest">
             <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={runScenario}
-                  disabled={running}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors ${
-                    running
-                      ? 'bg-gray-700/60 text-gray-500 cursor-not-allowed'
-                      : 'bg-red-800 hover:bg-red-700 text-white'
-                  }`}
-                >
-                  <Play size={13} />
-                  {running ? 'Running…' : complete ? 'Run Again' : 'Run Scenario'}
-                </button>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-red-800 hover:bg-red-700 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-red-800 hover:bg-red-700 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
                 <button
                   onClick={reset}
                   className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
@@ -691,7 +828,19 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                   <RotateCcw size={13} />
                 </button>
               </div>
-              <p className="text-gray-600 text-[0.68rem]">Magnet Defense M48 · DPI LANTERN · CTF-77 Taiwan Strait</p>
+
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-red-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">Magnet Defense M48 · DPI LANTERN · CTF-70 Taiwan Strait</p>
+              )}
             </div>
 
             <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
@@ -712,66 +861,33 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
           </div>
         </div>{/* /animation row */}
 
-        {/* ── Magnet Defense M48 Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#3b82f6" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">Magnet Defense M48</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Counter-C5ISR Package — Median Line Patrol — 1× vessel</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{M48_MOUNTS.length}/{M48_MOUNTS.length} slots filled</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {M48_MOUNTS.map((mount, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-500/5 border border-blue-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-blue-500/12">
-                  <Anchor size={14} color="#3b82f6" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
-                  {mount.description && <div className="text-[0.60rem] text-gray-600 mt-0.5 leading-tight">{mount.description}</div>}
-                </div>
-                <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#3b82f6" strokeWidth={3} />
-                </div>
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-2 gap-3">
+          {effectiveRoster.map(vessel => (
+            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── DPI LANTERN Payload ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#22d3ee" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">DPI LANTERN</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Tethered Drone — EO/IR + Emitter Geo-Location at 200ft</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{LANTERN_MOUNTS.length}/{LANTERN_MOUNTS.length} slots filled</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {LANTERN_MOUNTS.map((mount, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-cyan-500/12">
-                  <Anchor size={14} color="#22d3ee" />
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center mb-0.5">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
-                  {mount.description && <div className="text-[0.60rem] text-gray-600 mt-0.5 leading-tight">{mount.description}</div>}
-                </div>
-                <div className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#22d3ee" strokeWidth={3} />
-                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
       </div>{/* /scrollable content */}

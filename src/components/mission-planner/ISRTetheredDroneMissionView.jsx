@@ -2,9 +2,19 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, RotateCcw, Anchor, ChevronLeft, Check } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgM48 from '../../assets/images/M48.png';
+import m48Img from '../../assets/images/M48.png';
+
+const MISSION_SET_KEY = 'COUNTER_C5ISR';
+const MISSION_SET_CAPS = ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
@@ -115,9 +125,9 @@ const getThreatPos = (tick) => {
 const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'm48_patrol':          return { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                  label: '→ M48-ALPHA Autonomous Patrol' };
-    case 'lantern_deployed':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '↑ LANTERN Ascending — 200ft' };
+    case 'lantern_deployed':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '↑ DPI Vulture Ascending — 200ft' };
     case 'rf_detect':           return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ HiddenLevel RF Anomaly' };
-    case 'radar_track':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ LANTERN Radar Track Initiated' };
+    case 'radar_track':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ DPI Vulture Radar Track Initiated' };
     case 'scion_classify':      return { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse', label: '◈ Scion — Multi-Sensor Fusion' };
     case 'threat_confirmed':    return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ THREAT CONFIRMED — Shahed-136' };
     case 'razorchassis_cueing': return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ RazorChassis FC Track Transmitted' };
@@ -128,9 +138,24 @@ const getPhaseBadge = (phase) => {
   }
 };
 
+// ─── Phase narratives ─────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:                   null,
+  m48_patrol:             { title: 'M48-ALPHA Autonomous Patrol', body: 'M48-ALPHA executing DriveAI waypoint loop in Abu Musa approaches. HiddenLevel passive RF sensor monitoring zero-emissions posture. DPI Vulture tethered UAS pre-deployed on deck.' },
+  lantern_deployed:       { title: 'DPI Vulture Ascending', body: 'DPI Vulture deployed — ascending to 200ft tether limit. Radar horizon expanding as altitude increases. Trillium HD40 EO/IR camera slewing to full 360° surveillance coverage.' },
+  rf_detect:              { title: 'HiddenLevel RF Anomaly', body: 'HiddenLevel passive sensor detects unscheduled RF emission at 25.90°N 55.03°E — bearing 005. Emission profile cross-correlated against Shahed-class drone RF library. Cueing DPI Vulture radar.' },
+  radar_track:            { title: 'DPI Vulture Radar Track', body: 'DPI Vulture radar initiates track — air contact bearing 005, range 14nm, altitude 300ft. EO/IR slewing to contact for visual acquisition. Scion autonomy stack receiving multi-sensor feeds.' },
+  scion_classify:         { title: 'Scion Multi-Sensor Fusion', body: 'Scion fusing RF signature, radar track, and EO/IR visual. Three independent sensor modalities corroborating single threat hypothesis. Classification confidence building — track quality rising to fire-control grade.' },
+  threat_confirmed:       { title: 'Threat Confirmed — Shahed-136', body: 'Scion classification complete: Shahed-136 class loitering munition — 94% confidence. Projected course intercepts VLCC shipping lane in 8 minutes. RazorChassis fire control track generated.' },
+  razorchassis_cueing:    { title: 'RazorChassis FC Track Transmitted', body: 'RazorChassis pushes fire-control-quality track to NAVCENT MOC network. Track includes lat/lon, heading, speed, altitude. Cueing USS Laboon AN/SPY-1 fire control radar for ESSM intercept solution.' },
+  fire_control_alerted:   { title: 'USS Laboon Engagement Solution Locked', body: 'NAVCENT MOC receives RazorChassis track — ESSM engagement solution computed. USS Laboon CIC reports weapons free. M48-ALPHA provided fire-control-grade data without any crewed vessel exposure.' },
+  threat_neutralized:     { title: 'Shahed-136 Destroyed', body: 'USS Laboon ESSM detonates proximate to Shahed-136. Track terminated — debris field confirmed. NAVCENT: threat neutralized. M48-ALPHA resumes patrol — zero crew exposure throughout engagement.' },
+  lane_secure:            { title: 'Shipping Lane Secure', body: 'Shipping lane VLCC corridor declared safe. HiddenLevel continues passive RF monitoring. M48-ALPHA resuming waypoint patrol in Gulf-7 sector. TF59 SITREP: autonomous ISR platform cued successful DDG engagement.' },
+};
+
 // ─── Loadouts ─────────────────────────────────────────────────────────────────
 const M48_MOUNTS = [
-  { slot: 'ISR DRONE',          name: 'DPI LANTERN Tethered UAS',        vendor: 'Dragonfly Pictures Inc.' },
+  { slot: 'ISR DRONE',          name: 'DPI Vulture Tethered UAS',       vendor: 'Dragonfly Pictures Inc.'    },
   { slot: 'RF / PASSIVE RADAR', name: 'HiddenLevel Passive RF Sensor',   vendor: 'HiddenLevel'             },
   { slot: 'AUTONOMY',           name: 'Project Scion (Northrop Grumman)',vendor: 'Northrop Grumman'        },
   { slot: 'FIRE CONTROL LINK',  name: 'RazorChassis FC Integration',     vendor: 'RazorChassis'            },
@@ -139,6 +164,10 @@ const M48_MOUNTS = [
 const LANTERN_MOUNTS = [
   { slot: 'EO/IR', name: 'Trillium HD40 EO/IR Camera',        vendor: 'L3Harris Trillium' },
   { slot: 'RADAR', name: 'Maritime Surface/Air Search Radar', vendor: '[Classified]'      },
+];
+
+const VESSEL_ROSTER = [
+  { name: 'M48 + DPI Vulture', image: imgM48, hullName: 'M48', capabilities: ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration'] },
 ];
 
 // ─── MapInvalidateSize ────────────────────────────────────────────────────────
@@ -156,6 +185,24 @@ const MapInvalidateSize = () => {
 // ─── Component ───────────────────────────────────────────────────────────────
 const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return vessel;
+    return {
+      ...vessel,
+      name: assignment.vesselLabel || assignment.hullName,
+      hullName: assignment.hullName,
+    };
+  });
 
   const [missionName,     setMissionName]     = useState(mission?.name || '');
   const [currentTick,     setCurrentTick]     = useState(0);
@@ -164,9 +211,11 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
   const [lanternDeployed, setLanternDeployed] = useState(false);
   const [events,          setEvents]          = useState([]);
   const [running,         setRunning]         = useState(false);
+  const [paused,        setPaused]        = useState(false);
   const [complete,        setComplete]        = useState(false);
 
   const tickRef      = useRef(0);
+  const tickCallbackRef = useRef(null);
   const mainTimer    = useRef(null);
   const pulseTimer   = useRef(null);
   const lanternTimer = useRef(null);
@@ -184,6 +233,21 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
     });
     setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 30));
   };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, 280);
+  }, []);
+
+
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
 
   useEffect(() => {
@@ -218,6 +282,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
   const reset = useCallback(() => {
     stopAll();
     tickRef.current = 0;
+    setPaused(false);
     setCurrentTick(0);
     setThreatPulse(false);
     setLanternPulse(false);
@@ -236,9 +301,10 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
     setLanternDeployed(false);
     setEvents([]);
     setRunning(true);
+    setPaused(false);
     setComplete(false);
 
-    mainTimer.current = setInterval(() => {
+    const cb = () => {
       const tick = ++tickRef.current;
       setCurrentTick(tick);
 
@@ -247,14 +313,14 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         addEvtRef.current('M48-ALPHA: DriveAI online — waypoint ALPHA set', 'info');
       }
       if (tick === T_LANTERN_DEPLOY) {
-        addEvtRef.current('M48-ALPHA: LANTERN deployed — ascending to 200ft', 'info');
+        addEvtRef.current('M48-ALPHA: DPI Vulture deployed — ascending to 200ft', 'info');
       }
       if (tick === T_ON_STATION) {
         addEvtRef.current('NAVCENT: M48-ALPHA on station — Task Force 59 sector GULF-7', 'info');
       }
       if (tick === T_LANTERN_FULL) {
         setLanternDeployed(true);
-        addEvtRef.current('M48-ALPHA: LANTERN at altitude — Trillium HD40 EO/IR online, 17nm radar horizon established', 'info');
+        addEvtRef.current('M48-ALPHA: DPI Vulture at altitude — Trillium HD40 EO/IR online, 17nm radar horizon established', 'info');
         addEvtRef.current('HiddenLevel: Passive RF monitoring active — zero emissions', 'info');
       }
       if (tick === T_RF_DETECT) {
@@ -262,11 +328,11 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         addEvtRef.current('HiddenLevel: Emission signature consistent with Shahed-class drone RF profile', 'warn');
       }
       if (tick === T_RADAR_TRACK) {
-        addEvtRef.current('LANTERN RADAR: TRACK INITIATED — air contact, bearing 005, range 14nm, altitude 300ft', 'warn');
-        addEvtRef.current('LANTERN EO/IR: Slewing to bearing 005 — contact acquisition', 'info');
+        addEvtRef.current('DPI Vulture RADAR: TRACK INITIATED — air contact, bearing 005, range 14nm, altitude 300ft', 'warn');
+        addEvtRef.current('DPI Vulture EO/IR: Slewing to bearing 005 — contact acquisition', 'info');
       }
       if (tick === T_EO_VISUAL) {
-        addEvtRef.current('LANTERN EO/IR: Visual contact — monoplane UAS, wingspan ~3m — POSSIBLE HOSTILE', 'warn');
+        addEvtRef.current('DPI Vulture EO/IR: Visual contact — monoplane UAS, wingspan ~3m — POSSIBLE HOSTILE', 'warn');
         addEvtRef.current('M48-ALPHA: Contact relayed to Scion autonomy stack — classification in progress', 'info');
       }
       if (tick === T_SCION_CLASSIFY) {
@@ -281,11 +347,11 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_RAZOR_CUEING) {
         addEvtRef.current('RAZORCHASSIS: Fire control track generated — lat 25.85°N 55.00°E, hdg 230, 85kt', 'alert');
-        addEvtRef.current('RAZORCHASSIS: Track quality — fire control grade — pushing to NAVCENT CIC network', 'alert');
-        addEvtRef.current('RAZORCHASSIS: Cueing USS Laboon DDG-58 fire control radar for intercept', 'alert');
+        addEvtRef.current('RAZORCHASSIS: Track quality — fire control grade — pushing to NAVCENT MOC network', 'alert');
+        addEvtRef.current('RAZORCHASSIS: Cueing USS Laboon fire control radar for intercept', 'alert');
       }
       if (tick === T_FC_ALERTED) {
-        addEvtRef.current('NAVCENT CIC: Fire control track received — engagement solution computed', 'info');
+        addEvtRef.current('NAVCENT MOC: Fire control track received — engagement solution computed', 'info');
         addEvtRef.current('USS Laboon: ESSM engagement solution locked — STANDING BY', 'warn');
         addEvtRef.current('NAVCENT: Weapons free authorized — engagement in progress', 'alert');
       }
@@ -306,10 +372,26 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         setRunning(false);
         setComplete(true);
       }
-    }, 300);
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, 280);
   }, [stopAll]);
 
   useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    startNewConfiguration(vessel.hullName);
+
+    setPendingMissionSetCaps(vessel.capabilities);
+
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    setSelectedView('outfitter');
+  };
 
   const handleSave = () => {
     if (!missionName.trim()) return;
@@ -349,8 +431,8 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
   // ── Derived visual state ──────────────────────────────────────────────────
   const badge      = getPhaseBadge(phase);
+  const narrative  = PHASE_NARRATIVE[phase] || null;
   const showFCLink = ['razorchassis_cueing', 'fire_control_alerted', 'threat_neutralized', 'lane_secure'].includes(phase);
-  const showLaboon = ['fire_control_alerted', 'threat_neutralized', 'lane_secure'].includes(phase);
   const laneSec    = phase === 'lane_secure';
 
   const tColor = ['threat_confirmed', 'razorchassis_cueing', 'fire_control_alerted'].includes(phase)
@@ -402,7 +484,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         <Anchor size={13} className="text-violet-400" />
         <span className="text-violet-400 text-[0.8rem] font-semibold tracking-wide">Gulf-7 Persistent ISR — Task Force 59</span>
         <span className="text-gray-600 text-[0.7rem]">·</span>
-        <span className="text-gray-500 text-[0.68rem]">M48 + DPI LANTERN + HiddenLevel → RazorChassis FC Link — Arabian Gulf</span>
+        <span className="text-gray-500 text-[0.68rem]">M48 + DPI Vulture + HiddenLevel → RazorChassis FC Link — Arabian Gulf</span>
         <div className="flex-1" />
         <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">
           ACTIVE
@@ -428,7 +510,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
       {/* ── Scrollable content ── */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex" style={{ height: '430px' }}>
+        <div className="flex" style={{ height: '460px' }}>
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -576,18 +658,16 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* USS Laboon DDG-58 */}
-              {showLaboon && (
-                <CircleMarker
-                  center={USS_LABOON_POS}
-                  radius={7}
-                  pathOptions={{ color: '#94a3b8', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
-                >
-                  <Tooltip permanent direction="right" offset={[10, 0]}>
-                    <span style={{ fontSize: 11, fontWeight: 700 }}>USS Laboon (DDG-58)</span>
-                  </Tooltip>
-                </CircleMarker>
-              )}
+              {/* USS Laboon */}
+              <CircleMarker
+                center={USS_LABOON_POS}
+                radius={7}
+                pathOptions={{ color: '#94a3b8', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
+              >
+                <Tooltip permanent direction="right" offset={[10, 0]}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>USS Laboon</span>
+                </Tooltip>
+              </CircleMarker>
 
               {/* Engagement solution vector USS Laboon → threat */}
               {phase === 'fire_control_alerted' && threatPos && (
@@ -671,7 +751,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 radius={7}
                 pathOptions={{ color: '#6366f1', fillColor: '#4f46e5', fillOpacity: 0.9, weight: 2 }}
               >
-                <Tooltip permanent direction="right" offset={[10, 0]}>
+                <Tooltip direction="right" offset={[10, 0]}>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>NAVCENT — NSA Bahrain</span>
                 </Tooltip>
               </CircleMarker>
@@ -683,9 +763,9 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                   radius={8}
                   pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2 }}
                 >
-                  <Tooltip permanent direction="top" offset={[0, -14]}>
+                  <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: lanternDeployed ? '#22d3ee' : lanternRising ? '#67e8f9' : '#93c5fd' }}>
-                      {lanternDeployed ? 'M48-ALPHA · LANTERN ↑ 200ft' : lanternRising ? 'M48-ALPHA · LANTERN ↑ ascending…' : 'M48-ALPHA'}
+                      {lanternDeployed ? 'M48-ALPHA · DPI Vulture ↑ 200ft' : lanternRising ? 'M48-ALPHA · LANTERN ↑ ascending…' : 'M48-ALPHA'}
                     </span>
                   </Tooltip>
                 </CircleMarker>
@@ -693,30 +773,151 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
             </MapContainer>
 
+            {/* ── Corner drone-ascent view ── */}
+            {(() => {
+              const W = 192, H = 148;
+              const waterY = H - 28;
+              const boatW = 130, boatH = 52;
+              const boatX = (W - boatW) / 2;
+              const boatY = waterY - boatH + 10;
+              // mast origin on the boat (roughly center-top of hull)
+              const mastX = W / 2 + 4, mastBaseY = boatY + 8;
+              const maxRise = mastBaseY - 18;
+              const droneY = mastBaseY - lanternRiseProgress * maxRise;
+              const scanHalfAngle = 38; // degrees
+              const scanR = lanternRiseProgress * 90;
+              const angleL = (90 + scanHalfAngle) * Math.PI / 180;
+              const angleR = (90 - scanHalfAngle) * Math.PI / 180;
+              const sx1 = mastX + scanR * Math.cos(angleL);
+              const sy1 = droneY + scanR * Math.sin(angleL);
+              const sx2 = mastX + scanR * Math.cos(angleR);
+              const sy2 = droneY + scanR * Math.sin(angleR);
+              return (
+                <div
+                  className="absolute bottom-3 right-3 z-[500] pointer-events-none"
+                  style={{ width: W, height: H, borderRadius: 12, overflow: 'hidden',
+                    background: 'rgba(5,10,18,0.82)', border: '1px solid rgba(100,120,150,0.25)',
+                    backdropFilter: 'blur(4px)' }}
+                >
+
+                  {/* M48 boat image */}
+                  <img
+                    src={m48Img} alt="M48"
+                    style={{ position: 'absolute', left: boatX, top: boatY,
+                      width: boatW, height: boatH, objectFit: 'contain', opacity: 0.90 }}
+                  />
+
+                  {/* Animated SVG: water, tether, scan cone, drone */}
+                  <svg width={W} height={H} style={{ position: 'absolute', inset: 0 }}>
+                    {/* Water line */}
+                    <line
+                      x1={0} y1={waterY} x2={W} y2={waterY}
+                      stroke="#164e63" strokeWidth={1.5}
+                    />
+                    <rect
+                      x={0} y={waterY} width={W} height={H - waterY}
+                      fill="#0c2233" opacity={0.7}
+                    />
+
+                    {/* Scan cone */}
+                    {lanternRiseProgress > 0.02 && (
+                      <path
+                        d={`M ${mastX} ${droneY} L ${sx1} ${sy1} A ${scanR} ${scanR} 0 0 0 ${sx2} ${sy2} Z`}
+                        fill="#67e8f9" opacity={0.10 + lanternRiseProgress * 0.08}
+                      />
+                    )}
+                    {lanternRiseProgress > 0.02 && (
+                      <>
+                        <line x1={mastX} y1={droneY} x2={sx1} y2={sy1}
+                          stroke="#67e8f9" strokeWidth={0.8} opacity={0.45}
+                        />
+                        <line x1={mastX} y1={droneY} x2={sx2} y2={sy2}
+                          stroke="#67e8f9" strokeWidth={0.8} opacity={0.45}
+                        />
+                      </>
+                    )}
+
+                    {/* Tether */}
+                    {lanternRiseProgress > 0 && (
+                      <line x1={mastX} y1={mastBaseY} x2={mastX} y2={droneY + 5}
+                        stroke="#94a3b8" strokeWidth={1} strokeDasharray="3 2" opacity={0.7}
+                      />
+                    )}
+
+                    {/* Drone body */}
+                    {lanternRiseProgress > 0 && (
+                      <g transform={`translate(${mastX},${droneY})`}>
+                        {/* Arms */}
+                        {[[-9,-6],[9,-6],[-9,6],[9,6]].map(([dx,dy],i) => (
+                          <line key={i} x1={0} y1={0} x2={dx} y2={dy}
+                            stroke="#67e8f9" strokeWidth={1.5} opacity={0.9}
+                          />
+                        ))}
+                        {/* Rotors */}
+                        {[[-9,-6],[9,-6],[-9,6],[9,6]].map(([dx,dy],i) => (
+                          <circle key={i} cx={dx} cy={dy} r={3}
+                            fill="none" stroke="#67e8f9" strokeWidth={1.2} opacity={0.85}
+                          />
+                        ))}
+                        {/* Body */}
+                        <rect x={-3} y={-3} width={6} height={6} rx={1}
+                          fill="#67e8f9" opacity={0.9}
+                        />
+                      </g>
+                    )}
+
+                    {/* Label */}
+                    <text x={8} y={14} fill="#475569" fontSize={9}
+                      fontFamily="monospace" letterSpacing={1}
+                    >
+                      DPI VULTURE
+                    </text>
+                    {lanternRiseProgress >= 1 && (
+                      <text x={8} y={26} fill="#67e8f9" fontSize={8} fontFamily="monospace">
+                        200ft · scanning
+                      </text>
+                    )}
+                    {lanternRiseProgress > 0 && lanternRiseProgress < 1 && (
+                      <text x={8} y={26} fill="#94a3b8" fontSize={8} fontFamily="monospace">
+                        ascending…
+                      </text>
+                    )}
+                  </svg>
+                </div>
+              );
+            })()}
+
             {badge && (
-              <div className={`absolute top-3 left-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+              <div className={`absolute top-3 right-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
                 {badge.label}
               </div>
             )}
+
           </div>
 
           {/* ── Sidebar ── */}
           <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-gray-700/50 overflow-hidden bg-darkest">
+            {/* Controls */}
             <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={runScenario}
-                  disabled={running}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors ${
-                    running
-                      ? 'bg-gray-700/60 text-gray-500 cursor-not-allowed'
-                      : 'bg-violet-700 hover:bg-violet-600 text-white'
-                  }`}
-                >
-                  <Play size={13} />
-                  {running ? 'Running…' : complete ? 'Run Again' : 'Run Scenario'}
-                </button>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-violet-700 hover:bg-violet-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-violet-700 hover:bg-violet-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
                 <button
                   onClick={reset}
                   className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
@@ -725,7 +926,20 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                   <RotateCcw size={13} />
                 </button>
               </div>
-              <p className="text-gray-600 text-[0.68rem]">Magnet Defense M48 · DPI LANTERN · TF59 Gulf-7</p>
+
+              {/* Phase narrative */}
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-violet-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">Magnet Defense M48 · Vulture · TF59 Gulf-7</p>
+              )}
             </div>
 
             <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
@@ -746,64 +960,33 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
           </div>
         </div>{/* /animation row */}
 
-        {/* ── Magnet Defense M48 Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#3b82f6" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">Magnet Defense M48</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Persistent ISR / Fire Control Cueing Package — 1× vessel</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{M48_MOUNTS.length}/{M48_MOUNTS.length} slots filled</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {M48_MOUNTS.map((mount, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-500/5 border border-blue-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-blue-500/12">
-                  <Anchor size={14} color="#3b82f6" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#3b82f6" strokeWidth={3} />
-                </div>
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-2 gap-3">
+          {effectiveRoster.map(vessel => (
+            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── DPI LANTERN Payload ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#22d3ee" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">DPI LANTERN</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Tethered Drone Payload — EO/IR + Radar at 200ft elevation</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{LANTERN_MOUNTS.length}/{LANTERN_MOUNTS.length} slots filled</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {LANTERN_MOUNTS.map((mount, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-cyan-500/12">
-                  <Anchor size={14} color="#22d3ee" />
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider mb-0.5">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#22d3ee" strokeWidth={3} />
-                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
       </div>{/* /scrollable content */}

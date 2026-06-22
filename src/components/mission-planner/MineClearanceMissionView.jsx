@@ -2,9 +2,20 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, CircleMarker, Polyline, Rectangle, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, RotateCcw, Anchor, ChevronLeft, Check } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgFreedomAUV from '../../assets/images/FreedomAUV.png';
+import imgArleighBurke from '../../assets/images/ArleighBurke.png';
+import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
+
+const MISSION_SET_KEY = 'MCM';
+const MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio', 'Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const MAP_CENTER = [26.52, 56.35];
@@ -40,35 +51,60 @@ const HORUS_VESSELS = [
 
 // ─── Loadouts ─────────────────────────────────────────────────────────────────
 const HORUS_MCM_MOUNTS = [
-  { slot: 'ACOUSTIC/SONAR', name: 'Acoustic Marker Receiver', vendor: 'Thales',      description: 'Homes on indicator buoy deployed by Freedom AUV' },
-  { slot: 'WEAPONS',        name: 'M30 Supercavitating Round', vendor: 'Thales',     description: 'Single-shot mine neutralization — fires through hull bottom' },
-  { slot: 'SATCOM',         name: 'OrbComm ST 6100',           vendor: 'OrbComm',   description: 'C2 link — receives mine coordinates via SATCOM relay from Freedom AUV' },
+  { slot: 'RADAR/RF',       name: 'Echodyne EchoGuard CR',    vendor: 'Echodyne',           description: '1.25 kg ESA radar — locates mine marker buoys and area surveillance; IP67 weatherproof' },
+  { slot: 'WEAPONS',        name: 'M30 Supercavitating Round', vendor: 'Thales',            description: 'Single-shot mine neutralization — fires through hull bottom' },
+  { slot: 'SATCOM',         name: 'OrbComm ST 6100',           vendor: 'OrbComm',          description: 'C2 link — receives mine coordinates via SATCOM relay from Freedom AUV' },
+  { slot: 'COMMS',          name: 'LOS Mesh Radio',            vendor: 'Persistent Systems', description: 'Direct LOS data link to Freedom AUV at surface — mine contact handoff and coordination' },
 ];
 
 const FREEDOM_AUV_MOUNTS = [
-  { slot: 'SENSORS', name: 'Micro-SAS Sonar (SAMDIS)',  vendor: 'Thales',      description: '150m swath, 30mm resolution — detects, classifies, localizes mines' },
-  { slot: 'PAYLOAD', name: 'Acoustic Indicator Buoy',   vendor: 'Oceaneering', description: 'Deploys acoustic pinger on confirmed mine for HORUS homing' },
-  { slot: 'COMMS',   name: 'EvoLogics Acoustic Modem',  vendor: 'EvoLogics',   description: 'Relays mine coordinates to surface relay via underwater acoustic link' },
+  { slot: 'SENSORS', name: 'Micro-SAS Sonar (SAMDIS)',  vendor: 'Thales',             description: '150m swath, 30mm resolution — detects, classifies, localizes mines' },
+  { slot: 'PAYLOAD', name: 'Acoustic Indicator Buoy',   vendor: 'Oceaneering',        description: 'Deploys acoustic pinger on confirmed mine for HORUS homing' },
+  { slot: 'COMMS',   name: 'EvoLogics Acoustic Modem',  vendor: 'EvoLogics',          description: 'Relays mine coordinates to surface relay via underwater acoustic link' },
+  { slot: 'COMMS',   name: 'LOS Mesh Radio',            vendor: 'Persistent Systems', description: 'Surface-to-surface mesh link with HORUS when AUV is at/near surface — high-bandwidth contact data sync' },
 ];
 
+const VESSEL_ROSTER = [
+  { name: 'FREEDOM AUV', image: imgFreedomAUV, hullName: 'Freedom AUV', capabilities: ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio'] },
+  { name: 'HORUS-1 SSS', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+  { name: 'HORUS-2 SSS', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+  { name: 'USS Puller ESB-3', image: imgArleighBurke, hullName: 'Lewis B. Puller Class ESB', capabilities: ['MCM C2 Node', 'AUV Launch & Recovery', 'SATCOM Relay', 'Logistics Support'] },
+];
+
+// ─── Phase narratives ─────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:              null,
+  auv_transit:       { title: 'AUV Transit to Minefield', body: 'FREEDOM-1 AUV deployed from USS Lewis B. Puller (ESB-3). Initiating transit to Strait of Hormuz shipping lane Alpha-7. Micro-SAS sonar powering up for boustrophedon sweep.' },
+  sweeping:          { title: 'Micro-SAS Sweep Active', body: 'FREEDOM-1 executing 5-pass lawnmower survey at 4kt. 150m swath, 30mm resolution. Contacts logged to onboard memory — AUV does not divert. Full minefield picture before any re-attack.' },
+  sweep_complete:    { title: 'Sweep Complete — Uploading Contacts', body: 'All 5 passes complete. FREEDOM-1 surfacing. Contact list uploading via EvoLogics acoustic modem → SATCOM relay → MOC Bahrain. 2 bottom contacts confirmed. Initiating re-attack.' },
+  marking_alpha:     { title: 'Re-Attack Phase — Marking Mines', body: 'FREEDOM-1 returning to MINE-ALPHA contact position. Deploying Oceaneering acoustic indicator buoy. Will transit to MINE-BRAVO to complete marking before HORUS engagement.' },
+  horus_inbound:     { title: 'All Mines Marked — HORUS Inbound', body: 'MINE-ALPHA and MINE-BRAVO both marked with 37.5kHz acoustic beacons. HORUS-1 and HORUS-2 homing on pinger signals. M30 supercavitating rounds armed. FREEDOM-1 RTB.' },
+  horus_locked:      { title: 'Acoustic Lock Achieved', body: 'HORUS-1 and HORUS-2 on station — 37.5kHz pinger locks confirmed. Supercavitating rounds aligned to mine-bearing vectors. MOC Bahrain: weapons free.' },
+  engaging_alpha:    { title: 'Engaging MINE-ALPHA', body: 'HORUS-1: M30 supercavitating round away — penetrating water column. Kinetic neutralization via hull perforation initiates sympathetic detonation sequence on MINE-ALPHA.' },
+  alpha_neutralized: { title: 'MINE-ALPHA Neutralized', body: 'Detonation confirmed on MINE-ALPHA. Debris field assessed — no secondary hazards. HORUS-1 standing by. HORUS-2 engaging MINE-BRAVO on independent solution.' },
+  engaging_bravo:    { title: 'Engaging MINE-BRAVO', body: 'HORUS-2: M30 supercavitating round away. Fire control solution from acoustic beacon relay — precision terminal engagement. MCM kill chain executing nominally.' },
+  bravo_neutralized: { title: 'MINE-BRAVO Neutralized', body: 'Detonation confirmed on MINE-BRAVO. 2 of 5 mines in Alpha-7 lane eliminated. HORUS-3 standing by for remaining mines CHARLIE, DELTA, ECHO. FREEDOM-1 reloading for second sweep.' },
+  lane_clear:        { title: 'Sector Alpha-7 Cleared', body: 'Shipping lane Alpha-7 declared safe for transit. NAVCENT notified. VLCC convoy routing through cleared corridor. HORUS-3 commencing sweep cycle for residual mines.' },
+};
+
 // ─── Tick milestones ──────────────────────────────────────────────────────────
-const T_AUV_TRANSIT   = 5;
-const T_AUV_ARRIVE    = 15;
-const T_SWEEP_START   = 25;
-const T_CONTACT_A     = 48;
-const T_CLASSIFY      = 55;
-const T_CONFIRM_A     = 62;
-const T_MARKER_A      = 68;
-const T_CONTACT_B     = 75;
-const T_CONFIRM_B     = 82;
-const T_HORUS_TASK    = 88;
-const T_HORUS_ARRIVE  = 115;
-const T_ENGAGE_A      = 122;
-const T_NEUT_A        = 128;
-const T_ENGAGE_B      = 134;
-const T_NEUT_B        = 140;
-const T_LANE_CLEAR    = 148;
-const TOTAL_TICKS     = 162;
+const T_AUV_TRANSIT      = 5;
+const T_AUV_ARRIVE       = 15;
+const T_SWEEP_START      = 25;   // SAS sonar active event
+const T_SWEEP_CONTACT_A  = 38;   // Mine A sonar return during sweep (AUV does NOT divert)
+const T_SWEEP_CONTACT_B  = 55;   // Mine B sonar return during sweep
+const T_SWEEP_DONE       = 72;   // Full lawnmower complete — all 5 passes
+const T_REPORT           = 78;   // AUV surfaces, uploads contact list
+const T_MARK_A           = 92;   // Re-attack: AUV deploys marker on MINE-ALPHA
+const T_MARK_B           = 108;  // Re-attack: AUV deploys marker on MINE-BRAVO
+const T_HORUS_TASK       = 108;  // HORUS tasked (both markers now active)
+const T_HORUS_ARRIVE     = 135;
+const T_ENGAGE_A         = 142;
+const T_NEUT_A           = 148;
+const T_ENGAGE_B         = 155;
+const T_NEUT_B           = 161;
+const T_LANE_CLEAR       = 168;
+const TOTAL_TICKS        = 182;
 
 // ─── Tile layers ──────────────────────────────────────────────────────────────
 const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
@@ -93,60 +129,73 @@ const EVENT_COLORS = {
 
 // ─── Derived state helpers ────────────────────────────────────────────────────
 const getPhase = (tick) => {
-  if (tick < T_AUV_TRANSIT)  return 'idle';
-  if (tick < T_SWEEP_START)  return 'auv_transit';
-  if (tick < T_CONTACT_A)    return 'sweeping';
-  if (tick < T_CLASSIFY)     return 'contact_alpha';
-  if (tick < T_CONFIRM_A)    return 'classifying';
-  if (tick < T_MARKER_A)     return 'marker_alpha_pending';
-  if (tick < T_CONTACT_B)    return 'marker_alpha_deployed';
-  if (tick < T_CONFIRM_B)    return 'contact_bravo';
-  if (tick < T_HORUS_TASK)   return 'marker_bravo_deployed';
-  if (tick < T_HORUS_ARRIVE) return 'horus_inbound';
-  if (tick < T_ENGAGE_A)     return 'horus_locked';
-  if (tick < T_NEUT_A)       return 'engaging_alpha';
-  if (tick < T_ENGAGE_B)     return 'alpha_neutralized';
-  if (tick < T_NEUT_B)       return 'engaging_bravo';
-  if (tick < T_LANE_CLEAR)   return 'bravo_neutralized';
+  if (tick < T_AUV_TRANSIT)   return 'idle';
+  if (tick < T_AUV_ARRIVE)    return 'auv_transit';
+  if (tick < T_SWEEP_DONE)    return 'sweeping';
+  if (tick < T_MARK_A)        return 'sweep_complete';  // surfacing + reporting
+  if (tick < T_HORUS_TASK)    return 'marking_alpha';   // re-attack: alpha then bravo
+  if (tick < T_HORUS_ARRIVE)  return 'horus_inbound';
+  if (tick < T_ENGAGE_A)      return 'horus_locked';
+  if (tick < T_NEUT_A)        return 'engaging_alpha';
+  if (tick < T_ENGAGE_B)      return 'alpha_neutralized';
+  if (tick < T_NEUT_B)        return 'engaging_bravo';
+  if (tick < T_LANE_CLEAR)    return 'bravo_neutralized';
   return 'lane_clear';
 };
 
 const getMineState = (mineId, tick) => {
   if (mineId === 'M1') {
-    if (tick < T_CONTACT_A) return 'hidden';
-    if (tick < T_CONFIRM_A) return 'contact';
-    if (tick < T_MARKER_A)  return 'confirmed';
-    if (tick < T_ENGAGE_A)  return 'marked';
-    if (tick < T_NEUT_A)    return 'engaging';
+    if (tick < T_SWEEP_CONTACT_A) return 'hidden';
+    if (tick < T_REPORT)          return 'contact';    // detected during sweep — AUV keeps going
+    if (tick < T_MARK_A)          return 'confirmed';  // contacts uploaded, awaiting marker
+    if (tick < T_ENGAGE_A)        return 'marked';
+    if (tick < T_NEUT_A)          return 'engaging';
     return 'neutralized';
   }
   if (mineId === 'M2') {
-    if (tick < T_CONTACT_B) return 'hidden';
-    if (tick < T_CONFIRM_B) return 'contact';
-    if (tick < T_ENGAGE_B)  return 'marked';
-    if (tick < T_NEUT_B)    return 'engaging';
+    if (tick < T_SWEEP_CONTACT_B) return 'hidden';
+    if (tick < T_REPORT)          return 'contact';
+    if (tick < T_MARK_B)          return 'confirmed';
+    if (tick < T_ENGAGE_B)        return 'marked';
+    if (tick < T_NEUT_B)          return 'engaging';
     return 'neutralized';
   }
   return 'hidden';
 };
 
 const hasPinger = (mineId, tick) => {
-  if (mineId === 'M1') return tick >= T_MARKER_A && getMineState('M1', tick) !== 'neutralized';
-  if (mineId === 'M2') return tick >= T_CONFIRM_B && getMineState('M2', tick) !== 'neutralized';
+  if (mineId === 'M1') return tick >= T_MARK_A && getMineState('M1', tick) !== 'neutralized';
+  if (mineId === 'M2') return tick >= T_MARK_B && getMineState('M2', tick) !== 'neutralized';
   return false;
 };
 
 const getAuvPos = (tick) => {
   if (tick < T_AUV_TRANSIT) return null;
+  // Transit ship → sweep start
   if (tick < T_AUV_ARRIVE) {
     const t = (tick - T_AUV_TRANSIT) / (T_AUV_ARRIVE - T_AUV_TRANSIT);
     return lerp2(AUV_SHIP, AUV_SWEEP_TRACK[0], Math.min(t, 1));
   }
-  if (tick <= T_HORUS_TASK) {
-    const t = (tick - T_AUV_ARRIVE) / (T_HORUS_TASK - T_AUV_ARRIVE);
-    return trackPos(AUV_SWEEP_TRACK, t);
+  // Full lawnmower sweep — no diversion on contact
+  if (tick < T_SWEEP_DONE) {
+    const t = (tick - T_AUV_ARRIVE) / (T_SWEEP_DONE - T_AUV_ARRIVE);
+    return trackPos(AUV_SWEEP_TRACK, Math.min(t, 0.9999));
   }
-  return AUV_SWEEP_TRACK[AUV_SWEEP_TRACK.length - 1];
+  // Surface / report — hold at sweep end point
+  if (tick < T_REPORT) return AUV_SWEEP_TRACK[AUV_SWEEP_TRACK.length - 1];
+  // Re-attack: transit sweep end → MINE-ALPHA
+  if (tick < T_MARK_A) {
+    const t = (tick - T_REPORT) / (T_MARK_A - T_REPORT);
+    return lerp2(AUV_SWEEP_TRACK[AUV_SWEEP_TRACK.length - 1], MINES[0].pos, Math.min(t, 1));
+  }
+  // Transit MINE-ALPHA → MINE-BRAVO (marker already dropped on ALPHA)
+  if (tick < T_MARK_B) {
+    const t = (tick - T_MARK_A) / (T_MARK_B - T_MARK_A);
+    return lerp2(MINES[0].pos, MINES[1].pos, Math.min(t, 1));
+  }
+  // RTB to USS Lewis B. Puller
+  const t = Math.min((tick - T_MARK_B) / (T_HORUS_ARRIVE - T_MARK_B), 1);
+  return lerp2(MINES[1].pos, AUV_SHIP, t);
 };
 
 const getHorusPos = (vessel, tick) => {
@@ -155,13 +204,14 @@ const getHorusPos = (vessel, tick) => {
   if (!mine) return null;
   if (tick >= T_HORUS_ARRIVE) return mine.pos;
   const t = (tick - T_HORUS_TASK) / (T_HORUS_ARRIVE - T_HORUS_TASK);
-  return lerp2(HORUS_STAGING, mine.pos, Math.min(t, 1));
+  return lerp2(AUV_SHIP, mine.pos, Math.min(t, 1));
 };
 
-// Returns array of completed + partial sweep polyline segments
+// Returns array of completed + partial sweep polyline segments (trail stops when AUV leaves track)
 const getAuvSweepSegments = (tick) => {
   if (tick < T_AUV_ARRIVE) return [];
-  const t = Math.min((tick - T_AUV_ARRIVE) / (T_HORUS_TASK - T_AUV_ARRIVE), 1);
+  const cappedTick = Math.min(tick, T_SWEEP_DONE);
+  const t = Math.min((cappedTick - T_AUV_ARRIVE) / (T_SWEEP_DONE - T_AUV_ARRIVE), 1);
   const progress = t * (AUV_SWEEP_TRACK.length - 1);
   const idx = Math.floor(progress);
   const segs = [];
@@ -198,22 +248,18 @@ const mineMarkerOpts = (state, pulse) => {
 
 const getPhaseBadge = (phase) => {
   switch (phase) {
-    case 'auv_transit':           return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',             label: '→ AUV Transit' };
-    case 'sweeping':              return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',             label: '◈ SAS Sweep Active' };
-    case 'contact_alpha':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Contact — Classifying' };
-    case 'classifying':           return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Classifying Contact' };
-    case 'marker_alpha_pending':  return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',               label: '● MINE-ALPHA Confirmed' };
-    case 'marker_alpha_deployed': return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',               label: '● MINE-ALPHA Marked' };
-    case 'contact_bravo':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ MINE-BRAVO — Classifying' };
-    case 'marker_bravo_deployed': return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',               label: '● 2 Mines Marked' };
-    case 'horus_inbound':         return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',             label: '→ HORUS Inbound' };
-    case 'horus_locked':          return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',         label: '◉ Acoustic Lock' };
-    case 'engaging_alpha':        return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse', label: '⚡ Engaging MINE-ALPHA' };
-    case 'alpha_neutralized':     return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',   label: '✓ MINE-ALPHA Neutralized' };
-    case 'engaging_bravo':        return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse', label: '⚡ Engaging MINE-BRAVO' };
-    case 'bravo_neutralized':     return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',   label: '✓ MINE-BRAVO Neutralized' };
-    case 'lane_clear':            return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',   label: '✓ Sector Alpha-7 Clear' };
-    default:                      return null;
+    case 'auv_transit':      return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '→ AUV Transit' };
+    case 'sweeping':         return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '◈ SAS Sweep Active' };
+    case 'sweep_complete':   return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',               label: '↑ Sweep Complete — Uploading' };
+    case 'marking_alpha':    return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                     label: '● Re-Attack — Marking Mines' };
+    case 'horus_inbound':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '→ HORUS Inbound' };
+    case 'horus_locked':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',               label: '◉ Acoustic Lock' };
+    case 'engaging_alpha':   return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ Engaging MINE-ALPHA' };
+    case 'alpha_neutralized':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ MINE-ALPHA Neutralized' };
+    case 'engaging_bravo':   return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ Engaging MINE-BRAVO' };
+    case 'bravo_neutralized':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ MINE-BRAVO Neutralized' };
+    case 'lane_clear':       return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Sector Alpha-7 Clear' };
+    default:                 return null;
   }
 };
 
@@ -232,15 +278,35 @@ const MapInvalidateSize = () => {
 // ─── Component ───────────────────────────────────────────────────────────────
 const MineClearanceMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return vessel;
+    return {
+      ...vessel,
+      name: assignment.vesselLabel || assignment.hullName,
+      hullName: assignment.hullName,
+    };
+  });
 
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [currentTick,  setCurrentTick]  = useState(0);
   const [minePulse,    setMinePulse]    = useState(false);
   const [events,       setEvents]       = useState([]);
   const [running,      setRunning]      = useState(false);
+  const [paused,        setPaused]        = useState(false);
   const [complete,     setComplete]     = useState(false);
 
   const tickRef    = useRef(0);
+  const tickCallbackRef = useRef(null);
   const mainTimer  = useRef(null);
   const pulseTimer = useRef(null);
   const addEvtRef  = useRef(null);
@@ -256,12 +322,27 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
     });
     setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 30));
   };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, 280);
+  }, []);
+
+
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
 
   // Mine contact / engagement pulse
   useEffect(() => {
     clearInterval(pulseTimer.current);
-    const needsPulse = ['contact_alpha', 'classifying', 'contact_bravo', 'engaging_alpha', 'engaging_bravo'].includes(phase);
+    const needsPulse = ['sweeping', 'sweep_complete', 'marking_alpha', 'horus_inbound', 'horus_locked', 'engaging_alpha', 'engaging_bravo'].includes(phase);
     if (needsPulse) {
       pulseTimer.current = setInterval(() => setMinePulse(p => !p), 350);
       return () => clearInterval(pulseTimer.current);
@@ -278,6 +359,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
   const reset = useCallback(() => {
     stopAll();
     tickRef.current = 0;
+    setPaused(false);
     setCurrentTick(0);
     setMinePulse(false);
     setEvents([]);
@@ -292,9 +374,10 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
     setMinePulse(false);
     setEvents([]);
     setRunning(true);
+    setPaused(false);
     setComplete(false);
 
-    mainTimer.current = setInterval(() => {
+    const cb = () => {
       const tick = ++tickRef.current;
       setCurrentTick(tick);
 
@@ -302,40 +385,35 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
         addEvtRef.current('FREEDOM-1: AUV deployed from USS Puller — initiating transit to minefield', 'info');
       }
       if (tick === T_AUV_ARRIVE) {
-        addEvtRef.current('FREEDOM-1: Beginning micro-SAS sweep — Pass 1 of 5', 'info');
+        addEvtRef.current('FREEDOM-1: Sweep start — Pass 1 of 5. Contacts logged to memory — no diversion until sweep complete.', 'info');
       }
       if (tick === T_SWEEP_START) {
         addEvtRef.current('FREEDOM-1: SAS sonar active — 150m swath, 0.03m resolution', 'info');
       }
-      if (tick === 35) {
-        addEvtRef.current('FREEDOM-1: Pass 1 complete — no contacts', 'info');
+      if (tick === T_SWEEP_CONTACT_A) {
+        addEvtRef.current('FREEDOM-1: SONAR RETURN — bottom object 26°33\'N 56°07\'E — logged CONTACT-1. Sweep continuing.', 'warn');
       }
-      if (tick === T_CONTACT_A) {
-        addEvtRef.current('FREEDOM-1: CONTACT — bottom object detected at 26.55°N 56.12°E — classifying', 'warn');
+      if (tick === T_SWEEP_CONTACT_B) {
+        addEvtRef.current('FREEDOM-1: SONAR RETURN — bottom object 26°28\'N 56°14\'E — logged CONTACT-2. Sweep continuing.', 'warn');
       }
-      if (tick === T_CLASSIFY) {
-        addEvtRef.current('FREEDOM-1: Multi-aspect classification in progress — stand by', 'info');
-        addEvtRef.current('MOC NBSD: Freedom-1 contact correlation — checking against HUMINT threat data', 'info');
+      if (tick === T_SWEEP_DONE) {
+        addEvtRef.current('FREEDOM-1: Sweep complete — 5 passes, 2 contacts logged — surfacing to report', 'info');
       }
-      if (tick === T_CONFIRM_A) {
-        addEvtRef.current('FREEDOM-1: MINE CONFIRMED — moored contact, MINE-ALPHA — confidence 94%', 'alert');
-        addEvtRef.current('MOC NBSD: Blue forces authorized to engage MINE-ALPHA', 'info');
+      if (tick === T_REPORT) {
+        addEvtRef.current('FREEDOM-1: Contact list uploaded — 2 bottom objects — MOC Bahrain correlating', 'info');
+        addEvtRef.current('MOC Bahrain: CONTACT-1 and CONTACT-2 match threat database — MINES CONFIRMED', 'alert');
+        addEvtRef.current('FREEDOM-1: Re-attack phase initiated — returning to MINE-ALPHA', 'info');
       }
-      if (tick === T_MARKER_A) {
-        addEvtRef.current('FREEDOM-1: Acoustic indicator beacon deployed on MINE-ALPHA', 'info');
-        addEvtRef.current('FREEDOM-1: Coordinates relayed via acoustic modem → SATCOM → MOC', 'info');
+      if (tick === T_MARK_A) {
+        addEvtRef.current('FREEDOM-1: Acoustic indicator buoy deployed on MINE-ALPHA — pinger active 37.5kHz', 'info');
+        addEvtRef.current('FREEDOM-1: Transiting to MINE-BRAVO', 'info');
       }
-      if (tick === T_CONTACT_B) {
-        addEvtRef.current('FREEDOM-1: CONTACT — bottom object at 26.48°N 56.24°E — MINE-BRAVO suspected', 'warn');
+      if (tick === T_MARK_B) {
+        addEvtRef.current('FREEDOM-1: Acoustic indicator buoy deployed on MINE-BRAVO — both mines marked', 'info');
+        addEvtRef.current('FREEDOM-1: Re-attack complete — RTB to USS Lewis B. Puller (ESB-3)', 'info');
+        addEvtRef.current('MOC Bahrain: HORUS-1 HORUS-2 tasked — homing on acoustic beacons', 'info');
       }
-      if (tick === T_CONFIRM_B) {
-        addEvtRef.current('FREEDOM-1: MINE-BRAVO confirmed — deploying acoustic marker', 'alert');
-        addEvtRef.current('FREEDOM-1: Marker deployed — 2 mines marked for engagement', 'info');
-      }
-      if (tick === T_HORUS_TASK) {
-        addEvtRef.current('MOC NBSD: HORUS-1 HORUS-2 tasked — navigating to acoustic markers', 'info');
-      }
-      if (tick === 100) {
+      if (tick === 122) {
         addEvtRef.current('HORUS-1: Acoustic marker acquired — homing on MINE-ALPHA', 'info');
         addEvtRef.current('HORUS-2: Acoustic marker acquired — homing on MINE-BRAVO', 'info');
       }
@@ -358,7 +436,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
         addEvtRef.current('HORUS-2: Round expended — mission complete', 'info');
       }
       if (tick === T_LANE_CLEAR) {
-        addEvtRef.current('MOC NBSD: Shipping lane ALPHA-7 — 2 of 5 mines neutralized — HORUS-3 tasked for remaining', 'info');
+        addEvtRef.current('MOC Bahrain: Shipping lane ALPHA-7 — 2 of 5 mines neutralized — HORUS-3 tasked for remaining', 'info');
         addEvtRef.current('STRAIT CLEAR — Sector Alpha-7 safe for transit — notifying NAVCENT', 'success');
       }
       if (tick >= TOTAL_TICKS) {
@@ -366,10 +444,26 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
         setRunning(false);
         setComplete(true);
       }
-    }, 180);
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, 280);
   }, [stopAll]);
 
   useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    startNewConfiguration(vessel.hullName);
+
+    setPendingMissionSetCaps(vessel.capabilities);
+
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    setSelectedView('outfitter');
+  };
 
   const handleSave = () => {
     if (!missionName.trim()) return;
@@ -408,6 +502,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
   };
 
   const badge = getPhaseBadge(phase);
+  const narrative = PHASE_NARRATIVE[phase] || null;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -453,7 +548,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
       <div className="flex-1 min-h-0 overflow-y-auto">
 
         {/* ── Animation row ── */}
-        <div className="flex" style={{ height: '430px' }}>
+        <div className="flex" style={{ height: '460px' }}>
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -498,8 +593,8 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                 radius={7}
                 pathOptions={{ color: '#94a3b8', fillColor: '#475569', fillOpacity: 0.9, weight: 2 }}
               >
-                <Tooltip permanent direction="right" offset={[10, 0]}>
-                  <span style={{ fontSize: 11, fontWeight: 700 }}>USS Puller (ESB-3)</span>
+                <Tooltip direction="right" offset={[10, 0]}>
+                  <span style={{ fontSize: 11, fontWeight: 700 }}>USS Puller</span>
                 </Tooltip>
               </CircleMarker>
 
@@ -509,7 +604,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                 radius={7}
                 pathOptions={{ color: '#6366f1', fillColor: '#4f46e5', fillOpacity: 0.9, weight: 2 }}
               >
-                <Tooltip permanent direction="right" offset={[10, 0]}>
+                <Tooltip direction="right" offset={[10, 0]}>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>MOC — NSA Bahrain</span>
                 </Tooltip>
               </CircleMarker>
@@ -551,12 +646,24 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                       />
                     )}
 
-                    {/* Acoustic pinger dot (yellow) */}
+                    {/* Acoustic pinger beacon (yellow) */}
                     {showPinger && (
                       <CircleMarker
                         center={mine.pos}
-                        radius={3}
-                        pathOptions={{ color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 1 }}
+                        radius={5}
+                        pathOptions={{ color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 2 }}
+                      >
+                        <Tooltip direction="bottom" offset={[0, 8]}>
+                          <span style={{ fontSize: 11, fontWeight: 700 }}>Acoustic Pinger — Active</span>
+                        </Tooltip>
+                      </CircleMarker>
+                    )}
+                    {/* Pinger pulse ring */}
+                    {showPinger && minePulse && (
+                      <CircleMarker
+                        center={mine.pos}
+                        radius={13}
+                        pathOptions={{ color: '#fbbf24', fillOpacity: 0, weight: 1.5, opacity: 0.55 }}
                       />
                     )}
 
@@ -564,7 +671,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                     {showPinger && auvRef && (
                       <Polyline
                         positions={[auvRef, mine.pos]}
-                        pathOptions={{ color: '#22d3ee', weight: 1, opacity: 0.25, dashArray: '3 7' }}
+                        pathOptions={{ color: '#22d3ee', weight: 1.5, opacity: 0.55, dashArray: '3 7' }}
                       />
                     )}
                   </React.Fragment>
@@ -590,11 +697,14 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                       </Tooltip>
                     </CircleMarker>
 
-                    {/* Acoustic lock line — HORUS to target mine */}
-                    {isLocked && mine && mineState !== 'neutralized' && (
+                    {/* Acoustic homing line — HORUS tracking pinger while inbound and locked */}
+                    {mine && mineState !== 'neutralized' && currentTick >= T_HORUS_TASK && (
                       <Polyline
                         positions={[pos, mine.pos]}
-                        pathOptions={{ color: '#22d3ee', weight: 2, opacity: 0.70 }}
+                        pathOptions={isLocked
+                          ? { color: '#fbbf24', weight: 2, opacity: 0.80 }
+                          : { color: '#fbbf24', weight: 1, opacity: 0.45, dashArray: '4 6' }
+                        }
                       />
                     )}
                   </React.Fragment>
@@ -617,6 +727,27 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                 {badge.label}
               </div>
             )}
+
+            {/* ── Legend ── */}
+            {currentTick >= T_AUV_TRANSIT && (
+              <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+                <div className="flex flex-col gap-1">
+                  {[
+                    { color: '#22d3ee', label: 'FREEDOM-1 AUV — Mine Hunt' },
+                    { color: '#22d3ee', label: 'HORUS-1/2 USV — Mine Neutralization' },
+                    { color: '#94a3b8', label: 'USS Lewis B. Puller (ESB-3)' },
+                    { color: '#6366f1', label: 'MOC — NSA Bahrain' },
+                    { color: '#ef4444', label: 'Confirmed Mine Contact' },
+                    { color: '#10b981', label: 'Neutralized Mine' },
+                  ].map(({ color, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Sidebar ── */}
@@ -625,19 +756,24 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
             {/* Controls */}
             <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={runScenario}
-                  disabled={running}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors ${
-                    running
-                      ? 'bg-gray-700/60 text-gray-500 cursor-not-allowed'
-                      : 'bg-cyan-700 hover:bg-cyan-600 text-white'
-                  }`}
-                >
-                  <Play size={13} />
-                  {running ? 'Running…' : complete ? 'Run Again' : 'Run Scenario'}
-                </button>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
                 <button
                   onClick={reset}
                   className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
@@ -646,9 +782,22 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                   <RotateCcw size={13} />
                 </button>
               </div>
-              <p className="text-gray-600 text-[0.68rem]">
-                Freedom AUV + 3× SubSeaSail HORUS · MCM Kill Chain
-              </p>
+
+              {/* Phase narrative */}
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-cyan-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">
+                  Freedom AUV + 3× SubSeaSail HORUS · MCM Kill Chain
+                </p>
+              )}
             </div>
 
             {/* Event log */}
@@ -673,74 +822,35 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
           </div>
         </div>{/* /animation row */}
 
-        {/* ── SubSeaSail HORUS MCM Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#22d3ee" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">SubSeaSail HORUS</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">MCM Mine Neutralization Package — 3× per squadron</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">
-              {HORUS_MCM_MOUNTS.length}/{HORUS_MCM_MOUNTS.length} slots filled
-            </div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {HORUS_MCM_MOUNTS.map((mount, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/25"
-              >
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-cyan-500/12">
-                  <Anchor size={14} color="#22d3ee" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#22d3ee" strokeWidth={3} />
-                </div>
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-2 gap-3">
+          {effectiveRoster.map(vessel => (
+            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              {/* Image */}
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Oceaneering Freedom AUV Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-violet-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#a78bfa" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">Oceaneering Freedom AUV</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">HUNT/MARK Package — micro-SAS sonar + acoustic beacons</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">
-              {FREEDOM_AUV_MOUNTS.length}/{FREEDOM_AUV_MOUNTS.length} slots filled
-            </div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {FREEDOM_AUV_MOUNTS.map((mount, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-violet-500/5 border border-violet-500/25"
-              >
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-violet-500/12">
-                  <Anchor size={14} color="#a78bfa" />
+              {/* Capabilities */}
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider mb-0.5">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{mount.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#a78bfa" strokeWidth={3} />
-                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
       </div>{/* /scrollable content */}

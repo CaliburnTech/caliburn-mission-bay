@@ -77,28 +77,71 @@ export const initialMissions = [
     launchedAt: "2024-12-08T06:00:00Z",
     history: [{ action: "created", timestamp: "2024-12-05T10:00:00Z" }, { action: "launched", timestamp: "2024-12-08T06:00:00Z" }]
   },
-  // CONTESTED_LOGISTICS - Spratly Islands resupply
+  // CONTESTED_LOGISTICS - INDOPACOM EABO Resupply (PAE RAS - CDR Anderson)
   {
     id: "mission-logistics-001",
-    name: "Spratly-Resupply-Covert",
+    name: "EABO-SCS-Resupply-T82-BRAVO",
     template: "CONTESTED_LOGISTICS",
     status: "draft",
     assignedSquadrons: ["sqdn_004"],
+    domain: "MARITIME",
     zoneConfig: {
-      name: "SCS Forward Resupply Route",
+      name: "INDOPACOM EABO Resupply — SCS Forward Position",
       waypoints: [
-        { lat: 9.8, lng: 118.7, label: "A" },
-        { lat: 10.4, lng: 115.8, label: "B" },
-        { lat: 10.9, lng: 114.5, label: "C" },
-        { lat: 11.1, lng: 113.8, label: "D" }
+        { lat: 10.0, lng: 118.5, label: "ESB-STAGING" },
+        { lat: 10.4, lng: 115.8, label: "ALPHA" },
+        { lat: 10.9, lng: 114.5, label: "BRAVO-WEZ-ENTRY" },
+        { lat: 11.0, lng: 113.5, label: "CHARLIE-GPS-DENIED" },
+        { lat: 11.1, lng: 113.0, label: "ECHO-DELIVERY" }
       ]
     },
     duration: "7d",
-    stateHierarchies: { default: ["Navigation", "Comms", "Vehicle", "Mission", "Payload"], evading: ["Vehicle", "Navigation", "Comms", "Mission", "Payload"] },
-    createdAt: "2024-12-16T09:00:00Z",
-    updatedAt: "2024-12-17T11:00:00Z",
+    missionProfile: {
+      type: "CONTESTED_LOGISTICS",
+      lane: "EABO_RESUPPLY",
+      classification: "CDR Arthur Anderson — PAE RAS — INDOPACOM Contested Logistics Mission Manager",
+      gpsDeniedConfirmed: true,
+      vessels: [
+        { type: "M48", role: "Main Supply Run", cargoModules: ["DRY_CARGO_TEU", "FUEL_BLADDER_TEU"] },
+        { type: "SubSeaSail_HORUS", role: "Scout/Precursor", cargoModules: [] }
+      ],
+      threatEnvironment: "DF-26 ASBM WEZ — PLAN surface patrols — GPS jamming ~45nm coverage at delivery zone",
+      commsArchitecture: {
+        primary: "Iridium SATCOM (LPI scheduled bursts — 47min intervals)",
+        secondary: "TrellisWare TW-950 mesh (ESB range only)",
+        groundStation: "INDOPACOM / PAE RAS MOC",
+        homeBase: "ESB Staging Position — Palawan Approaches"
+      },
+      cargoManifest: [
+        { module: "20-ft TEU Dry Cargo", weight: "8,200 kg", contents: "Ammunition, spare parts, medical supplies, rations" },
+        { module: "20-ft TEU Fuel Bladder", weight: "15,000 kg (15,000L JP-8)", contents: "JP-8 aviation fuel for EABO air assets" }
+      ],
+      objectives: {
+        primary: "Deliver 8.5 MT mixed cargo to Marine Stand-in Force EABO position inside DF-26 WEZ without crew exposure or strategic signature when lost",
+        secondary: "Validate USV-only logistics pipeline replacing manned T-AO sorties inside adversary ASBM threat envelope — PAE RAS INDOPACOM Contested Logistics mission set"
+      },
+      routePlanning: {
+        primaryRoute: "ESB → Alpha → Bravo (WEZ entry) → Charlie (GPS-denied) → Echo (delivery)",
+        alternateRoute: "Echo → RTB-WP1 → RTB-WP2 → ESB (different heading)",
+        emergencyRTB: "Echo → direct reciprocal, best speed",
+        gpsDeniedSegments: ["Charlie → Echo (45nm, adversary jamming coverage)"],
+        gpsDeniedFallback: "Magnet DriveAI INS on M48 (<0.1 nm/hr drift), SubSeaSail HORUS onboard INS on HORUS"
+      },
+      costPerTonUSV: 1718,
+      wezDelivery: true
+    },
+    stateHierarchies: {
+      default:       ["Navigation", "Vehicle", "Comms", "Mission", "Payload"],
+      emcon_transit: ["Navigation", "Comms", "Vehicle", "Mission", "Payload"],
+      gps_denied:    ["Navigation", "Vehicle", "Mission", "Comms", "Payload"],
+      threat_probe:  ["Navigation", "Vehicle", "Comms", "Mission", "Payload"],
+      delivery:      ["Mission", "Payload", "Navigation", "Vehicle", "Comms"],
+      rtb:           ["Navigation", "Vehicle", "Comms", "Mission", "Payload"]
+    },
+    createdAt: "2026-06-16T09:00:00Z",
+    updatedAt: "2026-06-16T09:00:00Z",
     launchedAt: null,
-    history: [{ action: "created", timestamp: "2024-12-16T09:00:00Z" }]
+    history: [{ action: "created", timestamp: "2026-06-16T09:00:00Z", details: "CDR Anderson PAE RAS INDOPACOM Contested Logistics — EABO SCS forward position resupply" }]
   },
   // REFLEX_SWARM_ATTACK - Black Sea
   {
@@ -548,6 +591,190 @@ export const initialMissions = [
       { action: "updated", timestamp: "2026-05-15T08:00:00Z", details: "RazorChassis FC integration activated" },
     ]
   },
+  // MDA ISR — 7th Fleet South China Sea Persistent Barrier
+  {
+    id: "mission-mda-isr-7thfleet-001",
+    name: "SCS-MDA-ISR-BARRIER-ALPHA",
+    template: "MDA_ISR",
+    status: "active",
+    assignedSquadrons: ["sqdn_016", "sqdn_002"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "South China Sea — 7th Fleet ISR Barrier — Sector ALPHA",
+      coordinates: [
+        { lat: 22.0, lng: 115.0 },
+        { lat: 22.0, lng: 123.0 },
+        { lat: 16.0, lng: 123.0 },
+        { lat: 16.0, lng: 115.0 },
+      ],
+      swarmSize: 6,
+      swarmFormation: "distributed-barrier",
+    },
+    duration: "continuous",
+    missionProfile: {
+      type: "MDA_ISR",
+      lane: "PERSISTENT_MDA",
+      missionManager: "LCDR Will Day",
+      collectionTypes: ["AIS", "SURFACE_RADAR", "EO_IR", "SIGINT_ESM", "PASSIVE_ACOUSTIC"],
+      commsArchitecture: {
+        primary: "Link 16 (P-8A, MQ-4C Triton)",
+        secondary: "ATAK CoT (tactical operators)",
+        groundStation: "7th Fleet MOC — Yokosuka, Japan",
+        fusion: "Project Overmatch (JADC2 AI fusion layer)"
+      },
+      objectives: {
+        primary: "Persistent pattern-of-life surveillance and dark ship detection across 7th Fleet AOR — tip and cue manned P-8A and MQ-4C Triton with pre-fused contact solutions",
+        secondary: "ASW barrier patrol covering PLAN submarine transit routes — TB29 passive array on Saildrone Spectre SE"
+      },
+      platformComposition: {
+        sigintPlatform: "Saildrone Voyager ECHO-1 — ESM + AIS",
+        aswBarrier: "Saildrone Spectre SE TANGO-2 — TB29 towed array",
+        littoralISR: "ZeroUSV Oceanus17 DELTA-4 — SharpEye radar + EO/IR",
+        aswTrail: "Saildrone Spectre SE SIERRA-9 — radar + towed array",
+        areaASW: "MQ-9B SeaGuardian — AESA + sonobuoys",
+        bamsWideArea: "MQ-4C Triton — AN/ZPY-3 MFAS (55,000 ft)"
+      },
+      escalationTriggers: [
+        "Radar contact with no AIS match within 8 NM → DARK CONTACT flagged",
+        "Behavioral anomaly confidence > 80% → ATAK CoT push + Link 16 broadcast",
+        "Dark contact loitering > 4 hrs at known rendezvous → militia indicator",
+        "Positive ID by Triton → prosecution authority request to 7th Fleet MOC"
+      ]
+    },
+    stateHierarchies: {
+      default:          ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      dark_contact:     ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      alert_generated:  ["Mission", "Comms", "Payload", "Navigation", "Vehicle"],
+      comms_degraded:   ["Navigation", "Mission", "Vehicle", "Comms", "Payload"],
+    },
+    createdAt: "2026-06-01T06:00:00Z",
+    updatedAt: "2026-06-16T08:00:00Z",
+    launchedAt: "2026-06-01T08:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-01T06:00:00Z", details: "7th Fleet CTF-72 — PAE RAS persistent MDA ISR tasking — LCDR Will Day, Mission Manager" },
+      { action: "launched", timestamp: "2026-06-01T08:00:00Z" },
+      { action: "updated", timestamp: "2026-06-10T04:12:00Z", details: "MQ-9B SeaGuardian MAC sonobuoy integration confirmed" },
+      { action: "updated", timestamp: "2026-06-16T08:00:00Z", details: "HOTEL-7 dark contact classified PLAN Maritime Militia — transmitted to 7th Fleet MOC" },
+    ]
+  },
+  // MDA ISR — Luzon Strait ASW Barrier
+  {
+    id: "mission-mda-isr-luzon-001",
+    name: "LuzonStrait-ASW-BARRIER-TANGO",
+    template: "MDA_ISR",
+    status: "draft",
+    assignedSquadrons: ["sqdn_016"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Luzon Strait — ASW Acoustic Barrier — Sector TANGO",
+      coordinates: [
+        { lat: 21.5, lng: 120.5 },
+        { lat: 21.5, lng: 122.5 },
+        { lat: 19.5, lng: 122.5 },
+        { lat: 19.5, lng: 120.5 },
+      ],
+      swarmSize: 2,
+      swarmFormation: "barrier-line",
+    },
+    duration: "90d",
+    missionProfile: {
+      type: "MDA_ISR",
+      lane: "ASW_BARRIER",
+      missionManager: "LCDR Will Day",
+      collectionTypes: ["PASSIVE_ACOUSTIC", "AIS"],
+      objectives: {
+        primary: "Passive acoustic barrier across Luzon Strait — detect PLAN submarines on TB29 towed array",
+        secondary: "Wind-driven Spectre SE endurance eliminates rotation logistics — near-zero acoustic self-noise"
+      },
+      costProfile: {
+        costPerDay: 9000,
+        coverageNM2: 2400,
+        costPerNM2PerDay: 3.75,
+        vsP8AComparison: "92% cheaper per day, continuous vs 12-hr sorties"
+      }
+    },
+    stateHierarchies: {
+      default:          ["Payload", "Navigation", "Comms", "Mission", "Vehicle"],
+      contact_detected: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      comms_degraded:   ["Navigation", "Payload", "Mission", "Vehicle", "Comms"],
+    },
+    createdAt: "2026-06-16T07:00:00Z",
+    updatedAt: "2026-06-16T07:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-16T07:00:00Z", details: "PAE RAS Luzon Strait ASW barrier — Saildrone Spectre SE TB29 configuration" },
+    ]
+  },
+  // NON_KINETIC_EW — NEMESIS Taiwan Strait False Fleet
+  {
+    id: "mission-ew-nemesis-001",
+    name: "NEMESIS-Alpha-TaiwanStrait-FalseFleet",
+    template: "NON_KINETIC_EW",
+    status: "draft",
+    assignedSquadrons: ["sqdn_003"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Taiwan Strait — NEMESIS Deception Box — False Fleet Projection",
+      coordinates: [
+        { lat: 23.50, lng: 119.00 },
+        { lat: 25.00, lng: 119.00 },
+        { lat: 25.00, lng: 120.20 },
+        { lat: 23.50, lng: 120.20 },
+      ],
+      swarmSize: 5,
+      swarmFormation: "distributed",
+    },
+    duration: "48h",
+    missionProfile: {
+      type: "NON_KINETIC_EW",
+      lane: "EW_DECEPTION",
+      collectionTypes: ["PASSIVE_ESM", "SIGINT", "AIS_MONITOR"],
+      commsArchitecture: {
+        primary: "TempestOS Drawbridge (EMCON-compliant encrypted link)",
+        secondary: "Acoustic modem (Orca XLUUV subsurface C2)",
+        groundStation: "7th Fleet CTF-77 / NEMESIS Coordinator Node",
+        homeBase: "USS Gerald R. Ford (CVN-78) CSG"
+      },
+      objectives: {
+        primary: "Project coherent multi-spectral false fleet signature in Taiwan Strait to deceive PLAN sensors (radar, sonar, IR, ESM) — draw PLAN asset attention away from actual CVN-78 transit window",
+        secondary: "Collect PLAN sensor reaction data via passive ESM — identify which adversary emitters respond to the false picture and quantify reaction latency — feed waveform library for future operations"
+      },
+      nemesisPackage: {
+        node1: { vessel: "Saildrone Spectre (ALPHA)", role: "radar_mimic", payload: "False Fleet Projection Package", emissionRole: "AIS false-track + corner reflectors + waveform transponder" },
+        node2: { vessel: "Saildrone Spectre (BRAVO)", role: "ais_spoofer", payload: "False Fleet Projection Package", emissionRole: "Secondary AIS false track — different false vessel identity" },
+        node3: { vessel: "Saildrone Spectre (CHARLIE)", role: "active_jammer", payload: "SOEA Container (100 kW)", emissionRole: "Active C/X/Ku-band jamming against inbound ASM seekers" },
+        node4: { vessel: "Freedom AUV", role: "acoustic_decoy", payload: "EMATT Mod 4 (8× rounds)", emissionRole: "Type-093-class acoustic signature — deceives PLAN passive sonar" },
+        node5: { vessel: "Saildrone Voyager", role: "passive_collection", payload: "Passive ESM/SIGINT Module", emissionRole: "Silent — monitors all adversary emissions, feeds profile updates" }
+      },
+      activationSequence: [
+        { step: 1, node: "Freedom AUV", action: "Deploy EMATT Mod 4 acoustic decoys at depth", rationale: "Subsurface first — no RF signature — establishes acoustic false picture before surface elements active" },
+        { step: 2, node: "Saildrone Voyager", action: "ESM passive collection active", rationale: "Passive only — establishes baseline adversary emissions before any active signature" },
+        { step: 3, node: "Saildrone Spectre ALPHA + BRAVO", action: "AIS false tracks + corner reflectors deployed", rationale: "Radar and AIS picture consistent — adversary correlates AIS identity to radar return" },
+        { step: 4, node: "Saildrone Spectre CHARLIE", action: "SOEA 100 kW active jamming", rationale: "Active jammer is highest emission — last on, first off" },
+        { step: 5, node: "Saildrone Spectre ALPHA", action: "LEED vehicles launched if terminal threat detected", rationale: "Expendable — deployed only if inbound ASM seeker detected by ESM node" }
+      ],
+      escalationTriggers: [
+        "PLAN radar emitter transition from search to track mode → NEMESIS adjusts RCS signature upward",
+        "ESM detects PLAN ASM seeker emission → LEED vehicles launched immediately",
+        "PLAN sonar transmissions increase → EMATT Mod 4 acoustic profile adjustment",
+        "CVN-78 transit window complete → commander terminate order → all emissions cease"
+      ]
+    },
+    stateHierarchies: {
+      default:         ["Navigation", "Comms", "Mission", "Payload", "Vehicle"],
+      emcon_transit:   ["Navigation", "Vehicle", "Comms", "Mission", "Payload"],
+      active_phase:    ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      profile_adjust:  ["Mission", "Payload", "Comms", "Navigation", "Vehicle"],
+      termination:     ["Comms", "Navigation", "Mission", "Vehicle", "Payload"]
+    },
+    createdAt: "2026-06-10T08:00:00Z",
+    updatedAt: "2026-06-10T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-10T08:00:00Z", details: "CTF-77 NEMESIS tasking — Taiwan Strait CVN-78 transit deception support" }
+    ]
+  },
   {
     id: "mission-isr-7thfleet-taiwan-001",
     name: "TaiwanStrait-CCSISR-LIMA4",
@@ -615,5 +842,402 @@ export const initialMissions = [
       { action: "launched", timestamp: "2026-05-15T22:00:00Z", details: "Night transit — lower PLA visual detection probability" },
       { action: "updated", timestamp: "2026-05-20T04:12:00Z", details: "3 PLA emitters mapped — USS Connecticut routing gap transmitted" },
     ]
-  }
+  },
+  // PROTECTIONS — cUxS Picket — PAE RAS BET
+  {
+    id: "mission-prot-cuxs-001",
+    name: "PAERAS-BET-cUxS-Picket",
+    template: "PROTECTIONS",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    missionProfile: {
+      type: "PROTECTIONS",
+      subMission: "CUXS",
+      packageName: "cUxS Picket Package",
+      platforms: [
+        { name: "MASC Baseline (198 kW)", role: "cUxS Picket — Primary", count: 2 },
+        { name: "MetalShark / Mariner", role: "Net-Capture cUAS — Secondary", count: 1 }
+      ],
+      context: "PAE RAS BET — cUAS dozens in a 20' container at shot cost of a SHAHEAD. Epirus Leonidas H2O is the match. Magura V5/V7 Ukraine validated cUxS expansion to counter-drone, counter-USV, counter-UUV."
+    },
+    zoneConfig: {
+      name: "PAE RAS BET — cUxS Picket Line",
+      center: { lat: 24.5, lng: 122.0 },
+      radius: 20,
+      assetName: "cUxS Picket Package"
+    },
+    stateHierarchies: {
+      default:         ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      threat_detected: ["Mission", "Payload", "Comms", "Navigation", "Vehicle"],
+      engaged:         ["Mission", "Payload", "Navigation", "Comms", "Vehicle"],
+      swarm_inbound:   ["Payload", "Mission", "Comms", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-06-16T08:00:00Z",
+    updatedAt: "2026-06-16T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-16T08:00:00Z", details: "PAE RAS BET — cUxS Picket, CAPT Privette Protections mission set" }
+    ]
+  },
+  // PROTECTIONS — Undersea Infrastructure — Baltic Pipeline Survey
+  {
+    id: "mission-prot-infra-001",
+    name: "Baltic-Infrastructure-Survey",
+    template: "PROTECTIONS",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    missionProfile: {
+      type: "PROTECTIONS",
+      subMission: "INFRASTRUCTURE",
+      packageName: "Infrastructure Survey Package",
+      platforms: [
+        { name: "Saildrone Surveyor + REMUS Interface", role: "Survey Vessel — Primary Survey", count: 1 }
+      ],
+      context: "Nord Stream (2022) and Balticconnector (2023) attacks proved undersea infrastructure has no active defense. REMUS periodic survey + AP Sensing DAS real-time monitoring closes the gap.",
+      dasIntegration: "AP Sensing fiber — real-time third-party interference alerts"
+    },
+    zoneConfig: {
+      name: "Baltic Pipeline Corridor — Survey Route",
+      center: { lat: 56.5, lng: 17.0 },
+      radius: 50,
+      assetName: "Infrastructure Survey Package"
+    },
+    stateHierarchies: {
+      default:        ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      anomaly_detect: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      das_alert:      ["Mission", "Comms", "Payload", "Navigation", "Vehicle"],
+      investigation:  ["Payload", "Mission", "Comms", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-06-16T08:00:00Z",
+    updatedAt: "2026-06-16T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-16T08:00:00Z", details: "Baltic pipeline corridor — Infrastructure Survey Package, Protections mission set" }
+    ]
+  },
+  // KINETIC_EFFECTS — Long-Range Surface Strike — PAE RAS MASC Baseline
+  {
+    id: "mission-kinetic-strike-paeras-001",
+    name: "PAERAS-STRIKE-LongRange-Alpha",
+    template: "KINETIC_EFFECTS",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Western Pacific Strike Box",
+      targets: [
+        { lat: 24.50, lng: 122.80, label: "T1", type: "primary" },
+        { lat: 24.60, lng: 122.90, label: "T2", type: "secondary" }
+      ],
+      staging: { lat: 23.80, lng: 121.50, label: "STAGING" }
+    },
+    duration: "72h",
+    missionProfile: {
+      type: "KINETIC_EFFECTS",
+      subMode: "STRIKE",
+      strikePackage: {
+        hullType: "masc-baseline",
+        hullName: "MASC Baseline",
+        quantity: 2,
+        vlsCells: 16,
+        mineCount: 0,
+        payloadLoadout: ["Tomahawk Block V MST", "SM-6 (RIM-174)"],
+        powerRequirementKW: 300,
+        weightTons: 72,
+        containerFormat: "4× 40-ft FEU (2 per vessel)"
+      },
+      targets: [
+        { id: "T1", designation: "Primary target", classificationConfidence: null, coordinates: { lat: 24.50, lng: 122.80 } },
+        { id: "T2", designation: "Secondary target", classificationConfidence: null, coordinates: { lat: 24.60, lng: 122.90 } }
+      ],
+      authorizationChain: [
+        { role: "Intelligence Officer", action: "Target designation & classification confidence", level: "SECRET//REL TO USA, FVY" },
+        { role: "Legal Advisor (LEGAD)", action: "LOAC review — target validity & proportionality", level: "SECRET" },
+        { role: "Commander (O-6+)", action: "Strike package approval", level: "TOP SECRET" },
+        { role: "Combatant Commander", action: "Weapons-free authorization", level: "TOP SECRET//SCI" }
+      ],
+      commsArchitecture: {
+        primary: "Drawbridge Encrypted SATCOM",
+        secondary: "OverKey Mesh VPN"
+      },
+      emcon: true,
+      hitlCompliant: true,
+      dodd300009: true,
+      weaponExpenditure: [],
+      bdaReport: null,
+      costEstimate: {
+        platformCost: 16000000,
+        payloadCost: 29920000,
+        totalMissionCost: 45920000,
+        costPerTarget: 22960000,
+        exchangeRatio: 126
+      }
+    },
+    stateHierarchies: {
+      default: ["Mission", "Payload", "Comms", "Navigation", "Vehicle"],
+      authorized: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      bda: ["Payload", "Comms", "Mission", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-06-16T08:00:00Z",
+    updatedAt: "2026-06-16T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-16T08:00:00Z", details: "PAE RAS Long-Range Strike — MASC Baseline 2× hull, 16 VLS cells, Tomahawk Block V MST + SM-6 loadout" }
+    ]
+  },
+  // KINETIC_EFFECTS — Offensive Mining — Boeing Orca XLUUV
+  {
+    id: "mission-kinetic-mining-orca-001",
+    name: "PAERAS-MINING-Clandestine-Alpha",
+    template: "KINETIC_EFFECTS",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Adversary Transit Route Mining Zone",
+      targets: [
+        { lat: 26.30, lng: 120.40, label: "FIELD-A", type: "primary" }
+      ],
+      staging: { lat: 24.10, lng: 121.00, label: "ORCA LAUNCH POINT" }
+    },
+    duration: "168h",
+    missionProfile: {
+      type: "KINETIC_EFFECTS",
+      subMode: "MINING",
+      strikePackage: {
+        hullType: "boeing-orca",
+        hullName: "Boeing Orca XLUUV",
+        quantity: 1,
+        vlsCells: 0,
+        mineCount: 24,
+        payloadLoadout: ["Hammerhead Encapsulated Torpedo-Mine (Mk 54 warhead)"],
+        powerRequirementKW: 0,
+        weightTons: 0,
+        containerFormat: null
+      },
+      targets: [
+        { id: "FIELD-A", designation: "Adversary submarine transit chokepoint", classificationConfidence: null, coordinates: { lat: 26.30, lng: 120.40 } }
+      ],
+      authorizationChain: [
+        { role: "Intelligence Officer", action: "Route analysis & classification confidence", level: "SECRET//REL TO USA, FVY" },
+        { role: "Legal Advisor (LEGAD)", action: "Hague VIII compliance review & LOAC approval", level: "SECRET" },
+        { role: "Commander (O-6+)", action: "Mine deployment order", level: "TOP SECRET" },
+        { role: "Combatant Commander", action: "Mine field activation authorization", level: "TOP SECRET//SCI" }
+      ],
+      commsArchitecture: {
+        primary: "Acoustic Modem (subsurface)",
+        secondary: "Drawbridge SATCOM (surfaced)"
+      },
+      emcon: true,
+      hitlCompliant: true,
+      dodd300009: true,
+      hagueviii: true,
+      weaponExpenditure: [],
+      bdaReport: null,
+      costEstimate: {
+        platformCost: 8500000,
+        payloadCost: 19200000,
+        totalMissionCost: 27700000,
+        costPerTarget: 27700000,
+        exchangeRatio: 1
+      }
+    },
+    stateHierarchies: {
+      default: ["Navigation", "Vehicle", "Mission", "Comms", "Payload"],
+      authorized: ["Mission", "Payload", "Navigation", "Comms", "Vehicle"],
+      surfaced: ["Comms", "Mission", "Navigation", "Payload", "Vehicle"]
+    },
+    createdAt: "2026-06-16T08:00:00Z",
+    updatedAt: "2026-06-16T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-16T08:00:00Z", details: "PAE RAS Offensive Mining — Boeing Orca XLUUV, 24× Hammerhead mines, Hague VIII compliant" }
+    ]
+  },
+
+  // SEA JEEP — Base MDA — South China Sea
+  {
+    id: "mission-seajeep-base-scs-001",
+    name: "Spratly-MDA-Alpha",
+    template: "SEAJEEP_BASE",
+    status: "active",
+    assignedSquadrons: ["sqdn_seajeep_001"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Spratly Islands MDA Patrol Box",
+      coordinates: [
+        { lat: 10.2, lng: 114.2 }, { lat: 10.2, lng: 115.8 },
+        { lat: 9.4, lng: 115.8 },  { lat: 9.4, lng: 114.2 },
+      ],
+      swarmSize: 1,
+      swarmFormation: "solo",
+    },
+    duration: "30d",
+    missionProfile: {
+      type: "SEAJEEP_BASE",
+      lane: "MDA_PATROL",
+      collectionTypes: ["EO_IR_PHOTOGRAPHY", "AIS_MONITORING", "SATCOM_RELAY"],
+      commsArchitecture: { primary: "Iridium SATCOM", groundStation: "7th Fleet MOC, Yokosuka" },
+      objectives: {
+        primary: "Photograph and log AIS-dark Chinese maritime militia vessels around Mischief Reef and Whitsun Reef in the Spratly Islands",
+        secondary: "Build pattern-of-life on militia presence for 7th Fleet MDA cell — no engagement authority"
+      },
+      platform: "GP-USV (Sea Jeep) — Base config",
+      platformSpecsPlaceholder: "Ocean Aero Triton: 4.4m, 5kts, 30+ day, solar/wind",
+      threat: "Gray zone harassment — no kinetic threat anticipated",
+    },
+    stateHierarchies: {
+      default: ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      contact_detected: ["Payload", "Comms", "Mission", "Navigation", "Vehicle"],
+    },
+    createdAt: "2026-06-01T08:00:00Z",
+    updatedAt: "2026-06-22T08:00:00Z",
+    launchedAt: "2026-06-01T10:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-01T08:00:00Z", details: "7th Fleet MDA request — Spratly patrol" },
+      { action: "launched", timestamp: "2026-06-01T10:00:00Z" },
+    ]
+  },
+
+  // SEA JEEP — ISR — Red Sea / Bab-el-Mandeb
+  {
+    id: "mission-seajeep-isr-redsea-001",
+    name: "BabElMandeb-DroneWatch-Alpha",
+    template: "SEAJEEP_ISR",
+    status: "active",
+    assignedSquadrons: ["sqdn_seajeep_002"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Bab-el-Mandeb ISR Station",
+      coordinates: [
+        { lat: 12.7, lng: 43.8 }, { lat: 12.7, lng: 44.2 },
+        { lat: 12.3, lng: 44.2 }, { lat: 12.3, lng: 43.8 },
+      ],
+      swarmSize: 1,
+      swarmFormation: "solo",
+    },
+    duration: "14d",
+    missionProfile: {
+      type: "SEAJEEP_ISR",
+      lane: "ISR_STATION",
+      collectionTypes: ["EO_IR_ELEVATED", "UAS_TRACKING", "SATCOM_RELAY"],
+      commsArchitecture: { primary: "Iridium SATCOM", secondary: "900MHz radio mesh", groundStation: "NSA Bahrain MOC" },
+      objectives: {
+        primary: "Detect Houthi drone launches from Yemeni coastline — relay bearing and elevation to Arleigh Burke DDG on station for SM-2 intercept",
+        secondary: "Persistent crewless tripwire node — expendable, low-RCS, no crew at risk"
+      },
+      platform: "GP-USV (Sea Jeep) — ISR config (extended mast + counterweight keel)",
+      platformSpecsPlaceholder: "Ocean Aero Triton: 4.4m, 5kts, 30+ day, solar/wind",
+      threat: "Houthi UAS, anti-ship missiles — MARAD advisory 2026-006 active",
+    },
+    stateHierarchies: {
+      default: ["Payload", "Comms", "Mission", "Navigation", "Vehicle"],
+      threat_detected: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+    },
+    createdAt: "2026-06-10T08:00:00Z",
+    updatedAt: "2026-06-22T08:00:00Z",
+    launchedAt: "2026-06-10T10:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-10T08:00:00Z", details: "NAVCENT / 5th Fleet request — Houthi drone watch" },
+      { action: "launched", timestamp: "2026-06-10T10:00:00Z" },
+    ]
+  },
+
+  // SEA JEEP — MCM Survey — Black Sea
+  {
+    id: "mission-seajeep-mcm-blacksea-001",
+    name: "OdessaCorridor-MineSurvey-Alpha",
+    template: "SEAJEEP_MCM",
+    status: "active",
+    assignedSquadrons: ["sqdn_seajeep_003"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Black Sea — Grain Corridor Alpha Survey Lane",
+      coordinates: [
+        { lat: 46.45, lng: 30.90 }, { lat: 46.45, lng: 32.10 },
+        { lat: 46.35, lng: 32.10 }, { lat: 46.35, lng: 30.90 },
+      ],
+      swarmSize: 1,
+      swarmFormation: "solo",
+    },
+    duration: "72h",
+    missionProfile: {
+      type: "SEAJEEP_MCM",
+      lane: "MINE_SURVEY",
+      detectOnly: true,
+      collectionTypes: ["FLS_SONAR", "TOWED_SIDESCAN", "INS_NAV"],
+      commsArchitecture: { primary: "Iridium SATCOM", groundStation: "Ukrainian Navy MOC, Odessa" },
+      objectives: {
+        primary: "Survey proposed grain corridor for legacy Russian mines (2022-era) using Forward-Looking SONAR and towed side-scan — detect and mark only",
+        secondary: "Hand off mine contact coordinates to HORUS MCM package for neutralization — no onboard neutralization capability"
+      },
+      platform: "GP-USV (Sea Jeep) — MCM config (FLS, towed side-scan, smart winch, A-frame, extended fuel, INS)",
+      platformSpecsPlaceholder: "Ocean Aero Triton: 4.4m, 5kts, 30+ day, solar/wind",
+      threat: "Legacy Russian bottom and moored mines (2022); GPS jamming/spoofing — INS navigation required",
+    },
+    stateHierarchies: {
+      default: ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      contact_detected: ["Payload", "Mission", "Navigation", "Comms", "Vehicle"],
+    },
+    createdAt: "2026-06-15T08:00:00Z",
+    updatedAt: "2026-06-22T08:00:00Z",
+    launchedAt: "2026-06-15T10:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-15T08:00:00Z", details: "EUCOM request — Black Sea grain corridor mine survey" },
+      { action: "launched", timestamp: "2026-06-15T10:00:00Z" },
+    ]
+  },
+
+  // SEA JEEP — Logistics — Philippine Island Chain
+  {
+    id: "mission-seajeep-logistics-phil-001",
+    name: "Batanes-Resupply-WHISKEY3",
+    template: "SEAJEEP_LOGISTICS",
+    status: "active",
+    assignedSquadrons: ["sqdn_seajeep_004"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "Subic Bay → Batanes Island Resupply Route",
+      waypoints: [
+        { lat: 14.81, lng: 120.27, label: "Subic Bay" },
+        { lat: 15.60, lng: 120.80, label: "WP-BRAVO" },
+        { lat: 16.80, lng: 121.40, label: "WP-CHARLIE" },
+        { lat: 17.80, lng: 121.90, label: "WP-DELTA" },
+        { lat: 20.45, lng: 121.97, label: "Batanes" },
+      ],
+      swarmSize: 1,
+      swarmFormation: "solo",
+    },
+    duration: "48h",
+    missionProfile: {
+      type: "SEAJEEP_LOGISTICS",
+      lane: "ISLAND_RESUPPLY",
+      collectionsTypes: ["POSITION_REPORTING", "CARGO_DELIVERY"],
+      commsArchitecture: { primary: "Iridium SATCOM (position reporting only)", groundStation: "USMC Forward Command, Luzon" },
+      objectives: {
+        primary: "Deliver sealed cargo pod (18.5kg — batteries, comms gear, rations, medical) to USMC forward observation post on Batanes Island — 148nm autonomous transit",
+        secondary: "Return to Subic Bay for reload — total cycle time <30 hours, zero crew, zero fuel cost (solar/wind)"
+      },
+      platform: "GP-USV (Sea Jeep) — Logistics config (low mast, no RADAR/PTZ, cargo pod)",
+      platformSpecsPlaceholder: "Ocean Aero Triton: 4.4m, 5kts, 30+ day, solar/wind",
+      realWorldBasis: "USMC ALPV (Leidos) — first island chain transit Sep 2025; 12th LLB IOC; Subic Bay warehouse leased early 2026",
+      threat: "Low — relies on small RCS; no sensors for self-defense",
+    },
+    stateHierarchies: {
+      default: ["Navigation", "Comms", "Mission", "Vehicle", "Payload"],
+    },
+    createdAt: "2026-06-18T08:00:00Z",
+    updatedAt: "2026-06-22T08:00:00Z",
+    launchedAt: "2026-06-18T10:00:00Z",
+    completedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-06-18T08:00:00Z", details: "USMC 12th LLB request — Batanes island resupply" },
+      { action: "launched", timestamp: "2026-06-18T10:00:00Z" },
+    ]
+  },
 ];

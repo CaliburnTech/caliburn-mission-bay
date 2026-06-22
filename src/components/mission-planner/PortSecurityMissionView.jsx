@@ -3,71 +3,80 @@ import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
 import {
-  Play, RotateCcw, Anchor, ChevronLeft, Check, Settings
+  Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
-import { individualCapabilities } from '../../data/marketplaceData';
 import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
+
+const MISSION_SET_KEY = 'PORT_SECURITY';
+const MISSION_SET_CAPS = ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'OceanSonics icListen HF Smart Hydrophone Array', 'MOOS-IvP'];
 
 // ─── Geography ───────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
-const COVERAGE_M = 20 * NM_TO_M;
+const COVERAGE_M = 3 * NM_TO_M;
 
 const NBSD       = [32.681, -117.131];  // Naval Base San Diego (32nd St)
-const MAP_CENTER = [32.57,  -117.60];   // Map view — shows approaches + all 3 boats
+const MAP_CENTER = [32.61,  -117.26];   // Map view — centered on harbor perimeter + approaches
 
-// Boats placed at exactly 20nm from NBSD on correct bearings (verified w/ haversine)
-// NW 315° → 20nm, W 270° → 20nm, SW 225° → 20nm
+// Boats on the harbor perimeter — bay mouth / outer approach zone
+// Pushed south and further out from port relative to NBSD
 const BOATS = [
-  { id: 'HORUS-1', pos: [32.916, -117.412], sector: 'NW Screen' },   // 20.0nm from NBSD
-  { id: 'HORUS-2', pos: [32.681, -117.527], sector: 'W Screen'  },   // 20.0nm from NBSD
-  { id: 'HORUS-3', pos: [32.445, -117.410], sector: 'SW Screen' },   // 20.0nm from NBSD
+  { id: 'HORUS-1', pos: [32.685, -117.225], sector: 'NW Harbor Security' },   // bay mouth NW
+  { id: 'HORUS-2', pos: [32.645, -117.250], sector: 'W Harbor Security'  },   // outer W approach
+  { id: 'HORUS-3', pos: [32.605, -117.225], sector: 'SW Harbor Security' },   // outer SW approach
 ];
 
 // Alert chain — H3 detects → mesh to H2 → mesh to H1 → H1 pings shore
+// Chain fires at tick 34 — computed crossing of HORUS-3's 3nm coverage circle
 const CHAIN_SEGS = [
-  { id: 'h3-h2',    from: BOATS[2].pos, to: BOATS[1].pos, pulseStart: 58, pulseEnd: 63 },
-  { id: 'h2-h1',    from: BOATS[1].pos, to: BOATS[0].pos, pulseStart: 63, pulseEnd: 68 },
-  { id: 'h1-shore', from: BOATS[0].pos, to: NBSD,         pulseStart: 68, pulseEnd: 75 },
+  { id: 'h3-h2',    from: BOATS[2].pos, to: BOATS[1].pos, pulseStart: 34, pulseEnd: 37 },
+  { id: 'h2-h1',    from: BOATS[1].pos, to: BOATS[0].pos, pulseStart: 37, pulseEnd: 40 },
+  { id: 'h1-shore', from: BOATS[0].pos, to: NBSD,         pulseStart: 40, pulseEnd: 47 },
 ];
 
-// Bad guy USV — approaches from SW Pacific through HORUS-3's (SW) zone
-// Verified: enters HORUS-3's 20nm zone at tick ~39 (21.4nm→16.8nm across WP3→WP4)
+// Bad guy USV — approaches from SW through HORUS-3's (SW) zone
+// Starts ~10nm SW of NBSD and approaches through the outer harbor perimeter
 // Bad guy keeps approaching NBSD — no retreat
 const APPROACH_TRACK = [
-  [32.10, -118.10],   // start: ~41nm from HORUS-3, outside all zones
-  [32.16, -118.02],
-  [32.22, -117.93],
-  [32.28, -117.84],   // ~24nm from HORUS-3 — early radar return
-  [32.33, -117.76],   // crossing 20nm boundary
-  [32.38, -117.67],
-  [32.43, -117.59],   // deep in zone
+  [32.52, -117.36],   // start: ~10nm SW of NBSD — well outside perimeter
+  [32.54, -117.32],
+  [32.57, -117.28],
+  [32.59, -117.25],   // crossing perimeter zone boundary
+  [32.61, -117.22],
+  [32.63, -117.19],
+  [32.66, -117.15],   // deep in zone, approaching NBSD
 ];
 
-// After APPROACH_TICKS the bad guy continues on this vector toward NBSD
-const APPROACH_CONTINUE_END = [32.60, -117.30];
-
 // Tick at which HORUS-2 corroborates SIERRA-7743 → localization achieved (2 sensors)
-const LOCALIZE_TICK = 67;
+const LOCALIZE_TICK = 37;
 
-// Interceptor launches from NBSD at tick 84 and meets bad guy here at tick 115
-const INTERCEPT_POINT = APPROACH_CONTINUE_END;
-const INTERCEPT_TICK  = 115;
+// Blue force launches from NAS North Island — direct Pacific access, no peninsula crossing
+const BLUE_FORCE_ORIGIN = [32.700, -117.210];  // NAS North Island
+
+// Intercept at tick 68: bogey at [32.621, -117.204] — 1.42nm inside HORUS-3's circle
+const INTERCEPT_POINT = [32.621, -117.204];
+const INTERCEPT_TICK  = 68;
 
 const APPROACH_TICKS = 90;
 const TOTAL_TICKS    = INTERCEPT_TICK + 10;  // brief hold after kill
 
 // ─── Loadout (Port Security Mission Set) ─────────────────────────────────────
 const CAP_NAMES = [
-  'Towed Hydrophone Array',
+  'Echodyne EchoGuard CR',
   'OrbComm ST 6100',
-  'MOOS-IvP',
+  'LOS Mesh Radio',
 ];
 
 const PRESETS = {
   standard: {
-    label: 'Comms + Autonomy',
-    ids: new Set(['OrbComm ST 6100', 'MOOS-IvP']),
+    label: 'Comms + Mesh',
+    ids: new Set(['OrbComm ST 6100', 'LOS Mesh Radio']),
   },
   enhanced: {
     label: 'Full Mission Set',
@@ -77,10 +86,28 @@ const PRESETS = {
 
 // ─── HORUS mount-point layout (Port Security Mission Set) ─────────────────────
 const HORUS_MOUNTS = [
-  { id: 'hydrophone', label: 'Towed Hydrophone', type: 'ACOUSTIC/SONAR',   capName: 'Towed Hydrophone Array' },
-  { id: 'orbcomm',    label: 'SATCOM Terminal',  type: 'SATCOM',            capName: 'OrbComm ST 6100'        },
-  { id: 'moos',       label: 'Autonomy Engine',  type: 'UNMANNED SYSTEMS',  capName: 'MOOS-IvP'               },
+  { id: 'echoguard', label: 'EchoGuard CR Radar', type: 'RADAR/RF',  capName: 'Echodyne EchoGuard CR' },
+  { id: 'orbcomm',   label: 'SATCOM Terminal',    type: 'SATCOM',    capName: 'OrbComm ST 6100'        },
+  { id: 'mesh',      label: 'Mesh Radio',          type: 'COMMS',    capName: 'LOS Mesh Radio'         },
 ];
+
+// ─── Vessel roster ────────────────────────────────────────────────────────────
+const VESSEL_ROSTER = [
+  { name: 'HORUS-1 (NW Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_1', capabilities: ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'VHF Hailing Capability'] },
+  { name: 'HORUS-2 (W Harbor)',  image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_2', capabilities: ['Echodyne EchoGuard CR', 'IFF Negative Alert', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+  { name: 'HORUS-3 (SW Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_3', capabilities: ['Echodyne EchoGuard CR', 'VHF Hailing Capability', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+];
+
+// ─── Phase narratives ─────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:         null,
+  approach:     { title: 'Unidentified Surface Track', body: 'GCCS radar correlates SIERRA-7743 bearing 040° at 8nm SW with no AIS transponder. HORUS cordon active — three USVs hold 3nm harbor security zone sectors NW, W, and SW of Naval Base San Diego.' },
+  detection:    { title: 'HORUS-3 — Zone Breach', body: 'SIERRA-7743 crosses HORUS-3 3nm barrier. IFF negative. VHF hails unanswered. HORUS-3 locks on via hydrophone correlation and transmits detection over mesh radio to adjacent nodes.' },
+  localization: { title: 'Multi-Sensor Localization', body: 'HORUS-2 independently acquires SIERRA-7743 on bearing 308. Two independent sensor tracks intersect — localization achieved. USW fusion pushes fire-control-quality track to MOC NBSD.' },
+  mesh_alert:   { title: 'Mesh Alert Propagating', body: 'Detection relayed node-to-node: HORUS-3 → HORUS-2 → HORUS-1 → shore link. HORUS-1 opens SATCOM channel to Naval Base San Diego Maritime Operations Center.' },
+  response:     { title: 'Blue Force Intercept Authorized', body: 'MOC NBSD confirms hostile classification — SIERRA-7743 track quality: fire-control grade. Interceptor launches from 32nd Street Pier. HORUS cordon maintains continuous track.' },
+  intercepted:  { title: 'Contact Neutralized', body: 'Interceptor achieves engagement solution using HORUS mesh-relayed track. SIERRA-7743 neutralized. Port approaches secure. HORUS cordon resumes standard patrol posture.' },
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
@@ -119,6 +146,24 @@ const MapInvalidateSize = () => {
 // ─── Component ───────────────────────────────────────────────────────────────
 const PortSecurityMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return vessel;
+    return {
+      ...vessel,
+      name: assignment.vesselLabel || assignment.hullName,
+      hullName: assignment.hullName,
+    };
+  });
 
   // Metadata
   const [missionName, setMissionName] = useState(mission?.name || '');
@@ -135,6 +180,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
   const [circPulse,    setCircPulse]    = useState(false);
   const [complete,     setComplete]     = useState(false);
   const [running,      setRunning]      = useState(false);
+  const [paused,        setPaused]        = useState(false);
   const [events,       setEvents]       = useState([]);
   const [currentTick,  setCurrentTick]  = useState(0);   // drives chain animation
 
@@ -143,6 +189,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
   const enabled  = new Set(PRESETS.enhanced.ids);
 
   const tickRef    = useRef(0);
+  const tickCallbackRef = useRef(null);
   const mainTimer  = useRef(null);
   const meshTimer  = useRef(null);
   const circTimer  = useRef(null);
@@ -155,6 +202,21 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     });
     setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 22));
   };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, 280);
+  }, []);
+
+
   useLayoutEffect(() => {
     addEvtRef.current = _addEvent;
   });
@@ -189,6 +251,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
   const reset = useCallback(() => {
     stopAll();
     tickRef.current = 0;
+    setPaused(false);
     setPhase('idle');
     setBadGuyPos(null);
     setDetectedBoats(new Set());
@@ -219,44 +282,37 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     setCircPulse(false);
     setComplete(false);
     setRunning(true);
+    setPaused(false);
     setEvents([]);
     setCurrentTick(0);
 
-    addEvtRef.current('Fleet GCCS: unidentified surface track SIERRA-7743, 41nm SW, bearing 040°, no AIS', 'warn');
+    addEvtRef.current('Fleet GCCS: unidentified surface track SIERRA-7743, 8nm SW, bearing 040°, no AIS', 'warn');
 
-    mainTimer.current = setInterval(() => {
+    const cb = () => {
       const tick = ++tickRef.current;
 
-      // ── Bad guy position — keeps advancing until intercepted ──
-      if (tick <= APPROACH_TICKS) {
+      // ── Bad guy position — intercept happens before approach track ends ──
+      if (tick < INTERCEPT_TICK) {
         setBadGuyPos(trackPos(APPROACH_TRACK, tick / APPROACH_TICKS));
-      } else if (tick < INTERCEPT_TICK) {
-        const t = (tick - APPROACH_TICKS) / (INTERCEPT_TICK - APPROACH_TICKS);
-        setBadGuyPos(lerp2(APPROACH_TRACK[APPROACH_TRACK.length - 1], APPROACH_CONTINUE_END, t));
       }
 
-      // ── Interceptor position — moves from NBSD to intercept point ──
-      if (tick >= 84 && tick < INTERCEPT_TICK) {
-        const t = (tick - 84) / (INTERCEPT_TICK - 84);
-        setInterceptorPos(lerp2(NBSD, INTERCEPT_POINT, t));
+      // ── Interceptor position — launches from NAS North Island, direct ocean route ──
+      if (tick >= 56 && tick < INTERCEPT_TICK) {
+        const t = (tick - 56) / (INTERCEPT_TICK - 56);
+        setInterceptorPos(lerp2(BLUE_FORCE_ORIGIN, INTERCEPT_POINT, t));
       }
 
       // Drive chain animation
       setCurrentTick(tick);
 
       // ── Events ──
-      if (tick === 45) {
-        // bad guy at ~24nm from HORUS-3
-        addEvtRef.current('HORUS-3: Radar correlation — SIERRA-7743, 24nm, no AIS. Monitoring.', 'warn');
-      }
-      if (tick === 58) {
-        // actual zone entry (haversine-verified at 19.7nm from HORUS-3)
+      if (tick === 34) {
+        // bogey crosses HORUS-3's 3nm radar circle — computed tick
         setDetectedBoats(new Set(['HORUS-3']));
         setPhase('detection');
-        addEvtRef.current('HORUS-3: CONTACT IN ZONE — hostile USV, IFF negative, VHF no reply', 'alert');
+        addEvtRef.current('HORUS-3: ZONE BREACH — SIERRA-7743 crossed 3nm barrier. IFF negative. VHF no reply. Alerting cordon.', 'alert');
       }
-      if (tick === 63) {
-        // h3→h2 mesh link completes — HORUS-2 cued
+      if (tick === 35) {
         addEvtRef.current('HORUS-3 → HORUS-2: Detection relay — cueing second sensor', 'info');
       }
       if (tick === LOCALIZE_TICK) {
@@ -267,21 +323,21 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         addEvtRef.current('HORUS-2: Track corroborated — LOCALIZATION acquired. 2 sensors on SIERRA-7743.', 'blue');
         addEvtRef.current('NET: Multi-sensor fusion complete — cueing blue force interceptor', 'blue');
       }
-      if (tick === 68) {
-        // h2→h1 mesh link completes — full inter-boat cordon, H1 now pings shore
+      if (tick === 40) {
+        // h2→h1 mesh link completes — H1 pings shore
         setPhase('mesh_alert');
         addEvtRef.current('HORUS-1: Alert received — relaying to MOC NBSD', 'info');
       }
-      if (tick === 75) {
-        // h1→shore completes — MOC receives alert via HORUS-1
+      if (tick === 47) {
+        // h1→shore completes — MOC receives alert
         addEvtRef.current('NBSD MOC: Alert received from HORUS-1 — track confirmed hostile', 'alert');
       }
-      if (tick === 79) {
+      if (tick === 51) {
         addEvtRef.current('MOC NBSD: Blue forces authorized — intercepting', 'alert');
       }
-      if (tick === 84) {
+      if (tick === 56) {
         setPhase('response');
-        addEvtRef.current('INTERCEPTOR: Launching from Naval Base San Diego', 'blue');
+        addEvtRef.current('INTERCEPTOR: Launching from NAS North Island — direct ocean intercept vector', 'blue');
       }
       if (tick === INTERCEPT_TICK) {
         // Kill
@@ -298,7 +354,9 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         setComplete(true);
         addEvtRef.current('PERIMETER SECURED — threat eliminated, zone clear', 'success');
       }
-    }, 180);
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, 280);
   }, [stopAll]);
 
   // Cleanup on unmount
@@ -332,6 +390,26 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     return { color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.05, weight: 1.5, dashArray: '6 5' };
   };
 
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    startNewConfiguration(vessel.hullName);
+    setPendingMissionSetCaps(vessel.capabilities);
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    // Pass the specific role key so LoadoutBuilder applies the correct HORUS role
+    // and clears any stale roleKey from a previous mission
+    if (vessel.roleKey) {
+      setPendingRoleKey(vessel.roleKey);
+    } else {
+      setPendingRoleKey(null);
+    }
+    setSelectedView('outfitter');
+  };
+
   const handleSave = () => {
     if (!missionName.trim()) return;
     const data = {
@@ -358,7 +436,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     onBack();
   };
 
-  const portCaps = individualCapabilities.filter(c => CAP_NAMES.includes(c.name));
+  const narrative = PHASE_NARRATIVE[phase] || null;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -399,13 +477,13 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
       <div className="flex-1 min-h-0 overflow-y-auto">
 
       {/* ── Animation row ── */}
-      <div className="flex" style={{ height: '430px' }}>
+      <div className="flex" style={{ height: '460px' }}>
 
         {/* ── Map ── */}
         <div className="flex-1 relative overflow-hidden">
           <MapContainer
             center={MAP_CENTER}
-            zoom={9}
+            zoom={11}
             style={{ width: '100%', height: '100%' }}
             zoomControl={false}
             scrollWheelZoom
@@ -416,7 +494,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
             <TileLayer url={TILE_SEAMARK} opacity={0.6} />
             <MapInvalidateSize />
 
-            {/* ── 20nm coverage circles ── */}
+            {/* ── 3nm harbor security coverage circles ── */}
             {BOATS.map(b => (
               <React.Fragment key={b.id}>
                 <Circle center={b.pos} radius={COVERAGE_M} pathOptions={circleOpts(b.id)} />
@@ -509,7 +587,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
                 <Tooltip direction="top" offset={[0, -10]}>
                   <div style={{ fontSize: 11 }}>
                     <strong>SubSeaSail {b.id}</strong><br />
-                    {b.sector} · 20 nm coverage
+                    {b.sector} · 3nm coverage
                   </div>
                 </Tooltip>
               </CircleMarker>
@@ -526,7 +604,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
                 weight:      2,
               }}
             >
-              <Tooltip permanent direction="right" offset={[12, 0]}>
+              <Tooltip direction="right" offset={[12, 0]}>
                 <span style={{ fontSize: 11, fontWeight: 700 }}>
                   {currentTick >= 75 ? '⚡ MOC NBSD' : 'Naval Base San Diego'}
                 </span>
@@ -612,6 +690,25 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
             </div>
           )}
 
+          {/* ── Map legend (bottom-left) — hidden while detection HUD is showing ── */}
+          {(currentTick < 58 || currentTick >= INTERCEPT_TICK) && (
+            <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+              <div className="flex flex-col gap-1">
+                {[
+                  { color: '#06b6d4', label: 'HORUS USV — Barrier Sensor Node' },
+                  { color: '#ef4444', label: 'SIERRA-7743 — Hostile USV' },
+                  { color: '#10b981', label: 'Naval Base San Diego' },
+                  { color: '#3b82f6', label: 'Interceptor — Blue Force' },
+                ].map(({ color, label }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── Detection / Localization HUD (bottom-left) ── */}
           {currentTick >= 58 && currentTick < INTERCEPT_TICK && (
             <div className="absolute bottom-3 left-3 z-[500] pointer-events-none">
@@ -658,22 +755,27 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         {/* ── Sidebar ── */}
         <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-gray-700/50 overflow-hidden bg-darkest">
 
-          {/* Scenario controls */}
+          {/* Controls */}
           <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
             <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
-            <div className="flex gap-2 mb-2">
-              <button
-                onClick={runScenario}
-                disabled={running}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors ${
-                  running
-                    ? 'bg-gray-700/60 text-gray-500 cursor-not-allowed'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                }`}
-              >
-                <Play size={13} />
-                {running ? 'Running…' : complete ? 'Run Again' : 'Run Scenario'}
-              </button>
+            <div className="flex gap-2 mb-3">
+              {running ? (
+                <button
+                  onClick={pause}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-emerald-600 hover:bg-emerald-500 text-white"
+                >
+                  <Pause size={13} />
+                  Pause
+                </button>
+              ) : (
+                <button
+                  onClick={paused ? resume : runScenario}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-emerald-600 hover:bg-emerald-500 text-white"
+                >
+                  <Play size={13} />
+                  {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                </button>
+              )}
               <button
                 onClick={reset}
                 className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
@@ -682,9 +784,22 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
                 <RotateCcw size={13} />
               </button>
             </div>
-            <p className="text-gray-600 text-[0.68rem]">
-              3× SubSeaSail HORUS AUSV · 20 nm coverage each
-            </p>
+
+            {/* Phase narrative */}
+            {narrative ? (
+              <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                <div className="text-[0.68rem] font-bold text-emerald-300 uppercase tracking-wider mb-1">
+                  {narrative.title}
+                </div>
+                <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                  {narrative.body}
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600 text-[0.68rem]">
+                3× SubSeaSail HORUS AUSV · 3nm harbor security zone
+              </p>
+            )}
           </div>
 
           {/* Event log */}
@@ -709,75 +824,34 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         </div>
       </div>{/* /animation row */}
 
-      {/* ── SubSeaSail HORUS — Outfitter Configuration ─────────────────────── */}
-      <div className="border-t border-gray-700/50 flex-shrink-0">
-
-        {/* Section header */}
-        <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-          <div className="w-5 h-5 rounded bg-lime-brand/15 flex items-center justify-center flex-shrink-0">
-            <Anchor size={11} color="#cbfd00" />
-          </div>
-          <span className="text-[0.78rem] font-semibold text-gray-100">SubSeaSail HORUS</span>
-          <span className="text-gray-600 text-[0.68rem]">·</span>
-          <span className="text-gray-400 text-[0.68rem]">Mission Loadout — 3× per squadron</span>
-          <div className="ml-auto flex items-center gap-1.5 text-[0.65rem]">
-            <span className="text-gray-600">
-              {[...HORUS_MOUNTS].filter(m => enabled.has(m.capName)).length}/{HORUS_MOUNTS.length}
-            </span>
-            <span className="text-gray-600">slots filled</span>
-          </div>
-        </div>
-
-        {/* Mount-point cards */}
-        <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-          {HORUS_MOUNTS.map(mount => {
-            const isEquipped = enabled.has(mount.capName);
-            const cap = portCaps.find(c => c.name === mount.capName);
-            const CapIcon = cap?.icon;
-            return (
-              <div
-                key={mount.id}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                  isEquipped
-                    ? 'bg-lime-brand/5 border border-lime-brand/25'
-                    : 'bg-gray-800/20 border border-dashed border-gray-700/35 opacity-40'
-                }`}
-              >
-                {/* Icon */}
-                <div className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${
-                  isEquipped ? 'bg-lime-brand/12' : 'bg-gray-700/30'
-                }`}
+      {/* ── Vessel Roster ── */}
+      <div className="p-4 grid grid-cols-2 gap-3">
+        {effectiveRoster.map(vessel => (
+          <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+            <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+              <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
+            </div>
+            <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+              <div className="flex items-center mb-0.5">
+                <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                  disabled={!vessel.hullName}
+                  className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Configure loadout"
                 >
-                  {isEquipped && CapIcon
-                    ? <CapIcon size={15} color="#cbfd00" />
-                    : <Settings size={14} className="text-gray-600" />
-                  }
-                </div>
-
-                {/* Labels */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{mount.type}</div>
-                  {isEquipped ? (
-                    <>
-                      <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{mount.capName}</div>
-                      <div className="text-[0.62rem] text-gray-500 truncate">{cap?.provider}</div>
-                    </>
-                  ) : (
-                    <div className="text-[0.7rem] text-gray-600 truncate">{mount.label}</div>
-                  )}
-                </div>
-
-                {/* Status dot */}
-                {isEquipped && (
-                  <div className="w-4 h-4 rounded-full bg-lime-brand/20 flex items-center justify-center flex-shrink-0">
-                    <Check size={9} color="#cbfd00" strokeWidth={3} />
-                  </div>
-                )}
+                  <Settings size={13} />
+                </button>
               </div>
-            );
-          })}
-        </div>
-      </div>{/* /outfitter */}
+              {vessel.capabilities.map((cap, i) => (
+                <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                  {cap}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
 
       </div>{/* /scrollable content */}
     </div>

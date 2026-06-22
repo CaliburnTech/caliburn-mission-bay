@@ -5,7 +5,7 @@ import useMissionStore from '../store/missionStore';
 
 // Main MissionPlanner component - switches between table and config views
 const MissionPlanner = () => {
-  const [view, setView] = useState('table'); // 'table' | 'config'
+  const [view, setView] = useState('config'); // 'table' | 'config'
   const [selectedMission, setSelectedMission] = useState(null);
   const { pendingMissionOpen, setPendingMissionOpen, setSelectedMissionTemplate } = useMissionStore();
 
@@ -30,9 +30,9 @@ const MissionPlanner = () => {
   };
 
   const handleBack = () => {
-    setSelectedMissionTemplate(null); // reset so next new mission starts fresh
+    setSelectedMissionTemplate(null);
     setSelectedMission(null);
-    setView('table');
+    setView('config');
   };
 
   if (view === 'config') {

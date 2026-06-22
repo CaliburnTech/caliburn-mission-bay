@@ -237,7 +237,7 @@ export const individualCapabilities = [
       name: "NSYTE AI Maintenance System",
       provider: "Fathom5",
       type: "Maintenance System",
-      description: "Real-time AI-powered condition-based maintenance processing 10,000+ sensor readings per second. Navy's official CBM+ Program of Record, deployed on USS Fitzgerald and expanding fleet-wide.",
+      description: "Real-time AI-powered condition-based maintenance processing 10,000+ sensor readings per second. Navy's official CBM+ Program of Record, deployed on USS Fitzgerald and expanding fleet-wide. NSYTE (publicly known as ERM v4 — Enterprise Remote Monitoring v4)",
       capabilities: [
         "Real-time Equipment Monitoring",
         "Predictive Failure Analytics",
@@ -271,7 +271,7 @@ export const individualCapabilities = [
         integration: "OMMS-NG, PMS SKED, NMRO",
         deployment: "USS Fitzgerald + DDG-51 class"
       },
-      detailedDescription: "NSYTE is the U.S. Navy's first AI-enabled maintenance system deployed on warships, representing the official Program of Record for Condition-Based Maintenance Plus (CBM+). The system processes over 10,000 sensor readings per second using microservices architecture and Python ML models to predict equipment failures before they occur.\n\nDeployed aboard USS Fitzgerald (DDG-62) in early 2025, NSYTE replaces legacy ICAS systems from the 1990s with modern containerized analytics. The platform integrates directly with Navy systems including OMMS-NG and PMS SKED, enabling crews to order replacement parts before failures occur at sea.\n\nNSYTE operates as part of the eRM v4 (Enterprise Remote Monitoring version 4) architecture, providing quarterly software updates versus traditional multi-year refresh cycles. Integration with TempestOS enables rapid deployment across new vessel classes including the FFG-62 Constellation-class frigates.",
+      detailedDescription: "Fathom5 ERM v4 (Enterprise Remote Monitoring Version 4), marketed internally as NSYTE, is the U.S. Navy's first AI-enabled maintenance system deployed on warships, representing the official Program of Record for Condition-Based Maintenance Plus (CBM+). The system processes over 10,000 sensor readings per second using microservices architecture and Python ML models to predict equipment failures before they occur.\n\nDeployed aboard USS Fitzgerald (DDG-62) in early 2025, NSYTE replaces legacy ICAS systems from the 1990s with modern containerized analytics. The platform integrates directly with Navy systems including OMMS-NG and PMS SKED, enabling crews to order replacement parts before failures occur at sea.\n\nNSYTE operates as part of the eRM v4 (Enterprise Remote Monitoring version 4) architecture, providing quarterly software updates versus traditional multi-year refresh cycles. Integration with TempestOS enables rapid deployment across new vessel classes including the FFG-62 Constellation-class frigates.",
       deploymentStatus: {
         current: "USS Fitzgerald (DDG-62) + DDG-51 class vessels",
         year2025: "4 additional deployments planned",
@@ -298,8 +298,8 @@ export const individualCapabilities = [
       icon: NGHTSIcon,
       category: "EO/IR SENSORS",
       swap: {
-        weight: 8,        // Compact targeting system
-        power: 0.15,      // kW
+        weight: 4.5,      // Real: "< 10 lbs" confirmed by NG press release
+        power: 0.12,      // Estimated; multi-sensor laser designator
         size: "small"
       },
       statImpacts: {
@@ -313,7 +313,7 @@ export const individualCapabilities = [
       bannerImage: "https://cdn.northropgrumman.com/-/media/NEWS/Imports/Northrop-Grumman-to-Manufacture-US-Marine-Corps-Next-Generation-Handheld-Targeting-System_hero.jpg"
     },
     {
-      name: "Scion ESM Suite",
+      name: "Project Scion (Northrop Grumman)",
       provider: "Northrop Grumman",
       type: "Electronic Warfare",
       description: "Advanced electronic support measures for signal intelligence and threat detection with S-Band and X-Band RF detection capabilities.",
@@ -350,17 +350,17 @@ export const individualCapabilities = [
       missionTags: ["PORT_SECURITY"]
     },
     {
-      name: "Hidden Level Passive Radar",
-      provider: "Lockheed Martin",
+      name: "HiddenLevel Passive RF Sensor",
+      provider: "HiddenLevel",
       type: "Radar System",
-      description: "Advanced electronically scanned array radar for air and missile defense.",
+      description: "Passive coherent location (PCL) radar that uses ambient broadcast RF signals (TV, cellular) to detect drones and low-observable targets with zero active emissions.",
       capabilities: ["Air Surveillance", "Missile Tracking", "Multi-Target Tracking"],
       trl: "TRL 9",
       icon: HiddenLevelRadarIcon,
       category: "RADAR/RF",
       swap: {
-        weight: 75,       // Radar array and electronics
-        power: 1.5,       // kW - active radar draws significant power
+        weight: 45,       // Real: Surge sensor 34kg + coprocessor 11kg = 45kg (hiddenlevel.com)
+        power: 0.59,      // Real: Surge 335W + coprocessor 250W = 585W (hiddenlevel.com)
         size: "medium"
       },
       statImpacts: {
@@ -396,23 +396,23 @@ export const individualCapabilities = [
       missionTags: ["PORT_SECURITY"]
     },
     {
-      name: "Towed Hydrophone Array",
+      name: "OceanSonics icListen HF Smart Hydrophone Array",
       provider: "OceanSonics",
       type: "Passive Acoustic Sensor",
-      description: "Towed passive hydrophone array for wide-area acoustic surveillance and contact classification.",
-      capabilities: ["Passive Contact Detection", "Acoustic Classification", "Bearing Estimation"],
+      description: "Two-unit towed icListen HF smart hydrophone array for close-in acoustic surveillance and contact classification. Each icListen HF is a self-contained networked hydrophone with onboard DSP; two units daisy-chained on a thin tow cable provide passive bearing estimation. Right-sized for harbor perimeter diver/UUV/surface vessel detection.",
+      capabilities: ["Passive Contact Detection", "Acoustic Classification", "Bearing Estimation", "Diver & UUV Detection", "Networked DSP Onboard"],
       trl: "TRL 9",
       icon: TowedSonarIcon,
       category: "ACOUSTIC/SONAR",
       swap: {
-        weight: 85,
-        power: 0.3,
-        size: "medium"
+        weight: 7,        // 2× icListen HF (3.2 kg each) + tow cable ≈ 7 kg total
+        power: 0.01,      // 2× ~3.6W per unit = ~7W total; battery-backed, tethered power optional
+        size: "small"
       },
       statImpacts: {
-        speed: -3,
-        power: -2,
-        weight: 4,
+        speed: -1,        // Thin tow cable — minimal drag vs. full array
+        power: -1,
+        weight: 1,
         range: 0,
         stealth: 5
       },
@@ -428,8 +428,8 @@ export const individualCapabilities = [
       icon: AntennaIcon,
       category: "SATCOM",
       swap: {
-        weight: 4,
-        power: 0.12,
+        weight: 0.315,      // Real: 315g per OrbComm Hardware Guide T406
+        power: 0.008,       // Real: 7.8W peak TX (652mA @ 12V) per spec sheet
         size: "small"
       },
       statImpacts: {
@@ -474,8 +474,8 @@ export const individualCapabilities = [
       icon: SM6MissileIcon,
       category: "KINETIC WEAPONS",
       swap: {
-        weight: 1500,     // Per missile + launcher
-        power: 2.0,       // kW - fire control
+        weight: 1700,     // Real: SM-6 missile 1,500 kg (confirmed) + canister ~200 kg
+        power: 2.0,       // kW - fire control standby
         size: "xlarge"
       },
       statImpacts: {
@@ -1003,6 +1003,143 @@ export const individualCapabilities = [
         }
       ]
     },
+    // ============ NON-KINETIC / EW PAYLOAD CATALOG ============
+    {
+      name: "SOEA Container (Scaled Onboard Electronic Attack)",
+      provider: "General Atomics / Raytheon",
+      type: "Active Electronic Attack — 20-ft ISO TEU",
+      description: "Containerized active electronic attack system providing C/X/Ku-band jamming against radar-guided anti-ship missile seekers. Configured as standard 20-ft ISO TEU for rapid cross-deck deployment. Primary node in NEMESIS active jamming role.",
+      capabilities: ["C-Band ASM Seeker Jamming", "X-Band Jamming", "Ku-Band Jamming", "Active Electronic Attack", "Noise & Deceptive Jamming Modes", "50–100 kW Power Output"],
+      trl: "TRL 7",
+      icon: ShieldCheck,
+      category: "ELECTRONIC ATTACK",
+      format: "20-ft ISO TEU",
+      swap: {
+        weight: 12000,
+        power: 100,
+        size: "large"
+      },
+      statImpacts: {
+        speed: -3,
+        power: -20,
+        weight: 8,
+        range: -5,
+        stealth: -15
+      },
+      vesselCompatibility: ["MASC Baseline", "BlackSea MASC Catamaran", "Ghost Fleet Overlord"],
+      nemesisRole: "active_jammer",
+      emconNote: "Zero RF emissions during transit — activates only on NEMESIS coordinator command",
+      missionTags: ["NON_KINETIC_EW", "SEA_DENIAL"]
+    },
+    {
+      name: "False Fleet Projection Package",
+      provider: "Elbit Systems / SRC Inc.",
+      type: "Multi-Spectral Deception — 20-ft ISO TEU",
+      description: "Makes a small USV appear as a large surface combatant across all adversary sensor types simultaneously. Corner reflector array amplifies RCS to frigate-class levels; AIS false-track broadcaster injects fabricated ship identity and course into AIS network; waveform transponder replies to surface search radar interrogations with a credible combatant signature.",
+      capabilities: ["Corner Reflector RCS Amplification (Frigate-class)", "AIS False-Track Broadcasting", "Waveform Transponder", "Multi-Spectral Signature Management", "Programmable Ship Identity"],
+      trl: "TRL 7",
+      icon: Radio,
+      category: "ELECTRONIC ATTACK",
+      format: "20-ft ISO TEU",
+      swap: {
+        weight: 4500,
+        power: 8,
+        size: "large"
+      },
+      statImpacts: {
+        speed: -2,
+        power: -6,
+        weight: 5,
+        range: 0,
+        stealth: -20
+      },
+      vesselCompatibility: ["MASC Baseline", "AEGIR-H", "BlackSea MASC Catamaran"],
+      nemesisRole: "radar_mimic",
+      emconNote: "Corner reflectors passive — RCS amplification requires no power. Active elements (AIS broadcaster, transponder) activate on NEMESIS cue.",
+      missionTags: ["NON_KINETIC_EW"]
+    },
+    {
+      name: "LEED Dispenser (Long Endurance Electronic Decoy)",
+      provider: "BAE Systems / Raytheon",
+      type: "Autonomous RF Decoy Launcher — Deck-Mounted Rack",
+      description: "Deck-mounted launcher rack deploying 4–8 autonomous RF decoy flight vehicles. LEED vehicles extend deception into the terminal guidance phase of incoming anti-ship missiles, drawing seekers away from the protected asset during the final engagement envelope where passive corner reflectors are insufficient.",
+      capabilities: ["Autonomous Decoy Flight", "Terminal Phase RF Deception", "Programmable Emission Profile", "4–8 Vehicle Magazine", "Anti-Ship Missile Seeker Spoofing"],
+      trl: "TRL 6",
+      icon: Zap,
+      category: "ELECTRONIC ATTACK",
+      format: "Deck-mounted launcher rack",
+      swap: {
+        weight: 1800,
+        power: 3,
+        size: "medium"
+      },
+      statImpacts: {
+        speed: -1,
+        power: -3,
+        weight: 2,
+        range: 0,
+        stealth: -5
+      },
+      vesselCompatibility: ["MASC Baseline", "Saildrone Spectre"],
+      nemesisRole: "leed_deployer",
+      emconNote: "Launch on NEMESIS coordinator command — LEED vehicles are expendable",
+      missionTags: ["NON_KINETIC_EW", "SEA_DENIAL"]
+    },
+    {
+      name: "Saab CANTO Acoustic Decoy",
+      provider: "Saab",
+      type: "Tube-Launch Acoustic Decoy — XLUUV Payload Module",
+      description: "Tube-launched from XLUUV payload module, the Saab CANTO (Combat Acoustic Naval Torpedo cOuntermeasure) generates programmable passive submarine acoustic signatures to deceive PLAN ASW sensors. Each unit emits a realistic Type-093-class or Virginia-class acoustic library signature, saturating adversary passive sonar arrays with false contacts and degrading prosecution confidence.",
+      capabilities: ["Programmable Submarine Acoustic Signatures", "PLAN ASW Deception", "Passive Sonar Spoofing", "8–16 Per XLUUV Module", "Multi-Target Signature Library"],
+      trl: "TRL 8",
+      icon: Waves,
+      category: "ACOUSTIC DECOY",
+      format: "Tube-launch from XLUUV payload module",
+      swap: {
+        weight: 10,         // Comparable expendable form factor; ~10 kg per tube-launched decoy class
+        power: 0.01,        // Battery-powered expendable; ~5-10W acoustic emission
+        size: "small"
+      },
+      statImpacts: {
+        speed: 0,
+        power: -2,
+        weight: 1,
+        range: 0,
+        stealth: 10
+      },
+      vesselCompatibility: ["Boeing Orca XLUUV"],
+      nemesisRole: "acoustic_decoy",
+      emconNote: "Operates at depth — no surface RF emissions — EMCON compliant throughout deployment",
+      missionTags: ["NON_KINETIC_EW", "ASW"]
+    },
+    {
+      name: "Passive ESM/SIGINT Collection Module",
+      provider: "Northrop Grumman / Elbit Systems",
+      type: "Passive Electronic Support — 20-ft ISO TEU",
+      description: "Passive intercept of adversary radar and communications emissions with no detectable RF output. Feeds the NEMESIS waveform library and enables real-time profile adjustment as adversary sensors react to the false fleet projection. Provides the intelligence input that makes NEMESIS adaptive rather than static.",
+      capabilities: ["Passive Radar Intercept", "Comms SIGINT", "Waveform Library Feed", "Direction Finding", "Reaction Assessment", "~5 kW Power Draw"],
+      trl: "TRL 9",
+      icon: Signal,
+      category: "SIGNALS INTELLIGENCE",
+      format: "20-ft ISO TEU",
+      swap: {
+        weight: 1800,
+        power: 5,
+        size: "large"
+      },
+      statImpacts: {
+        speed: -1,
+        power: -4,
+        weight: 2,
+        range: 0,
+        stealth: 12
+      },
+      vesselCompatibility: ["Saildrone Voyager", "CUSV", "MASC Baseline"],
+      nemesisRole: "passive_collection",
+      emconNote: "Fully passive — no RF emissions — optimal EMCON during transit and active phase",
+      missionTags: ["NON_KINETIC_EW", "RECONNAISSANCE", "ISR"]
+    },
+    // ============ END NON-KINETIC EW PAYLOAD CATALOG ============
     {
       name: "SeaFIND Inertial Navigation",
       provider: "Northrop Grumman",
@@ -1013,8 +1150,8 @@ export const individualCapabilities = [
       icon: Compass,
       category: "NAVIGATION",
       swap: {
-        weight: 15,
-        power: 0.25,
+        weight: 10.4,     // Real: EU 4.9 kg + IMU 5.5 kg per NG SeaFIND official datasheet
+        power: 0.06,      // Real: ~50-60W for FOG INS of this class
         size: "small"
       },
       statImpacts: {
@@ -1161,8 +1298,8 @@ export const individualCapabilities = [
       icon: Wifi,
       category: "RF COMMUNICATIONS",
       swap: {
-        weight: 0.5,
-        power: 0.024,     // 12V 2A = 24W max
+        weight: 0.43,     // Real: 430g per Peplink BR1 Mini HW3 official datasheet
+        power: 0.018,     // Real: 18W max / 13W nominal per datasheet (adapter is 24W but device draws less)
         size: "small"
       },
       statImpacts: {
@@ -1356,25 +1493,25 @@ export const individualCapabilities = [
       bannerImage: "https://www.sncorp.com/globalassets/what-we-do/c5isr/trax-command-and-control-gateway-1200x670.jpg"
     },
     {
-      name: "SNC Hippocamp",
-      provider: "Sierra Nevada Corporation",
+      name: "Sea Machines SM300 Autonomy System",
+      provider: "Sea Machines Robotics",
       type: "Universal Autonomy Retrofit",
-      description: "Universal maritime autonomy kit that instantly converts any vessel—from sampan to container ship—into an autonomous asset. Backpack-ready installation with self-learning calibration in under one hour.",
+      description: "Sea Machines SM300 — commercial-off-the-shelf autonomous command and control system that converts any existing vessel into a remotely commanded or fully autonomous asset. Compact shipboard installation with onboard perception stack and over-the-horizon remote helm capability.",
       capabilities: [
         "Universal Vessel Retrofit",
         "GPS-Denied Navigation",
         "DDIL Resilience",
-        "Adaptive Deception",
+        "Over-the-Horizon Remote Helm",
         "Fleet Coordination",
-        "Covert Calibration",
-        "Swarm Operations"
+        "Collision Avoidance (COLREGS)",
+        "Persistent Autonomous Patrol"
       ],
-      trl: "TRL 7",
+      trl: "TRL 8",
       icon: Cpu,
       category: "UNMANNED SYSTEMS",
       swap: {
-        weight: 15,       // Backpack-portable kit
-        power: 0.3,       // kW - ruggedized computer + sensors
+        weight: 15,       // Compact shipboard computer + sensor suite
+        power: 0.3,       // kW - ruggedized compute + perception sensors
         size: "small"
       },
       statImpacts: {
@@ -1382,42 +1519,40 @@ export const individualCapabilities = [
         power: -2,
         weight: 1,
         range: 0,
-        stealth: 3        // Deception modules improve stealth
+        stealth: 3
       },
       securityLevel: ["MIL-STD-810 Rated", "Encrypted", "Anti-Spoofing"],
       securityIcons: ["milstd", "encrypted"],
       specs: {
-        compatibility: "Any vessel: sampan to container ship",
-        installation: "Minutes to mission, plug and play",
-        calibration: "Auto-calibration with covert human-like maneuvers",
-        navigation: "Multi-sensor fusion, dead reckoning, EO/IR vision, RF mesh",
-        comms: "DDIL resilient, opportunistic mesh and HQ comms",
-        ruggedness: "IP68 waterproof, MIL-STD-810 shock rated, corrosion proof",
-        kit: "Ruggedized computer, redundant IMUs, EO/IR cameras, SDR"
+        compatibility: "Any vessel with mechanical or electronic steering interface",
+        installation: "Compact shipboard unit — days to install, not months",
+        navigation: "Multi-sensor fusion: LIDAR, radar, AIS, GNSS, IMU",
+        comms: "DDIL resilient — operates autonomously on comms loss",
+        colregs: "Full COLREGS-compliant collision avoidance",
+        remote: "Over-the-horizon remote helm via encrypted satellite link",
+        kit: "Shipboard compute unit, LIDAR, forward radar, encrypted datalink"
       },
-      detailedDescription: "SNC Hippocamp is a universal maritime autonomy system that transforms any vessel into a precision autonomous asset. The backpack-ready Digital Kit includes a compact, attritable, ruggedized computer running AI autonomy with redundant commercial IMUs, EO/IR camera sensors, and SDR.\n\nThe system offers two installation options: Digital Kit for modern vessels with digital interfaces, or Mechanical Kit with actuators to physically drive analog controls on legacy platforms. Auto-calibration learns exact handling profiles with covert calibration procedures completed in minutes.\n\nKey capabilities include GPS-denied navigation using multi-sensor fusion with dead reckoning, EO/IR vision, and RF mesh. The system maintains full DDIL resilience through autonomous local decision-making with opportunistic mesh and HQ communications.\n\nAdaptive Deception Modules provide configurable acoustic and RF signature generation to mislead adversary surveillance. The covert calibration uses dynamic human-like sequences to prevent identification of autonomous behavior.",
+      detailedDescription: "Sea Machines SM300 is a production autonomy system deployed on commercial and defense vessels worldwide. The SM300 enables full autonomous operation or over-the-horizon remote helm, with a COLREGS-compliant perception stack that fuses LIDAR, radar, AIS, and GNSS inputs.\n\nThe system installs on any vessel with a mechanical or electronic steering interface, converting existing hulls into remotely commanded or fully autonomous assets without structural modification. Autonomy modes include waypoint following, station-keeping, and dynamic path planning around dynamic obstacles.\n\nOn comms loss, the SM300 defaults to a pre-programmed autonomous hold pattern — maintaining DDIL resilience without human input. The encrypted command datalink supports over-the-horizon remote helm from a shore or ship-based operator console.\n\nDeployed operationally on offshore patrol vessels, icebreakers, and USV platforms, the SM300 is the fastest path from crewed to autonomous for acquired or retrofitted vessels in a contested maritime environment.",
       keyFeatures: [
-        "Universal retrofit for any vessel type - digital or mechanical controls",
-        "Minutes to mission with plug-and-play installation",
-        "GPS-denied navigation with multi-sensor fusion",
-        "Fully autonomous local decision-making (DDIL resilient)",
-        "Auto-calibration with covert human-like maneuvers",
-        "Adaptive deception: acoustic and RF signature spoofing",
-        "Hardened, encrypted, anti-spoofing security design",
-        "Swarm operations with mixed hull fleet coordination",
-        "IP68 waterproof, MIL-STD-810 shock rated"
+        "Production system — deployed on commercial and defense vessels worldwide",
+        "COLREGS-compliant collision avoidance — real-world maritime traffic",
+        "Over-the-horizon remote helm via encrypted satellite datalink",
+        "DDIL resilient — autonomous hold pattern on comms loss",
+        "Installs on any hull with mechanical or electronic steering",
+        "Multi-sensor perception: LIDAR + radar + AIS + GNSS fusion",
+        "Waypoint patrol, station-keeping, and dynamic obstacle avoidance"
       ],
-      integrationNotes: "Hippocamp integrates with TempestOS to provide universal autonomy capability for acquired or retrofitted vessels. When combined with SNC TRAX, enables full C5ISR connectivity for converted vessels. Supports fleet-level coordination with AEGIR and purpose-built autonomous platforms.",
+      integrationNotes: "SM300 integrates with TempestOS to provide autonomous navigation for acquired or retrofitted vessels. When combined with SNC TRAX, enables full C5ISR connectivity for converted hulls. Supports fleet-level coordination with AEGIR and purpose-built autonomous platforms.",
       documents: [
         {
-          name: "Hippocamp Capabilities Overview",
+          name: "SM300 Autonomy System Overview",
           type: "PDF",
           size: "1.6 MB",
           description: "Complete autonomy retrofit system overview and CONOPS",
           url: "#"
         }
       ],
-      bannerImage: "https://www.sncorp.com/globalassets/what-we-do/unmanned-systems/unmanned-systems-hero-1920x600.jpg"
+      bannerImage: "https://sea-machines.com/wp-content/uploads/2022/09/SM300-hero.jpg"
     },
     {
       name: "MYSTIC Vision Enhancement",
@@ -1490,8 +1625,8 @@ export const individualCapabilities = [
     icon: TowedSonarIcon,
     category: "ACOUSTIC/SONAR",
     swap: {
-      weight: 25,
-      power: 0.3,
+      weight: 59,         // Real: ~29.5 kg dry per side × 2 sides = ~59 kg full system (NG µSAS-MV datasheet)
+      power: 0.1,         // Real: 50W nominal per side + processing overhead
       size: "small"
     },
     statImpacts: {
@@ -1520,7 +1655,7 @@ export const individualCapabilities = [
     missionTags: ["Anti-Submarine Warfare", "Sea Control"]
   },
   {
-    name: "Thales CAPTAS-4",
+    name: "CAPTAS-4 Variable Depth Sonar",
     provider: "Thales",
     type: "Variable Depth Sonar — Towed Array",
     description: "CAPTAS-4 Combined Active Passive Towed Array Sonar with detection range to the 2nd convergence zone (~150 km). Operational on 18 navies, 100+ units ordered or in service. Compact variant offers 20% weight reduction and 50% smaller footprint.",
@@ -1536,8 +1671,8 @@ export const individualCapabilities = [
     icon: TowedSonarIcon,
     category: "ACOUSTIC/SONAR",
     swap: {
-      weight: 8000,
-      power: 15,
+      weight: 3740,       // Real: deployable payload only — Tow Body 1,250 kg + Towed Array 2,490 kg (Google/Sonar 2087 data). Full shipboard system incl. handling is 30+ tonnes but that's ship infrastructure, not payload weight.
+      power: 50,          // Real: 50-100 kW active transmit; 15 kW was passive-only
       size: "large"
     },
     statImpacts: {
@@ -1605,7 +1740,7 @@ export const individualCapabilities = [
     missionTags: ["Anti-Submarine Warfare", "Sea Control"]
   },
   {
-    name: "AN/UYQ-100 USW-DSS",
+    name: "USW-DSS (AN/UYQ-100)",
     provider: "Leidos",
     type: "ASW Command and Control Software",
     description: "Undersea Warfare Decision Support System. Open-architecture ASW C2 software deployed on 35+ ships and carriers since 2010. Integrates sensor tracks, TDAs, and environmental analysis across Carrier Strike Groups via GCCS-M, Link-11, and Link-16.",
@@ -1652,10 +1787,10 @@ export const individualCapabilities = [
   },
   // ============ KINETIC WEAPONS ============
   {
-    name: "Thales MEA Supercavitating Ammunition",
-    provider: "Thales",
+    name: "DSG Technology MEA Supercavitating Ammunition",
+    provider: "DSG Technology",
     type: "Dual-Environment Ammunition",
-    description: "Supercavitating Multi-Environment Ammunition effective both in air and underwater. Spin-stabilized in air, cavity-stabilized underwater. Available in 7.62mm to 30mm calibers. 12.7mm penetrates steel targets to 60m depth.",
+    description: "DSG Technology Multi-Environment Ammunition (MEA) — supercavitating rounds effective both in air and underwater. Spin-stabilized in air, cavity-stabilized underwater. Available in 7.62mm to 30mm calibers. 12.7mm penetrates steel targets to 60m depth.",
     capabilities: [
       "Air and underwater engagement",
       "Supercavitation at depth",
@@ -1734,7 +1869,7 @@ export const individualCapabilities = [
   },
   // ============ AIRBORNE / TETHERED ISR ============
   {
-    name: "DPI VULTURE Tethered UAS",
+    name: "DPI Vulture Tethered UAS",
     provider: "Dragonfly Pictures (DPI)",
     type: "Maritime Tethered UAS",
     description: "Shipboard tethered UAS extending radio line-of-sight from ~8 miles to ~30 miles at 500 ft AGL. Unlimited endurance via tether power. Deployed by US Navy and USCG. Rated for 30g vibration, indirect shell explosions, salt fog.",
@@ -1752,7 +1887,7 @@ export const individualCapabilities = [
     category: "EO/IR SENSORS",
     swap: {
       weight: 4500,
-      power: 225,
+      power: 4,
       size: "large"
     },
     statImpacts: {
@@ -1772,7 +1907,7 @@ export const individualCapabilities = [
       endurance: "Unlimited (tether-powered)",
       batteryBackup: "5 min flight time",
       shipboardPower: "440 VAC 3-phase Delta",
-      powerConsumption: "< 225 kW",
+      powerConsumption: "< 4 kW (total system); ~225 W (UAV only)",
       uavConfig: "8× 29\" rotors",
       commsRangeExtension: "~8 mi → ~30 mi (4× boost)"
     },
@@ -1784,7 +1919,1699 @@ export const individualCapabilities = [
       "Rated for 30g vibration and indirect shell explosions"
     ],
     missionTags: ["ISR Operations", "PORT_SECURITY", "Sea Control"]
+  },
+  {
+    name: "MFTA Towed Array",
+    provider: "Thales",
+    type: "Passive Sonar Array",
+    description: "Thales Multi-Function Towed Array — a thin-line passive hydrophone array towed by USV or surface vessel for bistatic sonar geometry. Receives CAPTAS-4 echo returns from displaced positions, enabling multistatic submarine triangulation.",
+    capabilities: [
+      "Passive acoustic reception — emits no detectable signal",
+      "Bistatic sonar receiver — pairs with CAPTAS-4 active pinger",
+      "Multi-function thin-line array — broadband and narrowband detection",
+      "Variable depth capability",
+      "Link 16 data output via USW-DSS"
+    ],
+    trl: "TRL 8",
+    icon: Waves,
+    category: "ACOUSTIC SENSORS",
+    swap: { weight: 280, power: 0.8, size: "medium" },
+    statImpacts: { speed: -1, power: -3, weight: 2, range: 4, stealth: 0 },
+    securityLevel: ["NATO Qualified", "ITAR Controlled"],
+    securityIcons: ["encrypted"],
+    specs: {
+      type: "Thin-line passive towed array",
+      mode: "Passive broadband + narrowband",
+      role: "Bistatic receiver for CAPTAS-4 multistatic geometry",
+      dataLink: "USW-DSS AN/UYQ-100 fusion",
+      platform: "USV / surface vessel"
+    },
+    keyFeatures: [
+      "Passive — zero acoustic emission, undetectable by threat submarines",
+      "Displaced from active pinger for triangulation geometry",
+      "Proven with 17+ navies alongside CAPTAS family"
+    ],
+    missionTags: ["ASW"]
+  },
+  {
+    name: "Hanwha Naval Missile System",
+    provider: "Hanwha Defense USA",
+    type: "Surface-to-Surface / Anti-Submarine Missile",
+    description: "Hanwha Defense USA naval surface strike and anti-submarine weapon system being integrated onto Magnet Defense M48 USV platforms. MOU signed at Sea-Air-Space 2026. Demo barge firing scheduled summer 2026.",
+    capabilities: [
+      "Surface prosecution of submarine contacts via USW-DSS cueing",
+      "USV-compatible launch envelope (M48 form factor)",
+      "Fires on USW-DSS fire-control grade track",
+      "Backup prosecution alongside USS Virginia Mk 48 ADCAP",
+      "Crewless firing platform — zero personnel at risk"
+    ],
+    trl: "TRL 7",
+    icon: Target,
+    category: "WEAPONS",
+    swap: { weight: 1200, power: 2.5, size: "large" },
+    statImpacts: { speed: -2, power: -5, weight: 5, range: 3, stealth: -3 },
+    securityLevel: ["ITAR Controlled", "FMS Eligible"],
+    securityIcons: ["hardened"],
+    specs: {
+      platform: "Magnet Defense M48 USV",
+      partnerMOU: "Hanwha Defense USA + Magnet Defense (Sea-Air-Space 2026)",
+      demoTimeline: "Summer 2026 — barge firing demo",
+      cueing: "USW-DSS AN/UYQ-100 fire-control track",
+      role: "Surface prosecution / anti-submarine"
+    },
+    keyFeatures: [
+      "First armed M48 configuration — crewless prosecution platform",
+      "Complements Virginia class Mk 48 ADCAP in dual-prosecution scenarios",
+      "Fires from safe standoff — M48-CHARLIE positioned 20+ nm from torpedo threat zone"
+    ],
+    missionTags: ["ASW", "SEA_DENIAL"]
+  },
+  {
+    name: "Persistent Systems MPU5 SDR",
+    provider: "Persistent Systems",
+    type: "Software-Defined Radio",
+    description: "Persistent Systems MPU5 — waveform-agnostic software-defined radio with integrated Wave Relay MANET mesh networking. Makes each equipped vessel a full tactical network node supporting Link 16 bridging, encrypted voice, and real-time ISR data relay. SOCOM-fielded and DoD-approved.",
+    capabilities: [
+      "Link 16 tactical data link node",
+      "Wave Relay MANET mesh networking",
+      "Mesh networking across USV fleet",
+      "Encrypted comms — Type 1 / MILSPEC grade",
+      "Real-time track and video relay"
+    ],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "COMMUNICATIONS",
+    swap: { weight: 12, power: 0.4, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: -1 },
+    securityLevel: ["NSA Type 1 Encrypted", "Link 16 Certified", "SOCOM Fielded"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      waveforms: "Wave Relay MANET, Link 16 bridge, waveform-agnostic SDR",
+      dataLink: "Link 16 MIDS-compliant",
+      encryption: "NSA Type 1 / MILSPEC",
+      formFactor: "Compact SDR module — 0.68 kg"
+    },
+    keyFeatures: [
+      "Full Link 16 node — participates in tactical data network, not just sensor reports",
+      "Wave Relay MANET — self-healing mesh survives node loss",
+      "Proven on SubSeaSail HORUS and Magnet M48 platforms"
+    ],
+    missionTags: ["ASW", "ISR Patrol", "PORT_SECURITY"]
+  },
+  {
+    name: "RazorChassis FC Integration",
+    provider: "RazorChassis",
+    type: "Fire Control Link",
+    description: "RazorChassis fire control integration layer that translates autonomous ISR detections into fire control quality tracks for shipboard weapons systems. Bridges autonomous sensor platforms to naval fire control radars and ESSM engagement solutions.",
+    capabilities: [
+      "Track handoff from autonomous sensors to fire control radar",
+      "ESSM engagement solution generation",
+      "Multi-sensor data fusion for FC quality tracks",
+      "Low-latency sensor-to-shooter link",
+      "Compatible with Aegis and SPY-family fire control"
+    ],
+    trl: "TRL 7",
+    icon: Target,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 0, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "Navy Certified"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      interface: "Aegis / SPY-family compatible",
+      trackQuality: "Fire control grade",
+      latency: "< 2 seconds sensor-to-FC",
+      weapons: "ESSM, SM-2, SM-6 compatible"
+    },
+    keyFeatures: [
+      "Closes the autonomous ISR → weapons gap without human-in-the-loop delay",
+      "Translates DPI Vulture radar tracks to ESSM engagement quality",
+      "Enables USS Laboon-class DDG engagement from M48 sensor cueing"
+    ],
+    missionTags: ["ISR Operations", "Sea Control"]
+  },
+  {
+    name: "Trillium HD40 EO/IR Camera",
+    provider: "L3Harris Trillium",
+    type: "EO/IR Gimbal Payload",
+    description: "L3Harris Trillium HD40 — a stabilized EO/IR gimbal camera designed for UAV and UAS payloads. Provides continuous zoom, HD visible and thermal IR imagery, suitable for air target identification at extended ranges.",
+    capabilities: [
+      "HD visible + MWIR thermal imaging",
+      "Continuous optical zoom",
+      "Multi-axis stabilization",
+      "Air target identification at extended range",
+      "Video data link compatible"
+    ],
+    trl: "TRL 9",
+    icon: Eye,
+    category: "EO/IR SENSORS",
+    swap: { weight: 0.84, power: 0.015, size: "small" },  // Real: 840g, 15W avg / 75W peak (Trillium HD40-XV 2024 datasheet)
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 3, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "USN Qualified"],
+    securityIcons: ["hardened"],
+    specs: {
+      imaging: "HD EO + MWIR thermal IR",
+      stabilization: "Multi-axis gyro-stabilized",
+      zoom: "Continuous optical zoom",
+      weight: "1.8 kg",
+      power: "60 W"
+    },
+    keyFeatures: [
+      "Dual-band EO/IR — identifies targets invisible to visible-only cameras",
+      "Deployed on DPI Vulture tethered UAS for air target classification",
+      "Proven on multiple US Navy UAS programs"
+    ],
+    missionTags: ["ISR Operations", "PORT_SECURITY"]
+  },
+  {
+    name: "Maritime Surface/Air Search Radar",
+    provider: "Classified",
+    type: "Multi-Mode Surveillance Radar",
+    description: "Classified maritime multi-mode radar payload for tethered UAS platforms. Provides surface and air search capability from elevated altitude, extending radar horizon beyond ship-based systems.",
+    capabilities: [
+      "Air and surface target detection",
+      "Extended radar horizon from UAS altitude",
+      "Multi-mode — SAR, GMTI, maritime surface search",
+      "Low-observable target detection",
+      "Automatic target tracking"
+    ],
+    trl: "TRL 7",
+    icon: Radar,
+    category: "RADAR SENSORS",
+    swap: { weight: 6, power: 0.3, size: "small" },
+    statImpacts: { speed: -1, power: -4, weight: 2, range: 5, stealth: -2 },
+    securityLevel: ["ITAR Controlled", "Classified"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      classification: "[Classified]",
+      platform: "DPI Vulture tethered UAS",
+      modes: "Surface search, air search, GMTI",
+      integration: "USW-DSS / RazorChassis FC data link"
+    },
+    keyFeatures: [
+      "Elevates radar line-of-sight beyond surface vessel limits",
+      "Detects low-altitude air threats (Shahed-136, cruise missiles)",
+      "Integrated with HiddenLevel RF for multi-layer sensor fusion"
+    ],
+    missionTags: ["ISR Operations", "Sea Control"]
+  },
+  {
+    name: "Acoustic Marker Receiver",
+    provider: "Thales",
+    type: "Acoustic Sensor",
+    description: "Thales passive acoustic marker receiver deployed by USV for mine detection cueing. Receives acoustic signals from deployed mine markers and indicator buoys, providing precise localization data to the mine clearance commander.",
+    capabilities: [
+      "Passive acoustic reception from mine markers",
+      "Precise localization via time-difference-of-arrival",
+      "Compatible with NATO acoustic marker standards",
+      "Low power — continuous listen mode",
+      "Data fusion with SAS sonar imagery"
+    ],
+    trl: "TRL 8",
+    icon: Waves,
+    category: "ACOUSTIC SENSORS",
+    swap: { weight: 18, power: 0.15, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 2, stealth: 1 },
+    securityLevel: ["NATO Qualified"],
+    securityIcons: ["encrypted"],
+    specs: {
+      type: "Passive acoustic receiver",
+      standard: "NATO acoustic marker compatible",
+      localization: "TDOA-based positioning",
+      powerMode: "Continuous low-power listen"
+    },
+    keyFeatures: [
+      "Detects and localizes deployed mine marker buoys",
+      "Passive — no active emission that could trigger influence mines",
+      "Pairs with Thales SAMDIS SAS for complete MCM sensor suite"
+    ],
+    missionTags: ["MCM", "Mine Clearance"]
+  },
+  {
+    name: "Nammo Swimmer Supercavitating Round",
+    provider: "Nammo",
+    type: "Underwater Munition",
+    description: "Nammo Swimmer (MK 258 Mod 1) — supercavitating 30mm underwater round for mine neutralization at standoff range. Fired from surface USV, the Swimmer generates a supercavitation bubble enabling high-speed underwater travel to neutralize moored and bottom mines.",
+    capabilities: [
+      "Supercavitating underwater travel — minimal hydrodynamic drag",
+      "Standoff mine neutralization — no diver exposure",
+      "Effective against moored and bottom mines",
+      "USV-compatible 30mm launch system",
+      "Precision guidance to mine contact point"
+    ],
+    trl: "TRL 8",
+    icon: Target,
+    category: "WEAPONS",
+    swap: { weight: 4, power: 0, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 2, stealth: -1 },
+    securityLevel: ["NATO Qualified", "ITAR Controlled"],
+    securityIcons: ["hardened"],
+    specs: {
+      type: "Supercavitating underwater round",
+      caliber: "30mm (MK 258 Mod 1)",
+      target: "Moored mines, bottom mines, tethered mines",
+      standoffRange: "100+ m",
+      platform: "SubSeaSail HORUS USV",
+      guidance: "Acoustic-cued targeting"
+    },
+    keyFeatures: [
+      "Zero diver exposure — complete standoff neutralization",
+      "Supercavitation enables high-speed underwater accuracy",
+      "Cued by Micro-SAS SAMDIS contact localization"
+    ],
+    missionTags: ["MCM", "Mine Clearance"]
+  },
+  {
+    name: "Micro-SAS Sonar (SAMDIS)",
+    provider: "Thales",
+    type: "Synthetic Aperture Sonar",
+    description: "Thales SAMDIS (Synthetic Aperture Mine Detection and Identification System) — a hull-mounted micro-SAS sonar for AUV and USV platforms. Provides high-resolution seabed imagery for mine detection and classification.",
+    capabilities: [
+      "High-resolution seabed imagery via synthetic aperture processing",
+      "Mine detection and classification at AUV speed",
+      "Sidescan + SAS modes",
+      "Real-time acoustic contact reporting",
+      "Depth-rated for shallow and deep water MCM"
+    ],
+    trl: "TRL 8",
+    icon: Waves,
+    category: "ACOUSTIC SENSORS",
+    swap: { weight: 25, power: 0.1, size: "small" },  // Real: est. 15-40 kg for 3-beam AUV SAS; ~100W per SAMDIS NG 3x reduction claim
+    statImpacts: { speed: -1, power: -2, weight: 1, range: 3, stealth: 1 },
+    securityLevel: ["NATO Qualified", "ITAR Controlled"],
+    securityIcons: ["encrypted"],
+    specs: {
+      type: "Hull-mounted micro-SAS",
+      designation: "SAMDIS",
+      modes: "Sidescan, SAS",
+      resolution: "High-definition seabed mapping",
+      platform: "Freedom AUV, small USV"
+    },
+    keyFeatures: [
+      "SAS processing — superior resolution vs. conventional sidescan",
+      "Operates at AUV survey speed — no speed sacrifice for image quality",
+      "Outputs classified mine contacts to MCM operator for prosecution decision"
+    ],
+    missionTags: ["MCM", "Mine Clearance", "SURVEY"]
+  },
+  {
+    name: "Acoustic Indicator Buoy",
+    provider: "Oceaneering",
+    type: "MCM Marking System",
+    description: "Oceaneering acoustic indicator buoy deployed by Freedom AUV to mark located mine contacts for prosecution. Transmits encoded acoustic signal received by surface USV acoustic marker receivers, maintaining position of buried or moored mine contacts.",
+    capabilities: [
+      "Acoustic position marking of mine contacts",
+      "Autonomous deployment by AUV",
+      "Encoded frequency — discriminates from background noise",
+      "Depth-rated for shallow water MCM",
+      "Battery life: 24–72 hours"
+    ],
+    trl: "TRL 9",
+    icon: Anchor,
+    category: "MCM SYSTEMS",
+    swap: { weight: 2.5, power: 0.05, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 1, stealth: 0 },
+    securityLevel: ["NATO Qualified"],
+    securityIcons: [],
+    specs: {
+      deployMethod: "AUV payload bay",
+      signalType: "Encoded acoustic transponder",
+      endurance: "24–72 hours",
+      depth: "Shallow water rated",
+      receiver: "Thales Acoustic Marker Receiver"
+    },
+    keyFeatures: [
+      "Closes the AUV detection → surface prosecution handoff chain",
+      "Eliminates need for repeat AUV passes to re-locate contacts",
+      "Pairs with Thales Acoustic Marker Receiver on HORUS USV"
+    ],
+    missionTags: ["MCM", "Mine Clearance"]
+  },
+  {
+    name: "EvoLogics Acoustic Modem",
+    provider: "EvoLogics",
+    type: "Underwater Acoustic Modem",
+    description: "EvoLogics S2C series underwater acoustic modem for AUV-to-surface communications. Provides bi-directional data link between submerged Freedom AUV and surface HORUS USV, transmitting mine contact data without surfacing.",
+    capabilities: [
+      "Bi-directional underwater acoustic data link",
+      "AUV-to-surface comms without surfacing",
+      "OFDM modulation — multipath tolerant",
+      "Integrated USBL positioning",
+      "Real-time mine contact data transmission"
+    ],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "COMMUNICATIONS",
+    swap: { weight: 1.8, power: 0.05, size: "small" },  // Real: peak TX 40-65W; 1.8 kg reasonable for mid-size modem (evologics.de spec table)
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 2, stealth: -1 },
+    securityLevel: ["NATO Qualified", "CE Certified"],
+    securityIcons: ["encrypted"],
+    specs: {
+      series: "EvoLogics S2C",
+      modulation: "OFDM (multipath tolerant)",
+      positioning: "Integrated USBL",
+      dataRate: "Up to 31.2 kbps",
+      range: "Up to 3,500 m"
+    },
+    keyFeatures: [
+      "Enables Freedom AUV to report mine contacts without breaking depth",
+      "USBL positioning confirms AUV and buoy locations simultaneously",
+      "Deployed across 50+ navies on AUV and ROV platforms"
+    ],
+    missionTags: ["MCM", "Mine Clearance", "ASW"]
+  },
+  {
+    name: "LOS Mesh Radio",
+    provider: "Persistent Systems",
+    type: "Line-of-Sight Mesh Radio",
+    description: "Persistent Systems Wave Relay MPU5 — a mobile ad-hoc mesh networking radio used across US military autonomous platforms. Provides direct LOS data links between surface USVs and AUVs at/near the surface, enabling high-bandwidth mine contact data exchange without satellite dependency.",
+    capabilities: [
+      "Mobile ad-hoc mesh networking (MANET)",
+      "High-bandwidth peer-to-peer LOS data link",
+      "Self-healing mesh — nodes route around failures",
+      "Video, voice, and data over single waveform",
+      "Compatible with ATAK / TAK tactical picture sharing"
+    ],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "COMMUNICATIONS",
+    swap: { weight: 0.39, power: 0.04, size: "small" },  // Real: 391g per PS spec sheet Rev.R; 40W peak TX / ~20W avg
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
+    securityLevel: ["FIPS 140-2 Encrypted", "NSA Type 1 Compatible", "SOF Qualified"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      waveform: "Wave Relay MANET",
+      frequency: "900 MHz / 2.4 GHz / 4.9 GHz",
+      dataRate: "Up to 100 Mbps",
+      range: "Up to 100 km line-of-sight",
+      encryption: "AES-256 / NSA Type 1",
+      formFactor: "MPU5 — 227g, IP67 rated"
+    },
+    keyFeatures: [
+      "Self-forming, self-healing mesh — no central infrastructure required",
+      "Used by SOCOM, US Army, US Navy across manned and autonomous platforms",
+      "Bridges SubSeaSail HORUS and Freedom AUV for real-time MCM coordination",
+      "Handles video feeds from AUV cameras alongside mine contact data"
+    ],
+    missionTags: ["MCM", "Mine Clearance", "PORT_SECURITY", "ISR Patrol"]
+  },
+  // ─── Kinetic Effects payloads ──────────────────────────────────────────────
+  {
+    name: "Mk 70 Payload Delivery System",
+    provider: "Lockheed Martin / US Navy",
+    type: "Containerized VLS",
+    description: "Containerized Mk 41 VLS — 4 cells per 40-ft FEU ISO container. Fires Tomahawk Block V Maritime Strike, SM-6 (RIM-174), and future HALO. Human-in-the-loop fire control required per DODD 3000.09.",
+    capabilities: [
+      "Tomahawk Block V Maritime Strike (MST)",
+      "SM-6 (RIM-174) Anti-Ship / BMD",
+      "Future HALO missile compatible",
+      "ISO 40-ft FEU containerized",
+      "DODD 3000.09 HITL fire control",
+      "Time-on-target salvo coordination"
+    ],
+    trl: "TRL 9",
+    icon: Zap,
+    category: "KINETIC WEAPONS",
+    swap: {
+      weight: 18000,
+      power: 75,
+      size: "xlarge"
+    },
+    statImpacts: {
+      speed: -4,
+      power: -20,
+      weight: 20,
+      range: -10,
+      stealth: -8
+    },
+    specs: {
+      containerFormat: "40-ft FEU ISO",
+      vlsCellsPerContainer: "4",
+      compatibleMissiles: "Tomahawk Block V MST · SM-6 (RIM-174) · HALO (future)",
+      powerRequirement: "75 kW per container",
+      weightLoaded: "~18 metric tons per container",
+      fireControl: "Human authorization required before each launch",
+      navigation: "GPS-hardened + GPS-denied INS backup"
+    },
+    securityLevel: ["DODD 3000.09 Compliant", "HITL Fire Control", "Two-Person Integrity"],
+    securityIcons: ["milstd", "encrypted"],
+    keyFeatures: [
+      "Drop-in ISO container — fits any 40-ft FEU mount on MASC/USV hull",
+      "4 VLS cells per container; 2–4 containers per hull depending on configuration",
+      "Tomahawk Block V MST: 900+ nm range, GPS-denied terminal guidance",
+      "SM-6: dual anti-ship / anti-air / BMD capability from a USV hull",
+      "Fire control enforces human authorization before each individual launch",
+      "Unauthorized launch attempt triggers automatic hold-fire lockout"
+    ],
+    integrationNotes: "Mk 70 PDS integrates with TempestOS fire control via Drawbridge encrypted SATCOM link. Authorization chain recorded in mission audit log with timestamps and classification markings. Containerized format enables rapid swap between hulls — MASC Baseline (2×), MASC High-Capacity (4×), Saildrone Spectre MUSV (1×).",
+    missionTags: ["KINETIC_EFFECTS", "Long-Range Strike", "Saturation Strike", "Persistent Strike"]
+  },
+  {
+    name: "Hammerhead Mine Module",
+    provider: "General Dynamics Mission Systems / US Navy",
+    type: "Encapsulated Torpedo-Mine",
+    description: "Gravity-drop encapsulated torpedo-mine for XLUUV payload bays. Mk 54 warhead. 12–24 mines per Boeing Orca XLUUV payload module. Acoustic activation/deactivation — Hague VIII compliant controlled mine.",
+    capabilities: [
+      "Gravity-drop deployment from XLUUV bay",
+      "Mk 54 torpedo warhead",
+      "Remote acoustic command activation",
+      "Remote acoustic deactivation (Hague VIII)",
+      "Unique acoustic activation code per mine",
+      "Field-inert on deployment until commander activates"
+    ],
+    trl: "TRL 9",
+    icon: Anchor,
+    category: "KINETIC WEAPONS",
+    swap: {
+      weight: 800,        // Real: Mk 54 torpedo 276 kg + encapsulation/mooring/sensors; CAPTOR comparator 933 kg
+      power: 0,
+      size: "medium"
+    },
+    statImpacts: {
+      speed: -2,
+      power: 0,
+      weight: 8,
+      range: -5,
+      stealth: 0
+    },
+    specs: {
+      warhead: "Mk 54",
+      loadoutPerOrca: "12–24 mines per XLUUV payload module",
+      activation: "Remote acoustic command by authorized commander",
+      deactivation: "Acoustic deactivation — full field clearance possible",
+      legalStatus: "Controlled mine — Hague VIII compliant",
+      deploymentMethod: "Gravity-drop from Boeing Orca XLUUV payload bay",
+      deploymentDepth: "Up to 200 ft subsurface"
+    },
+    securityLevel: ["DODD 3000.09 Compliant", "HITL Activation Control", "Hague VIII Compliant"],
+    securityIcons: ["milstd", "encrypted"],
+    keyFeatures: [
+      "Inert on deployment — activation requires explicit commander acoustic command",
+      "Full deactivation acoustic signal clears entire field on demand",
+      "Unique acoustic code per mine — enables selective activation/deactivation",
+      "Hague VIII compliant: mines cannot be left uncontrolled",
+      "Delivered by Boeing Orca XLUUV — 6,500 nm submerged range, undetected delivery",
+      "Mk 54 warhead optimized for surface and subsurface threats"
+    ],
+    integrationNotes: "Hammerhead loads into Boeing Orca XLUUV payload bay. Deployment authorization recorded in TempestOS mission audit log. Acoustic activation codes generated and held by authorized commander only — not stored aboard the Orca. Post-deployment, Orca surfaces and reports mine field geometry via SATCOM to TempestOS.",
+    missionTags: ["KINETIC_EFFECTS", "Offensive Mining", "Clandestine Mining"]
+  },
+  // ============ MISSION-REFERENCED CAPABILITIES (added to resolve missing catalog entries) ============
+  {
+    name: "Sprint & Drift Transit",
+    provider: "US Navy / Caliburn",
+    type: "ASW Patrol Mode",
+    description: "Standard ASW patrol tactic in which a vessel alternates between high-speed sprints (15–20 kt) and slow passive-sonar drift periods (3–5 kt). Sprints reposition the vessel while drift periods enable the towed array to acquire passive contacts without self-noise masking. Implemented as an autonomous behavior mode within TempestOS / MOOS-IvP.",
+    capabilities: [
+      "Passive sonar low-noise drift mode",
+      "High-speed repositioning sprint",
+      "Automated sprint/drift cycle management",
+      "Acoustic self-noise suppression",
+      "Contact hold during sprint transitions"
+    ],
+    trl: "TRL 9",
+    icon: Waves,
+    category: "UNMANNED SYSTEMS",
+    swap: { weight: 0, power: 0.05, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 4 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: {
+      sprintSpeed: "15–20 kt",
+      driftSpeed: "3–5 kt",
+      cycleLength: "Operator-configurable",
+      integration: "TempestOS / MOOS-IvP behavior module",
+      sonarMode: "Passive towed array during drift"
+    },
+    missionTags: ["ASW", "Sea Control"]
+  },
+  {
+    name: "RazorChassis C5ISR Link",
+    provider: "RazorChassis",
+    type: "C5ISR Data Link",
+    description: "RazorChassis C5ISR integration layer that formats autonomous platform sensor data — including PLA radar gap geometry, UAV track data, and SIGINT contacts — as actionable C5ISR products and pushes them to fleet command via encrypted SATCOM. Complements the fire-control variant by serving intelligence consumers rather than weapons systems.",
+    capabilities: [
+      "C5ISR product formatting from autonomous sensors",
+      "PLA radar gap geometry dissemination",
+      "Encrypted SATCOM uplink to fleet CIC",
+      "UAV track reporting to 7th Fleet CTF-77",
+      "Multi-INT fusion for intelligence products"
+    ],
+    trl: "TRL 7",
+    icon: Signal,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 0, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "Encrypted"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      interface: "7th Fleet CTF-77 CIC compatible",
+      uplink: "Encrypted SATCOM",
+      latency: "< 5 seconds sensor-to-CIC",
+      products: "Gap geometry, UAV tracks, SIGINT contacts"
+    },
+    missionTags: ["ISR Operations", "Sea Control", "RECONNAISSANCE"]
+  },
+  {
+    name: "Blue Force Cue Response",
+    provider: "Caliburn / TAK Product Center",
+    type: "Blue Force Tracking Response Module",
+    description: "Automated system module that monitors incoming Blue Force Track (BFT) cues from the common operating picture and triggers autonomous platform responses — repositioning, sensor slewing, or intercept maneuvers — without requiring operator action on each cue. Integrates TAK Cursor-on-Target BFT feeds with TempestOS mission behavior engine.",
+    capabilities: [
+      "Automated BFT cue ingestion",
+      "Autonomous platform repositioning on cue",
+      "Sensor slewing to cued bearing",
+      "Intercept maneuver generation",
+      "CoT / TAK COP integration"
+    ],
+    trl: "TRL 7",
+    icon: Shield,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 0, power: 0.05, size: "small" },
+    statImpacts: { speed: 1, power: 0, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["Government Purpose Rights"],
+    securityIcons: ["milstd"],
+    specs: {
+      cueSource: "TAK CoT / Link-16 Blue Force Track",
+      responseLatency: "< 3 seconds cue-to-maneuver",
+      integration: "TempestOS TMS pub/sub",
+      platforms: "USV, UUV, tethered UAS"
+    },
+    missionTags: ["ISR Operations", "Sea Control", "PORT_SECURITY"]
+  },
+  {
+    name: "PLA Radar Gap Mapping",
+    provider: "Saildrone / Caliburn",
+    type: "SIGINT / Coverage Analysis",
+    description: "Passive SIGINT collection and analysis capability that maps radar coverage gaps in PLA sensor networks by cross-correlating emission intercepts with known PLA radar positions. Saildrone Voyager platforms conduct zero-emission drift patrols, passively logging PLA radar intercepts and uploading gap geometry to TempestOS Drawbridge for fleet routing.",
+    capabilities: [
+      "Passive PLA radar intercept collection",
+      "Coverage gap geometry computation",
+      "Acoustic SATCOM covert uplink",
+      "Fleet routing window dissemination",
+      "Persistent zero-emission patrol"
+    ],
+    trl: "TRL 6",
+    icon: Radar,
+    category: "SIGNALS INTELLIGENCE",
+    swap: { weight: 5, power: 0.3, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 0, stealth: 6 },
+    securityLevel: ["Passive — No RF Emissions", "ITAR Controlled"],
+    securityIcons: ["encrypted"],
+    specs: {
+      collectionMethod: "Passive ESM intercept only",
+      platform: "Saildrone Voyager",
+      uplink: "TempestOS Drawbridge acoustic SATCOM",
+      output: "Gap geometry GeoJSON / KML",
+      endurance: "Up to 365 days"
+    },
+    missionTags: ["ISR Operations", "RECONNAISSANCE", "Sea Control"]
+  },
+  {
+    name: "Over-Horizon ISR Screen",
+    provider: "SubSeaSail / Northrop Grumman",
+    type: "Extended-Range ISR Screen",
+    description: "ISR screening line positioned beyond the radio and optical horizon of the protected force, using low-observable USV platforms (SubSeaSail HORUS) equipped with passive ESM and towed sonar. Provides early warning of contacts before they reach line-of-sight detection range, with data relayed over satellite.",
+    capabilities: [
+      "Beyond line-of-sight early warning",
+      "Passive surface and subsurface contact detection",
+      "SATCOM relay to protected force COP",
+      "Low-observable USV platform",
+      "EMCON-compliant silent screening"
+    ],
+    trl: "TRL 7",
+    icon: Eye,
+    category: "ISR & SURVEILLANCE",
+    swap: { weight: 10, power: 0.4, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 5, stealth: 4 },
+    securityLevel: ["Passive Sensors", "EMCON Compliant"],
+    securityIcons: ["encrypted"],
+    specs: {
+      screenRange: "30–80 nm ahead of protected force",
+      platform: "SubSeaSail HORUS USV",
+      sensors: "Passive ESM + MFTA towed array",
+      dataLink: "SATCOM relay to fleet COP",
+      emcon: "Zero RF emissions during screening"
+    },
+    missionTags: ["ISR Operations", "ASW", "Sea Control", "RECONNAISSANCE"]
+  },
+  {
+    name: "Acoustic Contact Relay",
+    provider: "EvoLogics / Caliburn",
+    type: "Underwater Acoustic Data Relay",
+    description: "System for relaying acoustic sonar contact data from submerged or surface sensor nodes to command elements via underwater acoustic modem and surface SATCOM gateway. Enables prosecution of contacts detected beyond direct radio range without breaking sensor platform EMCON.",
+    capabilities: [
+      "Underwater acoustic contact data transmission",
+      "Surface SATCOM gateway relay",
+      "Contact track and classification forwarding",
+      "EMCON-preserving relay architecture",
+      "Multi-hop relay chain support"
+    ],
+    trl: "TRL 8",
+    icon: Waves,
+    category: "COMMUNICATIONS",
+    swap: { weight: 3, power: 0.25, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 4, stealth: 2 },
+    securityLevel: ["Encrypted Acoustic Link"],
+    securityIcons: ["encrypted"],
+    specs: {
+      acousticModem: "EvoLogics S2C OFDM",
+      dataRate: "Up to 31.2 kbps",
+      relayRange: "Up to 3,500 m acoustic + SATCOM",
+      contactData: "Track, classification, bearing, range",
+      emcon: "Acoustic only — no RF during relay"
+    },
+    missionTags: ["ASW", "Sea Control", "ISR Operations"]
+  },
+  {
+    name: "TempestOS PoL Node",
+    provider: "Caliburn",
+    type: "Pattern of Life Analysis Node",
+    description: "TempestOS Pattern of Life (PoL) analysis node that aggregates multi-platform sensor tracks over time to build behavioral baselines for vessels and contacts in the area of operations. Anomaly detection algorithms flag deviations from established patterns, cueing operators and downstream targeting systems.",
+    capabilities: [
+      "Multi-platform track aggregation",
+      "Behavioral baseline modeling",
+      "Anomaly detection and alerting",
+      "Pattern of life reporting",
+      "Tipping and cueing relay to COP"
+    ],
+    trl: "TRL 6",
+    icon: Brain,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 0, power: 0.3, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
+    securityLevel: ["Encrypted", "DDIL Capable"],
+    securityIcons: ["encrypted", "ddil"],
+    specs: {
+      trackSources: "AIS, radar, EO/IR, ESM, acoustic",
+      baselineWindow: "Configurable 24h–30 day",
+      anomalyLatency: "< 60 seconds",
+      integration: "TempestOS TMS pub/sub",
+      output: "CoT PoL events to TAK COP"
+    },
+    missionTags: ["ISR Operations", "RECONNAISSANCE", "Sea Control"]
+  },
+  {
+    name: "Site-Clear Relay Authorization",
+    provider: "TrellisWare / Caliburn",
+    type: "Command Authorization Relay",
+    description: "Encrypted command relay system that transmits site-clearance authorization from a command element to forward autonomous platforms — enabling time-critical actions such as bow ramp deployment or breach-team insertion. Uses TrellisWare TSM mesh radio for jam-resistant short-range relay, with dual-key authorization to prevent unauthorized execution.",
+    capabilities: [
+      "Encrypted site-clearance command relay",
+      "Dual-key authorization enforcement",
+      "Jam-resistant TSM mesh radio",
+      "Audit log of all authorization events",
+      "Forward platform acknowledgment receipt"
+    ],
+    trl: "TRL 7",
+    icon: Lock,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 2, power: 0.08, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: -1 },
+    securityLevel: ["Dual-Key Authorization", "End-to-End Encrypted", "ITAR Controlled"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      radio: "TrellisWare TSM mesh",
+      authModel: "Dual-key — two independent authorizing parties",
+      latency: "< 1 second relay delivery",
+      range: "Up to 5 km LOS mesh",
+      auditLog: "TempestOS immutable mission log"
+    },
+    missionTags: ["PORT_SECURITY", "Sea Control"]
+  },
+  {
+    name: "Armed Surface Escort",
+    provider: "MARTAC / Northrop Grumman",
+    type: "Armed USV Escort",
+    description: "Armed unmanned surface vessel configured for close-in escort of high-value units (HVU). MARTAC T82 Devil Ray USV armed with a M240 ROWS mount and Rafael Spike ER2 ATGMs. Provides a crewless armed picket that engages surface threats within engagement range while maintaining station on the HVU.",
+    capabilities: [
+      "Close-in armed escort of HVU",
+      "M240 ROWS surface threat engagement",
+      "Spike ER2 ATGM anti-surface capability",
+      "Station-keeping relative to HVU",
+      "Threat engagement without crew exposure"
+    ],
+    trl: "TRL 8",
+    icon: Shield,
+    category: "KINETIC WEAPONS",
+    swap: { weight: 650, power: 4.0, size: "medium" },
+    statImpacts: { speed: -1, power: -5, weight: 5, range: -2, stealth: -2 },
+    securityLevel: ["DODD 3000.09 Compliant", "HITL Fire Control"],
+    securityIcons: ["milstd", "hardened"],
+    specs: {
+      platform: "MARTAC T82 Devil Ray USV",
+      weapons: "M240 ROWS + Rafael Spike ER2 ATGM",
+      escortRadius: "500–2,000 m from HVU",
+      speed: "Up to 50 kt sprint",
+      engagement: "Human-authorized weapons release"
+    },
+    missionTags: ["Sea Control", "Force Protection"]
+  },
+  {
+    name: "Threat Intercept Screen",
+    provider: "Northrop Grumman / Epirus",
+    type: "Layered Defense Screen",
+    description: "Coordinated screening layer combining RF-negation (Epirus Leonidas HPM), interceptor USVs, and passive detection to intercept incoming surface and air threats before they reach the protected force. Integrates DRAKE counter-UAS and armed escort USVs into a managed threat intercept zone.",
+    capabilities: [
+      "Layered RF-negation and kinetic intercept",
+      "Coordinated multi-platform engagement",
+      "Epirus Leonidas HPM against drone swarms",
+      "DRAKE counter-UAS RF defeat",
+      "Surface threat intercept by armed USV"
+    ],
+    trl: "TRL 7",
+    icon: ShieldCheck,
+    category: "ELECTRONIC PROTECTION",
+    swap: { weight: 0, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 0, range: 2, stealth: -3 },
+    securityLevel: ["DODD 3000.09 Compliant"],
+    securityIcons: ["milstd", "hardened"],
+    specs: {
+      layers: "HPM RF-negation + interceptor USV + DRAKE C-UAS",
+      coordinationSystem: "TempestOS threat management module",
+      engagement: "Human-authorized kinetic release",
+      coverage: "360-degree threat sector management"
+    },
+    missionTags: ["Sea Control", "Force Protection", "SEA_DENIAL"]
+  },
+  {
+    name: "Encrypted Mesh Link to T82",
+    provider: "TrellisWare",
+    type: "Tactical Encrypted Mesh Radio Link",
+    description: "TrellisWare TSM (Tactical MANET) encrypted mesh radio link between a scout platform (MANTAS T12) and a MARTAC T82 command vessel. Provides low-latency, jam-resistant data exchange for site-clearance relay, sensor data sharing, and coordinated maneuver. AES-256 encrypted, operates in DDIL environments.",
+    capabilities: [
+      "Encrypted LOS mesh radio link",
+      "MANTAS T12 ↔ T82 direct data exchange",
+      "Site-clearance relay authorization",
+      "Jam-resistant MANET waveform",
+      "DDIL resilient mesh topology"
+    ],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "RF COMMUNICATIONS",
+    swap: { weight: 0.53, power: 0.012, size: "small" },  // Real: TW-950 = 531g with battery (trellisware.com datasheet)
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
+    securityLevel: ["AES-256 Encrypted", "NSA Type 1 Compatible", "DDIL Capable"],
+    securityIcons: ["encrypted", "ddil"],
+    specs: {
+      radio: "TrellisWare TSM MANET",
+      encryption: "AES-256 / NSA Type 1",
+      range: "Up to 10 km surface LOS",
+      dataRate: "Up to 20 Mbps",
+      latency: "< 10 ms",
+      platforms: "MANTAS T12, MARTAC T82, MARTAC M80"
+    },
+    missionTags: ["PORT_SECURITY", "Sea Control", "Force Protection"]
+  },
+  {
+    name: "Wide-Area Target Cue",
+    provider: "Northrop Grumman / Raytheon",
+    type: "Wide-Area Sensor Cueing",
+    description: "Wide-area sensor cueing capability that fuses MQ-4C Triton AN/ZPY-3 radar contacts with SIGINT and AIS data to generate fire-control-quality target cues across a maritime patrol area. Provides persistent wide-area maritime surveillance and delivers actionable target cues to strike C2 platforms and fire control systems.",
+    capabilities: [
+      "Wide-area maritime target cueing",
+      "MQ-4C Triton AN/ZPY-3 AESA radar fusion",
+      "SIGINT correlation with radar contacts",
+      "Fire-control-quality track generation",
+      "Real-time cue dissemination to strike C2"
+    ],
+    trl: "TRL 8",
+    icon: Target,
+    category: "SENSORS & DETECTION",
+    swap: { weight: 0, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 5, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "NSA-Approved Crypto"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      sensorPlatform: "MQ-4C Triton (AN/ZPY-3 AESA radar)",
+      surveillanceRange: "7 million sq km per sortie",
+      trackQuality: "Fire-control grade",
+      cueDissemination: "Link-16 / RazorChassis FC link",
+      latency: "< 30 seconds contact-to-cue"
+    },
+    missionTags: ["ISR Operations", "KINETIC_EFFECTS", "Sea Control"]
+  },
+  {
+    name: "Strike C2",
+    provider: "Caliburn / Leidos",
+    type: "Strike Command and Control",
+    description: "Strike C2 node that integrates sensor cues, target designation data, and weapons status to produce execution-ready strike orders. Manages target prioritization, deconfliction, time-on-target coordination, and post-strike BDA initiation. Operates as a containerized TempestOS workload on a dedicated C2 USV, with all launch actions requiring DODD 3000.09 human authorization.",
+    capabilities: [
+      "Target prioritization and deconfliction",
+      "Time-on-target salvo coordination",
+      "Weapons status monitoring",
+      "DODD 3000.09 human-in-the-loop enforcement",
+      "Post-strike BDA task generation"
+    ],
+    trl: "TRL 7",
+    icon: Brain,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 0, power: 0.5, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 0, range: 3, stealth: 0 },
+    securityLevel: ["DODD 3000.09 Compliant", "HITL Authorization", "End-to-End Encrypted"],
+    securityIcons: ["milstd", "encrypted"],
+    specs: {
+      platform: "TempestOS containerized workload",
+      interfaces: "RazorChassis FC link, USW-DSS, TAK COP",
+      authorization: "Human operator required for all strike execution",
+      coordination: "Time-on-target salvo, multi-platform deconfliction",
+      auditLog: "Immutable TempestOS strike log"
+    },
+    missionTags: ["KINETIC_EFFECTS", "Sea Control", "Long-Range Strike"]
+  },
+  {
+    name: "Target Designation",
+    provider: "Northrop Grumman / L3Harris",
+    type: "Laser / Data-Link Target Designation",
+    description: "Combined laser and data-link target designation capability providing precise target coordinates to strike weapons. Northrop Grumman NGHTS laser designator illuminates for precision-guided munitions; L3Harris data-link outputs designation-quality track to Mk 70 PDS and fire control systems. Dual-mode ensures redundancy across EO/laser-guided and GPS/data-link-guided weapon types.",
+    capabilities: [
+      "Laser designation for precision-guided munitions",
+      "Data-link designation-quality track output",
+      "EO/IR target identification before designation",
+      "Mk 70 PDS / fire control interface",
+      "Dual-mode laser + data-link redundancy"
+    ],
+    trl: "TRL 9",
+    icon: Target,
+    category: "EO/IR SENSORS",
+    swap: { weight: 10, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 2, stealth: -2 },
+    securityLevel: ["ITAR Controlled", "Encrypted Data Link"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      laserDesignator: "Northrop Grumman NGHTS",
+      dataLink: "L3Harris designation-quality track output",
+      range: "Up to 15 km laser designation",
+      compatibility: "Paveway, JDAM-ER, Mk 70 PDS",
+      guidance: "Laser + GPS/INS dual-mode"
+    },
+    missionTags: ["KINETIC_EFFECTS", "Sea Control", "ISR Operations"]
+  },
+  {
+    name: "BDA Assessment",
+    provider: "Caliburn / FLIR Systems",
+    type: "Battle Damage Assessment",
+    description: "Post-strike Battle Damage Assessment (BDA) capability combining EO/IR imagery from persistent USV platforms with SAR data fusion to assess weapon effect and confirm target kill. TempestOS PoL engine compares pre- and post-strike sensor baselines to quantify damage and identify re-strike requirements, feeding results back to Strike C2.",
+    capabilities: [
+      "Post-strike EO/IR imagery collection",
+      "SAR imagery fusion for structural BDA",
+      "Pre/post-strike baseline comparison",
+      "Kill probability assessment",
+      "Re-strike recommendation generation"
+    ],
+    trl: "TRL 6",
+    icon: Eye,
+    category: "ISR & SURVEILLANCE",
+    swap: { weight: 0, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "Encrypted"],
+    securityIcons: ["encrypted"],
+    specs: {
+      sensors: "EO/IR (FLIR), SAR fusion",
+      assessmentLatency: "< 15 minutes post-strike",
+      integration: "TempestOS PoL + Strike C2",
+      output: "BDA report to TAK COP + Strike C2",
+      confidence: "Kill probability scoring"
+    },
+    missionTags: ["KINETIC_EFFECTS", "ISR Operations", "Sea Control"]
+  },
+  {
+    name: "Area Denial",
+    provider: "Northrop Grumman / US Navy",
+    type: "Sea Area Denial System",
+    description: "Sea area denial capability combining controlled mine fields (Hammerhead encapsulated torpedo-mines deployed by Boeing Orca XLUUV) with surface barrier USVs armed with Spike ER2 ATGMs. Denies adversary surface and submarine passage through a designated area, with all activation and engagement actions subject to DODD 3000.09 human authorization.",
+    capabilities: [
+      "Controlled mine field emplacement",
+      "USV surface barrier patrol",
+      "Spike ER2 surface threat engagement",
+      "Acoustic mine activation / deactivation",
+      "DODD 3000.09 activation control"
+    ],
+    trl: "TRL 8",
+    icon: Ban,
+    category: "KINETIC WEAPONS",
+    swap: { weight: 0, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
+    securityLevel: ["DODD 3000.09 Compliant", "Hague VIII Compliant", "HITL Activation"],
+    securityIcons: ["milstd", "hardened"],
+    specs: {
+      mineSystem: "Hammerhead Module (Mk 54 warhead, acoustic activation)",
+      barrierUSV: "MARTAC M80 Stiletto armed variant",
+      denialArea: "Configurable — up to 200 sq nm",
+      clearanceTime: "Acoustic deactivation on command",
+      activation: "Commander acoustic authorization only"
+    },
+    missionTags: ["KINETIC_EFFECTS", "SEA_DENIAL", "Offensive Mining"]
+  },
+  {
+    name: "cUxS Escort Picket",
+    provider: "Epirus / Northrop Grumman",
+    type: "Counter-Unmanned Systems Escort",
+    description: "Counter-unmanned systems (cUxS) escort picket combining Epirus Leonidas H2O high-power microwave weapon and Coyote Block 3 NK interceptors on MASC USV platforms. Provides 360-degree protection against drone and USV swarms threatening an HVU transit, with MASC vessels maintaining flanking picket positions relative to the carrier.",
+    capabilities: [
+      "High-power microwave drone/swarm defeat",
+      "Coyote Block 3 NK interceptor magazine",
+      "360-degree swarm approach coverage",
+      "HVU escort station-keeping",
+      "Coordinated multi-platform engagement"
+    ],
+    trl: "TRL 7",
+    icon: ShieldCheck,
+    category: "ELECTRONIC PROTECTION",
+    swap: { weight: 2500, power: 25, size: "large" },
+    statImpacts: { speed: -2, power: -15, weight: 8, range: -3, stealth: -4 },
+    securityLevel: ["DODD 3000.09 Compliant", "HITL Fire Control"],
+    securityIcons: ["milstd", "hardened"],
+    specs: {
+      hpmSystem: "Epirus Leonidas H2O",
+      interceptors: "Coyote Block 3 NK (×8 per MASC)",
+      detectionRadar: "HiddenLevel Passive RF Array",
+      coverageArc: "360 degrees",
+      platform: "MASC Baseline USV"
+    },
+    missionTags: ["Force Protection", "Sea Control", "SEA_DENIAL"]
+  },
+  {
+    name: "Advance Screen 5nm Ahead",
+    provider: "Anduril / Shadow Fox",
+    type: "Advance Screening Position",
+    description: "Tactical screening position held 5 nautical miles ahead of a protected asset (HVU or transit group) by a fast autonomous surface vessel. The advance screen provides early warning of surface threats, UAS approach vectors, and mines or obstacles ahead of the HVU track, relaying contacts to the escort force before they enter engagement range.",
+    capabilities: [
+      "5 nm advance position maintenance",
+      "Surface threat early warning",
+      "UAS approach vector detection",
+      "Mine and obstacle cueing",
+      "Real-time contact relay to escort COP"
+    ],
+    trl: "TRL 7",
+    icon: Compass,
+    category: "UNMANNED SYSTEMS",
+    swap: { weight: 0, power: 0.1, size: "small" },
+    statImpacts: { speed: 2, power: 0, weight: 0, range: 3, stealth: 1 },
+    securityLevel: ["Encrypted Comms"],
+    securityIcons: ["encrypted"],
+    specs: {
+      screenDistance: "5 nm ahead of HVU",
+      platform: "Shadow Fox ASV or MASC-variant",
+      sensors: "HiddenLevel Passive RF + Teledyne FLIR EO/IR",
+      contactRelay: "Mesh radio to escort COP",
+      responseTime: "< 30 seconds surface contact to escort alert"
+    },
+    missionTags: ["Force Protection", "Sea Control", "ISR Operations"]
+  },
+  {
+    name: "Fire Control Cueing",
+    provider: "Leidos / Caliburn",
+    type: "Fire Control Cueing System",
+    description: "USW-DSS-derived fire control cueing system that upgrades contact-quality tracks from USV sensor platforms to fire-control-quality designation, enabling direct weapons engagement from shipboard fire control systems. Fuses Persistent Systems MPU5 SDR Link-16 tracks with USW-DSS contact data to produce engagement-ready solutions.",
+    capabilities: [
+      "Contact-to-fire-control track upgrade",
+      "USW-DSS / Persistent Systems MPU5 SDR data fusion",
+      "Link-16 fire control quality track output",
+      "Multi-platform contact correlation",
+      "Engagement solution generation"
+    ],
+    trl: "TRL 8",
+    icon: Target,
+    category: "COMMAND & CONTROL",
+    swap: { weight: 0, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "Encrypted"],
+    securityIcons: ["encrypted", "hardened"],
+    specs: {
+      trackSources: "USW-DSS AN/UYQ-100 + Persistent Systems MPU5 SDR + surface radar",
+      outputQuality: "Fire-control grade (Link-16 J3.5)",
+      latency: "< 5 seconds contact-to-FC-track",
+      integration: "Aegis / SPY fire control, Mk 70 PDS",
+      platforms: "M48 ISR USV"
+    },
+    missionTags: ["ASW", "Sea Control", "ISR Operations"]
+  },
+  {
+    name: "Anti-Swarm Defense",
+    provider: "Epirus",
+    type: "High-Power Microwave Anti-Swarm System",
+    description: "Epirus Leonidas H2O solid-state high-power microwave (HPM) weapon system designed specifically to defeat drone and USV swarm attacks. Radiates a directed microwave beam that disables electronics across multiple targets simultaneously, enabling a single HPM emitter to defeat dozens of attacking drones per engagement. Deployed on MASC USV hull.",
+    capabilities: [
+      "Simultaneous multi-target drone defeat",
+      "Solid-state HPM — no reload required",
+      "Effective against Groups 1–3 UAS",
+      "Defeats hardened drone electronics",
+      "360-degree engagement (slew-to-cue)"
+    ],
+    trl: "TRL 7",
+    icon: Zap,
+    category: "DIRECTED ENERGY",
+    swap: { weight: 1200, power: 50, size: "large" },  // Real: HPM operational input ~50-100 kW; 20 kW was standby only
+    statImpacts: { speed: -2, power: -18, weight: 6, range: -3, stealth: -6 },
+    securityLevel: ["DODD 3000.09 Compliant"],
+    securityIcons: ["milstd", "hardened"],
+    specs: {
+      system: "Epirus Leonidas H2O",
+      technology: "Solid-state high-power microwave (HPM)",
+      targets: "Groups 1–3 UAS, small USVs",
+      engagements: "Unlimited (no consumable)",
+      power: "~20 kW peak",
+      platform: "MASC Baseline USV"
+    },
+    keyFeatures: [
+      "Defeats entire drone swarms in a single engagement",
+      "No consumable — unlimited shots while powered",
+      "Operational in maritime salt-spray environment (H2O variant)",
+      "Deployed with US Army and USAF — first USV maritime integration"
+    ],
+    missionTags: ["Force Protection", "SEA_DENIAL", "Sea Control"]
+  },
+  {
+    name: "Persistent HVU Screen",
+    provider: "Zero USV / Caliburn",
+    type: "Persistent High-Value Unit Screen",
+    description: "Continuous autonomous screening of a high-value unit (HVU) by a dedicated fast-response USV that maintains a persistent picket position relative to the HVU track. The Zero USV Oceanus provides 24/7 coverage, conducting active surface surveillance, threat detection, and acting as a mesh radio C2 node — maintaining station at all sea states.",
+    capabilities: [
+      "24/7 persistent picket relative to HVU",
+      "High-speed intercept response",
+      "Active surface surveillance",
+      "Mesh radio C2 relay node",
+      "All-weather sea-state persistent ops"
+    ],
+    trl: "TRL 7",
+    icon: Shield,
+    category: "UNMANNED SYSTEMS",
+    swap: { weight: 0, power: 0.1, size: "small" },
+    statImpacts: { speed: 2, power: 0, weight: 0, range: 2, stealth: 1 },
+    securityLevel: ["Encrypted Comms"],
+    securityIcons: ["encrypted"],
+    specs: {
+      platform: "Zero USV Oceanus",
+      positionKeeping: "Relative to HVU ± 500 m",
+      speed: "Up to 40 kt sprint response",
+      endurance: "72+ hours autonomous",
+      commsRelay: "Persistent Systems Wave Relay mesh node"
+    },
+    missionTags: ["Force Protection", "Sea Control", "ISR Operations"]
+  },
+  {
+    name: "Zero-RF Emissions Passive Patrol",
+    provider: "Saildrone / Caliburn",
+    type: "EMCON Passive Patrol Mode",
+    description: "Fully emissions-controlled patrol mode in which a platform (typically Saildrone Voyager) operates with all active RF systems — radio, radar, AIS transponder — powered off. The platform relies solely on passive ESM intercept, EO/IR sensors, and pre-programmed waypoints for navigation and collection. Data is stored onboard and transmitted in burst mode via acoustic modem or scheduled SATCOM window.",
+    capabilities: [
+      "Zero active RF emissions throughout patrol",
+      "Passive ESM-only sensor operation",
+      "Pre-programmed autonomous waypoint navigation",
+      "Onboard data storage with burst SATCOM upload",
+      "Acoustic modem covert data relay option"
+    ],
+    trl: "TRL 8",
+    icon: Radio,
+    category: "UNMANNED SYSTEMS",
+    swap: { weight: 5, power: 0.15, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: 15 },
+    securityLevel: ["Zero RF Emissions", "EMCON Compliant", "Passive Only"],
+    securityIcons: ["encrypted"],
+    specs: {
+      platform: "Saildrone Voyager",
+      rfEmissions: "Zero — all active RF systems off",
+      navigation: "Pre-programmed waypoints + wind-sail autonomy",
+      dataRelease: "Scheduled burst SATCOM or acoustic modem",
+      endurance: "Up to 365 days",
+      sensors: "Passive ESM, EO/IR, acoustic hydrophone"
+    },
+    missionTags: ["ISR Operations", "RECONNAISSANCE", "Sea Control", "NON_KINETIC_EW"]
+  },
+
+  // ============ ADDITIONAL VESSEL CAPABILITY ENTRIES ============
+  {
+    name: "Bistatic Cross-Fix Node",
+    provider: "L3Harris",
+    type: "Passive Bistatic Sonar Node",
+    description: "Passive bistatic acoustic receiver node that cross-fixes submarine contacts using separated receiver geometry with a remote active pinger. Enables precise localization without emitting.",
+    capabilities: ["Passive bistatic reception", "Cross-fix geometry with CAPTAS-4", "Submarine contact localization"],
+    trl: "TRL 7",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    swap: { weight: 120, power: 0.4, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["encrypted"],
+    specs: { type: "Passive bistatic hydrophone node", geometry: "Separated receiver for cross-fix", output: "Track data to USW-DSS" },
+    missionTags: ["ASW"]
+  },
+  {
+    name: "Zone Breach Detection",
+    provider: "OceanSonics",
+    type: "Acoustic Zone Monitoring",
+    description: "Passive acoustic zone monitoring system that detects and alerts on underwater or surface vessel intrusion into a defined maritime security zone. Uses hydrophone arrays and signature libraries.",
+    capabilities: ["Zone perimeter acoustic monitoring", "Intrusion alert generation", "Vessel signature matching"],
+    trl: "TRL 8",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    swap: { weight: 80, power: 0.3, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 2, stealth: 0 },
+    securityLevel: ["Encrypted"],
+    securityIcons: ["encrypted"],
+    specs: { detection: "Passive acoustic hydrophone array", zone: "Configurable perimeter", alert: "Real-time breach notification" },
+    missionTags: ["PORT_SECURITY"]
+  },
+  {
+    name: "VHF Hailing Capability",
+    provider: "Icom",
+    type: "VHF Marine Radio Hailing System",
+    description: "Marine VHF radio hailing system for vessel-to-vessel and vessel-to-shore communications. Supports maritime hailing, challenge, and identification procedures per COLREGS.",
+    capabilities: ["VHF Ch 16 distress monitoring", "Vessel hailing and challenge", "DSC digital selective calling"],
+    trl: "TRL 9",
+    icon: "Radio",
+    category: "RF COMMUNICATIONS",
+    swap: { weight: 2, power: 0.05, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: -1 },
+    securityLevel: ["USCG Compliant"],
+    securityIcons: [],
+    specs: { channels: "VHF Ch 1–88, Int'l + US", power: "25 W (max)", range: "Up to 20 nm LOS", standard: "COLREGS / ITU-R M.493" },
+    missionTags: ["PORT_SECURITY"]
+  },
+  {
+    name: "GCCS Track Correlation",
+    provider: "Leidos",
+    type: "Global Command and Control System Track Correlation",
+    description: "GCCS-M (Global Command and Control System - Maritime) track correlation module that fuses USV-derived contacts with the GCCS common operational picture, enabling fleet-wide track deconfliction and contact management.",
+    capabilities: ["GCCS-M track fusion", "Contact deconfliction", "Common operational picture integration"],
+    trl: "TRL 9",
+    icon: "Shield",
+    category: "C2 SYSTEMS",
+    swap: { weight: 0, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["SECRET capable", "NSA Approved Crypto"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { system: "GCCS-M (Global Command and Control System - Maritime)", interface: "Link-16 / JREAP-C", classification: "Up to SECRET" },
+    missionTags: ["PORT_SECURITY", "ASW"]
+  },
+  {
+    name: "Passive Sonar Track Relay",
+    provider: "OceanSonics",
+    type: "Passive Sonar Track Data Relay",
+    description: "Acoustic contact track relay system that packages passive sonar detections from towed array or hull-mounted sensors and transmits them via encrypted mesh radio to the tactical operations center.",
+    capabilities: ["Passive sonar track packaging", "Encrypted track relay", "Multi-platform contact correlation"],
+    trl: "TRL 7",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    swap: { weight: 15, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["Encrypted"],
+    securityIcons: ["encrypted"],
+    specs: { input: "Passive sonar contact tracks", output: "Encrypted mesh radio relay", latency: "< 5 seconds" },
+    missionTags: ["PORT_SECURITY", "ASW"]
+  },
+  {
+    name: "Multi-Sensor Localization",
+    provider: "Caliburn",
+    type: "Multi-Sensor Contact Localization",
+    description: "Fusion engine that combines acoustic, EO/IR, radar, and AIS data from multiple USV platforms to produce precise contact localization using cross-bearing geometry and track correlation algorithms.",
+    capabilities: ["Multi-sensor data fusion", "Cross-bearing geometry localization", "Track correlation and deconfliction"],
+    trl: "TRL 7",
+    icon: "Shield",
+    category: "C2 SYSTEMS",
+    swap: { weight: 0, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
+    securityLevel: ["Encrypted"],
+    securityIcons: ["encrypted"],
+    specs: { sensors: "Acoustic, EO/IR, radar, AIS", method: "Cross-bearing + track correlation", output: "Fused contact track to COP" },
+    missionTags: ["PORT_SECURITY", "ASW"]
+  },
+  {
+    name: "IFF Negative Alert",
+    provider: "BAE Systems",
+    type: "IFF Non-Cooperative Target Recognition",
+    description: "Identifies vessels that fail to respond to IFF interrogation challenges, generating a negative-IFF alert for operator review. Supports MODE 1/2/3/C/S and MODE 5 interrogation per NATO STANAG 4193.",
+    capabilities: ["IFF Mode 1/2/3/C/S interrogation", "Negative response alert generation", "Non-cooperative target flagging"],
+    trl: "TRL 9",
+    icon: "Shield",
+    category: "C2 SYSTEMS",
+    swap: { weight: 5, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: 0 },
+    securityLevel: ["NATO STANAG 4193", "ITAR Controlled"],
+    securityIcons: ["milstd", "encrypted"],
+    specs: { modes: "Mode 1/2/3/C/S, Mode 5", standard: "NATO STANAG 4193", output: "Negative-IFF alert to COP" },
+    missionTags: ["PORT_SECURITY"]
+  },
+  {
+    name: "Link 16 Track Broadcast",
+    provider: "Collins Aerospace",
+    type: "Link 16 Track Data Broadcast",
+    description: "MIDS-LVT Link 16 terminal that broadcasts USV-derived contact tracks in J-series message format to tactical data network participants, enabling real-time track sharing with surface combatants, aircraft, and shore C2.",
+    capabilities: ["Link 16 J3.5 contact track broadcast", "MIDS-LVT waveform", "Multi-network J-series messaging"],
+    trl: "TRL 9",
+    icon: "Radio",
+    category: "RF COMMUNICATIONS",
+    swap: { weight: 19.3, power: 0.35, size: "small" },  // Real: MIDS-LVT(1) RT = 19.28 kg; 350W at 70% TSDF (L3Harris sell sheet 2025)
+    statImpacts: { speed: 0, power: -2, weight: 0, range: 3, stealth: -2 },
+    securityLevel: ["NSA Type 1 Encrypted", "ITAR Controlled"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { terminal: "MIDS-LVT (Multifunctional Information Distribution System)", format: "J3.5 contact tracks", dataRate: "Up to 238 kbps", frequency: "960–1215 MHz TDMA" },
+    missionTags: ["ASW", "PORT_SECURITY", "KINETIC_EFFECTS"]
+  },
+  {
+    name: "20-ft TEU Dry Cargo Module",
+    provider: "Caliburn",
+    type: "Containerized Dry Cargo Logistics Module",
+    description: "Standard 20-foot TEU containerized dry cargo logistics module for USV-based contested logistics delivery. Configurable for palletized munitions, spare parts, medical supplies, or mission equipment resupply.",
+    capabilities: ["20-ft ISO container payload", "Palletized cargo stowage", "Bow ramp or crane offload"],
+    trl: "TRL 7",
+    icon: "Anchor",
+    category: "LOGISTICS",
+    swap: { weight: 24000, power: 0, size: "large" },
+    statImpacts: { speed: -3, power: 0, weight: 8, range: -2, stealth: -1 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { container: "20-ft ISO TEU", capacity: "Up to 24,000 kg", offload: "Bow ramp / crane", contents: "Palletized dry cargo" },
+    missionTags: ["LOGISTICS"]
+  },
+  {
+    name: "20-ft TEU Fuel Bladder Module",
+    provider: "Caliburn",
+    type: "Containerized Fuel Bladder Logistics Module",
+    description: "Standard 20-foot TEU containerized fuel bladder module carrying up to 20,000 liters of JP-5 or diesel for at-sea or pier-side refueling of USV, small craft, and forward operating forces.",
+    capabilities: ["20-ft ISO container fuel bladder", "JP-5 / diesel fuel storage", "Gravity or pump transfer refueling"],
+    trl: "TRL 7",
+    icon: "Anchor",
+    category: "LOGISTICS",
+    swap: { weight: 22000, power: 0.1, size: "large" },
+    statImpacts: { speed: -3, power: -1, weight: 8, range: -2, stealth: -1 },
+    securityLevel: ["Hazmat Compliant"],
+    securityIcons: [],
+    specs: { container: "20-ft ISO TEU", capacity: "20,000 L fuel", fuelTypes: "JP-5, diesel, mogas", transfer: "Gravity or pump, 150 L/min" },
+    missionTags: ["LOGISTICS"]
+  },
+  {
+    name: "Bow Ramp Delivery System",
+    provider: "Caliburn",
+    type: "USV Bow Ramp Cargo Delivery",
+    description: "Hydraulic bow ramp system on MARTAC T82 enabling beach, pier, or vessel-to-vessel cargo delivery without crane. Supports rapid offload of pallets, vehicles, and TEU container contents.",
+    capabilities: ["Hydraulic bow ramp deployment", "Beach and pier direct delivery", "Palletized cargo offload"],
+    trl: "TRL 7",
+    icon: "Anchor",
+    category: "LOGISTICS",
+    swap: { weight: 800, power: 0.5, size: "medium" },
+    statImpacts: { speed: -1, power: -2, weight: 3, range: -1, stealth: -1 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { rampType: "Hydraulic bow ramp", capacity: "Up to 10,000 kg offload", deployment: "< 2 minutes to open", platforms: "MARTAC T82 Devil Ray" },
+    missionTags: ["LOGISTICS"]
+  },
+  {
+    name: "EO/IR Beach Recon Camera",
+    provider: "Teledyne FLIR",
+    type: "EO/IR Beach Reconnaissance Camera",
+    description: "Maritime EO/IR reconnaissance camera system optimized for beach survey, coastal zone mapping, and pre-landing site assessment. Combines visible and thermal imaging with geo-referencing output.",
+    capabilities: ["Visible + thermal beach imagery", "Coastal zone geo-referenced mapping", "Pre-landing site assessment"],
+    trl: "TRL 9",
+    icon: "Eye",
+    category: "EO/IR SENSORS",
+    swap: { weight: 4, power: 0.15, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: [],
+    specs: { sensor: "Dual EO/IR (visible + LWIR thermal)", output: "Geo-referenced video + still imagery", fov: "Continuous zoom 5°–45°", latency: "< 1 second" },
+    missionTags: ["LOGISTICS", "ISR Operations"]
+  },
+  {
+    name: "Coastal Surface Radar",
+    provider: "Furuno",
+    type: "Maritime Coastal Surface Search Radar",
+    description: "X-band marine surface search radar providing vessel detection and tracking in coastal and port approach zones. Outputs AIS-correlated contact tracks for COP integration.",
+    capabilities: ["X-band surface search", "Vessel detection and tracking", "AIS contact correlation"],
+    trl: "TRL 9",
+    icon: "Satellite",
+    category: "RADAR/RF",
+    swap: { weight: 12, power: 0.15, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 2, stealth: -2 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { band: "X-band (9 GHz)", range: "Up to 24 nm", targets: "Surface vessels ≥ 5 m", output: "NMEA / AIS-correlated track" },
+    missionTags: ["LOGISTICS", "PORT_SECURITY"]
+  },
+  {
+    name: "Echodyne EchoGuard CR",
+    provider: "Echodyne",
+    type: "Compact Surveillance Radar",
+    description: "Ultra-compact 24 GHz electronically-scanned-array (ESA) radar for maritime perimeter and C-UAS surveillance. At 1.25 kg and 23 W average power, it is one of the lightest capable surveillance radars available — purpose-built for SWaP-constrained platforms like the SubSeaSail Horus. IP67 weatherproof. Detects small surface contacts and low-altitude aerial threats at up to 1.2 km.",
+    capabilities: [
+      "1.2 km detection range (small surface and low-altitude targets)",
+      "24 GHz ESA waveform — electronic beam steering, no moving parts",
+      "C-UAS: detects small UAS / drone threats",
+      "Maritime perimeter surveillance",
+      "IP67 weatherproof — spray and submersion rated",
+      "Real-time 3D tracking output"
+    ],
+    trl: "TRL 9",
+    icon: Radar,
+    category: "RADAR/RF",
+    swap: {
+      weight: 1.25,   // Real: 1.25 kg per Echodyne EchoGuard CR datasheet
+      power: 0.023,   // Real: 23 W avg per Echodyne EchoGuard CR datasheet
+      size: "small"
+    },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: {
+      band: "24 GHz (K-band ESA)",
+      range: "1.2 km (small surface/aerial targets)",
+      weight: "1.25 kg",
+      power: "23 W average",
+      protection: "IP67",
+      beamSteering: "Electronic (no moving parts)",
+      output: "3D track (range, azimuth, elevation)"
+    },
+    keyFeatures: [
+      "Lightest capable ESA surveillance radar on the market",
+      "No moving parts — silent, low-maintenance, vibration-tolerant",
+      "Fits SubSeaSail Horus 10 kg payload budget with significant margin",
+      "Dual-use: maritime surface surveillance + C-UAS"
+    ],
+    missionTags: ["PORT_SECURITY", "CONTESTED_LOGISTICS", "MCM"]
+  },
+  {
+    name: "Tomahawk Block V 8-cell VLS",
+    provider: "Raytheon",
+    type: "Land-Attack Cruise Missile VLS",
+    description: "8-cell containerized Tomahawk Block V VLS module for USV integration. Tomahawk Block V (Maritime Strike) adds seeker for moving maritime targets. Range 1,000+ nm. Requires DODD 3000.09 human authorization for each launch.",
+    capabilities: ["1,000+ nm land-attack range", "Maritime strike variant (Block Va)", "8-round salvo capacity", "DODD 3000.09 launch authorization"],
+    trl: "TRL 8",
+    icon: "Target",
+    category: "KINETIC WEAPONS",
+    swap: { weight: 28000, power: 8, size: "large" },  // Real: Mk 41 8-cell ~15,000 kg empty + 8x Tomahawk ~1,510 kg each; power 8 kW operational
+    statImpacts: { speed: -3, power: -5, weight: 9, range: 0, stealth: -3 },
+    securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant", "NSA Type 1 Crypto"],
+    securityIcons: ["milstd", "encrypted", "hardened"],
+    specs: { missiles: "8× Tomahawk Block V", range: "1,000+ nm", variant: "Block Va (JMEWES maritime strike) / Block V (land-attack)", guidance: "INS/GPS/DSMAC/seeker", authorization: "Human operator required for launch" },
+    missionTags: ["KINETIC_EFFECTS", "Sea Control"]
+  },
+  {
+    name: "EMCON Transit Capable",
+    provider: "Caliburn",
+    type: "Emissions Control Transit Mode",
+    description: "EMCON (Emissions Control) transit mode configuration that reduces the vessel's electromagnetic signature during approach by disabling non-essential active emitters while maintaining passive navigation and silent SATCOM burst.",
+    capabilities: ["Active emitter shutdown", "Passive-only navigation", "Silent burst SATCOM communications"],
+    trl: "TRL 8",
+    icon: "Radio",
+    category: "NAVIGATION",
+    swap: { weight: 0, power: 0, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 10 },
+    securityLevel: ["EMCON Compliant"],
+    securityIcons: ["encrypted"],
+    specs: { emitters: "All active RF off (radar, AIS, VHF)", navigation: "INS + passive celestial", comms: "Scheduled burst SATCOM only", detection: "Near-zero RF signature" },
+    missionTags: ["KINETIC_EFFECTS", "ISR Operations"]
+  },
+  {
+    name: "Teledyne FLIR EO/IR Turret",
+    provider: "Teledyne FLIR",
+    type: "Stabilized EO/IR Turret",
+    description: "Multi-spectral stabilized EO/IR turret providing continuous zoom visible and LWIR thermal imagery for maritime surveillance, target identification, and BDA support.",
+    capabilities: ["Stabilized EO visible imaging", "LWIR thermal imaging", "Continuous zoom and geo-pointing"],
+    trl: "TRL 9",
+    icon: "Eye",
+    category: "EO/IR SENSORS",
+    swap: { weight: 18, power: 0.3, size: "medium" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: -1 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: [],
+    specs: { sensor: "EO (visible) + LWIR thermal", fov: "Continuous zoom", stabilization: "3-axis gyro-stabilized", output: "HD video + geo-referenced still" },
+    missionTags: ["KINETIC_EFFECTS", "ISR Operations", "Force Protection"]
+  },
+  {
+    name: "Scion ESM Electronic Support",
+    provider: "Northrop Grumman",
+    type: "Electronic Support Measures",
+    description: "Project Scion-derived ESM electronic support module providing wideband passive RF signal intercept, emitter characterization, and geolocation for maritime domain awareness.",
+    capabilities: ["Wideband passive RF intercept", "Emitter identification and characterization", "RF emitter geolocation"],
+    trl: "TRL 7",
+    icon: "Satellite",
+    category: "RADAR/RF",
+    swap: { weight: 45, power: 0.8, size: "medium" },
+    statImpacts: { speed: 0, power: -3, weight: 2, range: 4, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "NSA Approved"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { frequency: "2–18 GHz coverage", modes: "Intercept, ID, geolocation", output: "ELINT track to TempestOS", integration: "Project Scion autonomy stack" },
+    missionTags: ["KINETIC_EFFECTS", "ISR Operations"]
+  },
+  {
+    name: "365-Day Endurance",
+    provider: "Saildrone",
+    type: "Ultra-Long Endurance Platform Capability",
+    description: "Saildrone Voyager wind-and-solar-powered endurance mode enabling up to 365-day autonomous maritime patrol without refueling. Leverages renewable energy to maintain persistent on-station presence at very low operating cost.",
+    capabilities: ["Up to 365-day autonomous endurance", "Wind and solar power only", "Persistent on-station patrol"],
+    trl: "TRL 9",
+    icon: "Compass",
+    category: "NAVIGATION",
+    swap: { weight: 0, power: 0, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 10, stealth: 2 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { platform: "Saildrone Voyager", endurance: "Up to 365 days", propulsion: "Wind-powered sail + solar", speed: "2–8 knots" },
+    missionTags: ["ISR Operations", "KINETIC_EFFECTS", "MDA/ISR"]
+  },
+  {
+    name: "Epirus Leonidas H2O HPM",
+    provider: "Epirus",
+    type: "High-Power Microwave Weapon System",
+    description: "Epirus Leonidas H2O solid-state high-power microwave (HPM) system in maritime-hardened (H2O) variant for USV hull deployment. Defeats drone and USV swarms through directed microwave energy, disabling electronics without kinetic impact.",
+    capabilities: ["Solid-state HPM drone defeat", "Simultaneous multi-target engagement", "Maritime-hardened H2O variant"],
+    trl: "TRL 7",
+    icon: "Zap",
+    category: "DIRECTED ENERGY",
+    swap: { weight: 1200, power: 50, size: "large" },  // Real: HPM operational input ~50-100 kW; 20 kW was standby only
+    statImpacts: { speed: -2, power: -18, weight: 6, range: -3, stealth: -6 },
+    securityLevel: ["DODD 3000.09 Compliant"],
+    securityIcons: ["milstd", "hardened"],
+    specs: { system: "Epirus Leonidas H2O", type: "Solid-state HPM", targets: "Groups 1–3 UAS, small USVs", power: "~20 kW peak", consumable: "None — unlimited shots while powered" },
+    missionTags: ["Force Protection", "SEA_DENIAL"]
+  },
+  {
+    name: "Coyote Block 3NK ×8 Interceptors",
+    provider: "Raytheon",
+    type: "Loitering Munition Counter-UAS Interceptor",
+    description: "Eight Coyote Block 3NK (non-kinetic) loitering interceptors launched from a CUAS-M canister system. Each Coyote Block 3NK uses proximity-fuzed warhead or RF disruption to defeat incoming Group 1–3 UAS threats at range.",
+    capabilities: ["8× Coyote Block 3NK interceptors", "Proximity-fuzed UAS defeat", "Group 1–3 UAS engagement"],
+    trl: "TRL 8",
+    icon: "Target",
+    category: "KINETIC WEAPONS",
+    swap: { weight: 400, power: 0.5, size: "medium" },  // Real: Block 3NK est. ~30 kg/airframe × 8 + launcher hardware; total ~400 kg
+    statImpacts: { speed: -1, power: -3, weight: 3, range: 0, stealth: -2 },
+    securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant"],
+    securityIcons: ["milstd"],
+    specs: { interceptors: "8× Coyote Block 3NK", range: "Up to 15 km", targets: "Groups 1–3 UAS", launcher: "CUAS-M canister system", authorization: "Human-in-the-loop engagement" },
+    missionTags: ["Force Protection", "SEA_DENIAL"]
+  },
+  {
+    name: "UAS Approach Vector Alert",
+    provider: "HiddenLevel",
+    type: "UAS Approach Vector Detection and Alert",
+    description: "HiddenLevel passive RF sensor-derived UAS approach vector alert that detects and tracks incoming drone trajectories, cueing defensive systems (HPM, interceptors) with bearing, range, and predicted intercept point.",
+    capabilities: ["UAS approach vector detection", "Bearing and range to incoming drone", "Defensive system pre-cue"],
+    trl: "TRL 7",
+    icon: "Satellite",
+    category: "C2 SYSTEMS",
+    swap: { weight: 5, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { detection: "Passive RF emission detection", output: "Bearing, range, approach vector", cue: "Leonidas HPM / Coyote launcher", latency: "< 5 seconds" },
+    missionTags: ["Force Protection"]
+  },
+  {
+    name: "AIS Dark Ship Detection",
+    provider: "Saildrone",
+    type: "AIS Non-Transmitting Vessel Detection",
+    description: "Passive radar and EO/IR-based detection system for vessels operating without AIS transponders (AIS dark). Correlates radar contacts against AIS traffic to flag non-transmitting vessels for investigation.",
+    capabilities: ["AIS dark vessel flagging", "Radar-to-AIS correlation gap detection", "Non-cooperative vessel identification"],
+    trl: "TRL 8",
+    icon: "Satellite",
+    category: "RADAR/RF",
+    swap: { weight: 10, power: 0.3, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { method: "Radar + AIS cross-correlation", detection: "AIS-silent vessels ≥ 20 m", output: "Dark ship alert to COP", platform: "Saildrone Voyager" },
+    missionTags: ["MDA/ISR", "ISR Operations"]
+  },
+  {
+    name: "Pattern-of-Life Engine",
+    provider: "Palantir",
+    type: "Maritime Pattern-of-Life AI Engine",
+    description: "Palantir Foundry-based maritime pattern-of-life AI engine that ingests AIS history, sensor tracks, and imagery to identify anomalous vessel behavior, predict future positions, and cue ISR collection against vessels of interest.",
+    capabilities: ["AIS behavioral pattern analysis", "Anomalous vessel behavior detection", "Predictive track and ISR cueing"],
+    trl: "TRL 8",
+    icon: "Brain",
+    category: "C2 SYSTEMS",
+    swap: { weight: 0, power: 0.5, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 0, range: 5, stealth: 0 },
+    securityLevel: ["Encrypted", "FedRAMP Authorized"],
+    securityIcons: ["encrypted"],
+    specs: { platform: "Palantir Foundry", inputs: "AIS, sensor tracks, imagery, OSINT", output: "Anomaly alerts + predictive tracks to COP", analysis: "ML behavioral pattern engine" },
+    missionTags: ["MDA/ISR", "ISR Operations"]
+  },
+  {
+    name: "Teledyne FLIR EO/IR Day/Night",
+    provider: "Teledyne FLIR",
+    type: "Day/Night EO/IR Surveillance Camera",
+    description: "Day/night maritime surveillance EO/IR camera with continuous zoom visible imager and uncooled LWIR thermal for 24/7 vessel and threat detection in all lighting and weather conditions.",
+    capabilities: ["24/7 day/night surveillance", "Visible + LWIR thermal dual sensor", "Stabilized continuous zoom"],
+    trl: "TRL 9",
+    icon: "Eye",
+    category: "EO/IR SENSORS",
+    swap: { weight: 8, power: 0.15, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: [],
+    specs: { sensor: "Visible CCD + uncooled LWIR", zoom: "Continuous optical zoom", stabilization: "2-axis stabilized", output: "HD video feed + thermal" },
+    missionTags: ["Force Protection", "ISR Operations"]
+  },
+  {
+    name: "ACOMMS Track Receive",
+    provider: "Woods Hole Oceanographic Institution",
+    type: "Acoustic Communications Track Receive",
+    description: "Underwater acoustic communications (ACOMMS) receiver that accepts track data and tactical messages transmitted by submarine or UUV platforms via acoustic modem, enabling covert subsurface-to-surface data exchange.",
+    capabilities: ["Acoustic modem track receive", "Subsurface-to-surface data exchange", "Covert undersea communications"],
+    trl: "TRL 8",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    swap: { weight: 3, power: 0.025, size: "small" },  // Real: 48g DSP board; ~2-5 kg with housing, PA, transducer; 25W avg
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: ["Encrypted ACOMMS"],
+    securityIcons: ["encrypted"],
+    specs: { modem: "WHOI Micro-Modem 2", frequency: "8–16 kHz", dataRate: "Up to 5 kbps", range: "Up to 3,500 m" },
+    missionTags: ["ASW"]
+  },
+  {
+    name: "AUV Launch & Recovery",
+    provider: "Hydroid / Teledyne",
+    type: "AUV Launch and Recovery System",
+    description: "Crane or stern-ramp AUV launch and recovery system (LARS) enabling deployment and retrieval of UUV-class autonomous underwater vehicles from a surface vessel or ESB at sea states up to SS3.",
+    capabilities: ["AUV deployment at sea", "AUV recovery at sea", "Sea state 3 operations"],
+    trl: "TRL 9",
+    icon: "Anchor",
+    category: "LOGISTICS",
+    swap: { weight: 1200, power: 1.0, size: "large" },
+    statImpacts: { speed: -1, power: -4, weight: 4, range: 0, stealth: -1 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { capacity: "Up to 1,500 kg AUV", seaState: "SS3 operations", method: "Stern ramp or crane LARS", platforms: "ESB, large USV, surface combatant" },
+    missionTags: ["ASW", "LOGISTICS"]
+  },
+  {
+    name: "MCM C2 Node",
+    provider: "Leidos",
+    type: "Mine Countermeasures Command and Control",
+    description: "Dedicated MCM (Mine Countermeasures) C2 node that manages AUV sorties, mine detection contacts, clearance sequencing, and mine-cleared-lane certification. Integrates with GCCS-M and USW-DSS.",
+    capabilities: ["AUV sortie management", "Mine contact tracking and clearance", "Lane certification reporting"],
+    trl: "TRL 8",
+    icon: "Shield",
+    category: "C2 SYSTEMS",
+    swap: { weight: 0, power: 0.5, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 0, range: 0, stealth: 0 },
+    securityLevel: ["SECRET capable", "NSA Approved"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { system: "LMCS (Lightweight MCM C2 System)", interfaces: "GCCS-M, USW-DSS, AUV datalink", output: "MCM lane certification + mine contact database" },
+    missionTags: ["ASW"]
+  },
+  {
+    name: "SATCOM Relay",
+    provider: "Viasat",
+    type: "SATCOM Communications Relay",
+    description: "Satellite communications relay node providing beyond-line-of-sight data relay for forward-deployed USV platforms. Bridges tactical mesh radio networks to strategic SATCOM backbone for C2 and sensor data upload.",
+    capabilities: ["Beyond-LOS SATCOM relay", "Mesh-to-SATCOM gateway", "Encrypted data relay"],
+    trl: "TRL 9",
+    icon: "Satellite",
+    category: "SATCOM",
+    swap: { weight: 150, power: 0.7, size: "medium" },  // Real: 1m Ka maritime terminal ~150-170 kg total; ~700W typical (Viasat GMT-6524 datasheet)
+    statImpacts: { speed: 0, power: -4, weight: 2, range: 5, stealth: -2 },
+    securityLevel: ["NSA Type 1 Encrypted", "ITAR Controlled"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { bands: "Ka / Ku-band SATCOM", dataRate: "Up to 20 Mbps relay", encryption: "NSA Type 1", platforms: "ESB, large USV" },
+    missionTags: ["ASW", "LOGISTICS"]
+  },
+  {
+    name: "Mk 48 ADCAP Torpedo",
+    provider: "Raytheon",
+    type: "Heavy Weight Torpedo",
+    description: "Mk 48 ADCAP (Advanced Capability) heavyweight wire-guided torpedo for submarine launch against submarine and surface targets. Range 50+ km, depth 3,000+ ft. Requires DODD 3000.09 human authorization for launch.",
+    capabilities: ["Heavyweight wire-guided torpedo", "Anti-submarine and anti-surface", "50+ km range, 3,000+ ft depth"],
+    trl: "TRL 9",
+    icon: "Target",
+    category: "KINETIC WEAPONS",
+    swap: { weight: 1676, power: 0, size: "large" },
+    statImpacts: { speed: 0, power: 0, weight: 5, range: 0, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant"],
+    securityIcons: ["milstd"],
+    specs: { weight: "1,676 kg", range: "50+ km", depth: "3,000+ ft", guidance: "Wire-guided + active/passive acoustic homing", authorization: "Human operator required" },
+    missionTags: ["ASW"]
+  },
+  {
+    name: "Fire Control System",
+    provider: "Raytheon / L3Harris",
+    type: "Submarine Fire Control System",
+    description: "Virginia-class submarine AN/BYG-1 combat control system providing track management, weapon assignment, and launch execution for Mk 48 ADCAP torpedoes and Tomahawk missiles. All weapons employment requires DODD 3000.09 authorization.",
+    capabilities: ["AN/BYG-1 combat control", "Multi-target track management", "Weapon assignment and launch control"],
+    trl: "TRL 9",
+    icon: "Target",
+    category: "C2 SYSTEMS",
+    swap: { weight: 0, power: 0.5, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 0, range: 3, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "NSA Type 1", "DODD 3000.09 Compliant"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { system: "AN/BYG-1 Combat Control System", weapons: "Mk 48 ADCAP, Tomahawk Block V", tracks: "Multi-target priority queue", authorization: "Human operator required for all engagement" },
+    missionTags: ["ASW", "KINETIC_EFFECTS"]
+  },
+  {
+    name: "AN/ZPY-3 AESA Radar",
+    provider: "Northrop Grumman",
+    type: "AESA Maritime Surveillance Radar",
+    description: "AN/ZPY-3 AESA active electronically scanned array radar fitted to MQ-4C Triton providing wide-area maritime surface search and periscope detection at ranges exceeding 150 km.",
+    capabilities: ["Wide-area maritime surface search", "AESA active electronically scanned array", "Periscope and small target detection"],
+    trl: "TRL 9",
+    icon: "Satellite",
+    category: "RADAR/RF",
+    swap: { weight: 0, power: 0, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 5, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: { type: "AESA (Active Electronically Scanned Array)", range: "150+ km surface search", platform: "MQ-4C Triton", detection: "Surface vessels + periscope masts" },
+    missionTags: ["KINETIC_EFFECTS", "ISR Operations"]
+  },
+  {
+    name: "150km+ Periscope Detection",
+    provider: "Northrop Grumman",
+    type: "Long-Range Periscope Detection Radar",
+    description: "AN/ZPY-3-derived long-range periscope detection mode providing detection of submarine periscope masts and snorkel at ranges exceeding 150 km from MQ-4C Triton altitude.",
+    capabilities: ["150+ km periscope detection", "Submarine snorkel detection", "MQ-4C Triton altitude-leveraged range"],
+    trl: "TRL 8",
+    icon: "Satellite",
+    category: "RADAR/RF",
+    swap: { weight: 0, power: 0, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 5, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: { range: "150+ km", target: "Periscope mast, snorkel", platform: "MQ-4C Triton", radar: "AN/ZPY-3 AESA periscope mode" },
+    missionTags: ["ASW", "KINETIC_EFFECTS"]
+  },
+  {
+    name: "Ka-SATCOM to TempestOS",
+    provider: "Viasat / Caliburn",
+    type: "Ka-band SATCOM TempestOS Integration",
+    description: "Ka-band satellite communications link from MQ-4C Triton or USV to TempestOS C2 cloud, enabling real-time streaming of wide-area sensor data and two-way tasking communications.",
+    capabilities: ["Ka-band SATCOM high-bandwidth link", "Real-time sensor data streaming to TempestOS", "Two-way C2 tasking"],
+    trl: "TRL 9",
+    icon: "Satellite",
+    category: "SATCOM",
+    swap: { weight: 60, power: 0.7, size: "medium" },  // Real: compact Ka maritime terminal ~60 kg; ~700W typical
+    statImpacts: { speed: 0, power: -5, weight: 1, range: 5, stealth: -2 },
+    securityLevel: ["NSA Type 1 Encrypted", "ITAR Controlled"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: { band: "Ka-band", dataRate: "Up to 274 Mbps downlink", encryption: "NSA Type 1", integration: "TempestOS cloud C2 gateway" },
+    missionTags: ["KINETIC_EFFECTS", "ISR Operations"]
   }
+  // ============ END ADDITIONAL VESSEL CAPABILITY ENTRIES ============
+
   ];
 export const capabilityCategories = {
   "COMMAND & CONTROL": {
@@ -2164,6 +3991,35 @@ export const missionObjectives = {
     intendedOutcome: "Zero hostile vessel transit through exclusion zone",
     endCondition: "Zone control terminated by higher authority"
   },
+  NON_KINETIC_EW: {
+    id: "non_kinetic_ew",
+    name: "Non-Kinetic Effects — EW Deception",
+    description: "NEMESIS-aligned distributed EW package projects a coherent false maritime signature across all adversary sensor types (radar, sonar, IR, ESM) simultaneously. Human authorization required at mission activation; individual emission events are payload-controlled thereafter per DODD 3000.09.",
+    typicalDuration: "2–72 hours (activation window), indefinite EMCON transit",
+    requiredCapabilities: ["Active Electronic Attack", "Corner Reflector / RCS Amplification", "AIS False-Track Broadcast", "Passive ESM Collection", "EMCON C2 Link"],
+    optionalCapabilities: ["Acoustic Decoy (Saab CANTO)", "LEED Autonomous Decoy Vehicles"],
+    controlLoop: "NEMESIS SEQUENCE: EMCON Transit → Human Mission Activation → Coordinator Sequences Nodes → Active Phase → ESM-Adaptive Profile Adjustment → Commander Terminate",
+    autonomyCeiling: "DAL 3 — emission profile management. Mission activation requires human authorization. Per-emission events are payload-autonomous once activated.",
+    emissionRoles: {
+      radarMimic: "MASC Baseline — corner reflector array + waveform transponder — projects large-combatant RCS",
+      aisSpoofer: "MASC Baseline — AIS false-track broadcaster — broadcasts false ship identity and course",
+      activeJammer: "BlackSea MASC Catamaran — SOEA 50–100 kW — blinds anti-ship missile seekers",
+      acousticDecoy: "Boeing Orca XLUUV — Saab CANTO — programmable submarine acoustic signature",
+      passiveCollection: "Saildrone Voyager — ESM/SIGINT — monitors adversary reaction, feeds profile updates"
+    },
+    emconPolicy: {
+      transit: "MANDATORY EMCON — no RF emissions — all vessels silent",
+      activation: "Human commander authorizes mission activation via TempestOS secure link",
+      activePhase: "NEMESIS coordinator sequences node activation per deception script",
+      termination: "On commander order — all emissions cease — vessels transition to recovery"
+    },
+    loac: "All emission events timestamped and logged for LOAC documentation. Non-kinetic effects do not constitute use of force under DODD 3000.09.",
+    recommendedPackage: {
+      vessels: 5,
+      composition: "2× MASC Baseline (EW Deception) + 1× BlackSea MASC (Active Jamming) + 1× Orca XLUUV (Acoustic) + 1× Saildrone Voyager (Passive Collection)",
+      formation: "Distributed — 5–15 NM node spacing for coherent false picture geometry"
+    }
+  },
   ESCORT: {
     id: "escort",
     name: "Escort Protection",
@@ -2527,6 +4383,42 @@ export const missionFlowTemplates = {
       { from: 'engage',      to: 'lane_secure' }
     ],
     loopBack: { from: 'log_clear', to: 'sensor_fuse', label: 'Continue Patrol' }
+  },
+  NON_KINETIC_EW: {
+    name: "Non-Kinetic Effects — NEMESIS EW Deception",
+    category: "EW",
+    nodes: [
+      { id: 'intel_cue',     type: 'trigger',          label: 'Intel Cue\n(Sensor Pass / Threat Vector)',  position: { x: 50,   y: 150 } },
+      { id: 'asset_posit',   type: 'action',           label: 'TempestOS\nPositions NEMESIS Package',      position: { x: 220,  y: 150 } },
+      { id: 'emcon_transit', type: 'action',           label: 'EMCON Transit\n(All Vessels Silent)',        position: { x: 400,  y: 150 } },
+      { id: 'human_auth',    type: 'human_checkpoint', label: 'Commander\nMission Activation',             position: { x: 580,  y: 150 } },
+      { id: 'esm_first',     type: 'action',           label: 'ESM Node\nActive (Passive Collection)',     position: { x: 760,  y: 80  } },
+      { id: 'acoustic_cue',  type: 'action',           label: 'CANTO Deployed\n(Acoustic Decoy)',          position: { x: 760,  y: 220 } },
+      { id: 'ais_spoof',     type: 'action',           label: 'AIS False Track\n+ Corner Reflectors',      position: { x: 940,  y: 80  } },
+      { id: 'jammer_on',     type: 'action',           label: 'SOEA Active\n(50–100 kW EA)',               position: { x: 940,  y: 220 } },
+      { id: 'leed_deploy',   type: 'action',           label: 'LEED Vehicles\nDeployed (Terminal Phase)',  position: { x: 1110, y: 150 } },
+      { id: 'esm_monitor',   type: 'sense',            label: 'ESM Monitors\nAdversary Reaction',          position: { x: 1280, y: 150 } },
+      { id: 'profile_adj',   type: 'decision',         label: 'Profile\nAdjustment Needed?',              position: { x: 1450, y: 150 } },
+      { id: 'terminate',     type: 'human_checkpoint', label: 'Commander\nTerminate Order',               position: { x: 1620, y: 80  } },
+      { id: 'cease_emit',    type: 'end',              label: 'All Emissions\nCease — Recovery',          position: { x: 1790, y: 150 } }
+    ],
+    connections: [
+      { from: 'intel_cue',     to: 'asset_posit' },
+      { from: 'asset_posit',   to: 'emcon_transit' },
+      { from: 'emcon_transit', to: 'human_auth' },
+      { from: 'human_auth',    to: 'esm_first',    label: 'Authorized' },
+      { from: 'human_auth',    to: 'acoustic_cue', label: 'Authorized' },
+      { from: 'esm_first',     to: 'ais_spoof' },
+      { from: 'acoustic_cue',  to: 'jammer_on' },
+      { from: 'ais_spoof',     to: 'leed_deploy' },
+      { from: 'jammer_on',     to: 'leed_deploy' },
+      { from: 'leed_deploy',   to: 'esm_monitor' },
+      { from: 'esm_monitor',   to: 'profile_adj' },
+      { from: 'profile_adj',   to: 'terminate',    label: 'No — Hold' },
+      { from: 'profile_adj',   to: 'esm_first',    label: 'Yes — Adjust' },
+      { from: 'terminate',     to: 'cease_emit',   label: 'Order Received' }
+    ],
+    loopBack: { from: 'profile_adj', to: 'esm_monitor', label: 'Continuous Monitoring' }
   },
   ASW: {
     name: "ASW — CAPTAS/MFTA Multistatic + HORUS Mesh",

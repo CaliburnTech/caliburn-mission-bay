@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Layers, Save, Rocket, Ship, Plane, Users, FileText, GitBranch } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
-import { missionFlowTemplates, squadrons } from '../../data/marketplaceData';
+import { missionFlowTemplates } from '../../data/marketplaceData';
 import { generateSBOMFromMission } from '../../utils/sbomGenerator';
 import { activeDeployments } from '../../data/fleetData';
 import SBOMDisplay from '../shared/SBOMDisplay';
@@ -13,7 +13,6 @@ import {
   ALL_MISSIONS,
   MISSION_DOMAINS,
   hierarchyPresets,
-  nodeTypes,
   zoneTypes
 } from './constants';
 import FlowCanvas from './FlowCanvas';
@@ -25,10 +24,19 @@ import MineClearanceMissionView from './MineClearanceMissionView';
 import ISRTetheredDroneMissionView from './ISRTetheredDroneMissionView';
 import ASWMissionView from './ASWMissionView';
 import TaiwanISRMissionView from './TaiwanISRMissionView';
+import MDAISRMissionView from './MDAISRMissionView';
+import ProtectionsMissionView from './ProtectionsMissionView';
+import NonKineticMissionView from './NonKineticMissionView';
+import KineticEffectsMissionView from './KineticEffectsMissionView';
+import ContestedLogisticsMissionView from './ContestedLogisticsMissionView';
+import SeaJeepBaseMissionView from './SeaJeepBaseMissionView';
+import SeaJeepISRMissionView from './SeaJeepISRMissionView';
+import SeaJeepMCMMissionView from './SeaJeepMCMMissionView';
+import SeaJeepLogisticsMissionView from './SeaJeepLogisticsMissionView';
 
 // Get default zone config based on mission type's geometry
 const getDefaultZoneConfig = (missionKey) => {
-  const zoneStyle = zoneTypes[missionKey] || zoneTypes.SEA_DENIAL;
+  const zoneStyle = zoneTypes[missionKey] || zoneTypes.ASW;
   const geometryType = zoneStyle.geometryType || 'zone';
 
   switch (geometryType) {
@@ -96,6 +104,7 @@ const getMissionsForDomain = (domain) => {
 const MissionConfigView = ({ mission, onBack }) => {
   const {
     selectedMissionTemplate,
+    setSelectedMissionTemplate,
     missionPlannerConfig,
     setMissionPlannerConfig,
     loadMissionTemplate,
@@ -108,6 +117,17 @@ const MissionConfigView = ({ mission, onBack }) => {
     mission?.domain || getMissionDomain(mission?.template) || 'MARITIME'
   );
 
+  // Navy group filter (maritime only)
+  const [navyGroup, setNavyGroup] = useState('ALL');
+
+  const NAVY_GROUPS = [
+    { key: 'ALL',        label: 'All Missions' },
+    { key: 'PAE_RAS',   label: 'PAE RAS',        keys: ['KINETIC_EFFECTS', 'NON_KINETIC_EW', 'MDA_ISR', 'CONTESTED_LOGISTICS', 'PROTECTIONS'] },
+    { key: 'FLEET',     label: '5th & 7th Fleet', keys: ['ISR', 'COUNTER_C5ISR', 'MCM', 'ASW'] },
+    { key: 'OTHER',     label: 'Other',           keys: ['PORT_SECURITY'] },
+    { key: 'SEA_JEEP', label: 'Sea Jeep', keys: ['SEAJEEP_BASE', 'SEAJEEP_ISR', 'SEAJEEP_MCM', 'SEAJEEP_LOGISTICS'] },
+  ];
+
   // State-based autonomy hierarchies (keyed by node ID)
   const [stateHierarchies, setStateHierarchies] = useState(
     mission?.stateHierarchies || {
@@ -119,15 +139,15 @@ const MissionConfigView = ({ mission, onBack }) => {
   );
 
   // Selected node for autonomy popout
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [showAutonomyPopout, setShowAutonomyPopout] = useState(false);
+  const [_selectedNode, setSelectedNode] = useState(null);
+  const [_showAutonomyPopout, setShowAutonomyPopout] = useState(false);
 
   // SBOM / SV-2 modal state
   const [showSBOM, setShowSBOM] = useState(false);
   const [showSV2, setShowSV2] = useState(false);
   const [sbomData, setSbomData] = useState(null);
 
-  const handleGenerateSBOM = () => {
+  const _handleGenerateSBOM = () => {
     const missionData = mission || { id: 'new', name: missionPlannerConfig.name, template: selectedMissionTemplate, missionProfile: {} };
     const missionDeployments = activeDeployments.filter(d => d.missionId === missionData.id);
     const sbom = generateSBOMFromMission(missionData, missionDeployments);
@@ -135,7 +155,7 @@ const MissionConfigView = ({ mission, onBack }) => {
     setShowSBOM(true);
   };
 
-  const handleGenerateSV2 = () => {
+  const _handleGenerateSV2 = () => {
     setShowSV2(true);
   };
 
@@ -154,7 +174,7 @@ const MissionConfigView = ({ mission, onBack }) => {
     const missionZone = mission?.zoneConfig;
     return hasZoneData(missionZone)
       ? missionZone
-      : getDefaultZoneConfig(mission?.template || 'SEA_DENIAL');
+      : getDefaultZoneConfig(mission?.template || 'MCM');
   });
 
   // Assigned squadrons for this mission
@@ -166,25 +186,27 @@ const MissionConfigView = ({ mission, onBack }) => {
     return [];
   });
 
-  // Initialize from mission or load default
+  // Initialize from existing mission (edit flow only — new missions start on the picker)
   useEffect(() => {
     if (mission) {
-      loadMissionTemplate(mission.template, missionFlowTemplates[mission.template]);
+      const tmpl = missionFlowTemplates[mission.template];
+      if (tmpl) loadMissionTemplate(mission.template, tmpl);
       setMissionPlannerConfig({ name: mission.name, duration: mission.duration });
-    } else if (!selectedMissionTemplate) {
-      const domainMissions = getMissionsForDomain(selectedDomain);
-      const defaultMission = domainMissions[0];
-      const template = missionFlowTemplates[defaultMission?.key];
-      if (template) {
-        loadMissionTemplate(defaultMission.key, template);
-        setMissionPlannerConfig({ name: '' });
-      }
     }
   }, [mission]);
 
   const selectMission = (missionKey) => {
-    const template = missionFlowTemplates[missionKey];
+    // COUNTER_C5ISR uses the ISR autonomy flow template
+    const templateKey = missionKey === 'COUNTER_C5ISR' ? 'ISR' : missionKey;
+    const template = missionFlowTemplates[templateKey];
     const missionDomain = getMissionDomain(missionKey);
+
+    if (!template) {
+      // Missions with specialized views (no flow template) — just set the template key
+      // so the routing checks at the top of this component can fire.
+      setSelectedMissionTemplate(missionKey);
+      return;
+    }
 
     if (template) {
       loadMissionTemplate(missionKey, template);
@@ -195,6 +217,8 @@ const MissionConfigView = ({ mission, onBack }) => {
         : missionKey === 'CONTESTED_LOGISTICS'
         ? hierarchyPresets.EVASIVE
         : missionKey === 'RECONNAISSANCE' || missionKey === 'AERIAL_ISR'
+        ? hierarchyPresets.ISR
+        : missionKey === 'ISR' || missionKey === 'COUNTER_C5ISR'
         ? hierarchyPresets.ISR
         : missionKey === 'PORT_SECURITY'
         ? hierarchyPresets.SAR  // Navigation-first: COLREGS priority in busy port, human cue for escalation
@@ -219,26 +243,22 @@ const MissionConfigView = ({ mission, onBack }) => {
     }
   };
 
-  // Handle domain tab change
+  // Handle domain tab change — just switch tabs, don't auto-select a mission
   const handleDomainChange = (newDomain) => {
     setSelectedDomain(newDomain);
-    // Reset assignedSquadrons format
+    setNavyGroup('ALL');
     setAssignedSquadrons(newDomain === 'COMBINED' ? { aerial: [], maritime: [] } : []);
-    // Select first mission in new domain
-    const domainMissions = getMissionsForDomain(newDomain);
-    if (domainMissions.length > 0) {
-      selectMission(domainMissions[0].key);
-    }
+    setSelectedMissionTemplate(null);
   };
 
-  const handleNodeClick = (node) => {
+  const _handleNodeClick = (node) => {
     if (node.type === 'decide' || node.type === 'decision' || node.type === 'human_checkpoint') {
       setSelectedNode(node);
       setShowAutonomyPopout(true);
     }
   };
 
-  const handleSave = (asDraft = true) => {
+  const _handleSave = (asDraft = true) => {
     if (!missionPlannerConfig.name || !selectedMissionTemplate) return;
 
     const missionData = {
@@ -262,7 +282,7 @@ const MissionConfigView = ({ mission, onBack }) => {
   };
 
   // Get total assigned squadrons count (handles both formats)
-  const getAssignedCount = () => {
+  const _getAssignedCount = () => {
     if (selectedDomain === 'COMBINED') {
       const aerial = assignedSquadrons?.aerial?.length || 0;
       const maritime = assignedSquadrons?.maritime?.length || 0;
@@ -274,7 +294,11 @@ const MissionConfigView = ({ mission, onBack }) => {
 
   const currentMission = ALL_MISSIONS.find(m => m.key === selectedMissionTemplate);
   const domainMissions = getMissionsForDomain(selectedDomain);
-  const configuredStates = Object.keys(stateHierarchies).length;
+  const activeGroup = NAVY_GROUPS.find(g => g.key === navyGroup);
+  const filteredMissions = (selectedDomain === 'MARITIME' && activeGroup?.keys)
+    ? domainMissions.filter(m => activeGroup.keys.includes(m.key))
+    : domainMissions;
+  const _configuredStates = Object.keys(stateHierarchies).length;
 
   // Auto-generate mission name
   const generateMissionName = () => {
@@ -299,6 +323,10 @@ const MissionConfigView = ({ mission, onBack }) => {
     return <MineClearanceMissionView mission={mission} onBack={onBack} />;
   }
 
+  if (selectedMissionTemplate === 'COUNTER_C5ISR' || mission?.template === 'COUNTER_C5ISR') {
+    return <TaiwanISRMissionView mission={mission} onBack={onBack} />;
+  }
+
   if (selectedMissionTemplate === 'ISR' || mission?.template === 'ISR') {
     if (mission?.missionProfile?.lane === 'COUNTER_C5ISR') {
       return <TaiwanISRMissionView mission={mission} onBack={onBack} />;
@@ -308,6 +336,42 @@ const MissionConfigView = ({ mission, onBack }) => {
 
   if (selectedMissionTemplate === 'ASW' || mission?.template === 'ASW') {
     return <ASWMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'NON_KINETIC_EW' || mission?.template === 'NON_KINETIC_EW') {
+    return <NonKineticMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'MDA_ISR' || mission?.template === 'MDA_ISR') {
+    return <MDAISRMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'PROTECTIONS' || mission?.template === 'PROTECTIONS') {
+    return <ProtectionsMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'CONTESTED_LOGISTICS' || mission?.template === 'CONTESTED_LOGISTICS') {
+    return <ContestedLogisticsMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'KINETIC_EFFECTS' || mission?.template === 'KINETIC_EFFECTS') {
+    return <KineticEffectsMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'SEAJEEP_BASE' || mission?.template === 'SEAJEEP_BASE') {
+    return <SeaJeepBaseMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'SEAJEEP_ISR' || mission?.template === 'SEAJEEP_ISR') {
+    return <SeaJeepISRMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'SEAJEEP_MCM' || mission?.template === 'SEAJEEP_MCM') {
+    return <SeaJeepMCMMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'SEAJEEP_LOGISTICS' || mission?.template === 'SEAJEEP_LOGISTICS') {
+    return <SeaJeepLogisticsMissionView mission={mission} onBack={onBack} />;
   }
 
   return (
@@ -360,9 +424,31 @@ const MissionConfigView = ({ mission, onBack }) => {
           </div>
         </div>
 
+        {/* Navy Group Filter — maritime only */}
+        {selectedDomain === 'MARITIME' && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-gray-600 text-[0.6rem] uppercase tracking-widest">Filter:</span>
+            <div className="flex gap-1">
+              {NAVY_GROUPS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setNavyGroup(key)}
+                  className={`px-3 py-1 rounded-full text-[0.65rem] font-semibold transition-all border ${
+                    navyGroup === key
+                      ? 'bg-lime-brand/20 border-lime-brand text-lime-brand'
+                      : 'bg-transparent border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-500'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Mission Cards */}
-        <div className={`grid gap-3 ${domainMissions.length <= 4 ? 'grid-cols-4' : domainMissions.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'}`}>
-          {domainMissions.map((m) => {
+        <div className={`grid gap-3 ${filteredMissions.length <= 4 ? 'grid-cols-4' : filteredMissions.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'}`}>
+          {filteredMissions.map((m) => {
             const Icon = m.icon;
             const isSelected = selectedMissionTemplate === m.key;
             return (
@@ -395,159 +481,6 @@ const MissionConfigView = ({ mission, onBack }) => {
               </button>
             );
           })}
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex gap-4 flex-1 overflow-hidden">
-        {/* Center - Wide Mission Flow with Autonomy Popout */}
-        <div className="flex-1 min-w-0 bg-darker rounded-lg border border-border-subtle flex flex-col relative">
-          <div className="px-3 py-2 border-b border-border-subtle bg-gray-600/10 flex justify-between items-center">
-            <div>
-              <h3 className="text-gray-50 text-[0.8rem] font-semibold m-0">
-                {currentMission?.name || 'Mission'} Flow
-              </h3>
-              <p className="text-gray-500 text-[0.55rem] m-0 mt-0.5">
-                {selectedMissionTemplate ? `${missionFlowTemplates[selectedMissionTemplate]?.nodes?.length || 0} nodes` : 'Select a mission'} • Click decision nodes to configure autonomy
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="px-2 py-1 bg-lime-brand/10 border border-lime-brand/30 rounded flex items-center gap-1">
-                <Layers size={12} color="#cbfd00" />
-                <span className="text-lime-brand text-[0.55rem] font-semibold">{configuredStates} Autonomy States</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex-1 min-h-[350px] relative overflow-auto">
-            <FlowCanvas
-              template={selectedMissionTemplate ? missionFlowTemplates[selectedMissionTemplate] : null}
-              onNodeClick={handleNodeClick}
-              stateHierarchies={stateHierarchies}
-            />
-
-            {/* Autonomy Popout Overlay */}
-            {showAutonomyPopout && selectedNode && (
-              <>
-                {/* Backdrop */}
-                <div
-                  onClick={() => setShowAutonomyPopout(false)}
-                  className="absolute top-0 left-0 right-0 bottom-0 bg-black/50 z-[999]"
-                />
-                <AutonomyPopout
-                  node={selectedNode}
-                  stateHierarchies={stateHierarchies}
-                  setStateHierarchies={setStateHierarchies}
-                  onClose={() => setShowAutonomyPopout(false)}
-                />
-              </>
-            )}
-          </div>
-          {/* Legend with decision node hint */}
-          <div className="px-3 py-1 border-t border-border-subtle bg-gray-600/10">
-            <div className="flex flex-wrap gap-3 justify-center items-center">
-              {Object.entries(nodeTypes).slice(0, 6).map(([key, config]) => (
-                <div key={key} className="flex items-center gap-0.5">
-                  <div
-                    className={config.size === 'small' ? 'w-2 h-2 rounded-full' : 'w-2 h-2 rounded-sm'}
-                    style={{ backgroundColor: config.color }}
-                  />
-                  <span className="text-gray-500 text-[0.5rem]">{config.label}</span>
-                </div>
-              ))}
-              <div className="text-gray-500 text-[0.5rem] italic">
-                Click <span className="text-yellow-400">Decision</span> nodes to set autonomy
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right - Map + Fleet + Config */}
-        <div className="w-[340px] min-w-[280px] flex-shrink flex flex-col gap-3 overflow-hidden">
-          {/* Map Zone Editor */}
-          <div className="flex-1 min-h-[220px]">
-            <MapZoneEditor zoneConfig={zoneConfig} setZoneConfig={setZoneConfig} missionType={selectedMissionTemplate} />
-          </div>
-
-          {/* Squadron Assignment */}
-          <div className="flex-1 min-h-[200px]">
-            <SquadronAssignment
-              assignedSquadrons={assignedSquadrons}
-              setAssignedSquadrons={setAssignedSquadrons}
-              availableSquadrons={squadrons}
-              missionDomain={selectedDomain}
-              missionType={selectedMissionTemplate}
-            />
-          </div>
-
-          {/* Mission Config - Compact */}
-          <div className="bg-darker rounded-lg border border-border-subtle p-3">
-            <h4 className="text-gray-400 text-[0.65rem] mb-2 font-semibold">MISSION CONFIG</h4>
-
-            <input
-              type="text"
-              value={missionPlannerConfig.name}
-              onChange={(e) => setMissionPlannerConfig({ name: e.target.value })}
-              placeholder="Mission Name *"
-              className="w-full px-1.5 py-1.5 bg-darkest border border-gray-600/40 rounded text-gray-50 text-[0.7rem] mb-2"
-            />
-
-            <div className="mb-2">
-              <label className="text-gray-500 text-[0.5rem] block mb-0.5">Duration</label>
-              <input
-                type="text"
-                value={missionPlannerConfig.duration || ''}
-                onChange={(e) => setMissionPlannerConfig({ duration: e.target.value })}
-                placeholder="e.g., 24h, 7d, indefinite"
-                className="w-full px-1 py-1 bg-darkest border border-gray-600/40 rounded text-gray-50 text-[0.6rem]"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleSave(true)}
-                disabled={!missionPlannerConfig.name || !selectedMissionTemplate}
-                className={`flex-1 flex items-center justify-center gap-1 py-1.5 bg-transparent rounded text-[0.65rem] font-semibold ${
-                  missionPlannerConfig.name && selectedMissionTemplate
-                    ? 'border border-gray-600/40 text-gray-400 cursor-pointer'
-                    : 'border border-gray-600/20 text-gray-700 cursor-not-allowed'
-                }`}
-              >
-                <Save size={12} />
-                Save Draft
-              </button>
-              <button
-                onClick={() => handleSave(false)}
-                disabled={!missionPlannerConfig.name || !selectedMissionTemplate || getAssignedCount() === 0}
-                className={`flex-1 flex items-center justify-center gap-1 py-1.5 border-0 rounded text-[0.65rem] font-semibold ${
-                  missionPlannerConfig.name && selectedMissionTemplate && getAssignedCount() > 0
-                    ? 'bg-lime-brand text-black cursor-pointer'
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <Rocket size={12} />
-                Deploy ({getAssignedCount()} sqdn)
-              </button>
-            </div>
-
-            {/* SBOM / SV-2 Generation */}
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={handleGenerateSBOM}
-                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-transparent border border-cyan-500/30 rounded text-cyan-500 text-[0.6rem] font-semibold cursor-pointer hover:bg-cyan-500/10 transition-colors"
-              >
-                <FileText size={11} />
-                SBOM
-              </button>
-              <button
-                onClick={handleGenerateSV2}
-                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-transparent border border-violet-500/30 rounded text-violet-500 text-[0.6rem] font-semibold cursor-pointer hover:bg-violet-500/10 transition-colors"
-              >
-                <GitBranch size={11} />
-                SV-2
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

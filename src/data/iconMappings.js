@@ -33,7 +33,8 @@ import {
 export const capabilityIcons = {
   'NGHTS': NGHTSIcon,
   'Scion ESM': ScionESMIcon,
-  'Hidden Level Passive Radar': HiddenLevelRadarIcon,
+  'Project Scion (Northrop Grumman)': ScionESMIcon,
+  'HiddenLevel Passive RF Sensor': HiddenLevelRadarIcon,
   'SNC Modi II Electronic Warfare System': ModiEWIcon,
   'Advanced Towed Sonar': TowedSonarIcon,
   'SM-6 Missile': SM6MissileIcon,

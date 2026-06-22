@@ -2,9 +2,19 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, RotateCcw, Anchor, ChevronLeft, Check } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgM48 from '../../assets/images/M48.png';
+import imgArleighBurke from '../../assets/images/ArleighBurke.png';
+
+const MISSION_SET_KEY = 'ASW';
+const MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'MFTA Towed Array', 'Hanwha Naval Missile System'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
@@ -17,22 +27,13 @@ const M48_CAPTAS_POS = [24.40, 135.20];   // M48-ALPHA — CAPTAS active pinger 
 const M48_MFTA_1_POS = [24.05, 135.65];   // M48-BRAVO  — passive MFTA receiver SE
 const M48_MFTA_2_POS = [24.75, 135.65];   // M48-CHARLIE — passive MFTA receiver NE
 
-const HORUS_FIELD = [
-  { id: 'H1', pos: [24.60, 134.70], label: 'HORUS-1' },
-  { id: 'H2', pos: [24.20, 134.60], label: 'HORUS-2' },
-  { id: 'H3', pos: [23.95, 134.90], label: 'HORUS-3' },
-  { id: 'H4', pos: [24.00, 135.40], label: 'HORUS-4' },
-  { id: 'H5', pos: [24.50, 135.55], label: 'HORUS-5' },
-  { id: 'H6', pos: [24.80, 134.90], label: 'HORUS-6' },
-];
-
-const SUB_ECHO_POS = [24.42, 135.10];   // where echo is detected / sub contact
+const SUB_ECHO_POS = [24.14, 134.96];   // where echo is detected / sub contact — midpoint Virginia ↔ M48-ALPHA
 const SUB_TRACK    = [
-  [24.65, 134.45],
-  [24.55, 134.70],
-  [24.48, 134.90],
-  [24.42, 135.10],
-  [24.38, 135.25],
+  [24.28, 134.38],
+  [24.24, 134.56],
+  [24.20, 134.74],
+  [24.14, 134.96],
+  [24.20, 135.08],
 ];
 const VIRGINIA_POS = [23.88, 134.72];
 
@@ -62,28 +63,30 @@ const M48_CAPTAS_MOUNTS = [
   { slot: 'COMMS',           name: 'HiveLink SDR',                  vendor: 'HiveLink', description: 'Multi-waveform radio — WaveformX, WaveformY, Link 16 — tactical data link node' },
 ];
 const M48_MFTA_MOUNTS = [
-  { slot: 'PASSIVE SONAR',   name: 'MFTA Towed Array',              vendor: 'Thales',              description: 'Passive receiver — listens for CAPTAS echo returns — bistatic geometry triangulation' },
+  { slot: 'PASSIVE SONAR',   name: 'MFTA Towed Array',              vendor: 'Lockheed Martin',     description: 'Passive receiver — listens for CAPTAS echo returns — bistatic geometry triangulation' },
   { slot: 'WEAPONS',         name: 'Hanwha Naval Missile System',   vendor: 'Hanwha Defense USA',  description: 'Surface prosecution capability — demo barge tested summer 2026 — fires on USW-DSS cue' },
   { slot: 'C2 / PROCESSING', name: 'USW-DSS (AN/UYQ-100)',          vendor: 'Leidos',              description: 'Receives common ASW picture from lead M48 via Link 16' },
 ];
-const HORUS_ASW_MOUNTS = [
-  { slot: 'ACOUSTIC/SONAR',  name: 'PAMELA™ Passive Acoustic Array', vendor: 'SubSeaSail',         description: 'Rigid passive hydrophone array — days of endurance vs hours for sonobuoys' },
-  { slot: 'COMMS',           name: 'HiveLink SDR + OrbComm',         vendor: 'HiveLink / OrbComm', description: 'HiveLink: Link 16 tactical node — OrbComm: fallback SATCOM for position/status' },
-  { slot: 'C2',              name: 'USW-DSS Software Agent',         vendor: 'Leidos',             description: 'Feeds passive acoustic detections into theatre ASW picture — ACOMMS relay to Virginia class' },
+
+const VESSEL_ROSTER = [
+  { name: 'M48-ALPHA (CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR'] },
+  { name: 'M48-BRAVO (MFTA)',   image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48-CHARLIE (MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
+  { name: 'USS Virginia SSN-774', image: imgArleighBurke, hullName: 'Virginia Class', roleKey: 'ASW_VIRGINIA', capabilities: ['Mk 48 ADCAP Torpedo', 'ACOMMS Track Receive', 'Fire Control System', 'Sprint & Drift Transit'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
 const PHASE_NARRATIVE = {
   idle:             null,
-  deployed:         { title: 'Assets on Station', body: 'M48-ALPHA holds station — CAPTAS-4 VDS descending to 200m. M48-BRAVO and M48-CHARLIE tow passive MFTA arrays. Six HORUS boats maintain silent acoustic watch.' },
+  deployed:         { title: 'Assets on Station', body: 'M48-ALPHA holds station — CAPTAS-4 VDS descending to 200m. M48-BRAVO and M48-CHARLIE tow passive MFTA arrays in bistatic geometry.' },
   captas_ping:      { title: 'CAPTAS-4 Active Ping', body: 'M48-ALPHA fires a 900–2100 Hz acoustic pulse. Sound propagates outward at 1,500 m/s. M48-ALPHA is the bait — the enemy may hear it and shoot.' },
   ping_prop:        { title: 'Pulse Propagating', body: 'Acoustic energy bends along the SOFAR channel toward the 2nd convergence zone at 150km. M48-BRAVO and M48-CHARLIE listen silently for any echo.' },
   echo_detect:      { title: 'Anomalous Echo Return', body: 'Return amplitude and Doppler consistent with a large submerged metal hull at bearing 285. M48-BRAVO and M48-CHARLIE begin cross-bearing.' },
-  mfta_correlate:   { title: 'Bistatic Triangulation', body: 'M48-BRAVO and M48-CHARLIE receive independent echoes from different angles. Two bearing lines intersect — USW-DSS computes contact position.' },
+  mfta_correlate:   { title: 'Bistatic Cross-Fix', body: 'M48-BRAVO and M48-CHARLIE receive independent echoes from different angles. Two bearing lines intersect — USW-DSS computes contact position.' },
   contact_est:      { title: 'SIERRA-7 Identified', body: 'USW-DSS cross-references acoustic signature: PLAN Type-093 Shang-class — 87% confidence. Track quality: fire control grade. Weapons free authorized.' },
   enemy_fires:      { title: '⚠ Torpedo Inbound — M48-ALPHA', body: 'SIERRA-7 fires on the CAPTAS pinger. M48-ALPHA is crewless by design — this is expected. M48-BRAVO and M48-CHARLIE already hold the track via Link 16.' },
   alpha_hit:        { title: 'M48-ALPHA Destroyed', body: 'M48-ALPHA hit — CAPTAS hull sinking. Zero crew casualties. USW-DSS track data preserved in M48-BRAVO and M48-CHARLIE. Contact maintained.' },
-  virginia_cued:    { title: 'Virginia Class Cued', body: 'HORUS-3 transmits USW-DSS track to USS Virginia via underwater acoustic modem. Virginia receives without surfacing. Mk 48 ADCAP fire control solution ready.' },
+  virginia_cued:    { title: 'Virginia Class Cued', body: 'USW-DSS compresses SIERRA-7 datum, confidence score, and intercept vector into a short ACOMMS burst — transmitted to USS Virginia via acoustic modem. Virginia receives without surfacing or reducing speed. Mk 48 fire control solution confirmed against pre-positioned track.' },
   engagement:       { title: 'Dual Prosecution Underway', body: 'USS Virginia: Mk 48 ADCAP torpedo away — active homing. M48-CHARLIE: Hanwha missile away — surface prosecution. SIERRA-7 in weapons engagement zone.' },
   contact_lost:     { title: 'SIERRA-7 Prosecuted', body: 'Acoustic transient consistent with pressure hull failure. SIERRA-7 contact lost — debris field confirmed on HORUS passive arrays. Sector BRAVO-7 cleared.' },
 };
@@ -154,19 +157,13 @@ const getEnemyTorpedoPos = (tick) => {
   return lerp2(SUB_ECHO_POS, M48_CAPTAS_POS, Math.min(t, 1));
 };
 
-// Friendly torpedo: travels from Virginia toward sub
+// Friendly torpedo: travels from Virginia toward sub's final position
 const getFriendlyTorpedoPos = (tick) => {
   if (tick < T_ENGAGEMENT || tick >= T_CONTACT_LOST) return null;
   const t = (tick - T_ENGAGEMENT) / (T_CONTACT_LOST - T_ENGAGEMENT);
-  return lerp2(VIRGINIA_POS, SUB_ECHO_POS, Math.min(t, 1));
+  return lerp2(VIRGINIA_POS, SUB_TRACK[4], Math.min(t, 1));
 };
 
-// Hanwha missile: travels from M48-CHARLIE toward sub
-const getMissilePos = (tick) => {
-  if (tick < T_ENGAGEMENT || tick >= T_CONTACT_LOST) return null;
-  const t = (tick - T_ENGAGEMENT) / (T_CONTACT_LOST - T_ENGAGEMENT);
-  return lerp2(M48_MFTA_2_POS, SUB_ECHO_POS, Math.min(t, 1));
-};
 
 const getPhaseBadge = (phase) => {
   const m = {
@@ -174,12 +171,12 @@ const getPhaseBadge = (phase) => {
     captas_ping:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',     label: '⚡ CAPTAS-4 Active Ping' },
     ping_prop:      { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40',                   label: '◈ Pulse Propagating' },
     echo_detect:    { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',  label: '⚠ Anomalous Echo Return' },
-    mfta_correlate: { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40 animate-pulse',  label: '◈ Bistatic Triangulation' },
+    mfta_correlate: { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40 animate-pulse',  label: '◈ Bistatic Cross-Fix' },
     contact_est:    { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Identified' },
     enemy_fires:    { cls: 'bg-red-900/80 text-red-200 border-red-400/60 animate-pulse',        label: '⚠ TORPEDO INBOUND — M48-ALPHA' },
     alpha_hit:      { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',             label: '✕ M48-ALPHA Destroyed' },
     virginia_cued:  { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                   label: '→ Virginia Cued via ACOMMS' },
-    engagement:     { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ WEAPONS AWAY — Dual Prosecution' },
+    engagement:     { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ TORPEDO AWAY — Mk 48 ADCAP' },
     contact_lost:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ SIERRA-7 Prosecuted' },
   };
   return m[phase] || null;
@@ -216,14 +213,37 @@ const MapInvalidateSize = () => {
 // ─── Component ───────────────────────────────────────────────────────────────
 const ASWMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return vessel;
+    return {
+      ...vessel,
+      // Only use assignment label if it's a custom name (not just the hull name fallback)
+      name: (assignment.vesselLabel && assignment.vesselLabel !== assignment.hullName)
+        ? assignment.vesselLabel
+        : vessel.name,
+      hullName: assignment.hullName,
+    };
+  });
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [currentTick,  setCurrentTick]  = useState(0);
   const [subPulse,     setSubPulse]     = useState(false);
   const [events,       setEvents]       = useState([]);
   const [running,      setRunning]      = useState(false);
+  const [paused,        setPaused]        = useState(false);
   const [complete,     setComplete]     = useState(false);
 
   const tickRef    = useRef(0);
+  const tickCallbackRef = useRef(null);
   const mainTimer  = useRef(null);
   const pulseTimer = useRef(null);
   const resetTimer = useRef(null);
@@ -237,7 +257,6 @@ const ASWMissionView = ({ mission, onBack }) => {
   const echoRing   = getEchoRing(currentTick);
   const enemyTorpedoPos    = getEnemyTorpedoPos(currentTick);
   const friendlyTorpedoPos = getFriendlyTorpedoPos(currentTick);
-  const missilePos = getMissilePos(currentTick);
 
   const alphaDestroyed  = currentTick >= T_ALPHA_HIT;
   const showSubAnomaly  = currentTick >= T_ECHO_DETECT && currentTick < T_CONTACT_EST;
@@ -257,8 +276,6 @@ const ASWMissionView = ({ mission, onBack }) => {
   const showTriangle = currentTick >= T_MFTA_BRAVO && currentTick < T_CONTACT_LOST;
 
   const showVirginia    = currentTick >= T_VIRGINIA_CUED;
-  const showACOMMS      = currentTick >= T_VIRGINIA_CUED && currentTick < T_CONTACT_LOST;
-  const showHanwhaLine  = currentTick >= T_VIRGINIA_CUED && currentTick < T_CONTACT_LOST;
 
   const narrative = PHASE_NARRATIVE[phase] || null;
   const badge     = getPhaseBadge(phase);
@@ -267,6 +284,23 @@ const ASWMissionView = ({ mission, onBack }) => {
     const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 30));
   };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    clearTimeout(resetTimer.current);
+    resetTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, TICK_MS);
+  }, []);
+
+
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
 
   useEffect(() => {
@@ -289,6 +323,7 @@ const ASWMissionView = ({ mission, onBack }) => {
   const reset = useCallback(() => {
     stopAll();
     tickRef.current = 0;
+    setPaused(false);
     setCurrentTick(0);
     setSubPulse(false);
     setEvents([]);
@@ -303,9 +338,10 @@ const ASWMissionView = ({ mission, onBack }) => {
     setSubPulse(false);
     setEvents([]);
     setRunning(true);
+    setPaused(false);
     setComplete(false);
 
-    mainTimer.current = setInterval(() => {
+    const cb = () => {
       const tick = ++tickRef.current;
       setCurrentTick(tick);
 
@@ -314,7 +350,6 @@ const ASWMissionView = ({ mission, onBack }) => {
         addEvtRef.current('M48-ALPHA: CAPTAS-4 VDS deployed — depth 200m — active sonar ready', 'info');
         addEvtRef.current('M48-BRAVO: MFTA passive array deployed — bistatic receiver SE', 'info');
         addEvtRef.current('M48-CHARLIE: MFTA passive array deployed — bistatic receiver NE', 'info');
-        addEvtRef.current('HORUS field: 6× PAMELA arrays on station — passive listening', 'info');
       }
       if (tick === T_CAPTAS_PING) {
         addEvtRef.current('M48-ALPHA: CAPTAS PING — 900-2100Hz active pulse — 360° — position revealed', 'warn');
@@ -322,7 +357,6 @@ const ASWMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_PING_PROP) {
         addEvtRef.current('M48-ALPHA: Ping propagating — monitoring for returns at 150km envelope', 'info');
-        addEvtRef.current('HORUS-1 HORUS-3: CAPTAS pulse received — bistatic receivers active', 'info');
       }
       if (tick === T_ECHO_DETECT) {
         addEvtRef.current('M48-ALPHA: ANOMALOUS RETURN — bearing 285, range 42nm — large submerged object', 'warn');
@@ -336,7 +370,7 @@ const ASWMissionView = ({ mission, onBack }) => {
         addEvtRef.current('USW-DSS: Two independent bearings — intersection computing — confidence rising', 'info');
       }
       if (tick === T_CONTACT_EST) {
-        addEvtRef.current('USW-DSS: CONTACT ESTABLISHED — 24.42°N 135.10°E — depth est. 280m', 'alert');
+        addEvtRef.current('USW-DSS: CONTACT ESTABLISHED — 24.14°N 134.96°E — depth est. 280m', 'alert');
         addEvtRef.current('USW-DSS: PLAN Type-093 Shang-class — acoustic signature match 87%', 'alert');
         addEvtRef.current('CTF-72: SIERRA-7 — HOSTILE — weapons free authorized', 'alert');
       }
@@ -352,19 +386,16 @@ const ASWMissionView = ({ mission, onBack }) => {
         addEvtRef.current('SIERRA-7 has exposed itself — contact quality: fire control grade', 'alert');
       }
       if (tick === T_VIRGINIA_CUED) {
-        addEvtRef.current('HORUS-3: ACOMMS — transmitting SIERRA-7 track to USS Virginia (SSN-774)', 'info');
-        addEvtRef.current('USS Virginia: Track received via acoustic modem — repositioning', 'info');
-        addEvtRef.current('USS Virginia: Mk 48 ADCAP fire control — solution confirmed', 'warn');
-        addEvtRef.current('M48-CHARLIE: Hanwha missile armed — SIERRA-7 locked', 'alert');
+        addEvtRef.current('USW-DSS: ACOMMS burst transmitted — datum 24.14°N 134.96°E — intercept vector encoded — compressed burst', 'info');
+        addEvtRef.current('USS Virginia: ACOMMS received — Mk 48 fire control confirmed', 'warn');
       }
       if (tick === T_ENGAGEMENT) {
         addEvtRef.current('USS Virginia: TORPEDO AWAY — Mk 48 ADCAP — active homing', 'alert');
-        addEvtRef.current('M48-CHARLIE: HANWHA MISSILE AWAY — surface prosecution', 'alert');
         addEvtRef.current('SIERRA-7: Evasive maneuver — high-speed cavitation — too late', 'alert');
       }
       if (tick === T_CONTACT_LOST) {
         addEvtRef.current('USW-DSS: SIERRA-7 — contact lost — pressure hull failure acoustic', 'success');
-        addEvtRef.current('HORUS-2: Debris field — bearing 095 — engagement confirmed', 'success');
+        addEvtRef.current('M48-BRAVO: Debris field detected — bearing 095 — engagement confirmed', 'success');
         addEvtRef.current('CTF-72: SIERRA-7 PROSECUTED — sector BRAVO-7 cleared', 'success');
         addEvtRef.current('M48-BRAVO M48-CHARLIE: Initiating second ping cycle', 'info');
       }
@@ -377,11 +408,28 @@ const ASWMissionView = ({ mission, onBack }) => {
           if (runScenRef.current) runScenRef.current();
         }, 5000);
       }
-    }, TICK_MS);
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, TICK_MS);
   }, [stopAll]);
 
   useLayoutEffect(() => { runScenRef.current = runScenario; });
   useEffect(() => () => stopAll(), [stopAll]);
+
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    startNewConfiguration(vessel.hullName);
+    setPendingMissionSetCaps(vessel.capabilities);
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    // Pass the specific role key so LoadoutBuilder highlights the exact role
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setSelectedView('outfitter');
+  };
 
   const handleSave = () => {
     if (!missionName.trim()) return;
@@ -497,17 +545,6 @@ const ASWMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Ambient HORUS mesh ── */}
-              {currentTick >= T_DEPLOYED && HORUS_FIELD.flatMap((h, i) =>
-                HORUS_FIELD.slice(i + 1).map(h2 => (
-                  <Polyline
-                    key={`mesh-${h.id}-${h2.id}`}
-                    positions={[h.pos, h2.pos]}
-                    pathOptions={{ color: '#7c3aed', opacity: 0.12, weight: 1, dashArray: '3 9' }}
-                  />
-                ))
-              )}
-
               {/* ── Bistatic triangle: M48-BRAVO ↔ M48-CHARLIE ↔ sub ── */}
               {showTriangle && subPos && (
                 <Polyline
@@ -533,22 +570,6 @@ const ASWMissionView = ({ mission, onBack }) => {
                 <Polyline
                   positions={[M48_MFTA_2_POS, subPos]}
                   pathOptions={{ color: '#fbbf24', weight: 2.5, opacity: 0.75, dashArray: '5 4' }}
-                />
-              )}
-
-              {/* ── ACOMMS link: HORUS-3 → Virginia ── */}
-              {showACOMMS && (
-                <Polyline
-                  positions={[HORUS_FIELD[2].pos, VIRGINIA_POS]}
-                  pathOptions={{ color: '#67e8f9', weight: 1.5, opacity: 0.55, dashArray: '6 4' }}
-                />
-              )}
-
-              {/* ── Hanwha targeting line: M48-CHARLIE → sub ── */}
-              {showHanwhaLine && subPos && (
-                <Polyline
-                  positions={[M48_MFTA_2_POS, subPos]}
-                  pathOptions={{ color: '#ef4444', weight: 2, opacity: 0.65 }}
                 />
               )}
 
@@ -607,25 +628,6 @@ const ASWMissionView = ({ mission, onBack }) => {
                 </>
               )}
 
-              {/* ── Hanwha missile: M48-CHARLIE → sub ── */}
-              {missilePos && (
-                <>
-                  <Polyline
-                    positions={[M48_MFTA_2_POS, missilePos]}
-                    pathOptions={{ color: '#ef4444', weight: 1.5, opacity: 0.35, dashArray: '3 5' }}
-                  />
-                  <CircleMarker
-                    center={missilePos}
-                    radius={6}
-                    pathOptions={{ color: '#ef4444', fillColor: '#fbbf24', fillOpacity: 1, weight: 2 }}
-                  >
-                    <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 11, fontWeight: 700 }}>Hanwha Missile</span>
-                    </Tooltip>
-                  </CircleMarker>
-                </>
-              )}
-
               {/* ── Hostile sub — anomalous (orange pulsing) ── */}
               {showSubAnomaly && subPos && (
                 <>
@@ -633,11 +635,8 @@ const ASWMissionView = ({ mission, onBack }) => {
                     center={subPos}
                     radius={subPulse ? 13 : 10}
                     pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: subPulse ? 0.85 : 0.55, weight: 2 }}
-                  >
-                    <Tooltip permanent direction="top" offset={[0, -14]}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#f97316' }}>⚠ ANOMALOUS ECHO</span>
-                    </Tooltip>
-                  </CircleMarker>
+                  />
+
                   {subPulse && (
                     <CircleMarker center={subPos} radius={20}
                       pathOptions={{ color: '#f97316', fillOpacity: 0, weight: 2, opacity: 0.30 }}
@@ -653,11 +652,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                     center={subPos}
                     radius={subPulse ? 14 : 11}
                     pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: subPulse ? 0.95 : 0.80, weight: 2 }}
-                  >
-                    <Tooltip permanent direction="top" offset={[0, -15]}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444' }}>⚠ SIERRA-7 — PLAN TYPE-093</span>
-                    </Tooltip>
-                  </CircleMarker>
+                  />
                   {subPulse && (
                     <CircleMarker center={subPos} radius={22}
                       pathOptions={{ color: '#ef4444', fillOpacity: 0, weight: 2, opacity: 0.35 }}
@@ -669,33 +664,22 @@ const ASWMissionView = ({ mission, onBack }) => {
               {/* ── Sub explosion / debris ── */}
               {showExplosion && subBoomRadius > 0 && (
                 <Circle
-                  center={SUB_ECHO_POS}
+                  center={SUB_TRACK[4]}
                   radius={subBoomRadius}
                   pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: subBoomOpacity * 0.25, weight: 2, opacity: subBoomOpacity }}
                 />
               )}
               {currentTick >= T_CONTACT_LOST && (
-                <CircleMarker center={SUB_ECHO_POS} radius={6}
+                <CircleMarker center={SUB_TRACK[4]} radius={6}
                   pathOptions={{ color: '#6b7280', fillColor: '#374151', fillOpacity: 0.9, weight: 1 }}
-                >
-                  <Tooltip permanent direction="top" offset={[0, -10]}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981' }}>✓ SIERRA-7 PROSECUTED</span>
-                  </Tooltip>
-                </CircleMarker>
+                />
               )}
 
               {/* ── Virginia class ── */}
               {showVirginia && (
                 <CircleMarker center={VIRGINIA_POS} radius={11}
                   pathOptions={{ color: '#1d4ed8', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
-                >
-                  <Tooltip permanent direction="right" offset={[14, 0]}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#93c5fd' }}>
-                      USS Virginia (SSN-774)<br />
-                      <span style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8' }}>Mk 48 ADCAP ready</span>
-                    </div>
-                  </Tooltip>
-                </CircleMarker>
+                />
               )}
 
               {/* ── M48-ALPHA (CAPTAS pinger) ── */}
@@ -709,18 +693,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                     fillOpacity: alphaDestroyed ? 0.60 : 0.90,
                     weight: 2,
                   }}
-                >
-                  <Tooltip permanent direction="top" offset={[0, -16]}>
-                    <div style={{ fontSize: 11 }}>
-                      <strong style={{ color: alphaDestroyed ? '#9ca3af' : '#67e8f9' }}>
-                        {alphaDestroyed ? '✕ M48-ALPHA (DESTROYED)' : 'M48-ALPHA'}
-                      </strong><br />
-                      <span style={{ fontSize: 10, color: '#94a3b8' }}>
-                        {alphaDestroyed ? 'CAPTAS hull sunk — zero crew' : 'CAPTAS-4 Active Pinger · Bait'}
-                      </span>
-                    </div>
-                  </Tooltip>
-                </CircleMarker>
+                />
               )}
 
               {/* ── M48-BRAVO (MFTA passive SE) ── */}
@@ -734,16 +707,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                     fillOpacity: 0.90,
                     weight: 2,
                   }}
-                >
-                  <Tooltip permanent direction="bottom" offset={[0, 14]}>
-                    <div style={{ fontSize: 11 }}>
-                      <strong style={{ color: showBravoBearing ? '#fbbf24' : '#93c5fd' }}>M48-BRAVO</strong><br />
-                      <span style={{ fontSize: 10, color: '#94a3b8' }}>
-                        {showBravoBearing ? 'TRIANGULATING ↗' : 'MFTA Passive · Hanwha Armed'}
-                      </span>
-                    </div>
-                  </Tooltip>
-                </CircleMarker>
+                />
               )}
 
               {/* ── M48-CHARLIE (MFTA passive NE) ── */}
@@ -757,31 +721,9 @@ const ASWMissionView = ({ mission, onBack }) => {
                     fillOpacity: 0.90,
                     weight: 2,
                   }}
-                >
-                  <Tooltip permanent direction="top" offset={[0, -14]}>
-                    <div style={{ fontSize: 11 }}>
-                      <strong style={{ color: showCharlieBearing ? '#fbbf24' : '#93c5fd' }}>M48-CHARLIE</strong><br />
-                      <span style={{ fontSize: 10, color: '#94a3b8' }}>
-                        {showCharlieBearing ? 'TRIANGULATING ↗' : 'MFTA Passive · Hanwha Armed'}
-                      </span>
-                    </div>
-                  </Tooltip>
-                </CircleMarker>
+                />
               )}
 
-              {/* ── HORUS boats ── */}
-              {currentTick >= T_DEPLOYED && HORUS_FIELD.map(h => (
-                <CircleMarker
-                  key={h.id}
-                  center={h.pos}
-                  radius={7}
-                  pathOptions={{ color: '#a855f7', fillColor: '#a855f7', fillOpacity: 0.85, weight: 1.5 }}
-                >
-                  <Tooltip permanent direction="right" offset={[9, 0]}>
-                    <span style={{ fontSize: 10, color: '#d8b4fe' }}>{h.label}</span>
-                  </Tooltip>
-                </CircleMarker>
-              ))}
 
             </MapContainer>
 
@@ -799,7 +741,6 @@ const ASWMissionView = ({ mission, onBack }) => {
                   {[
                     { color: '#67e8f9', label: 'M48-ALPHA — CAPTAS Pinger (bait)' },
                     { color: '#fbbf24', label: 'M48-BRAVO/CHARLIE — MFTA + Hanwha' },
-                    { color: '#a855f7', label: 'HORUS — Passive Acoustic Mesh' },
                     { color: '#ef4444', label: 'SIERRA-7 — PLAN Type-093' },
                     { color: '#1d4ed8', label: 'USS Virginia (SSN-774)' },
                   ].map(({ color, label }) => (
@@ -820,14 +761,23 @@ const ASWMissionView = ({ mission, onBack }) => {
             <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
-                <button
-                  onClick={runScenario}
-                  disabled={running}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors ${running ? 'bg-gray-700/60 text-gray-500 cursor-not-allowed' : 'bg-cyan-700 hover:bg-cyan-600 text-white'}`}
-                >
-                  <Play size={13} />
-                  {running ? 'Running…' : complete ? 'Run Again' : 'Run Scenario'}
-                </button>
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors $bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors $bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
                 <button
                   onClick={reset}
                   className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
@@ -849,7 +799,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  3× Magnet M48 · 6× SubSeaSail HORUS · Virginia SSN-774
+                  3× Magnet M48 · Virginia SSN-774
                 </p>
               )}
             </div>
@@ -876,94 +826,33 @@ const ASWMissionView = ({ mission, onBack }) => {
           </div>
         </div>{/* /animation row */}
 
-        {/* ── M48-ALPHA Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#67e8f9" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">Magnet Defense M48-ALPHA</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Lead Pinger — CAPTAS-4 — Crewless Bait</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{M48_CAPTAS_MOUNTS.length}/{M48_CAPTAS_MOUNTS.length} slots</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {M48_CAPTAS_MOUNTS.map((m, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-cyan-500/12">
-                  <Anchor size={14} color="#67e8f9" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{m.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{m.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{m.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#67e8f9" strokeWidth={3} />
-                </div>
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-2 gap-3">
+          {effectiveRoster.map(vessel => (
+            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── M48-BRAVO / CHARLIE Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-yellow-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#fbbf24" />
-            </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">Magnet Defense M48-BRAVO / M48-CHARLIE</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Triangulators + Prosecution — 2×</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{M48_MFTA_MOUNTS.length}/{M48_MFTA_MOUNTS.length} slots</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {M48_MFTA_MOUNTS.map((m, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-yellow-500/12">
-                  <Anchor size={14} color="#fbbf24" />
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center mb-0.5">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{m.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{m.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{m.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#fbbf24" strokeWidth={3} />
-                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── HORUS ASW Mesh Loadout ── */}
-        <div className="border-t border-gray-700/50 flex-shrink-0">
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-gray-700/30">
-            <div className="w-5 h-5 rounded bg-violet-500/15 flex items-center justify-center flex-shrink-0">
-              <Anchor size={11} color="#a855f7" />
             </div>
-            <span className="text-[0.78rem] font-semibold text-gray-100">SubSeaSail HORUS</span>
-            <span className="text-gray-600 text-[0.68rem]">·</span>
-            <span className="text-gray-400 text-[0.68rem]">Persistent Sonobuoy Mesh — PAMELA™ — 6×</span>
-            <div className="ml-auto text-[0.65rem] text-gray-600">{HORUS_ASW_MOUNTS.length}/{HORUS_ASW_MOUNTS.length} slots</div>
-          </div>
-          <div className="p-4 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
-            {HORUS_ASW_MOUNTS.map((m, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-violet-500/5 border border-violet-500/25">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-violet-500/12">
-                  <Anchor size={14} color="#a855f7" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[0.58rem] text-gray-600 uppercase tracking-widest mb-0.5 truncate">{m.slot}</div>
-                  <div className="text-[0.73rem] font-semibold text-gray-100 truncate">{m.name}</div>
-                  <div className="text-[0.62rem] text-gray-500 truncate">{m.vendor}</div>
-                </div>
-                <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                  <Check size={9} color="#a855f7" strokeWidth={3} />
-                </div>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
 
       </div>{/* /scrollable body */}

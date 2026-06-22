@@ -192,16 +192,16 @@ const MarketplacePage = ({ onLogoClick }) => {
               onNavigate={(view, data) => {
                 // Redirect stacks to capabilities
                 const targetView = view === 'stacks' ? 'capabilities' : view;
-                setSelectedView(targetView);
-                // Handle navigation to specific items
+                // Set item-specific state before changing view so the target component
+                // never mounts with null data (avoids the goBack() guard firing)
                 if (view === 'capabilities' && data) {
                   setSelectedCapabilityDetails(data);
                 } else if (view === 'stacks' && data) {
-                  // Stack search results now go to capabilities with stack expanded
                   setExpandedStack(data.name);
                 } else if (view === 'outfitter' && data) {
                   setSelectedHull(data);
                 }
+                setSelectedView(targetView);
               }}
             />
           </div>
@@ -251,10 +251,10 @@ const MarketplacePage = ({ onLogoClick }) => {
                 showSquadrons={showSquadrons}
                 setShowSquadrons={setShowSquadrons}
                 onSelectHull={(hull) => {
-                  setSelectedView('outfitter');
                   setSelectedHull(hull);
                   setSelectedMountPoint(null);
                   setVesselConfiguration({});
+                  setSelectedView('outfitter');
                 }}
               />
             )}
@@ -266,7 +266,9 @@ const MarketplacePage = ({ onLogoClick }) => {
 
             {/* Mission Planner */}
             {selectedView === 'squadron' && (
-              <MissionPlanner />
+              <div style={{ height: 'calc(100vh - 260px)', overflow: 'hidden' }}>
+                <MissionPlanner />
+              </div>
             )}
 
             {/* Versions */}

@@ -117,7 +117,20 @@ export const FreedomLCSHull = ({ size = 200, className = "" }) => (
 export const FrigateHull = FreedomLCSHull;
 
 // Arleigh Burke-class Destroyer (DDG) - Technical Blueprint Style
-export const ArleighBurkeHull = ({ size = 200, className = "", hullNumber = "62" }) => (
+import arleighBurkeImg from '../assets/images/ArleighBurke.png';
+
+export const ArleighBurkeHull = ({ size = 200, className = "" }) => (
+  <img
+    src={arleighBurkeImg}
+    alt="Arleigh Burke DDG"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.05)' }}
+  />
+);
+
+const _ArleighBurkeSVG = ({ size = 200, className = "", hullNumber = "62" }) => (
   <svg width={size} height={size * 0.35} viewBox="0 0 800 280" className={className}>
     <defs>
       <linearGradient id="superstructureGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -282,6 +295,32 @@ export const ArleighBurkeHull = ({ size = 200, className = "", hullNumber = "62"
 
 export const DDGHull = ArleighBurkeHull;
 export const DestroyerHull = ArleighBurkeHull;
+
+import marinerImg from '../assets/images/Mariner.png';
+
+export const MarinerHull = ({ size = 200, className = "" }) => (
+  <img
+    src={marinerImg}
+    alt="Maritime Robotics Mariner"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.05)' }}
+  />
+);
+
+import otterXImg from '../assets/images/OtterX.png';
+
+export const OtterXHull = ({ size = 200, className = "" }) => (
+  <img
+    src={otterXImg}
+    alt="Maritime Robotics Otter X"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.05)' }}
+  />
+);
 
 // Ticonderoga-class Cruiser - Updated Technical Blueprint Style
 export const TiconderogaHull = ({ size = 200, className = "" }) => (
@@ -878,24 +917,18 @@ export const CorvetteHull = ({ size = 200, className = "" }) => (
 );
 
 // Saildrone USV - Image
-import saildroneImg from '../assets/images/Saildrone.png';
+import saildroneImg from '../assets/images/SaildroneUSV.png';
 
-export const SaildroneHull = ({ size = 200, className = "" }) => {
-  const isSmall = size < 100;
-  const mask = isSmall
-    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
-    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
-  return (
-    <img
-      src={saildroneImg}
-      alt="Saildrone"
-      width={size}
-      height={size * 0.6}
-      className={className}
-      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(1.53)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
-    />
-  );
-};
+export const SaildroneHull = ({ size = 200, className = "" }) => (
+  <img
+    src={saildroneImg}
+    alt="Saildrone"
+    width={size}
+    height={size * 0.75}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'screen' }}
+  />
+);
 
 // Legacy alias
 export const SailboatHull = SaildroneHull;

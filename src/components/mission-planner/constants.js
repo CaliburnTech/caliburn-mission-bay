@@ -1,7 +1,7 @@
 import {
   Target, Eye, Crosshair, Radio, Zap, User, CheckCircle,
   Wifi, Brain, Radar, Navigation, Settings2,
-  Shield, Ship, Ban, Plane, Fuel, Satellite, Users, Waves, Anchor
+  Shield, Ship, Ban, Plane, Fuel, Satellite, Users, Waves, Anchor, Lock
 } from 'lucide-react';
 
 // Mission domain types
@@ -13,19 +13,23 @@ export const MISSION_DOMAINS = {
 
 // Define the 9 key MARITIME missions (including CNO priorities)
 export const KEY_MARITIME_MISSIONS = [
-  // CNO Priority Missions (Water Space Denial, Survey, Mine Warfare)
-  { key: 'SEA_DENIAL', name: 'Water Space Denial', icon: Ban, color: '#ef4444', description: 'Clear threats from large ocean areas', domain: 'MARITIME' },
-  { key: 'SURVEY', name: 'Survey & Mapping', icon: Radar, color: '#3b82f6', description: 'Bathymetric & seabed characterization', domain: 'MARITIME' },
+  // CNO Priority Missions (Mine Warfare)
   { key: 'MCM', name: 'Mine Countermeasures', icon: Target, color: '#f97316', description: 'Detect & neutralize naval mines', domain: 'MARITIME' },
   // Other Maritime Missions
   { key: 'CONTESTED_LOGISTICS', name: 'Contested Logistics', icon: Ship, color: '#8b5cf6', description: 'Covert resupply operations', domain: 'MARITIME' },
-  { key: 'ESCORT', name: 'Convoy Escort', icon: Shield, color: '#eab308', description: 'HVU convoy protection', domain: 'MARITIME' },
-  { key: 'REFLEX_SWARM_ATTACK', name: 'Swarm Attack', icon: Crosshair, color: '#ef4444', description: 'Coordinated offensive strike', domain: 'MARITIME' },
-  { key: 'ROBOT_DEFENSE_OODA', name: 'SIGINT Collection', icon: Radio, color: '#f97316', description: 'Persistent ELINT/COMINT surveillance', domain: 'MARITIME' },
-  { key: 'RECONNAISSANCE', name: 'ISR Patrol', icon: Eye, color: '#06b6d4', description: 'Surveillance & reconnaissance', domain: 'MARITIME' },
   { key: 'ASW', name: 'Anti-Submarine Warfare', icon: Waves, color: '#06b6d4', description: 'Detect & track hostile submarines', domain: 'MARITIME' },
   { key: 'PORT_SECURITY', name: 'Port Security', icon: Anchor, color: '#10b981', description: 'Harbor perimeter screening & HVA protection', domain: 'MARITIME' },
-  { key: 'ISR', name: 'ISR — Tethered Drone', icon: Eye, color: '#8b5cf6', description: 'Persistent maritime domain awareness', domain: 'MARITIME' }
+  { key: 'ISR', name: 'ISR — Tethered Drone', icon: Eye, color: '#8b5cf6', description: 'Persistent maritime domain awareness', domain: 'MARITIME' },
+  { key: 'COUNTER_C5ISR', name: 'Counter-C5ISR', icon: Radio, color: '#ef4444', description: 'Map adversary sensor coverage & exploit gaps', domain: 'MARITIME' },
+  { key: 'NON_KINETIC_EW', name: 'Non-Kinetic Effects', icon: Zap, color: '#a855f7', description: 'EW deception, active jamming & acoustic decoy via NEMESIS', domain: 'MARITIME' },
+  { key: 'MDA_ISR', name: 'MDA ISR', icon: Satellite, color: '#06b6d4', description: 'Persistent MDA — dark ship detection, PoL analysis & tipping/cueing of manned assets', domain: 'MARITIME' },
+  { key: 'KINETIC_EFFECTS', name: 'Kinetic Effects', icon: Zap, color: '#ef4444', description: 'Long-range surface strike (Mk 70 PDS) & offensive mining (Hammerhead/Orca)', domain: 'MARITIME' },
+  { key: 'PROTECTIONS', name: 'Protections', icon: Lock, color: '#f59e0b', description: 'cUxS · Undersea Infrastructure · HVU Protection · Port Security — CAPT Privette confirmed', domain: 'MARITIME' },
+  // Sea Jeep missions
+  { key: 'SEAJEEP_BASE', name: 'Sea Jeep — Base MDA', icon: Ship, color: '#14b8a6', description: 'Gray zone maritime domain awareness — AIS-dark contact photography & reporting', domain: 'MARITIME' },
+  { key: 'SEAJEEP_ISR', name: 'Sea Jeep — ISR', icon: Eye, color: '#0ea5e9', description: 'Extended-mast ISR station — elevated EO/IR for drone-watch and threat cueing', domain: 'MARITIME' },
+  { key: 'SEAJEEP_MCM', name: 'Sea Jeep — MCM Survey', icon: Target, color: '#f59e0b', description: 'Forward-look sonar + towed side-scan mine detection and mapping (detect only)', domain: 'MARITIME' },
+  { key: 'SEAJEEP_LOGISTICS', name: 'Sea Jeep — Logistics', icon: Anchor, color: '#8b5cf6', description: 'Autonomous island-chain resupply — cargo pod delivery to forward posts', domain: 'MARITIME' }
 ];
 
 // Define the 5 key AERIAL missions
@@ -89,19 +93,22 @@ export const hierarchyPresets = {
 // Zone types based on mission
 export const zoneTypes = {
   // Maritime missions - CNO Priorities
-  SEA_DENIAL: { label: 'Denial Zone', color: '#ef4444', fillOpacity: 0.3, geometryType: 'zone', description: 'Draw area to clear of threats', domain: 'MARITIME' },
-  SURVEY: { label: 'Survey Track', color: '#3b82f6', fillOpacity: 0.2, geometryType: 'route', description: 'Define survey track with waypoints', domain: 'MARITIME' },
   MCM: { label: 'MCM Area', color: '#f97316', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw mine countermeasures search area', domain: 'MARITIME' },
   ASW: { label: 'ASW Box', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw anti-submarine search area', domain: 'MARITIME' },
   // Other Maritime missions
-  ESCORT: { label: 'Convoy Route', color: '#eab308', fillOpacity: 0.2, geometryType: 'route', description: 'Set waypoints A→B→C for escort path', domain: 'MARITIME' },
   CONTESTED_LOGISTICS: { label: 'Supply Route', color: '#8b5cf6', fillOpacity: 0.2, geometryType: 'route', description: 'Define resupply route with waypoints', domain: 'MARITIME' },
-  RECONNAISSANCE: { label: 'Patrol Area', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw patrol/surveillance area', domain: 'MARITIME' },
-  REFLEX_SWARM_ATTACK: { label: 'Attack Targets', color: '#ef4444', fillOpacity: 0.35, geometryType: 'target', description: 'Mark target points and staging area', domain: 'MARITIME' },
-  ROBOT_DEFENSE: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area for SIGINT collection', domain: 'MARITIME' },
-  ROBOT_DEFENSE_OODA: { label: 'Collection Box', color: '#f97316', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define loiter area for SIGINT collection', domain: 'MARITIME' },
   PORT_SECURITY: { label: 'Security Perimeter', color: '#10b981', fillOpacity: 0.2, geometryType: 'perimeter', description: 'Define protected asset and screening perimeter radius', domain: 'MARITIME' },
   ISR: { label: 'ISR Patrol Area', color: '#8b5cf6', fillOpacity: 0.15, geometryType: 'zone', description: 'ISR patrol sector — persistent surveillance', domain: 'MARITIME' },
+  COUNTER_C5ISR: { label: 'Counter-C5ISR Patrol', color: '#ef4444', fillOpacity: 0.12, geometryType: 'zone', description: 'Median line patrol — adversary sensor mapping', domain: 'MARITIME' },
+  NON_KINETIC_EW: { label: 'NEMESIS Deception Box', color: '#a855f7', fillOpacity: 0.15, geometryType: 'zone', description: 'Multi-spectral false signature projection area', domain: 'MARITIME' },
+  MDA_ISR: { label: 'MDA ISR Barrier', color: '#06b6d4', fillOpacity: 0.12, geometryType: 'zone', description: 'Persistent MDA patrol zone — multi-platform ISR barrier', domain: 'MARITIME' },
+  KINETIC_EFFECTS: { label: 'Strike / Mining Area', color: '#ef4444', fillOpacity: 0.25, geometryType: 'target', description: 'Strike target points or mine deployment route', domain: 'MARITIME' },
+  PROTECTIONS: { label: 'Protections AO', color: '#f59e0b', fillOpacity: 0.12, geometryType: 'perimeter', description: 'cUxS · Infrastructure · HVU · Port Security composite zone', domain: 'MARITIME' },
+  // Sea Jeep missions
+  SEAJEEP_BASE: { label: 'MDA Patrol Box', color: '#14b8a6', fillOpacity: 0.12, geometryType: 'zone', description: 'Define patrol box for gray zone MDA monitoring', domain: 'MARITIME' },
+  SEAJEEP_ISR: { label: 'ISR Station', color: '#0ea5e9', fillOpacity: 0.12, geometryType: 'station', description: 'ISR loiter station — extended mast EO/IR coverage', domain: 'MARITIME' },
+  SEAJEEP_MCM: { label: 'MCM Survey Lane', color: '#f59e0b', fillOpacity: 0.2, geometryType: 'route', description: 'Survey corridor for forward-look sonar + towed side-scan mine detection', domain: 'MARITIME' },
+  SEAJEEP_LOGISTICS: { label: 'Resupply Route', color: '#8b5cf6', fillOpacity: 0.15, geometryType: 'route', description: 'Autonomous resupply transit route to forward island post', domain: 'MARITIME' },
 
   // Aerial missions
   AERIAL_ISR: { label: 'ISR Orbit', color: '#06b6d4', fillOpacity: 0.2, geometryType: 'orbit', description: 'Define orbit track for surveillance', domain: 'AERIAL' },

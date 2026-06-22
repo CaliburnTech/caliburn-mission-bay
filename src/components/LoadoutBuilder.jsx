@@ -3,8 +3,10 @@ import {
   ChevronLeft, Eye, Crosshair, Shield, Navigation, Cpu,
   Wifi, Zap, Plus, X, Check, Ship,
   AlertCircle, CheckCircle2, Search, Layers, ChevronDown,
-  FileText, GitBranch
+  FileText, GitBranch, Map
 } from 'lucide-react';
+import { getEligibleRolesByMission } from '../utils/roleUtils';
+import { MISSION_ROLES } from '../data/missionRoles';
 import useOutfitterStore from '../store/outfitterStore';
 import useNavigationStore from '../store/navigationStore';
 import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
@@ -34,21 +36,28 @@ const LOADOUT_CATEGORIES = {
     name: 'Sensors',
     icon: Eye,
     color: CATEGORY_COLORS.SENSORS.hex,
-    types: ['EO/IR SENSORS', 'RADAR/RF', 'ACOUSTIC/SONAR', 'ELECTRONIC SUPPORT', 'ELECTRONIC ATTACK', 'ELECTRONIC PROTECTION'],
+    types: [
+      'EO/IR SENSORS', 'RADAR/RF', 'ACOUSTIC/SONAR', 'ELECTRONIC SUPPORT',
+      'ELECTRONIC ATTACK', 'ELECTRONIC PROTECTION',
+      // Variant category names used in marketplaceData
+      'ACOUSTIC SENSORS', 'ACOUSTIC DECOY', 'RADAR SENSORS', 'SENSORS & DETECTION',
+      'SIGNALS INTELLIGENCE', 'ISR', 'ISR & SURVEILLANCE', 'SAR',
+      'MCM', 'MCM SYSTEMS', 'EW', 'ASW',
+    ],
     description: 'Detection, surveillance & EW systems'
   },
   COMMS: {
     name: 'Communications',
     icon: Wifi,
     color: CATEGORY_COLORS.COMMS.hex,
-    types: ['RF COMMUNICATIONS', 'SATCOM', 'UNDERWATER COMMS'],
+    types: ['RF COMMUNICATIONS', 'SATCOM', 'UNDERWATER COMMS', 'COMMUNICATIONS'],
     description: 'Data links & networking'
   },
   WEAPONS: {
     name: 'Weapons',
     icon: Crosshair,
     color: CATEGORY_COLORS.WEAPONS.hex,
-    types: ['KINETIC WEAPONS', 'DIRECTED ENERGY'],
+    types: ['KINETIC WEAPONS', 'DIRECTED ENERGY', 'WEAPONS', 'COMBAT', 'SEA_CONTROL', 'FORCE_PROTECTION'],
     description: 'Offensive capabilities'
   },
   C2: {
@@ -77,7 +86,10 @@ const LOADOUT_CATEGORIES = {
     name: 'Utility',
     icon: Shield,
     color: CATEGORY_COLORS.UTILITY.hex,
-    types: ['LOGISTICS', 'LOGISTICS & SUPPORT', 'MAINTENANCE', 'SUPPLY CHAIN', 'DATA PROCESSING', 'CYBER DEFENSE'],
+    types: [
+      'LOGISTICS', 'LOGISTICS & SUPPORT', 'MAINTENANCE', 'SUPPLY CHAIN',
+      'DATA PROCESSING', 'CYBER DEFENSE', 'DEFENSE', 'ESCORT',
+    ],
     description: 'Support & utility systems'
   },
   OTHER: {
@@ -108,8 +120,21 @@ const VIEW_NAMES = {
 };
 
 // Slot capacity and category keys imported from ../data/vesselData.js
-// Port Security Mission Set — the three real capabilities to equip
-const PORT_SECURITY_CAPS = ['Towed Hydrophone Array', 'OrbComm ST 6100', 'MOOS-IvP'];
+// Port Security Mission Set — must match PortSecurityMissionView MISSION_SET_CAPS
+const PORT_SECURITY_CAPS = ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'OceanSonics icListen HF Smart Hydrophone Array', 'MOOS-IvP'];
+
+const MISSION_SET_LABELS = {
+  PORT_SECURITY:        'Port Security Mission Set',
+  MCM:                  'Mine Clearance Mission Set',
+  COUNTER_C5ISR:        'ISR Tethered Drone Mission Set',
+  ISR:                  'Taiwan ISR Mission Set',
+  ASW:                  'ASW Mission Set',
+  NON_KINETIC_EW:       'Non-Kinetic EW Mission Set',
+  MDA_ISR:              'MDA ISR Mission Set',
+  PROTECTIONS:          'Protections Mission Set',
+  CONTESTED_LOGISTICS:  'Contested Logistics Mission Set',
+  KINETIC_EFFECTS:      'Kinetic Effects Mission Set',
+};
 
 // Main Loadout Builder Component
 const LoadoutBuilder = () => {
@@ -125,14 +150,30 @@ const LoadoutBuilder = () => {
     addSlot,
     removeSlot,
     saveActiveConfiguration,
-    closeActiveConfiguration
+    closeActiveConfiguration,
+    pendingMissionSetKey,
+    appliedMissionSetKey,
+    setAppliedMissionSet,
+    clearAppliedMissionSet,
+    setPendingRoleKey,
   } = useConfigurationStore();
 
+  // Effective mission set key/caps: prefer the pending (arrive-via-configure) value,
+  // fall back to whatever was last applied (so the button persists on direct navigation)
+  const effectiveMissionSetKey = pendingMissionSetKey || appliedMissionSetKey;
+
   // Mission store — for Port Security deep-link
-  const { setSelectedMissionTemplate, setPendingMissionOpen } = useMissionStore();
+  const { setSelectedMissionTemplate, setPendingMissionOpen, roleAssignments, assignVesselToRole, clearRoleAssignment, clearMissionAssignments } = useMissionStore();
 
   // Port Security Mission Set state
-  const [portSecApplied, setPortSecApplied] = useState(false);
+  const [_portSecApplied, setPortSecApplied] = useState(
+    () => useConfigurationStore.getState().pendingMissionSetKey === 'PORT_SECURITY'
+  );
+  const [genericMissionSetApplied, setGenericMissionSetApplied] = useState(() => {
+    const { pendingMissionSetKey: pk, appliedMissionSetKey: ak } = useConfigurationStore.getState();
+    const key = pk || ak;
+    return key !== null && key !== 'PORT_SECURITY';
+  });
 
   // Version tracking
   const versionCount = useVersionStore(s => {
@@ -398,13 +439,16 @@ const LoadoutBuilder = () => {
       for (const [key, cat] of Object.entries(LOADOUT_CATEGORIES)) {
         if (cat.types && cat.types.includes(cap.category)) {
           const capacity = getTotalCapacity(key);
-          const currentSlots = activeConfig?.slots?.[key] || [];
-          const emptyIndex = currentSlots.findIndex(s => s === null);
+          // Read fresh store state each iteration so prior setSlotCapability calls are visible
+          const freshSlots = useConfigurationStore.getState().activeConfig?.slots?.[key] || [];
+          // Guard against StrictMode double-invoke: skip if already placed
+          if (freshSlots.some(s => s === cap.name)) break;
+          const emptyIndex = freshSlots.findIndex(s => s === null);
           if (emptyIndex !== -1) {
             setSlotCapability(key, emptyIndex, cap.name);
             break;
-          } else if (currentSlots.length < capacity) {
-            setSlotCapability(key, currentSlots.length, cap.name);
+          } else if (freshSlots.length < capacity) {
+            setSlotCapability(key, freshSlots.length, cap.name);
             break;
           }
         }
@@ -413,8 +457,159 @@ const LoadoutBuilder = () => {
     setPortSecApplied(true);
   };
 
+  const _handleRemovePortSecurity = () => {
+    PORT_SECURITY_CAPS.forEach(capName => {
+      const slots = useConfigurationStore.getState().activeConfig?.slots || {};
+      for (const [key, slotArr] of Object.entries(slots)) {
+        if (!slotArr) continue;
+        const idx = slotArr.indexOf(capName);
+        if (idx !== -1) {
+          setSlotCapability(key, idx, null);
+          break;
+        }
+      }
+    });
+    setPortSecApplied(false);
+  };
+
+  const handleApplyGenericMissionSet = () => {
+    const { pendingMissionSetCaps, pendingMissionSetKey: pk, appliedMissionSetKey: ak } = useConfigurationStore.getState();
+    const caps = pendingMissionSetCaps || useConfigurationStore.getState().appliedMissionSetCaps;
+    const key = pk || ak;
+    if (!caps) return;
+    caps.forEach(capName => {
+      const cap = individualCapabilities.find(c => c.name === capName);
+      if (!cap) return;
+      let placed = false;
+      for (const [key, cat] of Object.entries(LOADOUT_CATEGORIES)) {
+        if (cat.types && cat.types.includes(cap.category)) {
+          const capacity = getTotalCapacity(key);
+          const freshSlots = useConfigurationStore.getState().activeConfig?.slots?.[key] || [];
+          // Skip if this cap is already in the slot (guards against StrictMode double-invoke)
+          if (freshSlots.some(s => s === cap.name)) { placed = true; break; }
+          const emptyIndex = freshSlots.findIndex(s => s === null);
+          if (emptyIndex !== -1) {
+            setSlotCapability(key, emptyIndex, cap.name);
+            placed = true;
+            break;
+          } else if (freshSlots.length < capacity) {
+            setSlotCapability(key, freshSlots.length, cap.name);
+            placed = true;
+            break;
+          }
+        }
+      }
+      if (!placed) {
+        const otherSlots = useConfigurationStore.getState().activeConfig?.slots?.['OTHER'] || [];
+        const otherEmpty = otherSlots.findIndex(s => s === null);
+        if (otherEmpty !== -1 && !otherSlots.some(s => s === cap.name)) {
+          setSlotCapability('OTHER', otherEmpty, cap.name);
+        }
+      }
+    });
+    setAppliedMissionSet(key, caps);
+    setGenericMissionSetApplied(true);
+  };
+
+  const handleRemoveGenericMissionSet = () => {
+    const caps = useConfigurationStore.getState().appliedMissionSetCaps;
+    if (!caps) { setGenericMissionSetApplied(false); return; }
+    caps.forEach(capName => {
+      const slots = useConfigurationStore.getState().activeConfig?.slots || {};
+      for (const [key, slotArr] of Object.entries(slots)) {
+        if (!slotArr) continue;
+        const idx = slotArr.indexOf(capName);
+        if (idx !== -1) {
+          setSlotCapability(key, idx, null);
+          break;
+        }
+      }
+    });
+    clearAppliedMissionSet();
+    setGenericMissionSetApplied(false);
+  };
+
+  // Track which role caps were last applied by the dynamic role system (separate from configurationStore)
+  // so we can clear them on deselect without polluting appliedMissionSetKey.
+  const [activeRoleCaps, setActiveRoleCaps] = useState(null);
+
+  // Apply a mission role's capabilities to the loadout, then record the assignment
+  const handleAssignRole = (missionKey, role) => {
+    // Clear any previously applied dynamic role caps first
+    if (activeRoleCaps) {
+      activeRoleCaps.forEach(capName => {
+        const slots = useConfigurationStore.getState().activeConfig?.slots || {};
+        for (const [key, slotArr] of Object.entries(slots)) {
+          if (!slotArr) continue;
+          const idx = slotArr.indexOf(capName);
+          if (idx !== -1) { setSlotCapability(key, idx, null); break; }
+        }
+      });
+    }
+    // Clear any pre-existing generic mission set assignment too
+    const prevGenericCaps = useConfigurationStore.getState().appliedMissionSetCaps;
+    if (prevGenericCaps) {
+      prevGenericCaps.forEach(capName => {
+        const slots = useConfigurationStore.getState().activeConfig?.slots || {};
+        for (const [key, slotArr] of Object.entries(slots)) {
+          if (!slotArr) continue;
+          const idx = slotArr.indexOf(capName);
+          if (idx !== -1) { setSlotCapability(key, idx, null); break; }
+        }
+      });
+      clearAppliedMissionSet();
+      setGenericMissionSetApplied(false);
+    }
+    // Apply new role caps
+    role.capabilities.forEach(capName => {
+      const cap = individualCapabilities.find(c => c.name === capName);
+      if (!cap) return;
+      let placed = false;
+      for (const [catKey, cat] of Object.entries(LOADOUT_CATEGORIES)) {
+        if (cat.types && cat.types.includes(cap.category)) {
+          const capacity = getTotalCapacity(catKey);
+          const freshSlots = useConfigurationStore.getState().activeConfig?.slots?.[catKey] || [];
+          if (freshSlots.some(s => s === cap.name)) { placed = true; break; }
+          const emptyIndex = freshSlots.findIndex(s => s === null);
+          if (emptyIndex !== -1) {
+            setSlotCapability(catKey, emptyIndex, cap.name);
+            placed = true; break;
+          } else if (freshSlots.length < capacity) {
+            setSlotCapability(catKey, freshSlots.length, cap.name);
+            placed = true; break;
+          }
+        }
+      }
+      if (!placed) {
+        const otherSlots = useConfigurationStore.getState().activeConfig?.slots?.['OTHER'] || [];
+        const otherEmpty = otherSlots.findIndex(s => s === null);
+        if (otherEmpty !== -1 && !otherSlots.some(s => s === cap.name)) {
+          setSlotCapability('OTHER', otherEmpty, cap.name);
+        }
+      }
+    });
+    // Record caps locally (NOT in configurationStore) to avoid triggering the generic block
+    setActiveRoleCaps(role.capabilities);
+    assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+  };
+
+  // Remove a role assignment and clear its capabilities
+  const handleRemoveRole = (missionKey, role) => {
+    const caps = activeRoleCaps || role.capabilities;
+    caps.forEach(capName => {
+      const slots = useConfigurationStore.getState().activeConfig?.slots || {};
+      for (const [key, slotArr] of Object.entries(slots)) {
+        if (!slotArr) continue;
+        const idx = slotArr.indexOf(capName);
+        if (idx !== -1) { setSlotCapability(key, idx, null); break; }
+      }
+    });
+    setActiveRoleCaps(null);
+    clearRoleAssignment(missionKey, role.roleKey);
+  };
+
   // Navigate to Port Security mission in Mission Planner
-  const handleGoToMission = () => {
+  const _handleGoToMission = () => {
     setSelectedMissionTemplate('PORT_SECURITY');
     setPendingMissionOpen(true);
     setSelectedView('squadron');
@@ -507,7 +702,10 @@ const LoadoutBuilder = () => {
   // Initialize configuration when component mounts
   useEffect(() => {
     if (!selectedHull) {
-      goBack('shipyard');
+      // Use setSelectedView with skipHistory to avoid double-popping the history
+      // stack in React StrictMode (which runs effects twice on mount). goBack()
+      // would pop a different entry each time, potentially landing on the wrong view.
+      setSelectedView('shipyard', { skipHistory: true });
       return;
     }
 
@@ -516,7 +714,40 @@ const LoadoutBuilder = () => {
     if (!activeConfig) {
       startNewConfiguration(selectedHull.name);
     }
-  }, [selectedHull, goBack, activeConfig, startNewConfiguration]);
+  }, [selectedHull, setSelectedView, activeConfig, startNewConfiguration]);
+
+  // Auto-apply mission set caps (or a specific role) when arriving via the configure button
+  useEffect(() => {
+    const key = useConfigurationStore.getState().pendingMissionSetKey;
+    const roleKey = useConfigurationStore.getState().pendingRoleKey;
+    const config = useConfigurationStore.getState().activeConfig;
+    if (!key || !config) return;
+
+    if (roleKey) {
+      // Navigate came from a specific vessel card — clear any stale assignments
+      // for this mission first so only the intended role shows as selected
+      clearMissionAssignments(key);
+      const role = MISSION_ROLES[key]?.roles?.find(r => r.roleKey === roleKey);
+      if (role) {
+        handleAssignRole(key, role);
+      }
+      // Clear the pending role AND mission-set keys so the generic "ASW Mission Set"
+      // banner doesn't appear alongside the specific role assignment
+      setPendingRoleKey(null);
+      useConfigurationStore.getState().setPendingMissionSetKey(null);
+      useConfigurationStore.getState().setPendingMissionSetCaps(null);
+    } else if (key === 'PORT_SECURITY') {
+      handleApplyPortSecurity();
+      // Clear pending so it doesn't bleed into subsequent outfitter opens
+      useConfigurationStore.getState().setPendingMissionSetKey(null);
+      useConfigurationStore.getState().setPendingMissionSetCaps(null);
+    } else if (useConfigurationStore.getState().pendingMissionSetCaps) {
+      handleApplyGenericMissionSet();
+      // Clear pending so it doesn't bleed into subsequent outfitter opens (mirrors PORT_SECURITY path above)
+      useConfigurationStore.getState().setPendingMissionSetKey(null);
+      useConfigurationStore.getState().setPendingMissionSetCaps(null);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Don't render anything while redirecting
   if (!selectedHull) {
@@ -735,7 +966,7 @@ const LoadoutBuilder = () => {
       )}
 
       {/* Main Layout */}
-      <div className="grid grid-cols-[1fr_300px_1fr] gap-6">
+      <div className="grid grid-cols-[1fr_260px_1fr_260px] gap-6">
         {/* Left Column - Sensors, Comms, Weapons, Other */}
         <div className="space-y-4">
           {['SENSORS', 'COMMS', 'WEAPONS', 'OTHER'].filter(key => visibleCategories[key]).map(key => (
@@ -756,7 +987,7 @@ const LoadoutBuilder = () => {
           ))}
         </div>
 
-        {/* Center - Vessel Preview + Mario Kart Stats */}
+        {/* Center - Vessel Preview + Stats */}
         <div className="flex flex-col items-center">
           <div className="bg-darker rounded-2xl border border-gray-700/50 p-6 w-full">
             <div className="aspect-[4/3] flex items-center justify-center bg-gradient-to-b from-gray-800/30 to-transparent rounded-xl">
@@ -771,35 +1002,6 @@ const LoadoutBuilder = () => {
               <div className="text-gray-500 text-sm">{selectedHull.type}</div>
             </div>
           </div>
-
-          {/* Port Security Mission Set — HORUS only */}
-          {selectedHull.name === 'SubSeaSail Horus' && (
-            <div className="mt-4 w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
-              <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Set</p>
-              <button
-                onClick={handleApplyPortSecurity}
-                disabled={portSecApplied}
-                className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
-                  portSecApplied
-                    ? 'bg-lime-brand/10 border-lime-brand text-lime-brand cursor-default'
-                    : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
-                }`}
-              >
-                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${portSecApplied ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
-                  {portSecApplied && <Check size={10} className="text-black" />}
-                </span>
-                Port Security Mission Set
-              </button>
-              {portSecApplied && (
-                <button
-                  onClick={handleGoToMission}
-                  className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
-                >
-                  Go to Mission →
-                </button>
-              )}
-            </div>
-          )}
 
           {/* Mario Kart Style Stats */}
           <div className="mt-4 w-full">
@@ -839,6 +1041,101 @@ const LoadoutBuilder = () => {
               isSelected={selectedSlotIndex?.category === key}
             />
           ))}
+        </div>
+
+        {/* Mission Sets Column */}
+        <div className="flex flex-col gap-4">
+          {/* Port Security Mission Set button removed — HORUS roles appear in the dynamic role list below */}
+
+          {/* Generic mission set — for all non-Port-Security missions */}
+          {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (
+            <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+              <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Set</p>
+              <button
+                onClick={genericMissionSetApplied ? handleRemoveGenericMissionSet : handleApplyGenericMissionSet}
+                className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
+                  genericMissionSetApplied
+                    ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
+                    : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${genericMissionSetApplied ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                  {genericMissionSetApplied && <Check size={10} className="text-black" />}
+                </span>
+                {MISSION_SET_LABELS[effectiveMissionSetKey]}
+              </button>
+              {genericMissionSetApplied && (
+                <button
+                  onClick={() => {
+                    setSelectedMissionTemplate(effectiveMissionSetKey);
+                    setPendingMissionOpen(true);
+                    setSelectedView('squadron');
+                  }}
+                  className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                >
+                  Go to Mission →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Dynamic Mission Sets — SWaP-based eligibility */}
+          {(() => {
+            const eligibleByMission = getEligibleRolesByMission(selectedHull.name);
+            const missionKeys = Object.keys(eligibleByMission);
+            if (missionKeys.length === 0) return null;
+            // True if any role is currently assigned to this hull
+            const hasActiveAssignment = activeRoleCaps !== null;
+            return (
+              <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Map size={12} className="text-gray-500" />
+                  <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Sets</p>
+                </div>
+                {missionKeys.map(missionKey => {
+                  const { missionLabel, roles } = eligibleByMission[missionKey];
+                  return (
+                    <div key={missionKey} className="flex flex-col gap-1.5">
+                      <p className="text-[0.6rem] text-gray-500 font-semibold uppercase tracking-wide">{missionLabel}</p>
+                      {roles.map(role => {
+                        const assignment = roleAssignments?.[missionKey]?.[role.roleKey];
+                        const isAssigned = !!(assignment && assignment.hullName === selectedHull.name);
+                        const isLocked = hasActiveAssignment && !isAssigned;
+                        return (
+                          <div key={role.roleKey} className="flex flex-col gap-1.5">
+                            <button
+                              disabled={isLocked}
+                              onClick={() => isAssigned ? handleRemoveRole(missionKey, role) : handleAssignRole(missionKey, role)}
+                              className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
+                                isAssigned
+                                  ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
+                                  : isLocked
+                                  ? 'bg-transparent border-gray-700/30 text-gray-600 cursor-not-allowed opacity-40'
+                                  : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                              }`}
+                            >
+                              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isAssigned ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                                {isAssigned && <Check size={10} className="text-black" />}
+                              </span>
+                              {role.roleLabel}
+                            </button>
+                            {isAssigned && (
+                              <button
+                                onClick={() => { setSelectedMissionTemplate(missionKey); setPendingMissionOpen(true); setSelectedView('squadron'); }}
+                                className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                              >
+                                Go to Mission →
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

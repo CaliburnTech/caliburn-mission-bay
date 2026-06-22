@@ -1,5 +1,5 @@
-import React from 'react';
-import { Ship, X, Target, Settings, ChevronLeft, Plus, Minus, Grid3X3, Maximize2, Move } from 'lucide-react';
+import React, { useState } from 'react';
+import { Ship, X, Target, Settings, ChevronLeft, Plus, Minus, Grid3X3, Maximize2, Move, Map, CheckCircle } from 'lucide-react';
 import { vesselHullComponents, vesselHullData, vesselMountPoints, isAerialPlatform } from '../data/vesselData';
 import { individualCapabilities, capabilityCategories } from '../data/marketplaceData';
 import { getSecurityLevel, STATUS_COLORS, BRAND_COLORS } from '../constants/colors';
@@ -9,6 +9,128 @@ import VesselStatsDisplay from './VesselStatsDisplay';
 import AerialStatsDisplay from './AerialStatsDisplay';
 import MountPointNode from './MountPointNode';
 import HorusModelViewer from './loadout/HorusModelViewer';
+import { getEligibleRolesByMission, getRoleSWaPBudget } from '../utils/roleUtils';
+import useMissionStore from '../store/missionStore';
+import useNavigationStore from '../store/navigationStore';
+
+const MissionRolesPanel = ({ hullName }) => {
+  const [expanded, setExpanded] = useState({});
+  const {
+    roleAssignments,
+    assignVesselToRole,
+    clearRoleAssignment,
+    setSelectedMissionTemplate,
+    setPendingMissionOpen,
+  } = useMissionStore();
+  const { setSelectedView } = useNavigationStore();
+
+  const eligibleByMission = getEligibleRolesByMission(hullName);
+  const missionKeys = Object.keys(eligibleByMission);
+
+  if (missionKeys.length === 0) {
+    return (
+      <div className="bg-darker rounded-xl p-4 border border-lime-brand/20">
+        <h3 className="text-lime-brand font-bold text-sm mb-2 flex items-center gap-2">
+          <Map size={14} />
+          MISSION ROLES
+        </h3>
+        <p className="text-gray-500 text-xs">No missions qualify for this vessel&apos;s SWaP capacity.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-darker rounded-xl p-4 border border-lime-brand/20">
+      <h3 className="text-lime-brand font-bold text-sm mb-1 flex items-center gap-2">
+        <Map size={14} />
+        MISSION ROLES
+      </h3>
+      <p className="text-gray-400 text-xs mb-3">
+        {missionKeys.length} mission{missionKeys.length !== 1 ? 's' : ''} eligible by SWaP
+      </p>
+
+      <div className="flex flex-col gap-2">
+        {missionKeys.map(missionKey => {
+          const { missionLabel, roles } = eligibleByMission[missionKey];
+          const isOpen = expanded[missionKey] !== false; // default open
+
+          return (
+            <div key={missionKey} className="bg-darkest rounded-lg border border-lime-brand/10 overflow-hidden">
+              {/* Mission header — click to collapse */}
+              <button
+                onClick={() => setExpanded(prev => ({ ...prev, [missionKey]: !isOpen }))}
+                className="w-full flex justify-between items-center p-2.5 cursor-pointer bg-transparent border-0 text-left"
+              >
+                <span className="text-gray-200 text-xs font-semibold">{missionLabel}</span>
+                <span className="text-gray-500 text-xs">{isOpen ? '▲' : '▼'} {roles.length} role{roles.length !== 1 ? 's' : ''}</span>
+              </button>
+
+              {isOpen && (
+                <div className="px-2.5 pb-2.5 flex flex-col gap-2">
+                  {roles.map(role => {
+                    const assignment = roleAssignments?.[missionKey]?.[role.roleKey];
+                    const isAssigned = !!(assignment && assignment.hullName === hullName);
+                    const budget = getRoleSWaPBudget(role);
+
+                    return (
+                      <div
+                        key={role.roleKey}
+                        className={`rounded-md p-2 border ${isAssigned ? 'border-lime-brand bg-lime-brand/10' : 'border-lime-brand/20 bg-darker'}`}
+                      >
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="text-xs font-semibold text-lime-brand">{role.roleLabel}</span>
+                          {isAssigned && (
+                            <span className="flex items-center gap-0.5 text-[0.5rem] bg-lime-brand text-black font-bold px-1 rounded">
+                              <CheckCircle size={8} />
+                              ASSIGNED
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[0.6875rem] text-gray-400 leading-snug mb-1">{role.description}</p>
+                        <p className="text-[0.625rem] text-gray-500 mb-2">
+                          Budget: {budget.weight.toFixed(0)} kg · {budget.power.toFixed(1)} kW
+                        </p>
+                        <div className="flex gap-1">
+                          {isAssigned ? (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setSelectedMissionTemplate(missionKey);
+                                  setPendingMissionOpen(true);
+                                  setSelectedView('squadron');
+                                }}
+                                className="flex-1 bg-lime-brand/20 text-lime-brand border border-lime-brand/40 rounded px-2 py-1 text-[0.625rem] font-bold cursor-pointer hover:bg-lime-brand/30 transition-colors"
+                              >
+                                VIEW MISSION
+                              </button>
+                              <button
+                                onClick={() => clearRoleAssignment(missionKey, role.roleKey)}
+                                className="bg-transparent text-red-400 border border-red-500/30 rounded px-2 py-1 text-[0.625rem] cursor-pointer hover:bg-red-500/10 transition-colors"
+                              >
+                                CLEAR
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => assignVesselToRole(missionKey, role.roleKey, hullName, hullName, hullName)}
+                              className="flex-1 bg-transparent text-lime-brand border border-lime-brand/30 rounded px-2 py-1 text-[0.625rem] font-bold cursor-pointer hover:bg-lime-brand/10 transition-colors"
+                            >
+                              ASSIGN TO ROLE
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const OutfitterView = ({ onBackToShipyard }) => {
   // Get state and actions from outfitter store
@@ -782,9 +904,10 @@ const OutfitterView = ({ onBackToShipyard }) => {
             </div>
           </div>
 
-          {/* Right Panel - Platform Performance Stats */}
+          {/* Right Panel - Mission Roles + Platform Performance Stats */}
           <div className="w-[320px] flex-shrink-0">
-            <div className="sticky top-6">
+            <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto flex flex-col gap-4 pr-1">
+              <MissionRolesPanel hullName={selectedHull.name} />
               {isAerialPlatform(selectedHull?.platformType) ? (
                 <AerialStatsDisplay />
               ) : (

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 // Fallback for before dataStore is initialized
 import { initialMissions } from '../data/missionsData';
 
-const useMissionStore = create((set) => ({
+const useMissionStore = create((set, get) => ({
   // Mission template selection
   selectedMissionTemplate: null,
   setSelectedMissionTemplate: (template) => set({ selectedMissionTemplate: template }),
@@ -240,7 +240,44 @@ const useMissionStore = create((set) => ({
   })),
   deleteMissionPlan: (planId) => set((state) => ({
     savedMissionPlans: state.savedMissionPlans.filter(plan => plan.id !== planId)
-  }))
+  })),
+
+  // Role assignments: { [missionKey]: { [roleKey]: { configId, hullName, vesselLabel } | null } }
+  roleAssignments: {},
+
+  assignVesselToRole: (missionKey, roleKey, configId, hullName, vesselLabel) => set(state => ({
+    roleAssignments: {
+      ...state.roleAssignments,
+      [missionKey]: {
+        ...(state.roleAssignments[missionKey] || {}),
+        [roleKey]: { configId, hullName, vesselLabel },
+      },
+    },
+  })),
+
+  clearRoleAssignment: (missionKey, roleKey) => set(state => ({
+    roleAssignments: {
+      ...state.roleAssignments,
+      [missionKey]: {
+        ...(state.roleAssignments[missionKey] || {}),
+        [roleKey]: null,
+      },
+    },
+  })),
+
+  // Clear ALL role assignments for a mission — used when arriving via gear icon
+  // so stale assignments from previous navigations don't bleed through
+  clearMissionAssignments: (missionKey) => set(state => ({
+    roleAssignments: {
+      ...state.roleAssignments,
+      [missionKey]: {},
+    },
+  })),
+
+  getRoleAssignment: (missionKey, roleKey) => {
+    const state = get();
+    return state.roleAssignments?.[missionKey]?.[roleKey] ?? null;
+  },
 }));
 
 export default useMissionStore;

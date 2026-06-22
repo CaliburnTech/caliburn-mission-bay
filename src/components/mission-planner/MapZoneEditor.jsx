@@ -131,7 +131,7 @@ const MapZoneEditor = ({ zoneConfig, setZoneConfig, missionType }) => {
   const [importError, setImportError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const zoneStyle = zoneTypes[missionType] || zoneTypes.SEA_DENIAL;
+  const zoneStyle = zoneTypes[missionType] || zoneTypes.ASW;
   // Normalize aerial geometry types to existing handlers
   // orbit/track → route (waypoint-based paths)
   // station → perimeter (single point with radius)
