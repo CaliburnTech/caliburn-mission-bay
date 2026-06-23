@@ -572,7 +572,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
               {/* Median line — always visible, gray dashed */}
               <Polyline
                 positions={MEDIAN_LINE}
-                pathOptions={{ color: '#94a3b8', weight: 1, opacity: 0.40, dashArray: '8 6' }}
+                pathOptions={{ color: 'var(--caliburn-text-secondary)', weight: 1, opacity: 0.40, dashArray: '8 6' }}
               />
 
               {/* Median line label (tooltip on mid-point) */}
@@ -582,7 +582,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                 pathOptions={{ opacity: 0, fillOpacity: 0 }}
               >
                 <Tooltip permanent direction="right" offset={[4, 0]}>
-                  <span style={{ fontSize: 9, color: '#94a3b8' }}>MEDIAN LINE</span>
+                  <span style={{ fontSize: 9, color: 'var(--caliburn-text-secondary)' }}>MEDIAN LINE</span>
                 </Tooltip>
               </CircleMarker>
 

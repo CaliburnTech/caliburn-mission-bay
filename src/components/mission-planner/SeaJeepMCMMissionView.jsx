@@ -10,7 +10,7 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
-import imgOceanAeroTriton from '../../assets/images/OceanAeroTriton.png';
+import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
 const MISSION_SET_KEY = 'SEA_JEEP_MCM';
 const MISSION_SET_CAPS = [
@@ -52,8 +52,8 @@ const SEA_JEEP_MCM_MOUNTS = [
 const VESSEL_ROSTER = [
   {
     name: 'SEA JEEP MCM-1',
-    image: imgOceanAeroTriton,
-    hullName: 'Ocean Aero Triton',
+    image: imgSeaJeep,
+    hullName: 'GP-USV Sea Jeep',
     capabilities: SEA_JEEP_MCM_MOUNTS.map(m => m.name),
   },
 ];

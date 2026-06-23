@@ -98,10 +98,9 @@ const SAILDRONE_MOUNTS = [
 
 // ─── Vessel roster ────────────────────────────────────────────────────────────
 const VESSEL_ROSTER = [
-  { name: 'M48 ALPHA',        image: imgM48,       hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'SOEA Container (Scaled Onboard Electronic Attack)', 'TempestOS Core Platform'] },
-  { name: 'M48 BRAVO',        image: imgM48,       hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'TempestOS Core Platform', 'Passive ESM/SIGINT Collection Module'] },
-  { name: 'M48 CHARLIE',     image: imgM48,       hullName: 'M48', capabilities: ['SOEA Container (Scaled Onboard Electronic Attack)', 'False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'TempestOS Core Platform'] },
-  { name: 'M48 DELTA',         image: imgM48,       hullName: 'M48',              capabilities: ['Passive ESM/SIGINT Collection Module', 'TempestOS Core Platform', 'Zero-RF Emissions Passive Patrol', '365-Day Endurance'] },
+  { name: 'M48 ALPHA',   image: imgM48, hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'SOEA Container (Scaled Onboard Electronic Attack)'] },
+  { name: 'M48 BRAVO',   image: imgM48, hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'Passive ESM/SIGINT Collection Module'] },
+  { name: 'M48 CHARLIE', image: imgM48, hullName: 'M48', capabilities: ['SOEA Container (Scaled Onboard Electronic Attack)', 'False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────

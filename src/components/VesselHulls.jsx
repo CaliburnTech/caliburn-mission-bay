@@ -1382,4 +1382,17 @@ export const H38Hull = ({ size = 200, className = "" }) => (
   />
 );
 
+import seaJeepImg from '../assets/images/SeaJeep.png';
+
+export const SeaJeepHull = ({ size = 200, className = "" }) => (
+  <img
+    src={seaJeepImg}
+    alt="GP-USV Sea Jeep"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.1)' }}
+  />
+);
+
 // Note: Vessel data and mappings have been moved to src/data/vesselData.js to fix fast refresh violations

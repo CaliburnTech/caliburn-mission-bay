@@ -10,6 +10,7 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
+import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
 const MISSION_SET_KEY = 'SEA_JEEP_MDA';
 const MISSION_SET_CAPS = [
@@ -53,8 +54,8 @@ const SEA_JEEP_BASE_MOUNTS = [
 const VESSEL_ROSTER = [
   {
     name: 'GP-USV Sea Jeep — Base Config',
-    image: null,
-    hullName: null,
+    image: imgSeaJeep,
+    hullName: 'GP-USV Sea Jeep',
     capabilities: [
       'Trillium HD25e Gimbal Camera',
       'Iridium 9770 SATCOM',

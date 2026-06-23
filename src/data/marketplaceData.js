@@ -155,7 +155,7 @@ export const individualCapabilities = [
     {
       name: "TempestOS Core Platform",
       provider: "Caliburn",
-      type: "Operating System",
+      type: "Autonomous Operating System",
       description: "The only maritime operating system built on Boot-C with a read-only file system for maximum security. Based on AlmaLinux, TempestOS is a lightweight drop-in replacement for RedHat systems with native containerization support.",
       capabilities: [
         "Boot-C Read-Only File System",
@@ -167,7 +167,7 @@ export const individualCapabilities = [
       ],
       trl: "TRL 9",
       icon: Settings,
-      category: "COMMAND & CONTROL",
+      category: "UNMANNED SYSTEMS",
       // SWaP (Size, Weight, Power) - Software only, runs on existing compute
       swap: {
         weight: 0,        // Software - no additional hardware
@@ -585,7 +585,7 @@ export const individualCapabilities = [
       icon: Settings,
       category: "COMMAND & CONTROL",
       swap: {
-        weight: 10,
+        weight: 0,
         power: 0.2,
         size: "small"
       },
@@ -629,7 +629,7 @@ export const individualCapabilities = [
       icon: AntennaIcon,
       category: "COMMAND & CONTROL",
       swap: {
-        weight: 20,
+        weight: 0,
         power: 0.5,
         size: "small"
       },
@@ -875,7 +875,7 @@ export const individualCapabilities = [
       icon: Brain,
       category: "COMMAND & CONTROL",
       swap: {
-        weight: 10,
+        weight: 0,
         power: 1.0,       // AI compute intensive
         size: "small"
       },
@@ -1787,6 +1787,41 @@ export const individualCapabilities = [
   },
   // ============ KINETIC WEAPONS ============
   {
+    name: "M30 Supercavitating Round",
+    provider: "Thales",
+    type: "Mine Neutralization Round",
+    description: "Thales M30 supercavitating round for kinetic mine neutralization. Fired through the hull bottom of a surface USV, the M30 generates a supercavitation bubble for high-speed underwater travel to perforate moored and bottom mines at standoff range — no diver exposure required.",
+    capabilities: [
+      "Kinetic mine neutralization — no diver required",
+      "Supercavitating underwater travel",
+      "Hull-bottom fired from surface USV",
+      "Moored and bottom mine defeat",
+      "Standoff engagement"
+    ],
+    trl: "TRL 8",
+    icon: Target,
+    category: "KINETIC WEAPONS",
+    swap: {
+      weight: 12,
+      power: 0,
+      size: "small"
+    },
+    statImpacts: {
+      speed: 0,
+      power: 0,
+      weight: 1,
+      range: 0,
+      stealth: -1
+    },
+    specs: {
+      type: "Supercavitating underwater round",
+      launchMethod: "Hull-bottom fired",
+      target: "Moored and bottom mines",
+      standoffRange: "Up to 30m"
+    },
+    missionTags: ["Mine Countermeasures", "Sea Control"]
+  },
+  {
     name: "DSG Technology MEA Supercavitating Ammunition",
     provider: "DSG Technology",
     type: "Dual-Environment Ammunition",
@@ -2626,7 +2661,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Lock,
     category: "COMMAND & CONTROL",
-    swap: { weight: 2, power: 0.08, size: "small" },
+    swap: { weight: 0, power: 0.08, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: -1 },
     securityLevel: ["Dual-Key Authorization", "End-to-End Encrypted", "ITAR Controlled"],
     securityIcons: ["encrypted", "hardened"],
@@ -2693,6 +2728,63 @@ export const individualCapabilities = [
       coverage: "360-degree threat sector management"
     },
     missionTags: ["Sea Control", "Force Protection", "SEA_DENIAL"]
+  },
+  {
+    name: "Encrypted Mesh Link to M48",
+    provider: "TrellisWare",
+    type: "Tactical Encrypted Mesh Radio Link",
+    description: "TrellisWare TSM (Tactical MANET) encrypted mesh radio link between a SubSeaSail HORUS scout and a Magnet Defense M48 carrier. Provides low-latency, jam-resistant data exchange for site-clearance relay, sensor data sharing, and coordinated maneuver in GPS-denied and EMCON environments. AES-256 encrypted.",
+    capabilities: [
+      "Encrypted LOS mesh radio link",
+      "HORUS ↔ M48 direct data exchange",
+      "Site-clearance relay authorization",
+      "Jam-resistant MANET waveform",
+      "DDIL resilient mesh topology"
+    ],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "RF COMMUNICATIONS",
+    swap: { weight: 0.53, power: 0.012, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
+    securityLevel: ["AES-256 Encrypted", "NSA Type 1 Compatible", "DDIL Capable"],
+    securityIcons: ["encrypted", "ddil"],
+    specs: {
+      radio: "TrellisWare TSM MANET",
+      encryption: "AES-256 / NSA Type 1",
+      range: "Up to 10 km surface LOS",
+      dataRate: "Up to 20 Mbps",
+      latency: "< 10 ms",
+      platforms: "SubSeaSail HORUS, Magnet Defense M48"
+    },
+    missionTags: ["CONTESTED_LOGISTICS", "Sea Control"]
+  },
+  {
+    name: "HiveLink SDR",
+    provider: "HiveLink",
+    type: "Multi-Waveform Software Defined Radio",
+    description: "HiveLink software-defined radio supporting Link 16, WaveformX, and WaveformY simultaneously. Acts as a tactical data link node enabling interoperability between USV platforms and manned naval forces. Used as primary comms for INDOPACOM tactical net integration.",
+    capabilities: [
+      "Link 16 tactical data link",
+      "WaveformX / WaveformY multi-waveform",
+      "Simultaneous multi-net operation",
+      "USV-to-ship interoperability",
+      "INDOPACOM tactical net compatible"
+    ],
+    trl: "TRL 8",
+    icon: Radio,
+    category: "RF COMMUNICATIONS",
+    swap: { weight: 3.2, power: 0.08, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: -1 },
+    securityLevel: ["NSA Type 1 Compatible", "AES-256 Encrypted", "DDIL Capable"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: {
+      waveforms: "Link 16, WaveformX, WaveformY",
+      range: "Line of sight + BLOS relay",
+      dataRate: "Up to 10 Mbps",
+      formFactor: "Software-defined, compact module",
+      platforms: "M48, SubSeaSail Horus, ZeroUSV Oceanus17"
+    },
+    missionTags: ["Anti-Submarine Warfare", "MDA/ISR", "Sea Control"]
   },
   {
     name: "Encrypted Mesh Link to T82",
@@ -3146,7 +3238,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Shield",
     category: "C2 SYSTEMS",
-    swap: { weight: 5, power: 0.1, size: "small" },
+    swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: 0 },
     securityLevel: ["NATO STANAG 4193", "ITAR Controlled"],
     securityIcons: ["milstd", "encrypted"],
@@ -3411,7 +3503,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Satellite",
     category: "C2 SYSTEMS",
-    swap: { weight: 5, power: 0.2, size: "small" },
+    swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: [],
     securityIcons: [],
@@ -3609,6 +3701,248 @@ export const individualCapabilities = [
     securityIcons: ["encrypted", "milstd"],
     specs: { band: "Ka-band", dataRate: "Up to 274 Mbps downlink", encryption: "NSA Type 1", integration: "TempestOS cloud C2 gateway" },
     missionTags: ["KINETIC_EFFECTS", "ISR Operations"]
+  },
+
+  // ============ GP-USV SEA JEEP PAYLOAD CATALOG ============
+  {
+    name: "Trillium HD25e Gimbal Camera",
+    provider: "L3Harris Trillium",
+    type: "EO/IR Gimbal — Base Mount",
+    description: "Stabilized EO/IR gimbal for small USV deck mount. Day/night imagery for AIS-dark vessel identification and contact reporting.",
+    capabilities: ["Visible + thermal imaging", "Stabilized gimbal", "Day/night contact ID"],
+    trl: "TRL 9",
+    icon: "Eye",
+    category: "EO/IR SENSORS",
+    swap: { weight: 1, power: 0.02, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["MDA/ISR", "SEA_JEEP_MDA"]
+  },
+  {
+    name: "Trillium HD25e Gimbal (Mast-Mounted)",
+    provider: "L3Harris Trillium",
+    type: "EO/IR Gimbal — Extended Mast",
+    description: "Trillium HD25e mounted on GP-USV extended ISR mast. Elevation to ~3m adds 3nm optical horizon for coastal launch detection.",
+    capabilities: ["3nm extended optical horizon", "Mast-elevated EO/IR", "Coastal launch detection"],
+    trl: "TRL 9",
+    icon: "Eye",
+    category: "EO/IR SENSORS",
+    swap: { weight: 1, power: 0.02, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_ISR"]
+  },
+  {
+    name: "Extended ISR Mast + Counterweight Keel",
+    provider: "GP-USV",
+    type: "Structural Payload Extension",
+    description: "Deployable ISR mast that elevates sensors to ~3m AGL. Counterweight keel maintains platform stability in Sea State 3–4.",
+    capabilities: ["~3m sensor elevation", "Sea State 3-4 stability", "Deployable/retractable"],
+    trl: "TRL 8",
+    icon: "Navigation",
+    category: "UTILITY",
+    swap: { weight: 4, power: 0.1, size: "medium" },
+    statImpacts: { speed: -1, power: 0, weight: 1, range: 0, stealth: -2 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_ISR"]
+  },
+  {
+    name: "Iridium 9770 SATCOM",
+    provider: "Iridium",
+    type: "Satellite Communications Terminal",
+    description: "Iridium 9770 maritime SATCOM terminal providing global two-way data communications for contact reporting and C2 uplink.",
+    capabilities: ["Global satellite data link", "Contact report uplink", "Two-way C2 messaging"],
+    trl: "TRL 9",
+    icon: "Satellite",
+    category: "SATCOM",
+    swap: { weight: 0.5, power: 0.01, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: -1 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["MDA/ISR", "SEA_JEEP_MDA"]
+  },
+  {
+    name: "Iridium SATCOM",
+    provider: "Iridium",
+    type: "Satellite Communications Terminal",
+    description: "Compact Iridium SATCOM module for small USV C2, position reporting, and data relay over global satellite network.",
+    capabilities: ["Global satellite link", "Position reporting", "C2 relay"],
+    trl: "TRL 9",
+    icon: "Satellite",
+    category: "SATCOM",
+    swap: { weight: 0.5, power: 0.01, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: -1 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_ISR", "SEA_JEEP_MCM", "SEA_JEEP_LOGISTICS"]
+  },
+  {
+    name: "GPS/INS + AIS Receiver",
+    provider: "—",
+    type: "Navigation + AIS",
+    description: "Integrated GPS/INS navigation with passive AIS receiver for dark-ship detection. Logs active transponders and flags absent vessels.",
+    capabilities: ["GPS/INS navigation", "Passive AIS reception", "Dark-ship detection logging"],
+    trl: "TRL 9",
+    icon: "Navigation",
+    category: "NAVIGATION",
+    swap: { weight: 0.3, power: 0.005, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["MDA/ISR", "SEA_JEEP_MDA"]
+  },
+  {
+    name: "GPS/INS",
+    provider: "—",
+    type: "Inertial Navigation",
+    description: "Compact GPS/INS navigation unit for small USV station-keeping and waypoint navigation.",
+    capabilities: ["GPS-aided inertial navigation", "Waypoint navigation", "Station-keeping"],
+    trl: "TRL 9",
+    icon: "Navigation",
+    category: "NAVIGATION",
+    swap: { weight: 0.3, power: 0.005, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_ISR"]
+  },
+  {
+    name: "GPS/INS (jam-resistant)",
+    provider: "—",
+    type: "Jam-Resistant Inertial Navigation",
+    description: "GPS/INS with anti-jam antenna for Black Sea GPS-denied operations. INS dead-reckoning maintains track through jamming corridors.",
+    capabilities: ["Anti-jam GPS antenna", "INS dead-reckoning", "GPS-denied corridor navigation"],
+    trl: "TRL 9",
+    icon: "Navigation",
+    category: "NAVIGATION",
+    swap: { weight: 0.5, power: 0.01, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_MCM"]
+  },
+  {
+    name: "GPS/INS + AIS Transponder",
+    provider: "—",
+    type: "Navigation + AIS Transponder",
+    description: "GPS/INS with active AIS transponder for logistics tracking. Fleet MOC maintains continuous position awareness during resupply transit.",
+    capabilities: ["GPS/INS navigation", "Active AIS transponder", "Fleet MOC position tracking"],
+    trl: "TRL 9",
+    icon: "Navigation",
+    category: "NAVIGATION",
+    swap: { weight: 0.3, power: 0.005, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_LOGISTICS"]
+  },
+  {
+    name: "Solar Wing + Li-ion Bank",
+    provider: "Ocean Aero",
+    type: "Renewable Energy Propulsion Pack",
+    description: "Solar wing and lithium-ion battery bank enabling 30+ day endurance without fuel logistics. Wind-assisted sailing maximizes range.",
+    capabilities: ["30+ day solar endurance", "Wind-assisted propulsion", "Zero-fuel logistics"],
+    trl: "TRL 9",
+    icon: "Zap",
+    category: "UTILITY",
+    swap: { weight: 3, power: 0, size: "medium" },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 10, stealth: 2 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_MDA"]
+  },
+  {
+    name: "Solar Wing + Li-ion Battery Bank",
+    provider: "Ocean Aero",
+    type: "Renewable Energy Propulsion Pack",
+    description: "Solar wing and lithium-ion battery bank for long-endurance autonomous logistics runs.",
+    capabilities: ["Solar + battery endurance", "Wind-assisted propulsion", "Zero-fuel logistics"],
+    trl: "TRL 9",
+    icon: "Zap",
+    category: "UTILITY",
+    swap: { weight: 3, power: 0, size: "medium" },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 10, stealth: 2 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_LOGISTICS"]
+  },
+  {
+    name: "EdgeTech 2300-MS FLS",
+    provider: "EdgeTech",
+    type: "Forward-Looking Sonar",
+    description: "EdgeTech 2300-MS multibeam forward-looking sonar. Detects bottom contacts ahead of the vessel and triggers auto-halt for mine avoidance.",
+    capabilities: ["Forward mine detection", "Auto-halt trigger", "Multibeam bottom contact detection"],
+    trl: "TRL 9",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    swap: { weight: 5, power: 0.3, size: "medium" },
+    statImpacts: { speed: -1, power: -2, weight: 2, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_MCM"]
+  },
+  {
+    name: "EdgeTech 4125 Side-Scan Sonar",
+    provider: "EdgeTech",
+    type: "Towed Side-Scan Sonar",
+    description: "Towed side-scan sonar mapping seabed across 150m total swath. Primary mine survey sensor for grain corridor clearance operations.",
+    capabilities: ["150m total swath coverage", "Seabed mine mapping", "Towed fish deployment"],
+    trl: "TRL 9",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    swap: { weight: 8, power: 0.5, size: "medium" },
+    statImpacts: { speed: -2, power: -3, weight: 3, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_MCM"]
+  },
+  {
+    name: "Smart Winch + A-Frame",
+    provider: "GP-USV",
+    type: "Tow Management System",
+    description: "Automated winch and A-frame for deploying and recovering towed sonar fish. Maintains constant tow depth regardless of sea state.",
+    capabilities: ["Automated tow deployment/recovery", "Constant depth maintenance", "A-frame deck integration"],
+    trl: "TRL 8",
+    icon: "Anchor",
+    category: "UTILITY",
+    swap: { weight: 6, power: 0.2, size: "medium" },
+    statImpacts: { speed: -1, power: -1, weight: 2, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_MCM"]
+  },
+  {
+    name: "Extended Fuel Tank (MCM config)",
+    provider: "GP-USV",
+    type: "Extended Range Fuel System",
+    description: "Additional fuel capacity for full Odessa corridor survey endurance without refueling stop.",
+    capabilities: ["Extended survey endurance", "Full corridor range", "No refueling required"],
+    trl: "TRL 9",
+    icon: "Zap",
+    category: "UTILITY",
+    swap: { weight: 2, power: 0, size: "small" },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 8, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_MCM"]
+  },
+  {
+    name: "Sealed Dry Cargo Pod (~20kg)",
+    provider: "GP-USV",
+    type: "Autonomous Cargo Delivery Pod",
+    description: "Weatherproof sealed cargo pod carrying ~20kg payload for autonomous island resupply. Quick-release mechanism for delivery without vessel recovery.",
+    capabilities: ["~20kg payload capacity", "Weatherproof sealed storage", "Quick-release delivery"],
+    trl: "TRL 8",
+    icon: "Package",
+    category: "UTILITY",
+    swap: { weight: 20, power: 0, size: "large" },
+    statImpacts: { speed: -1, power: 0, weight: 5, range: -3, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    missionTags: ["SEA_JEEP_LOGISTICS"]
   }
   // ============ END ADDITIONAL VESSEL CAPABILITY ENTRIES ============
 

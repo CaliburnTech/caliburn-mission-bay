@@ -42,13 +42,15 @@ const ShipyardView = ({
   };
 
   // Filter squadrons based on selected sub-tab
+  // Pier (maritime) is capped at 12 — edit PIER_LIMIT to show more
+  const PIER_LIMIT = 12;
   const swarmSquadrons = allSquadrons.filter(squadron => {
     const platformType = getSquadronPlatformType(squadron);
     if (fleetSubTab === 'hangar') {
       return isAerialPlatform(platformType);
     }
     return isMaritimePlatform(platformType);
-  });
+  }).slice(0, fleetSubTab === 'hangar' ? Infinity : PIER_LIMIT);
 
   // Filter hull data for hull picker based on sub-tab
   const filteredHullData = vesselHullData.filter(vessel => {
@@ -156,7 +158,14 @@ const ShipyardView = ({
           </p>
         </div>
         <button
-          onClick={() => setShowHullPicker(!showHullPicker)}
+          onClick={() => {
+            if (selectedSquadron) {
+              const vessel = vesselHullData.find(v => v.name === selectedSquadron.icon || v.icon === selectedSquadron.icon);
+              if (vessel) onSelectHull(vessel);
+            } else {
+              setShowHullPicker(!showHullPicker);
+            }
+          }}
           className="px-5 py-3 bg-lime-brand text-black rounded-lg font-bold flex items-center gap-2 hover:bg-lime-brand/90 transition-colors text-sm"
         >
           <Plus size={18} />
@@ -268,7 +277,7 @@ const ShipyardView = ({
             </button>
           </div>
         ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
+        <div className="grid grid-cols-6 gap-3">
           {swarmSquadrons.map((rawSquadron) => {
             const squadron = getResolvedSquadron(rawSquadron.id) || rawSquadron;
             const HullComponent = vesselHullComponents[squadron.icon];

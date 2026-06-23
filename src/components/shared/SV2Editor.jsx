@@ -189,7 +189,7 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
   if (!sv2Data) {
     return (
       <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999 }}>
-        <div style={{ backgroundColor: '#1a2530', border: '2px solid rgba(203, 253, 0, 0.3)', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
+        <div style={{ backgroundColor: 'var(--caliburn-darker)', border: '2px solid rgba(203, 253, 0, 0.3)', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
           <p style={{ color: '#e5e7eb', fontSize: '16px' }}>No SV-2 data available.</p>
           <button onClick={onClose} className="btn-primary" style={{ marginTop: '12px' }}>Close</button>
         </div>

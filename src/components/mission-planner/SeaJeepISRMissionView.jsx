@@ -12,7 +12,7 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
-import imgOceanAero from '../../assets/images/OceanAeroTriton.png';
+import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
 const MISSION_SET_KEY = 'SEA_JEEP_ISR';
 const MISSION_SET_CAPS = [
@@ -120,8 +120,8 @@ const SEA_JEEP_ISR_MOUNTS = [
 const VESSEL_ROSTER = [
   {
     name: 'GP-USV Sea Jeep — ISR Config (Extended Mast)',
-    image: imgOceanAero,
-    hullName: 'Ocean Aero Triton',
+    image: imgSeaJeep,
+    hullName: 'GP-USV Sea Jeep',
     roleKey: 'SEA_JEEP_ISR_1',
     capabilities: SEA_JEEP_ISR_MOUNTS.map(m => m.name),
   },
@@ -545,10 +545,10 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 <CircleMarker
                   center={DDG_POS}
                   radius={7}
-                  pathOptions={{ color: '#94a3b8', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
+                  pathOptions={{ color: 'var(--caliburn-text-secondary)', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
                 >
                   <Tooltip permanent direction="left" offset={[-10, 0]}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>DDG ON STATION</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--caliburn-text-secondary)' }}>DDG ON STATION</span>
                   </Tooltip>
                 </CircleMarker>
               )}
@@ -664,7 +664,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
               <div className="flex flex-col gap-1">
                 {[
                   { color: '#22d3ee', label: 'SEA-JEEP-ISR-1 — GP-USV on station' },
-                  { color: '#94a3b8', label: 'DDG — Arleigh Burke destroyer' },
+                  { color: 'var(--caliburn-text-secondary)', label: 'DDG — Arleigh Burke destroyer' },
                   { color: '#e5e7eb', label: 'Merchant — Lane BRAVO-2' },
                   { color: '#ef4444', label: 'Hostile UAS — Houthi drone' },
                   { color: '#fde68a', label: 'SM-2 — Standard Missile' },

@@ -59,9 +59,90 @@ export const swarmSquadrons = [
     parentName: null,
     overrides: {}
   },
+  // 3
+  {
+    id: "sqdn_015",
+    name: "ZeroUSV Oceanus17",
+    type: "ASW/Survey USV",
+    platformType: "USV",
+    totalUnits: 4,
+    status: {
+      missionReady: 2,
+      deployed: 2,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "ZeroUSV Oceanus17",
+    description: "ZeroUSV 17m electric USVs configured for REPMUS 2026. 50+ day endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // 4
+  {
+    id: "sqdn_009",
+    name: "AEGIR-W Combat",
+    type: "Combat USV",
+    platformType: "USV",
+    totalUnits: 24,
+    status: {
+      missionReady: 18,
+      deployed: 4,
+      charging: 1,
+      maintenance: 1
+    },
+    icon: "AEGIR-W",
+    description: "SNC long-endurance combat USVs for maritime defense and patrol operations with Digital Grid integration.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // 5
+  {
+    id: "sqdn_032",
+    name: "Mariner USV",
+    type: "Small USV",
+    platformType: "USV",
+    totalUnits: 8,
+    status: {
+      missionReady: 6,
+      deployed: 1,
+      charging: 0,
+      maintenance: 1
+    },
+    icon: "Mariner",
+    description: "Maritime Robotics multi-mission USVs for patrol, survey, and autonomous operations. 12-knot sprint speed, 120nm range, modular payload bay.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // 6
+  {
+    id: "sqdn_033",
+    name: "Otter X",
+    type: "Small USV",
+    platformType: "USV",
+    totalUnits: 6,
+    status: {
+      missionReady: 5,
+      deployed: 1,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "Otter X",
+    description: "Maritime Robotics compact catamaran USVs for hydrographic survey and reconnaissance. Very low RCS, 80nm range.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // 7
   {
     id: "sqdn_021",
-    name: "Ocean Aero Triton AUSV Squadron",
+    name: "Ocean Aero Triton AUSV",
     type: "AUSV (Surface/Subsurface)",
     platformType: "USV",
     totalUnits: 12,
@@ -78,27 +159,30 @@ export const swarmSquadrons = [
     parentName: null,
     overrides: {}
   },
+  // 8
   {
-    id: "sqdn_002",
-    name: "Saildrone Surveyor Fleet",
-    type: "Wind-Powered USV",
-    platformType: "USV",
-    totalUnits: 117,
+    id: "sqdn_020",
+    name: "Oceaneering Freedom AUV",
+    type: "Large Displacement UUV (LDUUV)",
+    platformType: "UUV",
+    totalUnits: 3,
     status: {
-      missionReady: 89,
-      inRefit: 5,
-      atSea: 23
+      missionReady: 2,
+      deployed: 1,
+      charging: 0,
+      maintenance: 0
     },
-    icon: "Saildrone Surveyor",
-    description: "Autonomous sailing vessel swarm for long-endurance ocean monitoring",
+    icon: "Freedom AUV",
+    description: "Oceaneering LDUUV selected by US Navy / DIU. 6,000m depth, 6-month subsea endurance, 6 degrees of freedom.",
     isVariation: false,
     parentId: null,
     parentName: null,
     overrides: {}
   },
+  // 9
   {
     id: "sqdn_017",
-    name: "Saildrone Voyager Coastal Squadron",
+    name: "Saildrone Voyager",
     type: "Coastal ISR USV",
     platformType: "USV",
     totalUnits: 18,
@@ -115,9 +199,29 @@ export const swarmSquadrons = [
     parentName: null,
     overrides: {}
   },
+  // 10
+  {
+    id: "sqdn_002",
+    name: "Saildrone Surveyor",
+    type: "Wind-Powered USV",
+    platformType: "USV",
+    totalUnits: 117,
+    status: {
+      missionReady: 89,
+      inRefit: 5,
+      atSea: 23
+    },
+    icon: "Saildrone Surveyor",
+    description: "Autonomous sailing vessel swarm for long-endurance ocean monitoring",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // 11
   {
     id: "sqdn_019",
-    name: "Saildrone Spectre Combat Flotilla",
+    name: "Saildrone Spectre",
     type: "Large Combat USV",
     platformType: "USV",
     totalUnits: 5,
@@ -134,26 +238,7 @@ export const swarmSquadrons = [
     parentName: null,
     overrides: {}
   },
-  {
-    id: "sqdn_001",
-    name: "MetalShark Patrol Drones",
-    type: "High-Speed USV",
-    platformType: "USV",
-    totalUnits: 280,
-    status: {
-      missionReady: 247,
-      charging: 18,
-      deployed: 12,
-      maintenance: 3
-    },
-    icon: "MetalShark",
-    description: "High-speed autonomous patrol vessel swarm for coastal defense and reconnaissance",
-    // Variation fields
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
+  // 12
   {
     id: "sqdn_007",
     name: "GARC",
@@ -168,6 +253,26 @@ export const swarmSquadrons = [
     },
     icon: "GARC",
     description: "Global Autonomous Research Craft",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // ── Remaining maritime ────────────────────
+  {
+    id: "sqdn_001",
+    name: "MetalShark Patrol Drones",
+    type: "High-Speed USV",
+    platformType: "USV",
+    totalUnits: 280,
+    status: {
+      missionReady: 247,
+      charging: 18,
+      deployed: 12,
+      maintenance: 3
+    },
+    icon: "MetalShark",
+    description: "High-speed autonomous patrol vessel swarm for coastal defense and reconnaissance",
     isVariation: false,
     parentId: null,
     parentName: null,
@@ -193,25 +298,6 @@ export const swarmSquadrons = [
     overrides: {}
   },
   {
-    id: "sqdn_009",
-    name: "AEGIR-W Combat Squadron",
-    type: "Combat USV",
-    platformType: "USV",
-    totalUnits: 24,
-    status: {
-      missionReady: 18,
-      deployed: 4,
-      charging: 1,
-      maintenance: 1
-    },
-    icon: "AEGIR-W",
-    description: "SNC long-endurance combat USVs for maritime defense and patrol operations with Digital Grid integration.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
     id: "sqdn_010",
     name: "AEGIR-H Multi-Role Flotilla",
     type: "Multi-Role USV",
@@ -225,44 +311,6 @@ export const swarmSquadrons = [
     },
     icon: "AEGIR-H",
     description: "SNC 49-foot multi-role platforms with dual payload bays. Supports ISR, EW, strike, and autonomous resupply.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
-    id: "sqdn_020",
-    name: "Oceaneering Freedom AUV Pack",
-    type: "Large Displacement UUV (LDUUV)",
-    platformType: "UUV",
-    totalUnits: 3,
-    status: {
-      missionReady: 2,
-      deployed: 1,
-      charging: 0,
-      maintenance: 0
-    },
-    icon: "Freedom AUV",
-    description: "Oceaneering LDUUV selected by US Navy / DIU. 6,000m depth, 6-month subsea endurance, 6 degrees of freedom.",
-    isVariation: false,
-    parentId: null,
-    parentName: null,
-    overrides: {}
-  },
-  {
-    id: "sqdn_015",
-    name: "ZeroUSV Oceanus17 ASW Flotilla",
-    type: "ASW/Survey USV",
-    platformType: "USV",
-    totalUnits: 4,
-    status: {
-      missionReady: 2,
-      deployed: 2,
-      charging: 0,
-      maintenance: 0
-    },
-    icon: "ZeroUSV Oceanus17",
-    description: "ZeroUSV 17m electric USVs configured for REPMUS 2026. 50+ day endurance with integrated ASW and survey capabilities including Slocum Glider deployment.",
     isVariation: false,
     parentId: null,
     parentName: null,

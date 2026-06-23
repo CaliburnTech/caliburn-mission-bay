@@ -88,7 +88,7 @@ const MarketplacePage = ({ onLogoClick }) => {
 
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white">
+    <div className="min-h-screen bg-dark-bg text-white">
       {/* Header */}
       <header className="bg-darker border-b-2 border-lime-brand/30">
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">

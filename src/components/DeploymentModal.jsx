@@ -26,7 +26,7 @@ const DeploymentModal = () => {
         <div className="fixed inset-0 bg-black/90 z-[1100] flex items-center justify-center p-8">
           <div className="bg-darkest border-2 border-lime-brand/30 rounded-2xl w-[95%] max-w-[1400px] max-h-[95%] flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-gray-600/30 flex justify-between items-center bg-[#1a2530]">
+            <div className="p-6 border-b border-gray-600/30 flex justify-between items-center bg-darker">
               <div>
                 <h2 className="text-lime-brand text-[1.8rem] font-bold mb-2">
                   DEPLOYMENT OPERATIONS
@@ -92,7 +92,7 @@ const DeploymentModal = () => {
                     {Object.entries(navyMissionTypes).map(([category, categoryData]) => (
                       <div
                         key={category}
-                        className="mb-2 border border-gray-600/30 rounded-lg bg-[#1a2530]/50"
+                        className="mb-2 border border-gray-600/30 rounded-lg bg-darker/50"
                       >
                         <h4 className="text-lime-brand text-[0.9rem] font-semibold mt-3 mx-4 mb-2 flex items-center gap-2">
                           {React.createElement(categoryData.icon, { size: 16, color: '#cbfd00' })}
@@ -146,7 +146,7 @@ const DeploymentModal = () => {
                         className={`block p-4 rounded-xl cursor-pointer transition-all ${
                           selectedROE?.level === roe.level
                             ? 'bg-lime-brand/10 border-2 border-lime-brand'
-                            : 'bg-[#1a2530]/50 border border-gray-600/30 hover:bg-lime-brand/5 hover:border-lime-brand/50'
+                            : 'bg-darker/50 border border-gray-600/30 hover:bg-lime-brand/5 hover:border-lime-brand/50'
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -246,7 +246,7 @@ const DeploymentModal = () => {
             {activeDeployments.map(deployment => (
               <div
                 key={deployment.id}
-                className="bg-[#1a2530] border border-gray-600/30 rounded-lg p-4"
+                className="bg-darker border border-gray-600/30 rounded-lg p-4"
               >
                 <div className="flex justify-between items-center mb-3">
                   <div className="text-lime-brand font-semibold text-base">

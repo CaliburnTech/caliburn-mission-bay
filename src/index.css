@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 /* Import our custom Caliburn styles */
@@ -7,15 +8,15 @@
 @theme {
   --color-lime-brand: #cbfd00;
   --color-lime-hover: #b8e600;
-  --color-dark-bg: #2a3844;
-  --color-darker: #1a2530;
+  --color-dark-bg: #12171C;
+  --color-darker: #1F262D;
   --color-darkest: #0f1419;
   --color-border-subtle: rgba(75, 85, 99, 0.3);
   --color-border-lime: rgba(203, 253, 0, 0.3);
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Barlow', 'Inter', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 

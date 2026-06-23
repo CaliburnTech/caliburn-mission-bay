@@ -14,12 +14,12 @@ import imgM48 from '../../assets/images/M48.png';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
 
 const VESSEL_ROSTER = [
-  { name: 'M48', image: imgM48, hullName: 'M48', capabilities: ['20-ft TEU Dry Cargo Module', '20-ft TEU Fuel Bladder Module', 'TempestOS Core Platform', 'Bow Ramp Delivery System'] },
-  { name: 'SubSeaSail HORUS Scout', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['EO/IR Beach Recon Camera', 'Echodyne EchoGuard CR', 'Encrypted Mesh Link to M48', 'Site-Clear Relay Authorization'] },
+  { name: 'M48', image: imgM48, hullName: 'M48', capabilities: ['20-ft TEU Dry Cargo Module', '20-ft TEU Fuel Bladder Module', 'Lattice Mesh Network', 'Bow Ramp Delivery System'] },
+  { name: 'SubSeaSail HORUS Scout', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['EO/IR Beach Recon Camera', 'Echodyne EchoGuard CR', 'Encrypted Mesh Link to M48', 'Lattice Mesh Network'] },
 ];
 
 const MISSION_SET_KEY = 'CONTESTED_LOGISTICS';
-const MISSION_SET_CAPS = ['Encrypted Mesh Link to M48', 'Site-Clear Relay Authorization'];
+const MISSION_SET_CAPS = ['Echodyne EchoGuard CR', 'Encrypted Mesh Link to M48', 'Lattice Mesh Network'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
@@ -204,7 +204,6 @@ const WORKFLOW_STEPS = [
 const T82_MOUNTS = [
   { slot: 'CARGO FWD',    name: '20-ft TEU Dry Cargo Module',      vendor: 'PAE RAS Integration',        color: '#8b5cf6', description: 'Ammunition, spare parts, medical — 24,000 kg — automated crane interface + bow ramp' },
   { slot: 'CARGO AFT',    name: '20-ft TEU Fuel Bladder Module',    vendor: 'PAE RAS Integration',        color: '#8b5cf6', description: 'JP-8 / F-76 — 15,000L — autonomous pump-out at beach; gravity or powered' },
-  { slot: 'AUTONOMY',     name: 'TempestOS Core Platform',          vendor: 'Caliburn Technologies',      color: '#cbfd00', description: 'COLREGS, threat-reactive routing, EMCON mode, beach approach visual nav' },
   { slot: 'INS',          name: 'Magnet DriveAI INS',              vendor: 'Magnet Defense',             color: '#06b6d4', description: 'GPS-denied fallback — <0.1 nm/hr drift estimated — active for this mission ✓' },
   { slot: 'COMMS',        name: 'Iridium SATCOM — LPI Mode',        vendor: 'Iridium',                    color: '#3b82f6', description: 'Scheduled LPI burst transmissions — EMCON-compliant position updates' },
   { slot: 'DELIVERY',     name: 'Bow Ramp Delivery System',         vendor: 'PAE RAS Integration',        color: '#10b981', description: 'Autonomous deploy/retract — beach delivery — gated by HORUS site-clear cue' },

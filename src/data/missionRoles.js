@@ -49,9 +49,9 @@ export const MISSION_ROLES = {
           'MFTA Towed Array',
           'Hanwha Naval Missile System',
           'USW-DSS (AN/UYQ-100)',
+          'Link 16 Track Broadcast',
           'Bistatic Cross-Fix Node',
         ],
-        // MFTA tow + naval missile — surface vessels only
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
       },
@@ -62,22 +62,12 @@ export const MISSION_ROLES = {
         capabilities: [
           'MFTA Towed Array',
           'Hanwha Naval Missile System',
+          'USW-DSS (AN/UYQ-100)',
           'Link 16 Track Broadcast',
           'Bistatic Cross-Fix Node',
         ],
-        // MFTA tow + naval missile — surface vessels only
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
-      },
-      {
-        // Index 3 — maps to VESSEL_ROSTER[3]: USS Virginia SSN-774
-        roleKey: 'ASW_VIRGINIA',
-        roleLabel: 'Prosecution Asset (USS Virginia SSN-774)',
-        description: 'Nuclear attack submarine cued via ACOMMS from the USV task group. Receives USW-DSS fire-control grade track and prosecutes with Mk 48 ADCAP torpedo.',
-        capabilities: [],
-        // Submarine role — only submarine-class hulls
-        allowedPlatformTypes: ['Submarine'],
-        defaultHullName: 'Virginia Class',
       },
     ],
   },
@@ -108,7 +98,11 @@ export const MISSION_ROLES = {
         roleKey: 'MDA_ISR_TRITON',
         roleLabel: 'BAMS Wide-Area (MQ-4C Triton)',
         description: 'MQ-4C Triton at 55,000 ft running AN/ZPY-3 MFAS radar. Vectored via Link 16 to pre-fused contacts for ISAR classification — arrives to execute, not search.',
-        capabilities: ['AN/ZPY-3 AESA Radar'],
+        capabilities: [
+          'AN/ZPY-3 AESA Radar',
+          'Ka-SATCOM to TempestOS',
+          'Link 16 Track Broadcast',
+        ],
         allowedPlatformTypes: ['UAV'],
         defaultHullName: 'MQ-4C Triton',
       },
@@ -130,6 +124,7 @@ export const MISSION_ROLES = {
         description: 'One of three M48 USVs armed with Mk 70 Payload Delivery System (4-cell Tomahawk VLS). Transits under EMCON using SeaFIND INS; fires on CCDR authorization.',
         capabilities: [
           'Mk 70 Payload Delivery System',
+          'Tomahawk Block V 8-cell VLS',
           'SeaFIND Inertial Navigation',
         ],
         // VLS container strike system — large surface vessels only; no small USVs, UUVs, or UAVs
@@ -209,17 +204,6 @@ export const MISSION_ROLES = {
         // High-power active EW jamming — surface vessels only
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'AEGIR-W',
-      },
-      {
-        roleKey: 'NK_SAILDRONE',
-        roleLabel: 'Passive ESM Monitor (M48)',
-        description: 'M48 as passive ESM monitor at southern strait entry. 80 NM intercept coverage, zero RF emissions. Feeds PLAN waveform library updates to NEMESIS coordinator.',
-        capabilities: [
-          'Passive ESM/SIGINT Collection Module',
-        ],
-        // Passive ISR — surface and subsurface platforms eligible
-        allowedPlatformTypes: ['USV', 'USV/UUV', 'UUV'],
-        defaultHullName: 'M48',
       },
     ],
   },
@@ -327,12 +311,12 @@ export const MISSION_ROLES = {
         description: 'Fast scout that races ahead of M48 into GPS-denied zone. EchoGuard CR radar and EO/IR clear the landing site; encrypted mesh relay transmits site-clear authorization to M48 before ramp deployment.',
         capabilities: [
           'Echodyne EchoGuard CR',
-          'Site-Clear Relay Authorization',
+          'Lattice Mesh Network',
           'Encrypted Mesh Link to M48',
         ],
         // Only micro-sail USVs — Horus or Ocean Aero Triton; no large USVs
         allowedPlatformTypes: ['USV', 'USV/UUV'],
-        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
       },
     ],
@@ -406,42 +390,132 @@ export const MISSION_ROLES = {
           'Echodyne EchoGuard CR',
           'OrbComm ST 6100',
           'LOS Mesh Radio',
-          'VHF Hailing Capability',
+          'Lattice Mesh Network',
+          'MOOS-IvP',
         ],
-        // Only micro-sail USVs — Horus or Ocean Aero Triton; no large USVs
         allowedPlatformTypes: ['USV', 'USV/UUV'],
-        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
       },
       {
         roleKey: 'PS_HORUS_2',
         roleLabel: 'W Harbor Security (HORUS-2)',
-        description: 'W sector cordon node. EchoGuard CR independently tracks SIERRA contact for multi-sensor localization; IFF negative alert; relays track to HORUS-1 and shore via OrbComm + mesh.',
+        description: 'W sector cordon node. EchoGuard CR independently tracks SIERRA contact for multi-sensor localization; relays track to HORUS-1 and shore via OrbComm + mesh.',
         capabilities: [
           'Echodyne EchoGuard CR',
-          'IFF Negative Alert',
           'OrbComm ST 6100',
           'LOS Mesh Radio',
+          'Lattice Mesh Network',
+          'MOOS-IvP',
         ],
-        // Only micro-sail USVs — Horus or Ocean Aero Triton; no large USVs
         allowedPlatformTypes: ['USV', 'USV/UUV'],
-        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
       },
       {
         roleKey: 'PS_HORUS_3',
         roleLabel: 'SW Harbor Security (HORUS-3)',
-        description: 'SW sector first-contact node. EchoGuard CR detects zone breach, VHF hail issued, mesh alert chain initiated to HORUS-2 and HORUS-1.',
+        description: 'SW sector first-contact node. EchoGuard CR detects zone breach, mesh alert chain initiated to HORUS-2 and HORUS-1.',
         capabilities: [
           'Echodyne EchoGuard CR',
-          'VHF Hailing Capability',
           'OrbComm ST 6100',
           'LOS Mesh Radio',
+          'Lattice Mesh Network',
+          'MOOS-IvP',
         ],
-        // Only micro-sail USVs — Horus or Ocean Aero Triton; no large USVs
         allowedPlatformTypes: ['USV', 'USV/UUV'],
-        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
+      },
+    ],
+  },
+
+  // ─── Sea Jeep — MDA Base Config (South China Sea) ────────────────────────────
+  // MISSION_SET_KEY = 'SEA_JEEP_MDA'
+  SEA_JEEP_MDA: {
+    missionLabel: 'Sea Jeep MDA — South China Sea',
+    roles: [
+      {
+        roleKey: 'SJM_SEAJEEP_1',
+        roleLabel: 'Persistent MDA (Sea Jeep Base)',
+        description: 'GP-USV Sea Jeep on autonomous patrol at Mischief Reef / Whitsun Reef. EO/IR gimbal photographs AIS-dark vessels; Iridium SATCOM relays contact reports to 7th Fleet MOC.',
+        capabilities: [
+          'Trillium HD25e Gimbal Camera',
+          'Iridium 9770 SATCOM',
+          'GPS/INS + AIS Receiver',
+          'Solar Wing + Li-ion Bank',
+        ],
+        allowedPlatformTypes: ['USV', 'USV/UUV'],
+        allowedHullNames: ['GP-USV Sea Jeep', 'Otter X'],
+        defaultHullName: 'GP-USV Sea Jeep',
+      },
+    ],
+  },
+
+  // ─── Sea Jeep — ISR Config (Bab-el-Mandeb) ───────────────────────────────────
+  // MISSION_SET_KEY = 'SEA_JEEP_ISR'
+  SEA_JEEP_ISR: {
+    missionLabel: 'Sea Jeep ISR — Bab-el-Mandeb',
+    roles: [
+      {
+        roleKey: 'SEA_JEEP_ISR_1',
+        roleLabel: 'EO/IR Cue & Relay (Sea Jeep ISR)',
+        description: 'Extended ISR mast raises Trillium EO/IR to 3m elevation, adding 3nm optical horizon for Yemeni coastal launch detection. Iridium SATCOM relays UAS tracks to DDG fire control.',
+        capabilities: [
+          'Trillium HD25e Gimbal (Mast-Mounted)',
+          'Extended ISR Mast + Counterweight Keel',
+          'Iridium SATCOM',
+          'GPS/INS',
+        ],
+        allowedPlatformTypes: ['USV', 'USV/UUV'],
+        allowedHullNames: ['GP-USV Sea Jeep'],
+        defaultHullName: 'GP-USV Sea Jeep',
+      },
+    ],
+  },
+
+  // ─── Sea Jeep — MCM Config (Black Sea / Odessa Corridor) ─────────────────────
+  // MISSION_SET_KEY = 'SEA_JEEP_MCM'
+  SEA_JEEP_MCM: {
+    missionLabel: 'Sea Jeep MCM — Black Sea',
+    roles: [
+      {
+        roleKey: 'SJC_SEAJEEP_1',
+        roleLabel: 'Mine Survey (Sea Jeep MCM)',
+        description: 'EdgeTech FLS sonar auto-halts on bottom contacts; towed side-scan sonar maps seabed. Smart winch maintains constant tow depth. Mine coordinates transmitted to Ukrainian Navy MOC via Iridium SATCOM.',
+        capabilities: [
+          'EdgeTech 2300-MS FLS',
+          'EdgeTech 4125 Side-Scan Sonar',
+          'Smart Winch + A-Frame',
+          'GPS/INS (jam-resistant)',
+          'Iridium SATCOM',
+          'Extended Fuel Tank (MCM config)',
+        ],
+        allowedPlatformTypes: ['USV', 'USV/UUV'],
+        allowedHullNames: ['GP-USV Sea Jeep'],
+        defaultHullName: 'GP-USV Sea Jeep',
+      },
+    ],
+  },
+
+  // ─── Sea Jeep — Logistics Config (Batanes / Resupply) ────────────────────────
+  // MISSION_SET_KEY = 'SEA_JEEP_LOGISTICS'
+  SEA_JEEP_LOGISTICS: {
+    missionLabel: 'Sea Jeep Logistics — Batanes Resupply',
+    roles: [
+      {
+        roleKey: 'SJL_SEAJEEP_1',
+        roleLabel: 'Autonomous Resupply (Sea Jeep Log)',
+        description: 'Sealed dry cargo pod delivers ~20kg payload to Batanes island chain. Solar/Li-ion propulsion eliminates fuel logistics. Iridium SATCOM provides continuous position tracking to fleet MOC.',
+        capabilities: [
+          'Sealed Dry Cargo Pod (~20kg)',
+          'GPS/INS + AIS Transponder',
+          'Iridium SATCOM',
+          'Solar Wing + Li-ion Battery Bank',
+        ],
+        allowedPlatformTypes: ['USV', 'USV/UUV'],
+        allowedHullNames: ['GP-USV Sea Jeep'],
+        defaultHullName: 'GP-USV Sea Jeep',
       },
     ],
   },

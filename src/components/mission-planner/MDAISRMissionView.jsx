@@ -18,8 +18,8 @@ import imgM48      from '../../assets/images/M48.png';
 import imgTriton   from '../../assets/images/MQ4C Triton.png';
 
 const VESSEL_ROSTER = [
-  { name: 'M48 ISR',           image: imgM48,       hullName: 'M48',              capabilities: ['Passive ESM/SIGINT Collection Module', 'AIS Dark Ship Detection', 'Pattern-of-Life Engine', '100-Day Endurance'] },
-  { name: 'MQ-4C Triton',     image: imgTriton,   hullName: 'MQ-4C Triton',       capabilities: ['AN/ZPY-3 MFAS Wide-Area Radar', 'ISAR Contact Classification', 'Link 16 / SATCOM Broadcast', '55,000 ft BAMS Persistent Orbit'] },
+  { name: 'M48 ISR',       image: imgM48,     hullName: 'M48',          capabilities: ['Passive ESM/SIGINT Collection Module', 'AIS Dark Ship Detection', 'Pattern-of-Life Engine'] },
+  { name: 'MQ-4C Triton', image: imgTriton,  hullName: 'MQ-4C Triton', capabilities: ['AN/ZPY-3 AESA Radar', 'Ka-SATCOM to TempestOS', 'Link 16 Track Broadcast'] },
 ];
 
 const MISSION_SET_KEY = 'MDA_ISR';

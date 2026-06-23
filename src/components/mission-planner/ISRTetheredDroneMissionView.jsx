@@ -662,10 +662,10 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
               <CircleMarker
                 center={USS_LABOON_POS}
                 radius={7}
-                pathOptions={{ color: '#94a3b8', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
+                pathOptions={{ color: 'var(--caliburn-text-secondary)', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
               >
                 <Tooltip permanent direction="right" offset={[10, 0]}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>USS Laboon</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--caliburn-text-secondary)' }}>USS Laboon</span>
                 </Tooltip>
               </CircleMarker>
 

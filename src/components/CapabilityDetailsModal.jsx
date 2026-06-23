@@ -103,7 +103,7 @@ const CapabilityDetailsModal = ({
                 {selectedCapabilityDetails.documents.map((doc, idx) => (
                   <div
                     key={idx}
-                    className="bg-darker border border-lime-brand/10 rounded-lg p-4 cursor-pointer transition-all hover:border-lime-brand/30 hover:bg-[#1e2d3d]"
+                    className="bg-darker border border-lime-brand/10 rounded-lg p-4 cursor-pointer transition-all hover:border-lime-brand/30 hover:bg-dark-bg"
                     onClick={() => {
                       // Generate PDF dynamically
                       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -362,7 +362,7 @@ const CapabilityDetailsModal = ({
                   addToOutfitterCart(selectedCapabilityDetails);
                   setSelectedCapabilityDetails(null);
                 }}
-                className="bg-lime-brand text-black py-3.5 px-8 rounded-lg border-none text-base font-semibold cursor-pointer transition-all hover:bg-[#b8e600]"
+                className="bg-lime-brand text-black py-3.5 px-8 rounded-lg border-none text-base font-semibold cursor-pointer transition-all hover:bg-lime-hover"
               >
                 Add to Hull
               </button>

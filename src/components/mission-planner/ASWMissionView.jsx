@@ -11,7 +11,6 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
-import imgArleighBurke from '../../assets/images/ArleighBurke.png';
 
 const MISSION_SET_KEY = 'ASW';
 const MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'MFTA Towed Array', 'Hanwha Naval Missile System'];
@@ -70,9 +69,8 @@ const M48_MFTA_MOUNTS = [
 
 const VESSEL_ROSTER = [
   { name: 'M48-ALPHA (CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR'] },
-  { name: 'M48-BRAVO (MFTA)',   image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Bistatic Cross-Fix Node'] },
-  { name: 'M48-CHARLIE (MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
-  { name: 'USS Virginia SSN-774', image: imgArleighBurke, hullName: 'Virginia Class', roleKey: 'ASW_VIRGINIA', capabilities: ['Mk 48 ADCAP Torpedo', 'ACOMMS Track Receive', 'Fire Control System', 'Sprint & Drift Transit'] },
+  { name: 'M48-BRAVO (MFTA)',   image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48-CHARLIE (MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────

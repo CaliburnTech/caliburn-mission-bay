@@ -35,7 +35,7 @@ const SV2Display = ({ sv2Result, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 9999 }}>
-      <div className="flex flex-col" style={{ backgroundColor: '#1a2530', border: '2px solid rgba(203, 253, 0, 0.3)', borderRadius: '12px', width: '92vw', maxWidth: '1200px', maxHeight: '90vh' }}>
+      <div className="flex flex-col" style={{ backgroundColor: 'var(--caliburn-darker)', border: '2px solid rgba(203, 253, 0, 0.3)', borderRadius: '12px', width: '92vw', maxWidth: '1200px', maxHeight: '90vh' }}>
         {/* Header */}
         <div className="flex items-center justify-between" style={{ padding: '16px 20px', borderBottom: '1px solid rgba(75, 85, 99, 0.3)' }}>
           <div className="flex items-center gap-3">

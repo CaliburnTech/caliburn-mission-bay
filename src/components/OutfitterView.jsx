@@ -331,7 +331,7 @@ const OutfitterView = ({ onBackToShipyard }) => {
                         <div
                           key={`${cap.name}-${idx}`}
                           onClick={() => equipCapability(selectedMountPoint, cap)}
-                          className={`${isEquipped ? 'bg-[#2a3844] border-2 border-lime-brand' : 'bg-darkest border border-lime-brand/10 hover:bg-darker hover:border-lime-brand/30'} rounded-md p-3 cursor-pointer transition-all duration-200`}
+                          className={`${isEquipped ? 'bg-dark-bg border-2 border-lime-brand' : 'bg-darkest border border-lime-brand/10 hover:bg-darker hover:border-lime-brand/30'} rounded-md p-3 cursor-pointer transition-all duration-200`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="bg-lime-brand/20 p-1.5 rounded-md">

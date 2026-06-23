@@ -31,7 +31,8 @@ import {
   HSMUSVHull,
   H38Hull,
   MarinerHull,
-  OtterXHull
+  OtterXHull,
+  SeaJeepHull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -1093,6 +1094,38 @@ export const vesselHullData = [
     }
   },
   {
+    name: "GP-USV Sea Jeep",
+    type: "General-Purpose Autonomous USV",
+    platformType: "USV",
+    displacement: "~2 tons",
+    description: "Open-deck modular autonomous USV designed for rapid payload reconfiguration. Deployable by small craft or shore ramp. Supports MCM survey, ISR, coastal logistics, and persistent MDA with swappable payload bays.",
+    icon: "GP-USV Sea Jeep",
+    manufacturer: "GP-USV",
+    specs: {
+      speed: 5,
+      range: 800,
+      rcs: 1
+    },
+    capacity: {
+      totalWeight: 23,
+      totalPower: 10
+    },
+    detailedSpecs: {
+      length: "~6m",
+      payloadBays: "Single open-deck modular bay",
+      control: "Fully autonomous or remote-operated",
+      integration: "TempestOS compatible",
+      role: "Multi-role modular autonomous USV"
+    },
+    features: [
+      "Rapid payload swap — MCM, ISR, logistics, MDA",
+      "Shore or small-craft deployable",
+      "Solar/battery endurance mode",
+      "Iridium SATCOM standard",
+      "Open-architecture payload interface"
+    ]
+  },
+  {
     name: "Lewis B. Puller Class ESB",
     type: "Expeditionary Sea Base",
     platformType: "Ship",
@@ -1159,6 +1192,7 @@ export const vesselHullComponents = {
   "USV Patrol Boat": SmallUSVHull,
   "Oliver Hazard Perry Class": FreedomLCSHull,
   "GARC": GARCHull,
+  "GP-USV Sea Jeep": SeaJeepHull,
   "Custom Platform": CustomPlatformHull
 };
 
@@ -1254,9 +1288,10 @@ export const vesselMountPoints = {
  */
 export const VESSEL_SLOT_CAPACITY = {
   // Small USVs — EW merged into SENSORS, C2 slot added
+  "GP-USV Sea Jeep": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 2, AI: 1, UTILITY: 3, OTHER: 0 },
   "MetalShark": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "SubSeaSail": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
-  "SubSeaSail Horus": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  "SubSeaSail Horus": { SENSORS: 1, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 1, AI: 2, UTILITY: 0, OTHER: 0 },
   "Otter X": { SENSORS: 2, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
   "Mariner": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // SNC AEGIR Family

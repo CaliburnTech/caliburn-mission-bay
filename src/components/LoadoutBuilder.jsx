@@ -38,7 +38,7 @@ const LOADOUT_CATEGORIES = {
     color: CATEGORY_COLORS.SENSORS.hex,
     types: [
       'EO/IR SENSORS', 'RADAR/RF', 'ACOUSTIC/SONAR', 'ELECTRONIC SUPPORT',
-      'ELECTRONIC ATTACK', 'ELECTRONIC PROTECTION',
+      'ELECTRONIC PROTECTION',
       // Variant category names used in marketplaceData
       'ACOUSTIC SENSORS', 'ACOUSTIC DECOY', 'RADAR SENSORS', 'SENSORS & DETECTION',
       'SIGNALS INTELLIGENCE', 'ISR', 'ISR & SURVEILLANCE', 'SAR',
@@ -57,7 +57,7 @@ const LOADOUT_CATEGORIES = {
     name: 'Weapons',
     icon: Crosshair,
     color: CATEGORY_COLORS.WEAPONS.hex,
-    types: ['KINETIC WEAPONS', 'DIRECTED ENERGY', 'WEAPONS', 'COMBAT', 'SEA_CONTROL', 'FORCE_PROTECTION'],
+    types: ['KINETIC WEAPONS', 'DIRECTED ENERGY', 'WEAPONS', 'COMBAT', 'SEA_CONTROL', 'FORCE_PROTECTION', 'ELECTRONIC ATTACK'],
     description: 'Offensive capabilities'
   },
   C2: {
@@ -966,7 +966,7 @@ const LoadoutBuilder = () => {
       )}
 
       {/* Main Layout */}
-      <div className="grid grid-cols-[1fr_260px_1fr_260px] gap-6">
+      <div className="grid grid-cols-[1fr_260px_1fr_300px] gap-6">
         {/* Left Column - Sensors, Comms, Weapons, Other */}
         <div className="space-y-4">
           {['SENSORS', 'COMMS', 'WEAPONS', 'OTHER'].filter(key => visibleCategories[key]).map(key => (
@@ -1106,7 +1106,7 @@ const LoadoutBuilder = () => {
                             <button
                               disabled={isLocked}
                               onClick={() => isAssigned ? handleRemoveRole(missionKey, role) : handleAssignRole(missionKey, role)}
-                              className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
+                              className={`w-full py-2.5 px-4 rounded-lg text-xs font-semibold border-2 transition-all flex items-start gap-2 text-left ${
                                 isAssigned
                                   ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
                                   : isLocked

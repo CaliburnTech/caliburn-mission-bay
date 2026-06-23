@@ -193,7 +193,7 @@ const TRITON_MOUNTS = [
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'M48 (Mk70 PDS)', image: imgM48, hullName: 'M48', capabilities: ['Mk 70 Payload Delivery System', 'Tomahawk Block V 4-cell VLS', 'SeaFIND Inertial Navigation', 'EMCON Transit Capable'] },
+  { name: 'M48 (Mk70 PDS)', image: imgM48, hullName: 'M48', capabilities: ['Mk 70 Payload Delivery System', 'Tomahawk Block V 8-cell VLS', 'SeaFIND Inertial Navigation', 'EMCON Transit Capable'] },
   { name: 'Saildrone Spectre', image: imgSaildrone, hullName: 'Saildrone Spectre', capabilities: ['Teledyne FLIR EO/IR Turret', 'Scion ESM Electronic Support', 'BDA Assessment', '365-Day Endurance'] },
   { name: 'MQ-4C Triton', image: imgMQ4CTriton, hullName: 'MQ-4C Triton', capabilities: ['AN/ZPY-3 AESA Radar', '150km+ Periscope Detection', 'Ka-SATCOM to TempestOS', 'Wide-Area Target Cue'] },
 ];

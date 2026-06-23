@@ -16,7 +16,7 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
-import imgOceanAeroTriton from '../../assets/images/OceanAeroTriton.png';
+import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
 const MISSION_SET_KEY = 'SEA_JEEP_LOGISTICS';
 const MISSION_SET_CAPS = ['Sealed Dry Cargo Pod (~20kg)', 'GPS/INS + AIS Transponder', 'Iridium SATCOM', 'Solar Wing + Li-ion Battery Bank'];
@@ -193,8 +193,8 @@ const SEA_JEEP_LOGISTICS_MOUNTS = [
 const VESSEL_ROSTER = [
   {
     name: 'SEA-JEEP-LOG-1',
-    image: imgOceanAeroTriton,
-    hullName: 'Ocean Aero Triton',
+    image: imgSeaJeep,
+    hullName: 'GP-USV Sea Jeep',
     roleKey: 'SJL_SEAJEEP_1',
     capabilities: ['Sealed Dry Cargo Pod (~20kg)', 'GPS/INS + AIS Transponder', 'Iridium SATCOM', 'Solar Wing + Li-ion Battery Bank'],
   },
