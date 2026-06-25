@@ -8,7 +8,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { X, GitCommit, Tag, Clock, Package } from 'lucide-react';
+import { X, GitCommit, Tag, Clock, Package, User } from 'lucide-react';
 import useVersionStore from '../../store/versionStore';
 import useSV2Store from '../../store/sv2Store';
 import { computeChangelog, getChangeTypeColor } from '../../utils/versionDiff';
@@ -19,6 +19,7 @@ const CreateVersionModal = ({ configId, activeConfig, hullName, onClose }) => {
 
   const [message, setMessage] = useState('');
   const [tag, setTag] = useState('');
+  const [submittedBy, setSubmittedBy] = useState('');
   const [showTag, setShowTag] = useState(false);
   const inputRef = useRef(null);
 
@@ -53,12 +54,12 @@ const CreateVersionModal = ({ configId, activeConfig, hullName, onClose }) => {
       message || suggestedMessage || 'Configuration updated',
       tag || null, sv2Customizations
     );
-    if (versionId) onClose(versionId);
+    if (versionId) onClose(versionId, submittedBy.trim() || null, message || suggestedMessage || null);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleCreate();
-    if (e.key === 'Escape') onClose(null);
+    if (e.key === 'Escape') onClose(null, null);
   };
 
   const versionCount = (useVersionStore.getState().versionHistory[configId] || []).length;
@@ -73,7 +74,7 @@ const CreateVersionModal = ({ configId, activeConfig, hullName, onClose }) => {
             <GitCommit size={18} className="text-lime-brand" />
             <h3 className="text-gray-100 font-bold text-base m-0">Save Version</h3>
           </div>
-          <button onClick={() => onClose(null)} className="btn-ghost" style={{ padding: '4px', minHeight: 'auto' }}>
+          <button onClick={() => onClose(null, null)} className="btn-ghost" style={{ padding: '4px', minHeight: 'auto' }}>
             <X size={16} />
           </button>
         </div>
@@ -130,6 +131,28 @@ const CreateVersionModal = ({ configId, activeConfig, hullName, onClose }) => {
             />
           </div>
 
+          {/* Your name */}
+          <div className="mb-3">
+            <label className="subsection-label" style={{ marginBottom: '4px', display: 'block' }}>
+              Your name (optional)
+            </label>
+            <div style={{ position: 'relative' }}>
+              <User size={12} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                value={submittedBy}
+                onChange={(e) => setSubmittedBy(e.target.value)}
+                placeholder="e.g., Tiffany R."
+                style={{
+                  width: '100%', padding: '8px 10px 8px 28px', borderRadius: '6px',
+                  fontSize: '13px', fontFamily: 'inherit', outline: 'none',
+                  boxSizing: 'border-box', color: '#e5e7eb', backgroundColor: '#0f1419',
+                  border: '1px solid rgba(75, 85, 99, 0.4)'
+                }}
+              />
+            </div>
+          </div>
+
           {/* Optional tag */}
           {showTag ? (
             <div className="mb-3">
@@ -164,7 +187,7 @@ const CreateVersionModal = ({ configId, activeConfig, hullName, onClose }) => {
         <div className="flex items-center justify-between" style={{ padding: '10px 18px', borderTop: '1px solid rgba(75, 85, 99, 0.3)' }}>
           <span style={{ fontSize: '10px', color: '#4b5563' }}>⌘+Enter to save</span>
           <div className="flex gap-2">
-            <button onClick={() => onClose(null)} className="btn-ghost" style={{ fontSize: '12px', padding: '6px 14px', minHeight: 'auto' }}>
+            <button onClick={() => onClose(null, null)} className="btn-ghost" style={{ fontSize: '12px', padding: '6px 14px', minHeight: 'auto' }}>
               Skip
             </button>
             <button onClick={handleCreate} className="btn-primary" style={{ fontSize: '12px', padding: '6px 16px', minHeight: 'auto' }}>

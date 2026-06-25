@@ -171,15 +171,36 @@ const useDataStore = create((set, get) => ({
   },
 
   // ── Saved Configurations ──
+  // Use the Supabase JS client directly — bypasses Edge Function gateway issues.
   getConfigs: async () => {
-    const { adapter } = get();
-    return adapter ? adapter.getConfigs() : [];
+    const { supabase } = await import('../auth/supabaseClient');
+    const { data, error } = await supabase
+      .from('SavedConfiguration')
+      .select('id, name, submittedBy, configData, createdAt, updatedAt, companyId')
+      .eq('companyId', 'demo-company-00000000000')
+      .order('createdAt', { ascending: false });
+    if (error) { console.error('[getConfigs]', error); return []; }
+    return data ?? [];
   },
 
   createConfig: async (data) => {
-    const { adapter } = get();
-    if (!adapter) return null;
-    return adapter.createConfig(data);
+    const { supabase } = await import('../auth/supabaseClient');
+    const { data: row, error } = await supabase
+      .from('SavedConfiguration')
+      .insert({
+        id: crypto.randomUUID(),
+        userId: 'demo-user-000000000000',
+        companyId: 'demo-company-00000000000',
+        name: data.name,
+        configData: data.config_data ?? {},
+        submittedBy: data.submitted_by ?? null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .select()
+      .single();
+    if (error) { console.error('[createConfig]', error); return null; }
+    return row;
   },
 
   updateConfig: async (id, data) => {

@@ -8,7 +8,7 @@
  * Also accessible inline from LoadoutBuilder (version history per config).
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { GitCommit, Ship, Users, Clock, History, Diff, ShieldCheck } from 'lucide-react';
 import useVersionStore from '../store/versionStore';
 import useConfigurationStore from '../store/configurationStore';
@@ -24,6 +24,19 @@ const VersionControlView = () => {
   const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
   const totalVersions = useVersionStore(s => s.getTotalVersionCount());
 
+  // Server-side configs fetched from backend
+  const [serverConfigs, setServerConfigs] = useState([]);
+
+  // Fetch server configs on mount — best-effort, don't block UI if offline
+  useEffect(() => {
+    const dataStoreState = useDataStore.getState();
+    dataStoreState.getConfigs().then((results) => {
+      if (Array.isArray(results)) setServerConfigs(results);
+    }).catch(() => {
+      // Best-effort — swallow silently if backend is unreachable
+    });
+  }, []);
+
   // UI state
   const [selectedSquadronId, setSelectedSquadronId] = useState(null);
   const [selectedConfigId, setSelectedConfigId] = useState(null);
@@ -31,10 +44,29 @@ const VersionControlView = () => {
   const [comparisonVersionIds, setComparisonVersionIds] = useState(null); // [idA, idB]
   const [rightPanel, setRightPanel] = useState('detail'); // 'detail' | 'diff' | 'fleet'
 
-  // Get configs, optionally filtered by squadron
+  // Merge localStorage configs with server configs for display.
+  // Server configs take precedence when the same id exists in both.
   const configs = useMemo(() => {
-    return Object.values(savedConfigurations).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  }, [savedConfigurations]);
+    const localList = Object.values(savedConfigurations);
+    const localById = Object.fromEntries(localList.map(c => [c.id, c]));
+    // Normalize server config shape to match local config shape
+    const serverById = {};
+    serverConfigs.forEach(sc => {
+      serverById[sc.id] = {
+        id: sc.id,
+        name: sc.name,
+        hullName: sc.config_data?.hullName || '',
+        slots: sc.config_data?.slots || {},
+        submitted_by: sc.submitted_by || null,
+        createdAt: sc.created_at ? new Date(sc.created_at).getTime() : 0,
+        updatedAt: sc.updated_at ? new Date(sc.updated_at).getTime() : 0,
+        _fromServer: true,
+      };
+    });
+    // Merge: server wins on collision
+    const merged = { ...localById, ...serverById };
+    return Object.values(merged).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  }, [savedConfigurations, serverConfigs]);
 
   // Selected version object
   const selectedVersion = useVersionStore(s => selectedVersionId ? s.versions[selectedVersionId] : null);
@@ -145,6 +177,11 @@ const VersionControlView = () => {
                       <div style={{ fontSize: '10px', color: '#6b7280' }}>
                         {config.hullName} • {new Date(config.updatedAt).toLocaleDateString()}
                       </div>
+                      {config.submitted_by && (
+                        <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>
+                          Saved by: {config.submitted_by}
+                        </div>
+                      )}
                     </button>
                   ))
                 )}

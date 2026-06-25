@@ -713,10 +713,45 @@ const LoadoutBuilder = () => {
 
   // Handle save configuration — saves config, then shows version commit modal
   const handleSave = () => {
+    // Snapshot active config before saveActiveConfiguration mutates the store
+    const configSnapshot = useConfigurationStore.getState().activeConfig;
     const configId = saveActiveConfiguration();
     if (configId) {
       setLastSavedConfigId(configId);
       setShowVersionModal(true);
+      // Store snapshot for the API call (fired after modal closes)
+      _pendingSaveRef.current = { configId, configSnapshot };
+    }
+  };
+
+  // Ref to hold data for the pending API save (set in handleSave, consumed in handleVersionModalClose)
+  const _pendingSaveRef = useState(() => ({ current: null }))[0];
+
+  // Called when the version modal closes — fires the backend save as fire-and-forget
+  const handleVersionModalClose = (versionId, submittedBy, commitMessage) => {
+    setShowVersionModal(false);
+    const pending = _pendingSaveRef.current;
+    if (!pending) return;
+    _pendingSaveRef.current = null;
+    const { configSnapshot } = pending;
+    if (!configSnapshot) return;
+    // Build the products list from the slots (array of capability name strings)
+    const products = Object.values(configSnapshot.slots || {}).flat().filter(Boolean);
+    // Generate SBOM at save time so the admin portal can display it without needing the catalog
+    const sbom = generateSBOMFromActiveConfig(configSnapshot, selectedHull?.name || '');
+    const payload = {
+      name: commitMessage || configSnapshot.name || 'Untitled Configuration',
+      config_data: { ...configSnapshot, sbom: sbom ?? null },
+      submitted_by: submittedBy || null,
+      products,
+    };
+    const dataStoreAdapter = useDataStore.getState();
+    try {
+      dataStoreAdapter.createConfig(payload).catch(() => {
+        // Best-effort — swallow errors silently
+      });
+    } catch (_err) {
+      // Best-effort — swallow errors silently
     }
   };
 
@@ -1393,7 +1428,7 @@ const LoadoutBuilder = () => {
           configId={lastSavedConfigId}
           activeConfig={activeConfig}
           hullName={selectedHull?.name || ''}
-          onClose={() => setShowVersionModal(false)}
+          onClose={handleVersionModalClose}
         />
       )}
 
