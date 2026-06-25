@@ -166,7 +166,7 @@ const LoadoutBuilder = () => {
   const effectiveMissionSetKey = pendingMissionSetKey || appliedMissionSetKey;
 
   // Mission store — for Port Security deep-link
-  const { setSelectedMissionTemplate, setPendingMissionOpen, roleAssignments, assignVesselToRole, clearRoleAssignment, clearMissionAssignments } = useMissionStore();
+  const { setSelectedMissionTemplate, setPendingMissionOpen, roleAssignments, assignVesselToRole, clearRoleAssignment } = useMissionStore();
 
   // Port Security Mission Set state
   const [_portSecApplied, setPortSecApplied] = useState(

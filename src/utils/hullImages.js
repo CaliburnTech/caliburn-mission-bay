@@ -22,7 +22,6 @@ import imgZeroUSV    from '../assets/images/ZeroUSV-Oceanus17.png';
 import imgMQ4C       from '../assets/images/MQ4C Triton.png';
 import imgMQ8C       from '../assets/images/MQ8C Fire.png';
 import imgMQ25       from '../assets/images/MQ25 Stingray.png';
-import imgBlackWidow from '../assets/images/BlackWidow.png';
 
 /** Map hull `name` (from vesselHullData) → imported PNG URL */
 export const HULL_IMAGES = {

@@ -223,7 +223,7 @@ const MapInvalidateSize = () => {
 const SeaJeepBaseMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
   const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);

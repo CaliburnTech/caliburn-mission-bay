@@ -419,10 +419,10 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
         addEvtRef.current(`${v0}: SAS sonar active — 150m swath, 0.03m resolution`, 'info');
       }
       if (tick === T_SWEEP_CONTACT_A) {
-        addEvtRef.current(`${v0}: SONAR RETURN — bottom object 26°33\'N 56°07\'E — logged CONTACT-1. Sweep continuing.`, 'warn');
+        addEvtRef.current(`${v0}: SONAR RETURN — bottom object 26°33'N 56°07'E — logged CONTACT-1. Sweep continuing.`, 'warn');
       }
       if (tick === T_SWEEP_CONTACT_B) {
-        addEvtRef.current(`${v0}: SONAR RETURN — bottom object 26°28\'N 56°14\'E — logged CONTACT-2. Sweep continuing.`, 'warn');
+        addEvtRef.current(`${v0}: SONAR RETURN — bottom object 26°28'N 56°14'E — logged CONTACT-2. Sweep continuing.`, 'warn');
       }
       if (tick === T_SWEEP_DONE) {
         addEvtRef.current(`${v0}: Sweep complete — 5 passes, 2 contacts logged — surfacing to report`, 'info');

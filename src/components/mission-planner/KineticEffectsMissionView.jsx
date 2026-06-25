@@ -367,6 +367,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
     const cb = () => {
       const t = ++tickRef.current;
       setTick(t);
+      const v0 = vesselLabelsRef.current[0] ?? 'M48';
 
       if (t === T_STAGED)       { addEvtRef.current(`CTF-72: Strike package staged — Luzon Strait east`, 'info'); addEvtRef.current(`${v0}: on station — EMCON White — all emitters secured`, 'info'); }
       if (t === T_ISR_CUE)      { addEvtRef.current('MQ-4C Triton: PLAN Type-052D at 20.80°N 117.30°E — 94% confidence', 'warn'); addEvtRef.current('Target designated ECHO-4 — HOSTILE — pending CCDR auth', 'warn'); }
