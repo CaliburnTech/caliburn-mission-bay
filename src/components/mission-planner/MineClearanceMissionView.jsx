@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, CircleMarker, Polyline, Rectangle, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -10,6 +10,10 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import imgFreedomAUV from '../../assets/images/FreedomAUV.png';
 import imgArleighBurke from '../../assets/images/ArleighBurke.png';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
@@ -65,9 +69,9 @@ const FREEDOM_AUV_MOUNTS = [
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'FREEDOM AUV', image: imgFreedomAUV, hullName: 'Freedom AUV', capabilities: ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio'] },
-  { name: 'HORUS-1 SSS', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
-  { name: 'HORUS-2 SSS', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+  { name: 'FREEDOM AUV', roleDescriptor: '(Mine Hunter)', image: imgFreedomAUV, hullName: 'Freedom AUV', capabilities: ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio'], roleKey: 'MCM_FREEDOM_AUV' },
+  { name: 'HORUS-1 SSS', roleDescriptor: '(Scout 1)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_1' },
+  { name: 'HORUS-2 SSS', roleDescriptor: '(Scout 2)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_2' },
   { name: 'USS Puller ESB-3', image: imgArleighBurke, hullName: 'Lewis B. Puller Class ESB', capabilities: ['MCM C2 Node', 'AUV Launch & Recovery', 'SATCOM Relay', 'Logistics Support'] },
 ];
 
@@ -279,9 +283,11 @@ const MapInvalidateSize = () => {
 const MineClearanceMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -289,13 +295,30 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [currentTick,  setCurrentTick]  = useState(0);
@@ -310,6 +333,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
   const mainTimer  = useRef(null);
   const pulseTimer = useRef(null);
   const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
 
   // Derived from currentTick — no stale-closure risk
   const phase    = getPhase(currentTick);
@@ -338,6 +362,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   // Mine contact / engagement pulse
   useEffect(() => {
@@ -379,64 +404,67 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'Freedom AUV (Mine Hunter)';
+      const v1 = vesselLabelsRef.current[1] ?? 'SubSeaSail Horus (Scout 1)';
+      const v2 = vesselLabelsRef.current[2] ?? 'SubSeaSail Horus (Scout 2)';
       setCurrentTick(tick);
 
       if (tick === T_AUV_TRANSIT) {
-        addEvtRef.current('FREEDOM-1: AUV deployed from USS Puller — initiating transit to minefield', 'info');
+        addEvtRef.current(`${v0}: AUV deployed from USS Puller — initiating transit to minefield`, 'info');
       }
       if (tick === T_AUV_ARRIVE) {
-        addEvtRef.current('FREEDOM-1: Sweep start — Pass 1 of 5. Contacts logged to memory — no diversion until sweep complete.', 'info');
+        addEvtRef.current(`${v0}: Sweep start — Pass 1 of 5. Contacts logged to memory — no diversion until sweep complete.`, 'info');
       }
       if (tick === T_SWEEP_START) {
-        addEvtRef.current('FREEDOM-1: SAS sonar active — 150m swath, 0.03m resolution', 'info');
+        addEvtRef.current(`${v0}: SAS sonar active — 150m swath, 0.03m resolution`, 'info');
       }
       if (tick === T_SWEEP_CONTACT_A) {
-        addEvtRef.current('FREEDOM-1: SONAR RETURN — bottom object 26°33\'N 56°07\'E — logged CONTACT-1. Sweep continuing.', 'warn');
+        addEvtRef.current(`${v0}: SONAR RETURN — bottom object 26°33\'N 56°07\'E — logged CONTACT-1. Sweep continuing.`, 'warn');
       }
       if (tick === T_SWEEP_CONTACT_B) {
-        addEvtRef.current('FREEDOM-1: SONAR RETURN — bottom object 26°28\'N 56°14\'E — logged CONTACT-2. Sweep continuing.', 'warn');
+        addEvtRef.current(`${v0}: SONAR RETURN — bottom object 26°28\'N 56°14\'E — logged CONTACT-2. Sweep continuing.`, 'warn');
       }
       if (tick === T_SWEEP_DONE) {
-        addEvtRef.current('FREEDOM-1: Sweep complete — 5 passes, 2 contacts logged — surfacing to report', 'info');
+        addEvtRef.current(`${v0}: Sweep complete — 5 passes, 2 contacts logged — surfacing to report`, 'info');
       }
       if (tick === T_REPORT) {
-        addEvtRef.current('FREEDOM-1: Contact list uploaded — 2 bottom objects — MOC Bahrain correlating', 'info');
+        addEvtRef.current(`${v0}: Contact list uploaded — 2 bottom objects — MOC Bahrain correlating`, 'info');
         addEvtRef.current('MOC Bahrain: CONTACT-1 and CONTACT-2 match threat database — MINES CONFIRMED', 'alert');
-        addEvtRef.current('FREEDOM-1: Re-attack phase initiated — returning to MINE-ALPHA', 'info');
+        addEvtRef.current(`${v0}: Re-attack phase initiated — returning to MINE-ALPHA`, 'info');
       }
       if (tick === T_MARK_A) {
-        addEvtRef.current('FREEDOM-1: Acoustic indicator buoy deployed on MINE-ALPHA — pinger active 37.5kHz', 'info');
-        addEvtRef.current('FREEDOM-1: Transiting to MINE-BRAVO', 'info');
+        addEvtRef.current(`${v0}: Acoustic indicator buoy deployed on MINE-ALPHA — pinger active 37.5kHz`, 'info');
+        addEvtRef.current(`${v0}: Transiting to MINE-BRAVO`, 'info');
       }
       if (tick === T_MARK_B) {
-        addEvtRef.current('FREEDOM-1: Acoustic indicator buoy deployed on MINE-BRAVO — both mines marked', 'info');
-        addEvtRef.current('FREEDOM-1: Re-attack complete — RTB to USS Lewis B. Puller (ESB-3)', 'info');
-        addEvtRef.current('MOC Bahrain: HORUS-1 HORUS-2 tasked — homing on acoustic beacons', 'info');
+        addEvtRef.current(`${v0}: Acoustic indicator buoy deployed on MINE-BRAVO — both mines marked`, 'info');
+        addEvtRef.current(`${v0}: Re-attack complete — RTB to USS Lewis B. Puller (ESB-3)`, 'info');
+        addEvtRef.current(`MOC Bahrain: ${v1} ${v2} tasked — homing on acoustic beacons`, 'info');
       }
       if (tick === 122) {
-        addEvtRef.current('HORUS-1: Acoustic marker acquired — homing on MINE-ALPHA', 'info');
-        addEvtRef.current('HORUS-2: Acoustic marker acquired — homing on MINE-BRAVO', 'info');
+        addEvtRef.current(`${v1}: Acoustic marker acquired — homing on MINE-ALPHA`, 'info');
+        addEvtRef.current(`${v2}: Acoustic marker acquired — homing on MINE-BRAVO`, 'info');
       }
       if (tick === T_HORUS_ARRIVE) {
-        addEvtRef.current('HORUS-1: On station — MINE-ALPHA — supercavitating round armed', 'warn');
-        addEvtRef.current('HORUS-2: On station — MINE-BRAVO — supercavitating round armed', 'warn');
+        addEvtRef.current(`${v1}: On station — MINE-ALPHA — supercavitating round armed`, 'warn');
+        addEvtRef.current(`${v2}: On station — MINE-BRAVO — supercavitating round armed`, 'warn');
       }
       if (tick === T_ENGAGE_A) {
-        addEvtRef.current('HORUS-1: Firing — round away', 'alert');
+        addEvtRef.current(`${v1}: Firing — round away`, 'alert');
       }
       if (tick === T_NEUT_A) {
         addEvtRef.current('MINE-ALPHA: NEUTRALIZED — detonation confirmed', 'success');
-        addEvtRef.current('HORUS-1: Round expended — standing by for recovery tasking', 'info');
+        addEvtRef.current(`${v1}: Round expended — standing by for recovery tasking`, 'info');
       }
       if (tick === T_ENGAGE_B) {
-        addEvtRef.current('HORUS-2: Firing — round away', 'alert');
+        addEvtRef.current(`${v2}: Firing — round away`, 'alert');
       }
       if (tick === T_NEUT_B) {
         addEvtRef.current('MINE-BRAVO: NEUTRALIZED — detonation confirmed', 'success');
-        addEvtRef.current('HORUS-2: Round expended — mission complete', 'info');
+        addEvtRef.current(`${v2}: Round expended — mission complete`, 'info');
       }
       if (tick === T_LANE_CLEAR) {
-        addEvtRef.current('MOC Bahrain: Shipping lane ALPHA-7 — 2 of 5 mines neutralized — HORUS-3 tasked for remaining', 'info');
+        addEvtRef.current(`MOC Bahrain: Shipping lane ALPHA-7 — 2 of 5 mines neutralized — ${v2} tasked for remaining`, 'info');
         addEvtRef.current('STRAIT CLEAR — Sector Alpha-7 safe for transit — notifying NAVCENT', 'success');
       }
       if (tick >= TOTAL_TICKS) {
@@ -457,11 +485,16 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
 
     setPendingMissionSetCaps(vessel.capabilities);
 
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -533,9 +566,9 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
+            missionName.trim() && isDeployable
               ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
@@ -733,8 +766,8 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
               <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#22d3ee', label: 'FREEDOM-1 AUV — Mine Hunt' },
-                    { color: '#22d3ee', label: 'HORUS-1/2 USV — Mine Neutralization' },
+                    { color: '#22d3ee', label: `${effectiveRoster[0]?.name ?? 'Freedom AUV (Mine Hunter)'} — Mine Hunt` },
+                    { color: '#22d3ee', label: `${effectiveRoster[1]?.name ?? 'SubSeaSail Horus (Scout 1)'} / ${effectiveRoster[2]?.name ?? 'SubSeaSail Horus (Scout 2)'} — Neutralization` },
                     { color: '#94a3b8', label: 'USS Lewis B. Puller (ESB-3)' },
                     { color: '#6366f1', label: 'MOC — NSA Bahrain' },
                     { color: '#ef4444', label: 'Confirmed Mine Contact' },
@@ -824,8 +857,8 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               {/* Image */}
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
@@ -842,18 +875,55 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
 
       </div>{/* /scrollable content */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

@@ -4,22 +4,27 @@ import {
 } from 'react-leaflet';
 import {
   Play, Pause, RotateCcw, ChevronLeft, Check, Satellite, Radio, Eye, Waves,
-  DollarSign, AlertTriangle, ArrowRight, Settings
+  DollarSign, AlertTriangle, ArrowRight, Settings, ArrowLeftRight
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48      from '../../assets/images/M48.png';
-// imgSaildrone unused — Voyager rendered as CircleMarker
+import imgOceanus  from '../../assets/images/ZeroUSV-Oceanus17.png';
 import imgTriton   from '../../assets/images/MQ4C Triton.png';
 
 const VESSEL_ROSTER = [
-  { name: 'M48 ISR',       image: imgM48,     hullName: 'M48',          capabilities: ['Passive ESM/SIGINT Collection Module', 'AIS Dark Ship Detection', 'Pattern-of-Life Engine'] },
-  { name: 'MQ-4C Triton', image: imgTriton,  hullName: 'MQ-4C Triton', capabilities: ['AN/ZPY-3 AESA Radar', 'Ka-SATCOM to TempestOS', 'Link 16 Track Broadcast'] },
+  { name: 'M48 ISR', roleDescriptor: '(ISR)', image: imgM48, hullName: 'M48', capabilities: ['Passive ESM/SIGINT Collection Module', 'AIS Dark Ship Detection', 'Pattern-of-Life Engine'], roleKey: 'MDA_ISR_VOYAGER' },
+  { name: 'CUSV Oceanus17',   image: imgOceanus, hullName: 'ZeroUSV Oceanus17', capabilities: ['Kelvin Hughes Mk11 SharpEye Radar', 'L3Harris WESCAM MX-15 EO/IR', 'AIS Dark Ship Detection'],         roleKey: 'MDA_ISR_OCEANUS' },
+  { name: 'MQ-4C Triton',     image: imgTriton,  hullName: 'MQ-4C Triton',      capabilities: ['AN/ZPY-3 AESA Radar', 'Ka-SATCOM to TempestOS', 'Link 16 Track Broadcast'],                           roleKey: 'MDA_ISR_TRITON' },
 ];
 
 const MISSION_SET_KEY = 'MDA_ISR';
@@ -280,9 +285,11 @@ const P8A_COVERAGE_NM2  = 1200;
 const MDAISRMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -290,13 +297,32 @@ const MDAISRMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available;
+    // fall back to the role's required capabilities so a swapped-but-unconfigured
+    // hull doesn't display the previous vessel's capability tags.
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
   const [missionName, setMissionName] = useState(mission?.name || '');
 
   const [currentTick, setCurrentTick] = useState(0);
@@ -312,6 +338,7 @@ const MDAISRMissionView = ({ mission, onBack }) => {
   const pulseTimer = useRef(null);
   const resetTimer = useRef(null);
   const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
   const runScenRef = useRef(null);
 
   const phase       = getPhase(currentTick);
@@ -357,6 +384,7 @@ const MDAISRMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
@@ -398,27 +426,30 @@ const MDAISRMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'M48 ISR';
+      const v1 = vesselLabelsRef.current[1] ?? 'CUSV Oceanus17';
+      const v2 = vesselLabelsRef.current[2] ?? 'MQ-4C Triton';
       setCurrentTick(tick);
 
       if (tick === T_DEPLOYED) {
         addEvtRef.current('TF-72: ISR barrier patrol — South China Sea — all platforms on station', 'info');
-        addEvtRef.current('Saildrone Voyager ECHO-1: ESM passive loiter active — Hainan approaches', 'info');
-        addEvtRef.current('Oceanus17 DELTA-4: SharpEye radar active — Luzon Strait sector', 'info');
+        addEvtRef.current(`${v0}: ESM passive loiter active — Hainan approaches`, 'info');
+        addEvtRef.current(`${v1}: SharpEye radar active — Luzon Strait sector`, 'info');
       }
       if (tick === T_DARK_SHIP) {
-        addEvtRef.current('Oceanus17 DELTA-4: SharpEye return — bearing 285, range 18 NM — surface contact', 'warn');
-        addEvtRef.current('Oceanus17 DELTA-4: No AIS signal within 8 NM of radar return — forwarding to PoL engine', 'warn');
+        addEvtRef.current(`${v1}: SharpEye return — bearing 285, range 18 NM — surface contact`, 'warn');
+        addEvtRef.current(`${v1}: No AIS signal within 8 NM of radar return — forwarding to PoL engine`, 'warn');
       }
       if (tick === T_AIS_ANOMALY) {
         addEvtRef.current('PoL Engine: MMSI lookup failed — no vessel registration match — DARK CONTACT', 'alert');
         addEvtRef.current('PoL Engine: TRACK-002 assigned — 21°12\'N 117°48\'E — monitoring', 'warn');
-        addEvtRef.current('Saildrone Voyager ECHO-1: ESM intercept — encrypted UHF burst — bearing 284 — corroborates radar return', 'warn');
+        addEvtRef.current(`${v0}: ESM intercept — encrypted UHF burst — bearing 284 — corroborates radar return`, 'warn');
       }
       if (tick === T_POL_FLAG) {
         addEvtRef.current('PoL Engine: TRACK-002 — 6.4 hrs stationary loiter — deviation from baseline', 'warn');
         addEvtRef.current('PoL Engine: TRACK-002 — position matches known militia rendezvous pattern', 'alert');
         addEvtRef.current('PoL Engine: BEHAVIORAL ANOMALY — confidence 82% — MILITIA INDICATOR', 'alert');
-        addEvtRef.current('Saildrone Voyager ECHO-1: Second UHF burst intercepted — periodic cadence — SIGINT flag raised', 'alert');
+        addEvtRef.current(`${v0}: Second UHF burst intercepted — periodic cadence — SIGINT flag raised`, 'alert');
       }
       if (tick === T_ALERT_GEN) {
         addEvtRef.current('ALERT: HOTEL-7 — 21°12\'N 117°48\'E — DARK / LOITER / MILITIA INDICATOR', 'alert');
@@ -428,16 +459,16 @@ const MDAISRMissionView = ({ mission, onBack }) => {
       if (tick === T_LINK16_TX) {
         addEvtRef.current('Link 16: HOTEL-7 broadcast — all INDOPACOM tactical nets', 'info');
         addEvtRef.current('7th Fleet MOC: SATCOM report transmitted — prosecution authority requested', 'info');
-        addEvtRef.current('MQ-4C Triton: HOTEL-7 track received — vectoring for positive ID', 'warn');
+        addEvtRef.current(`${v2}: HOTEL-7 track received — vectoring for positive ID`, 'warn');
       }
       if (tick === T_TRITON_VECTORS) {
-        addEvtRef.current('MQ-4C Triton: AN/ZPY-3 MFAS slewing to HOTEL-7 bearing', 'info');
-        addEvtRef.current('MQ-4C Triton: ETA 14 min — contact position already known — no search required', 'info');
+        addEvtRef.current(`${v2}: AN/ZPY-3 MFAS slewing to HOTEL-7 bearing`, 'info');
+        addEvtRef.current(`${v2}: ETA 14 min — contact position already known — no search required`, 'info');
       }
       if (tick === T_TRITON_ON_STN) {
-        addEvtRef.current('MQ-4C Triton: On station overhead HOTEL-7 — ISAR imaging initiated', 'info');
-        addEvtRef.current('MQ-4C Triton: 130-ft steel hull — no fishing gear — 8 personnel on deck', 'warn');
-        addEvtRef.current('MQ-4C Triton: Vessel silhouette matches ONI database — cross-referencing', 'info');
+        addEvtRef.current(`${v2}: On station overhead HOTEL-7 — ISAR imaging initiated`, 'info');
+        addEvtRef.current(`${v2}: 130-ft steel hull — no fishing gear — 8 personnel on deck`, 'warn');
+        addEvtRef.current(`${v2}: Vessel silhouette matches ONI database — cross-referencing`, 'info');
       }
       if (tick === T_CLASSIFIED) {
         addEvtRef.current('ONI: HOTEL-7 CLASSIFIED — PLAN Maritime Militia — hull number confirmed', 'alert');
@@ -468,11 +499,16 @@ const MDAISRMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
 
     setPendingMissionSetCaps(vessel.capabilities);
 
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -552,8 +588,8 @@ const MDAISRMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
-          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
         >
           Save Draft
         </button>
@@ -668,8 +704,8 @@ const MDAISRMissionView = ({ mission, onBack }) => {
               <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#22d3ee', label: 'Saildrone Voyager — SIGINT' },
-                    { color: '#a78bfa', label: 'MQ-4C Triton — BAMS (55K ft)' },
+                    { color: '#22d3ee', label: `${effectiveRoster[0]?.name ?? 'M48 (ISR)'} — SIGINT` },
+                    { color: '#a78bfa', label: `${effectiveRoster[2]?.name ?? 'MQ-4C Triton'} — BAMS (55K ft)` },
                     { color: '#ef4444', label: 'HOTEL-7 — Dark Contact' },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
@@ -755,8 +791,8 @@ const MDAISRMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -771,12 +807,37 @@ const MDAISRMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
@@ -784,6 +845,17 @@ const MDAISRMissionView = ({ mission, onBack }) => {
 
       </div>{/* /scrollable body */}
 
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

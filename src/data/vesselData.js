@@ -131,7 +131,7 @@ export const vesselHullData = [
   {
     name: "SubSeaSail Horus",
     type: "Autonomous AUSV",
-    platformType: "USV",
+    platformType: "USV/UUV",
     displacement: "< 1 ton",
     description: "Autonomous undersea and surface vehicle. 100% energy harvesting, submersible, solar + LiFePO4.",
     icon: "SubSeaSail",
@@ -585,23 +585,6 @@ export const vesselHullData = [
     externalLinks: {
       manufacturer: "https://www.sncorp.com",
       specSheet: "https://www.sncorp.com/capabilities/aegir-autonomous-usv/"
-    }
-  },
-  {
-    name: "MASC",
-    type: "Medium USV",
-    platformType: "USV",
-    displacement: "~50 tons",
-    description: "Medium Autonomous Surface Craft for extended range autonomous missions",
-    icon: "MASC",
-    specs: {
-      speed: 25,        // knots
-      range: 500,       // nm
-      rcs: 15           // m² (medium vessel)
-    },
-    capacity: {
-      totalWeight: 5000,
-      totalPower: 100
     }
   },
   {
@@ -1156,7 +1139,6 @@ export const vesselHullComponents = {
   "AEGIR-F": AEGIRFHull,        // SNC small kinetic USV
   // Medium USV category
   "ZeroUSV Oceanus17": ZeroUSVOceanus17Hull, // ZeroUSV 17m electric USV
-  "MASC": MediumUSVHull,
   "AEGIR-W": AEGIRWHull,        // SNC medium combat USV
   "AEGIR-H": AEGIRHHull,        // SNC large 49ft multi-role USV
   // AUSV category
@@ -1300,7 +1282,6 @@ export const VESSEL_SLOT_CAPACITY = {
   "AEGIR-H": { SENSORS: 5, COMMS: 3, WEAPONS: 2, C2: 2, NAV: 2, AI: 3, UTILITY: 3, OTHER: 0 },
   // Medium USVs
   "ZeroUSV Oceanus17": { SENSORS: 4, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
-  "MASC": { SENSORS: 5, COMMS: 3, WEAPONS: 2, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   // AUSV
   "Triton": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // Large UUV

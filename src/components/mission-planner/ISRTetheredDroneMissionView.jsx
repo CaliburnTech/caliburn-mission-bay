@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -10,10 +10,14 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import imgM48 from '../../assets/images/M48.png';
 import m48Img from '../../assets/images/M48.png';
 
-const MISSION_SET_KEY = 'COUNTER_C5ISR';
+const MISSION_SET_KEY = 'ISR';
 const MISSION_SET_CAPS = ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
@@ -167,7 +171,7 @@ const LANTERN_MOUNTS = [
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'M48 + DPI Vulture', image: imgM48, hullName: 'M48', capabilities: ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration'] },
+  { name: 'M48 (DPI Vulture)', roleDescriptor: '(DPI Vulture)', image: imgM48, hullName: 'M48', capabilities: ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration'], roleKey: 'ISR_M48_LANTERN' },
 ];
 
 // ─── MapInvalidateSize ────────────────────────────────────────────────────────
@@ -186,9 +190,11 @@ const MapInvalidateSize = () => {
 const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -196,13 +202,30 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   const [missionName,     setMissionName]     = useState(mission?.name || '');
   const [currentTick,     setCurrentTick]     = useState(0);
@@ -220,6 +243,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
   const pulseTimer   = useRef(null);
   const lanternTimer = useRef(null);
   const addEvtRef    = useRef(null);
+  const vesselLabelsRef = useRef([]);
 
   const phase     = getPhase(currentTick);
   const m48Pos    = getM48Pos(currentTick);
@@ -249,6 +273,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
@@ -306,21 +331,22 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'M48 (DPI Vulture)';
       setCurrentTick(tick);
 
       if (tick === T_PATROL_START) {
-        addEvtRef.current('M48-ALPHA: Autonomous patrol initiated — Abu Musa sector', 'info');
-        addEvtRef.current('M48-ALPHA: DriveAI online — waypoint ALPHA set', 'info');
+        addEvtRef.current(`${v0}: Autonomous patrol initiated — Abu Musa sector`, 'info');
+        addEvtRef.current(`${v0}: DriveAI online — waypoint ALPHA set`, 'info');
       }
       if (tick === T_LANTERN_DEPLOY) {
-        addEvtRef.current('M48-ALPHA: DPI Vulture deployed — ascending to 200ft', 'info');
+        addEvtRef.current(`${v0}: DPI Vulture deployed — ascending to 200ft`, 'info');
       }
       if (tick === T_ON_STATION) {
-        addEvtRef.current('NAVCENT: M48-ALPHA on station — Task Force 59 sector GULF-7', 'info');
+        addEvtRef.current(`NAVCENT: ${v0} on station — Task Force 59 sector GULF-7`, 'info');
       }
       if (tick === T_LANTERN_FULL) {
         setLanternDeployed(true);
-        addEvtRef.current('M48-ALPHA: DPI Vulture at altitude — Trillium HD40 EO/IR online, 17nm radar horizon established', 'info');
+        addEvtRef.current(`${v0}: DPI Vulture at altitude — Trillium HD40 EO/IR online, 17nm radar horizon established`, 'info');
         addEvtRef.current('HiddenLevel: Passive RF monitoring active — zero emissions', 'info');
       }
       if (tick === T_RF_DETECT) {
@@ -333,17 +359,17 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_EO_VISUAL) {
         addEvtRef.current('DPI Vulture EO/IR: Visual contact — monoplane UAS, wingspan ~3m — POSSIBLE HOSTILE', 'warn');
-        addEvtRef.current('M48-ALPHA: Contact relayed to Scion autonomy stack — classification in progress', 'info');
+        addEvtRef.current(`${v0}: Contact relayed to Scion autonomy stack — classification in progress`, 'info');
       }
       if (tick === T_SCION_CLASSIFY) {
         addEvtRef.current('SCION: Multi-sensor fusion in progress — RF + Radar + EO/IR correlation', 'info');
         addEvtRef.current('SCION: Track confidence 78% — continuing classification', 'info');
-        addEvtRef.current('NAVCENT: M48-ALPHA reporting unidentified air contact — TF59 alerted', 'warn');
+        addEvtRef.current(`NAVCENT: ${v0} reporting unidentified air contact — TF59 alerted`, 'warn');
       }
       if (tick === T_THREAT_CONFIRM) {
         addEvtRef.current('SCION: CLASSIFICATION COMPLETE — Shahed-136 class loitering munition — confidence 94%', 'alert');
         addEvtRef.current('SCION: Projected course intercepts VLCC shipping lane in approx 8min — THREAT', 'alert');
-        addEvtRef.current('NAVCENT: Threat confirmed — hostile UAS bearing 005, range 11nm from M48-ALPHA', 'alert');
+        addEvtRef.current(`NAVCENT: Threat confirmed — hostile UAS bearing 005, range 11nm from ${v0}`, 'alert');
       }
       if (tick === T_RAZOR_CUEING) {
         addEvtRef.current('RAZORCHASSIS: Fire control track generated — lat 25.85°N 55.00°E, hdg 230, 85kt', 'alert');
@@ -363,7 +389,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         addEvtRef.current('NAVCENT: THREAT NEUTRALIZED — Shahed-136 down — shipping lane secure', 'success');
       }
       if (tick === T_LANE_SECURE) {
-        addEvtRef.current('M48-ALPHA: Resuming patrol — continuing TF59 Gulf-7 sector coverage', 'info');
+        addEvtRef.current(`${v0}: Resuming patrol — continuing TF59 Gulf-7 sector coverage`, 'info');
         addEvtRef.current('HiddenLevel: RF monitoring active — no further anomalies detected', 'info');
         addEvtRef.current('NAVCENT: SITREP — TF59 autonomous ISR platform successfully cued DDG engagement — zero crew exposure', 'success');
       }
@@ -385,11 +411,16 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
 
     setPendingMissionSetCaps(vessel.capabilities);
 
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -484,7 +515,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         <Anchor size={13} className="text-violet-400" />
         <span className="text-violet-400 text-[0.8rem] font-semibold tracking-wide">Gulf-7 Persistent ISR — Task Force 59</span>
         <span className="text-gray-600 text-[0.7rem]">·</span>
-        <span className="text-gray-500 text-[0.68rem]">M48 + DPI Vulture + HiddenLevel → RazorChassis FC Link — Arabian Gulf</span>
+        <span className="text-gray-500 text-[0.68rem]">{effectiveRoster[0]?.name ?? 'M48'} + DPI Vulture + HiddenLevel → RazorChassis FC Link — Arabian Gulf</span>
         <div className="flex-1" />
         <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">
           ACTIVE
@@ -497,10 +528,10 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
-              ? 'bg-violet-600 hover:bg-violet-500 text-white'
+            missionName.trim() && isDeployable
+              ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
         >
@@ -765,7 +796,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 >
                   <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: lanternDeployed ? '#22d3ee' : lanternRising ? '#67e8f9' : '#93c5fd' }}>
-                      {lanternDeployed ? 'M48-ALPHA · DPI Vulture ↑ 200ft' : lanternRising ? 'M48-ALPHA · LANTERN ↑ ascending…' : 'M48-ALPHA'}
+                      {lanternDeployed ? `${effectiveRoster[0]?.name ?? 'M48'} · DPI Vulture ↑ 200ft` : lanternRising ? `${effectiveRoster[0]?.name ?? 'M48'} · LANTERN ↑ ascending…` : (effectiveRoster[0]?.name ?? 'M48')}
                     </span>
                   </Tooltip>
                 </CircleMarker>
@@ -800,9 +831,9 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                     backdropFilter: 'blur(4px)' }}
                 >
 
-                  {/* M48 boat image */}
+                  {/* Vessel image — updates when hull is swapped */}
                   <img
-                    src={m48Img} alt="M48"
+                    src={effectiveRoster[0]?.image ?? m48Img} alt={effectiveRoster[0]?.name ?? 'M48'}
                     style={{ position: 'absolute', left: boatX, top: boatY,
                       width: boatW, height: boatH, objectFit: 'contain', opacity: 0.90 }}
                   />
@@ -938,7 +969,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-600 text-[0.68rem]">Magnet Defense M48 · Vulture · TF59 Gulf-7</p>
+                <p className="text-gray-600 text-[0.68rem]">{effectiveRoster[0]?.name ?? 'M48'} · Vulture · TF59 Gulf-7</p>
               )}
             </div>
 
@@ -962,8 +993,8 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -978,18 +1009,55 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
 
       </div>{/* /scrollable content */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

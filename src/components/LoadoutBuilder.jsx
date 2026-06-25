@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { getEligibleRolesByMission } from '../utils/roleUtils';
 import { MISSION_ROLES } from '../data/missionRoles';
+import { ALL_MISSIONS } from './mission-planner/constants';
+import ReadinessChecklist from './mission-planner/ReadinessChecklist';
 import useOutfitterStore from '../store/outfitterStore';
 import useNavigationStore from '../store/navigationStore';
 import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
@@ -156,6 +158,7 @@ const LoadoutBuilder = () => {
     setAppliedMissionSet,
     clearAppliedMissionSet,
     setPendingRoleKey,
+    setPendingMissionSetKey,
   } = useConfigurationStore();
 
   // Effective mission set key/caps: prefer the pending (arrive-via-configure) value,
@@ -270,6 +273,9 @@ const LoadoutBuilder = () => {
 
   // Quick Apply dropdown state
   const [quickApplyOpen, setQuickApplyOpen] = useState(false);
+
+  // Configure for Mission dropdown state
+  const [configMissionOpen, setConfigMissionOpen] = useState(false);
 
   // Deployment modal state
   const [deploymentModalOpen, setDeploymentModalOpen] = useState(false);
@@ -533,8 +539,34 @@ const LoadoutBuilder = () => {
   // so we can clear them on deselect without polluting appliedMissionSetKey.
   const [activeRoleCaps, setActiveRoleCaps] = useState(null);
 
-  // Apply a mission role's capabilities to the loadout, then record the assignment
-  const handleAssignRole = (missionKey, role) => {
+  // Persists the "Configure for Mission" dropdown selection across useEffect clearing of pendingMissionSetKey.
+  // Initialised from pendingMissionSetKey (set by mission-view configure buttons) so it survives the
+  // one-time useEffect that clears pending keys after applying caps.
+  const [configMission, setConfigMission] = useState(
+    () => useConfigurationStore.getState().pendingMissionSetKey || null
+  );
+
+  // Captures the vessel's displayed label (e.g. 'M48-ALPHA (CAPTAS)') for the duration of this
+  // configure session. pendingVesselLabel is set by the mission view before navigating here and
+  // cleared by the mount useEffect — reading it here (at component creation) preserves it.
+  const [sessionVesselLabel] = useState(
+    () => useConfigurationStore.getState().pendingVesselLabel || ''
+  );
+
+  // Captures the specific role this session was opened for (e.g. 'ASW_BRAVO').
+  // pendingRoleKey is cleared by the mount useEffect, so we snapshot it here.
+  // Used by "Go to Mission" to assign back to the exact role, not just the first
+  // role whose platformType matches (which always picks the first role for same-hull missions).
+  const [sessionRoleKey] = useState(
+    () => useConfigurationStore.getState().pendingRoleKey || ''
+  );
+
+  // Apply a mission role's capabilities to the loadout, then record the assignment.
+  // vesselLabel overrides the default (selectedHull.name) — pass the displayed card name
+  // so tactical callsigns like 'M48-ALPHA (CAPTAS)' survive configure round-trips.
+  // skipAssignment=true: apply caps only, don't create a roleAssignment yet (used on first
+  // open when no prior assignment exists — avoids "No configuration" message if user exits).
+  const handleAssignRole = (missionKey, role, vesselLabel = null, skipAssignment = false) => {
     // Clear any previously applied dynamic role caps first
     if (activeRoleCaps) {
       activeRoleCaps.forEach(capName => {
@@ -590,7 +622,9 @@ const LoadoutBuilder = () => {
     });
     // Record caps locally (NOT in configurationStore) to avoid triggering the generic block
     setActiveRoleCaps(role.capabilities);
-    assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+    if (!skipAssignment) {
+      assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, vesselLabel || selectedHull.name);
+    }
   };
 
   // Remove a role assignment and clear its capabilities
@@ -724,18 +758,38 @@ const LoadoutBuilder = () => {
     if (!key || !config) return;
 
     if (roleKey) {
-      // Navigate came from a specific vessel card — clear any stale assignments
-      // for this mission first so only the intended role shows as selected
-      clearMissionAssignments(key);
+      // Navigate came from a specific vessel card — update only this role's assignment.
+      // Do NOT call clearMissionAssignments here: it would wipe swaps of other vessels
+      // in the same mission that the user has already set up.
       const role = MISSION_ROLES[key]?.roles?.find(r => r.roleKey === roleKey);
+      // Use the displayed vessel name set by the mission view (e.g. 'M48-ALPHA (CAPTAS)')
+      // so tactical callsigns survive configure round-trips. Fall back to hull name if absent.
+      const vesselLabel = useConfigurationStore.getState().pendingVesselLabel || selectedHull.name;
       if (role) {
-        handleAssignRole(key, role);
+        const existingCaps = Object.values(config.slots || {}).flat().filter(Boolean);
+        if (existingCaps.length > 0) {
+          // Re-entering after a previous customisation — register assignment, preserve their work.
+          setActiveRoleCaps(role.capabilities); // keeps "Go to Mission" button visible
+          assignVesselToRole(key, role.roleKey, selectedHull.name, selectedHull.name, vesselLabel);
+        } else {
+          // First-time open (empty config). Only auto-create the assignment if one already
+          // exists (e.g. from a swap) — preserving it with the correct label.
+          // If there's NO prior assignment, just apply the default caps to the loadout
+          // without creating an assignment; the user choosing "Go to Mission" creates it.
+          // This prevents "⚠ No configuration — assign a boat" if the user exits immediately.
+          const existingAssignment = useMissionStore.getState().roleAssignments?.[key]?.[roleKey];
+          handleAssignRole(key, role, vesselLabel, /* skipAssignment= */ !existingAssignment);
+        }
       }
+      // Keep the Feature 4 "Configure for Mission" dropdown showing the right mission
+      // even after we clear the pending keys below.
+      setConfigMission(key);
       // Clear the pending role AND mission-set keys so the generic "ASW Mission Set"
       // banner doesn't appear alongside the specific role assignment
       setPendingRoleKey(null);
       useConfigurationStore.getState().setPendingMissionSetKey(null);
       useConfigurationStore.getState().setPendingMissionSetCaps(null);
+      useConfigurationStore.getState().setPendingVesselLabel(null);
     } else if (key === 'PORT_SECURITY') {
       handleApplyPortSecurity();
       // Clear pending so it doesn't bleed into subsequent outfitter opens
@@ -1047,6 +1101,132 @@ const LoadoutBuilder = () => {
         <div className="flex flex-col gap-4">
           {/* Port Security Mission Set button removed — HORUS roles appear in the dynamic role list below */}
 
+          {/* Configure for Mission panel */}
+          {(() => {
+            // Sort ALL_MISSIONS: 1) hull name matches a role's defaultHullName, 2) platformType in role's allowedPlatformTypes, 3) rest
+            const hullName = selectedHull?.name;
+            const platformType = selectedHull?.platformType;
+            const sortedMissions = [...ALL_MISSIONS].sort((a, b) => {
+              const score = (mission) => {
+                const roles = MISSION_ROLES[mission.key]?.roles || [];
+                if (roles.some(r => r.defaultHullName === hullName)) return 0;
+                if (platformType && roles.some(r => r.allowedPlatformTypes?.includes(platformType))) return 1;
+                return 2;
+              };
+              return score(a) - score(b);
+            });
+
+            // Use configMission (persisted local state) so the dropdown keeps its selection
+            // after the useEffect clears pendingMissionSetKey.
+            const activeMissionKey = configMission || pendingMissionSetKey;
+            const selectedMissionEntry = activeMissionKey
+              ? ALL_MISSIONS.find(m => m.key === activeMissionKey)
+              : null;
+
+            // Determine which role to show in the checklist for the selected mission
+            const selectedMissionRoles = activeMissionKey ? (MISSION_ROLES[activeMissionKey]?.roles || []) : [];
+            // Prefer the exact role this session was opened for (sessionRoleKey) so that
+            // configuring ASW_BRAVO doesn't accidentally assign back to ASW_ALPHA.
+            // Fall back to platformType matching when opened via the mission dropdown.
+            const matchedRole = (sessionRoleKey && selectedMissionRoles.find(r => r.roleKey === sessionRoleKey))
+              || selectedMissionRoles.find(r => platformType && r.allowedPlatformTypes?.includes(platformType))
+              || selectedMissionRoles[0]
+              || null;
+
+            return (
+              <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Configure for Mission</p>
+
+                {/* Picker button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setConfigMissionOpen(prev => !prev)}
+                    className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold border border-gray-600 text-gray-300 bg-transparent hover:border-lime-brand/60 hover:text-white transition-colors flex items-center justify-between gap-2"
+                  >
+                    <span className="truncate">
+                      {selectedMissionEntry ? selectedMissionEntry.name : 'Configure for mission ▾'}
+                    </span>
+                    <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${configMissionOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown */}
+                  {configMissionOpen && (
+                    <>
+                      {/* Click-away backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setConfigMissionOpen(false)}
+                      />
+                      <div className="absolute left-0 right-0 top-full mt-1 bg-darkest border border-gray-700/50 rounded-xl shadow-xl z-50 overflow-hidden max-h-64 overflow-y-auto">
+                        {sortedMissions.map(mission => {
+                          const roles = MISSION_ROLES[mission.key]?.roles || [];
+                          const isRecommended = roles.some(r => r.defaultHullName === hullName);
+                          const isCompatible = !isRecommended && platformType && roles.some(r => r.allowedPlatformTypes?.includes(platformType));
+                          return (
+                            <button
+                              key={mission.key}
+                              onClick={() => {
+                                setPendingMissionSetKey(mission.key);
+                                setConfigMission(mission.key);
+                                setPendingRoleKey(null);
+                                setConfigMissionOpen(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700/50 transition-colors flex items-center gap-2 ${
+                                activeMissionKey === mission.key ? 'text-lime-brand bg-lime-brand/10' : 'text-gray-300'
+                              }`}
+                            >
+                              {isRecommended && (
+                                <span className="text-yellow-400 text-xs flex-shrink-0">★</span>
+                              )}
+                              <span className="flex-1 truncate">{mission.name}</span>
+                              {isRecommended && (
+                                <span className="text-[0.58rem] text-yellow-400/70 flex-shrink-0">Recommended</span>
+                              )}
+                              {isCompatible && !isRecommended && (
+                                <span className="text-[0.58rem] text-cyan-500/70 flex-shrink-0">Compatible</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Live requirements checklist */}
+                {activeMissionKey && matchedRole && (
+                  <ReadinessChecklist
+                    config={activeConfig}
+                    role={matchedRole}
+                    isDefault={false}
+                  />
+                )}
+
+                {/* Go to Mission button */}
+                {activeMissionKey && (
+                  <button
+                    onClick={() => {
+                      // Assign this hull to the best-matched role before navigating
+                      // so the mission view shows the configured boat, not the default preset.
+                      // Use sessionVesselLabel (the card's displayed name, e.g. 'M48-ALPHA (CAPTAS)')
+                      // so tactical callsigns are preserved rather than reverting to hull name.
+                      if (matchedRole && selectedHull) {
+                        const labelToUse = sessionVesselLabel || selectedHull.name;
+                        assignVesselToRole(activeMissionKey, matchedRole.roleKey, selectedHull.name, selectedHull.name, labelToUse);
+                      }
+                      setSelectedMissionTemplate(activeMissionKey);
+                      setPendingMissionOpen(true);
+                      setSelectedView('squadron');
+                    }}
+                    className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Go to Mission →
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Generic mission set — for all non-Port-Security missions */}
           {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (
             <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
@@ -1067,6 +1247,10 @@ const LoadoutBuilder = () => {
               {genericMissionSetApplied && (
                 <button
                   onClick={() => {
+                    const roleKey = useConfigurationStore.getState().pendingRoleKey;
+                    if (effectiveMissionSetKey && roleKey && selectedHull) {
+                      assignVesselToRole(effectiveMissionSetKey, roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+                    }
                     setSelectedMissionTemplate(effectiveMissionSetKey);
                     setPendingMissionOpen(true);
                     setSelectedView('squadron');
@@ -1090,7 +1274,7 @@ const LoadoutBuilder = () => {
               <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                   <Map size={12} className="text-gray-500" />
-                  <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Sets</p>
+                  <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Preconfigured Mission Sets</p>
                 </div>
                 {missionKeys.map(missionKey => {
                   const { missionLabel, roles } = eligibleByMission[missionKey];
@@ -1121,7 +1305,14 @@ const LoadoutBuilder = () => {
                             </button>
                             {isAssigned && (
                               <button
-                                onClick={() => { setSelectedMissionTemplate(missionKey); setPendingMissionOpen(true); setSelectedView('squadron'); }}
+                                onClick={() => {
+                                  if (selectedHull) {
+                                    assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+                                  }
+                                  setSelectedMissionTemplate(missionKey);
+                                  setPendingMissionOpen(true);
+                                  setSelectedView('squadron');
+                                }}
                                 className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
                               >
                                 Go to Mission →

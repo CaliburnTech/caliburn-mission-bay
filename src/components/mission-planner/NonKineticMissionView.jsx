@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Polygon, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Zap, ChevronLeft, Play, Pause, RotateCcw, Check, Anchor, Settings } from 'lucide-react';
+import { Zap, ChevronLeft, Play, Pause, RotateCcw, Check, Anchor, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -12,6 +12,10 @@ import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
 // imgSaildrone unused
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 
 const MISSION_SET_KEY = 'NON_KINETIC_EW';
 const MISSION_SET_CAPS = ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'SOEA Container (Scaled Onboard Electronic Attack)', 'EMATT Mod 4 Acoustic Decoy Module', 'Passive ESM/SIGINT Collection Module'];
@@ -98,9 +102,9 @@ const SAILDRONE_MOUNTS = [
 
 // ─── Vessel roster ────────────────────────────────────────────────────────────
 const VESSEL_ROSTER = [
-  { name: 'M48 ALPHA',   image: imgM48, hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'SOEA Container (Scaled Onboard Electronic Attack)'] },
-  { name: 'M48 BRAVO',   image: imgM48, hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'Passive ESM/SIGINT Collection Module'] },
-  { name: 'M48 CHARLIE', image: imgM48, hullName: 'M48', capabilities: ['SOEA Container (Scaled Onboard Electronic Attack)', 'False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)'] },
+  { name: 'M48 ALPHA', roleDescriptor: '(EW Strike)', image: imgM48, hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'SOEA Container (Scaled Onboard Electronic Attack)'], roleKey: 'NK_M48_ALPHA' },
+  { name: 'M48 BRAVO', roleDescriptor: '(EW SIGINT)', image: imgM48, hullName: 'M48', capabilities: ['False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)', 'Passive ESM/SIGINT Collection Module'], roleKey: 'NK_M48_BRAVO' },
+  { name: 'M48 CHARLIE', roleDescriptor: '(EW Decoy)', image: imgM48, hullName: 'M48', capabilities: ['SOEA Container (Scaled Onboard Electronic Attack)', 'False Fleet Projection Package', 'LEED Dispenser (Long Endurance Electronic Decoy)'], roleKey: 'NK_BLACKSEA_M48' },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -256,9 +260,11 @@ const MapInvalidateSize = () => {
 const NonKineticMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -266,13 +272,30 @@ const NonKineticMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [currentTick, setCurrentTick] = useState(0);
   const [events,      setEvents]      = useState([]);
@@ -287,6 +310,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
   const pulseTimer = useRef(null);
   const resetTimer = useRef(null);
   const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
   const runScenRef = useRef(null);
 
   const phase     = getPhase(currentTick);
@@ -341,6 +365,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   const handleConfigureVessel = (vessel) => {
     if (!vessel.hullName) return;
@@ -348,11 +373,16 @@ const NonKineticMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
 
     setPendingMissionSetCaps(vessel.capabilities);
 
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -386,6 +416,9 @@ const NonKineticMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'M48 (EW Strike)';
+      const v1 = vesselLabelsRef.current[1] ?? 'M48 (EW SIGINT)';
+      const v2 = vesselLabelsRef.current[2] ?? 'M48 (EW Decoy)';
       setCurrentTick(tick);
 
       if (tick === T_DEPLOYED) {
@@ -405,10 +438,10 @@ const NonKineticMissionView = ({ mission, onBack }) => {
         addEvtRef.current('Saildrone Voyager: Passive ESM active — 80NM coverage — baseline set', 'info');
       }
       if (tick === T_FALSE_FLEET_UP) {
-        addEvtRef.current('M48 ALPHA: Corner reflectors DEPLOYED — RCS → DDG-class', 'warn');
-        addEvtRef.current('M48 ALPHA: AIS transmitting DDG-174 HEFEI — 090° at 18 kts', 'warn');
-        addEvtRef.current('M48 BRAVO: AIS transmitting DDG-139 NINGBO — 085° at 17 kts', 'warn');
-        addEvtRef.current('M48 CHARLIE: SOEA ACTIVE — 100kW — C/X/Ku-band jamming', 'alert');
+        addEvtRef.current(`${v0}: Corner reflectors DEPLOYED — RCS → DDG-class`, 'warn');
+        addEvtRef.current(`${v0}: AIS transmitting DDG-174 HEFEI — 090° at 18 kts`, 'warn');
+        addEvtRef.current(`${v1}: AIS transmitting DDG-139 NINGBO — 085° at 17 kts`, 'warn');
+        addEvtRef.current(`${v2}: SOEA ACTIVE — 100kW — C/X/Ku-band jamming`, 'alert');
         addEvtRef.current('NEMESIS: Full false fleet picture coherent — radar + AIS + acoustic', 'info');
       }
       if (tick === T_PLAN_DETECTS) {
@@ -422,7 +455,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
         addEvtRef.current('CTF-70: PLAN surface assets moving away from CVN-78 Luzon Strait corridor', 'success');
       }
       if (tick === T_LEED_LAUNCH) {
-        addEvtRef.current('M48 ALPHA: 3× LEED vehicles AWAY — terminal deception extended', 'warn');
+        addEvtRef.current(`${v0}: 3× LEED vehicles AWAY — terminal deception extended`, 'warn');
         addEvtRef.current('LEED: Autonomous RF decoys extending false picture 40NM toward PLAN picket', 'info');
       }
       if (tick === T_CVN_MIDPOINT) {
@@ -437,8 +470,8 @@ const NonKineticMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_TERMINATE) {
         addEvtRef.current('CTF-70: TERMINATE — cease all emissions immediately', 'warn');
-        addEvtRef.current('SOEA: OFF — M48 CHARLIE silent', 'info');
-        addEvtRef.current('M48 ALPHA/BRAVO: AIS off — reflectors stowed', 'info');
+        addEvtRef.current(`SOEA: OFF — ${v2} silent`, 'info');
+        addEvtRef.current(`${v0}/${v1}: AIS off — reflectors stowed`, 'info');
         addEvtRef.current('LEED vehicles: Self-destruct executed — 0 RF signature', 'info');
         addEvtRef.current('NEMESIS: EMCON ALPHA — recovery transit initiated', 'success');
       }
@@ -516,8 +549,8 @@ const NonKineticMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
-          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() ? 'bg-purple-700 hover:bg-purple-600 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-purple-700 hover:bg-purple-600 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
         >
           Save Draft
         </button>
@@ -808,7 +841,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                 <div className="flex flex-col gap-1">
                   {[
                     { color: '#e2e8f0', label: 'CVN-78 Gerald R. Ford' },
-                    { color: '#f59e0b', label: 'M48 ALPHA · BRAVO · CHARLIE — False Fleet / EW' },
+                    { color: '#f59e0b', label: `${effectiveRoster[0]?.name ?? 'M48 (EW Strike)'} · ${effectiveRoster[1]?.name ?? 'M48 (EW SIGINT)'} · ${effectiveRoster[2]?.name ?? 'M48 (EW Decoy)'} — False Fleet / EW` },
                     { color: '#a855f7', label: 'Saildrone Voyager — Passive ESM' },
                     { color: '#ef4444', label: 'PLAN Type-055 · Luyang-III — Enemy' },
                   ].map(({ color, label }) => (
@@ -894,8 +927,8 @@ const NonKineticMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -910,18 +943,55 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
 
       </div>{/* /scrollable body */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

@@ -2,17 +2,21 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, CircleMarker, Polyline, Rectangle, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
-const MISSION_SET_KEY = 'SEA_JEEP_MCM';
+const MISSION_SET_KEY = 'SEAJEEP_MCM';
 const MISSION_SET_CAPS = [
   'EdgeTech 2300-MS FLS',
   'EdgeTech 4125 Side-Scan Sonar',
@@ -51,10 +55,12 @@ const SEA_JEEP_MCM_MOUNTS = [
 
 const VESSEL_ROSTER = [
   {
-    name: 'SEA JEEP MCM-1',
+    name: 'SEA-JEEP-MCM-1',
+    roleDescriptor: '(MCM)',
     image: imgSeaJeep,
     hullName: 'GP-USV Sea Jeep',
     capabilities: SEA_JEEP_MCM_MOUNTS.map(m => m.name),
+    roleKey: 'SJC_SEAJEEP_1',
   },
 ];
 
@@ -261,9 +267,11 @@ const MapInvalidateSize = () => {
 const SeaJeepMCMMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -271,13 +279,30 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [currentTick,  setCurrentTick]  = useState(0);
@@ -294,6 +319,7 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
   const pulseTimer      = useRef(null);
   const jeepPulseTimer  = useRef(null);
   const addEvtRef       = useRef(null);
+  const vesselLabelsRef = useRef([]);
 
   // Derived from currentTick
   const phase    = getPhase(currentTick);
@@ -326,6 +352,7 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
   }, []);
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   // Mine pulse (active during detection phases)
   useEffect(() => {
@@ -385,46 +412,47 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'SEA-JEEP-MCM-1';
       setCurrentTick(tick);
 
       if (tick === T_DEPART) {
-        addEvtRef.current('SEA-JEEP-MCM-1: Departing Odessa — deploying tow array via A-frame', 'info');
+        addEvtRef.current(`${v0}: Departing Odessa — deploying tow array via A-frame`, 'info');
       }
       if (tick === T_TOW_DEPLOYED) {
-        addEvtRef.current('SEA-JEEP-MCM-1: Tow fish deployed — side-scan sonar active, FLS active', 'info');
-        addEvtRef.current('SEA-JEEP-MCM-1: INS active — GPS denied environment confirmed', 'info');
+        addEvtRef.current(`${v0}: Tow fish deployed — side-scan sonar active, FLS active`, 'info');
+        addEvtRef.current(`${v0}: INS active — GPS denied environment confirmed`, 'info');
         addEvtRef.current('MOC ODESSA: Survey lane CORRIDOR-ALPHA — transit authorized', 'info');
       }
       if (tick === T_FLS_HALT_ALPHA) {
-        addEvtRef.current('SEA-JEEP-MCM-1: FLS CONTACT — bottom object ahead — auto-halt engaged', 'warn');
-        addEvtRef.current('SEA-JEEP-MCM-1: Holding position — classifying CONTACT-ALPHA', 'warn');
+        addEvtRef.current(`${v0}: FLS CONTACT — bottom object ahead — auto-halt engaged`, 'warn');
+        addEvtRef.current(`${v0}: Holding position — classifying CONTACT-ALPHA`, 'warn');
       }
       if (tick === T_MINE_ALPHA) {
-        addEvtRef.current('SEA-JEEP-MCM-1: MINE CONFIRMED — moored contact, CONTACT-ALPHA — marking', 'alert');
+        addEvtRef.current(`${v0}: MINE CONFIRMED — moored contact, CONTACT-ALPHA — marking`, 'alert');
         addEvtRef.current('MOC ODESSA: CONTACT-ALPHA logged — coordinates in HORUS MCM queue', 'info');
       }
       if (tick === T_RESUME) {
-        addEvtRef.current('SEA-JEEP-MCM-1: Routing around CONTACT-ALPHA — resuming survey', 'info');
+        addEvtRef.current(`${v0}: Routing around CONTACT-ALPHA — resuming survey`, 'info');
       }
       if (tick === T_SIDESCAN_BRAVO) {
-        addEvtRef.current('SEA-JEEP-MCM-1: Side-scan contact — CONTACT-BRAVO, port flank, 40m off track', 'warn');
+        addEvtRef.current(`${v0}: Side-scan contact — CONTACT-BRAVO, port flank, 40m off track`, 'warn');
       }
       if (tick === T_MINE_BRAVO) {
-        addEvtRef.current('SEA-JEEP-MCM-1: CONTACT-BRAVO confirmed — bottom mine — marking', 'alert');
+        addEvtRef.current(`${v0}: CONTACT-BRAVO confirmed — bottom mine — marking`, 'alert');
         addEvtRef.current('MOC ODESSA: CONTACT-BRAVO logged — 2 mines mapped in CORRIDOR-ALPHA', 'info');
       }
       if (tick === T_MID_SURVEY) {
-        addEvtRef.current('SEA-JEEP-MCM-1: Mid-corridor — sonar swath coverage 90%', 'info');
+        addEvtRef.current(`${v0}: Mid-corridor — sonar swath coverage 90%`, 'info');
       }
       if (tick === T_FLS_HALT_CHARLIE) {
-        addEvtRef.current('SEA-JEEP-MCM-1: FLS CONTACT — CONTACT-CHARLIE, ahead — auto-halt', 'warn');
+        addEvtRef.current(`${v0}: FLS CONTACT — CONTACT-CHARLIE, ahead — auto-halt`, 'warn');
       }
       if (tick === T_MINE_CHARLIE) {
-        addEvtRef.current('SEA-JEEP-MCM-1: CONTACT-CHARLIE confirmed — marking', 'alert');
+        addEvtRef.current(`${v0}: CONTACT-CHARLIE confirmed — marking`, 'alert');
       }
       if (tick === T_SURVEY_COMPLETE) {
-        addEvtRef.current('SEA-JEEP-MCM-1: Full corridor survey complete — 3 mines mapped', 'success');
-        addEvtRef.current('SEA-JEEP-MCM-1: Recovering tow fish — returning to Odessa', 'info');
+        addEvtRef.current(`${v0}: Full corridor survey complete — 3 mines mapped`, 'success');
+        addEvtRef.current(`${v0}: Recovering tow fish — returning to Odessa`, 'info');
       }
       if (tick === T_DATA_TRANSMITTED) {
         addEvtRef.current('MOC ODESSA: Mine map transmitted — HORUS MCM tasked for neutralization', 'success');
@@ -447,9 +475,15 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
     const hull = vesselHullData.find(h => h.name === vessel.hullName);
     if (!hull) return;
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
     setPendingMissionSetCaps(vessel.capabilities);
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -457,7 +491,7 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
     if (!missionName.trim()) return;
     const data = {
       name: missionName.trim(),
-      template: 'SEA_JEEP_MCM',
+      template: 'SEAJEEP_MCM',
       domain: 'MARITIME',
       status: 'draft',
       duration: '48h',
@@ -521,9 +555,9 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
+            missionName.trim() && isDeployable
               ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
@@ -770,8 +804,8 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 border-t border-gray-700/50 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -786,6 +820,14 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.slice(0, 4).map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
@@ -796,6 +838,23 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
                   <div className="text-[0.6rem] text-gray-600 px-1">
                     +{vessel.capabilities.length - 4} more
                   </div>
+                )}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
                 )}
               </div>
             </div>
@@ -813,6 +872,17 @@ const SeaJeepMCMMissionView = ({ mission, onBack }) => {
         </div>
 
       </div>{/* /scrollable content */}
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

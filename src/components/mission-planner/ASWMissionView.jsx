@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -10,6 +10,10 @@ import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import imgM48 from '../../assets/images/M48.png';
 
 const MISSION_SET_KEY = 'ASW';
@@ -68,9 +72,9 @@ const M48_MFTA_MOUNTS = [
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'M48-ALPHA (CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR'] },
-  { name: 'M48-BRAVO (MFTA)',   image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
-  { name: 'M48-CHARLIE (MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48 ALPHA', roleDescriptor: '(CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR'] },
+  { name: 'M48 BRAVO', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48 CHARLIE', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -212,9 +216,11 @@ const MapInvalidateSize = () => {
 const ASWMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -222,16 +228,31 @@ const ASWMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      // Only use assignment label if it's a custom name (not just the hull name fallback)
-      name: (assignment.vesselLabel && assignment.vesselLabel !== assignment.hullName)
-        ? assignment.vesselLabel
-        : vessel.name,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [currentTick,  setCurrentTick]  = useState(0);
   const [subPulse,     setSubPulse]     = useState(false);
@@ -246,6 +267,7 @@ const ASWMissionView = ({ mission, onBack }) => {
   const pulseTimer = useRef(null);
   const resetTimer = useRef(null);
   const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
   const runScenRef = useRef(null);
 
   // ── Derived from currentTick ──────────────────────────────────────────────
@@ -300,6 +322,7 @@ const ASWMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
@@ -341,30 +364,33 @@ const ASWMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'M48 (CAPTAS)';
+      const v1 = vesselLabelsRef.current[1] ?? 'M48 (MFTA)';
+      const v2 = vesselLabelsRef.current[2] ?? 'M48 (MFTA)';
       setCurrentTick(tick);
 
       if (tick === T_DEPLOYED) {
         addEvtRef.current('CTF-72: ASW patrol active — Philippine Sea Sector BRAVO-7', 'info');
-        addEvtRef.current('M48-ALPHA: CAPTAS-4 VDS deployed — depth 200m — active sonar ready', 'info');
-        addEvtRef.current('M48-BRAVO: MFTA passive array deployed — bistatic receiver SE', 'info');
-        addEvtRef.current('M48-CHARLIE: MFTA passive array deployed — bistatic receiver NE', 'info');
+        addEvtRef.current(`${v0}: CAPTAS-4 VDS deployed — depth 200m — active sonar ready`, 'info');
+        addEvtRef.current(`${v1}: MFTA passive array deployed — bistatic receiver SE`, 'info');
+        addEvtRef.current(`${v2}: MFTA passive array deployed — bistatic receiver NE`, 'info');
       }
       if (tick === T_CAPTAS_PING) {
-        addEvtRef.current('M48-ALPHA: CAPTAS PING — 900-2100Hz active pulse — 360° — position revealed', 'warn');
-        addEvtRef.current('M48-ALPHA is the bait — crewless hull at risk to draw out submarine', 'info');
+        addEvtRef.current(`${v0}: CAPTAS PING — 900-2100Hz active pulse — 360° — position revealed`, 'warn');
+        addEvtRef.current(`${v0} is the bait — crewless hull at risk to draw out submarine`, 'info');
       }
       if (tick === T_PING_PROP) {
-        addEvtRef.current('M48-ALPHA: Ping propagating — monitoring for returns at 150km envelope', 'info');
+        addEvtRef.current(`${v0}: Ping propagating — monitoring for returns at 150km envelope`, 'info');
       }
       if (tick === T_ECHO_DETECT) {
-        addEvtRef.current('M48-ALPHA: ANOMALOUS RETURN — bearing 285, range 42nm — large submerged object', 'warn');
-        addEvtRef.current('M48-ALPHA: Doppler shift consistent with submarine hull — cueing M48-BRAVO/CHARLIE', 'warn');
+        addEvtRef.current(`${v0}: ANOMALOUS RETURN — bearing 285, range 42nm — large submerged object`, 'warn');
+        addEvtRef.current(`${v0}: Doppler shift consistent with submarine hull — cueing ${v1}/${v2}`, 'warn');
       }
       if (tick === T_MFTA_BRAVO) {
-        addEvtRef.current('M48-BRAVO: Bistatic echo received — bearing 308 — cross-fix initiated', 'warn');
+        addEvtRef.current(`${v1}: Bistatic echo received — bearing 308 — cross-fix initiated`, 'warn');
       }
       if (tick === T_MFTA_CHARLIE) {
-        addEvtRef.current('M48-CHARLIE: Bistatic echo received — bearing 261 — 2-bearing triangulation active', 'warn');
+        addEvtRef.current(`${v2}: Bistatic echo received — bearing 261 — 2-bearing triangulation active`, 'warn');
         addEvtRef.current('USW-DSS: Two independent bearings — intersection computing — confidence rising', 'info');
       }
       if (tick === T_CONTACT_EST) {
@@ -373,14 +399,14 @@ const ASWMissionView = ({ mission, onBack }) => {
         addEvtRef.current('CTF-72: SIERRA-7 — HOSTILE — weapons free authorized', 'alert');
       }
       if (tick === T_ENEMY_FIRES) {
-        addEvtRef.current('SIERRA-7: TORPEDO AWAY — targeting M48-ALPHA CAPTAS pinger', 'alert');
-        addEvtRef.current('CTF-72: TORPEDO INBOUND M48-ALPHA — crewless — no crew at risk', 'warn');
-        addEvtRef.current('USW-DSS: M48-ALPHA track already shared to BRAVO/CHARLIE via Link 16', 'info');
+        addEvtRef.current(`SIERRA-7: TORPEDO AWAY — targeting ${v0} CAPTAS pinger`, 'alert');
+        addEvtRef.current(`CTF-72: TORPEDO INBOUND ${v0} — crewless — no crew at risk`, 'warn');
+        addEvtRef.current(`USW-DSS: ${v0} track already shared to BRAVO/CHARLIE via Link 16`, 'info');
       }
       if (tick === T_ALPHA_HIT) {
-        addEvtRef.current('M48-ALPHA: HIT — CAPTAS hull destroyed — sinking', 'alert');
-        addEvtRef.current('M48-ALPHA: Zero crew casualties — unmanned hull expended as designed', 'warn');
-        addEvtRef.current('M48-BRAVO M48-CHARLIE: Track maintained — hold SIERRA-7 position', 'info');
+        addEvtRef.current(`${v0}: HIT — CAPTAS hull destroyed — sinking`, 'alert');
+        addEvtRef.current(`${v0}: Zero crew casualties — unmanned hull expended as designed`, 'warn');
+        addEvtRef.current(`${v1} ${v2}: Track maintained — hold SIERRA-7 position`, 'info');
         addEvtRef.current('SIERRA-7 has exposed itself — contact quality: fire control grade', 'alert');
       }
       if (tick === T_VIRGINIA_CUED) {
@@ -393,9 +419,9 @@ const ASWMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_CONTACT_LOST) {
         addEvtRef.current('USW-DSS: SIERRA-7 — contact lost — pressure hull failure acoustic', 'success');
-        addEvtRef.current('M48-BRAVO: Debris field detected — bearing 095 — engagement confirmed', 'success');
+        addEvtRef.current(`${v1}: Debris field detected — bearing 095 — engagement confirmed`, 'success');
         addEvtRef.current('CTF-72: SIERRA-7 PROSECUTED — sector BRAVO-7 cleared', 'success');
-        addEvtRef.current('M48-BRAVO M48-CHARLIE: Initiating second ping cycle', 'info');
+        addEvtRef.current(`${v1} ${v2}: Initiating second ping cycle`, 'info');
       }
 
       if (tick >= TOTAL_TICKS) {
@@ -421,11 +447,16 @@ const ASWMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
     setPendingMissionSetCaps(vessel.capabilities);
     setPendingMissionSetKey(MISSION_SET_KEY);
     // Pass the specific role key so LoadoutBuilder highlights the exact role
     if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -486,8 +517,8 @@ const ASWMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
-          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
         >
           Save Draft
         </button>
@@ -737,8 +768,8 @@ const ASWMissionView = ({ mission, onBack }) => {
               <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#67e8f9', label: 'M48-ALPHA — CAPTAS Pinger (bait)' },
-                    { color: '#fbbf24', label: 'M48-BRAVO/CHARLIE — MFTA + Hanwha' },
+                    { color: '#67e8f9', label: `${effectiveRoster[0]?.name ?? 'M48 (CAPTAS)'} — CAPTAS Pinger` },
+                    { color: '#fbbf24', label: `${effectiveRoster[1]?.name ?? 'M48 (MFTA)'} / ${effectiveRoster[2]?.name ?? 'M48 (MFTA)'} — MFTA + Hanwha` },
                     { color: '#ef4444', label: 'SIERRA-7 — PLAN Type-093' },
                     { color: '#1d4ed8', label: 'USS Virginia (SSN-774)' },
                   ].map(({ color, label }) => (
@@ -826,8 +857,8 @@ const ASWMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -842,18 +873,55 @@ const ASWMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
 
       </div>{/* /scrollable body */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

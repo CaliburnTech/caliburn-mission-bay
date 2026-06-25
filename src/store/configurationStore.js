@@ -82,6 +82,7 @@ const useConfigurationStore = create(
       pendingMissionSetKey: null,
       pendingMissionSetCaps: null,
       pendingRoleKey: null,
+      pendingVesselLabel: null,
       appliedMissionSetKey: null,
       appliedMissionSetCaps: null,
       // Structure when active:
@@ -357,6 +358,7 @@ const useConfigurationStore = create(
       setPendingMissionSetKey: (key) => set({ pendingMissionSetKey: key }),
       setPendingMissionSetCaps: (caps) => set({ pendingMissionSetCaps: caps }),
       setPendingRoleKey: (key) => set({ pendingRoleKey: key }),
+      setPendingVesselLabel: (label) => set({ pendingVesselLabel: label }),
       setAppliedMissionSet: (key, caps) => set({ appliedMissionSetKey: key, appliedMissionSetCaps: caps }),
       clearAppliedMissionSet: () => set({ appliedMissionSetKey: null, appliedMissionSetCaps: null }),
 

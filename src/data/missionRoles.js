@@ -27,6 +27,7 @@ export const MISSION_ROLES = {
   // roles[] must match that order so effectiveRoster positional mapping is correct.
   ASW: {
     missionLabel: 'ASW — Philippine Sea',
+    minVessels: 3,
     roles: [
       {
         roleKey: 'ASW_ALPHA',
@@ -40,6 +41,11 @@ export const MISSION_ROLES = {
         // CAPTAS-4 is a large tow system — only medium-large surface vessels
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H', 'ZeroUSV Oceanus17'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'C2'],
+          subTypes: ['SONAR_TOWED'],
+        },
       },
       {
         roleKey: 'ASW_BRAVO',
@@ -54,6 +60,11 @@ export const MISSION_ROLES = {
         ],
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H', 'ZeroUSV Oceanus17'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'WEAPONS', 'C2'],
+          subTypes: ['SONAR_TOWED'],
+        },
       },
       {
         roleKey: 'ASW_CHARLIE',
@@ -68,6 +79,11 @@ export const MISSION_ROLES = {
         ],
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H', 'ZeroUSV Oceanus17'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'WEAPONS', 'C2'],
+          subTypes: ['SONAR_TOWED'],
+        },
       },
     ],
   },
@@ -77,6 +93,7 @@ export const MISSION_ROLES = {
   // MISSION_SET_CAPS = ['Passive ESM/SIGINT Collection Module']
   MDA_ISR: {
     missionLabel: 'MDA ISR — South China Sea',
+    minVessels: 3,
     roles: [
       {
         roleKey: 'MDA_ISR_VOYAGER',
@@ -85,6 +102,11 @@ export const MISSION_ROLES = {
         capabilities: ['Passive ESM/SIGINT Collection Module'],
         allowedPlatformTypes: ['USV', 'USV/UUV', 'UUV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'ZeroUSV Oceanus17', 'Saildrone Voyager'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
       {
         roleKey: 'MDA_ISR_OCEANUS',
@@ -93,6 +115,11 @@ export const MISSION_ROLES = {
         capabilities: ['Passive ESM/SIGINT Collection Module'],
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         defaultHullName: 'ZeroUSV Oceanus17',
+        suggestedHullNames: ['ZeroUSV Oceanus17', 'M48', 'AEGIR-W'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
       {
         roleKey: 'MDA_ISR_TRITON',
@@ -105,6 +132,11 @@ export const MISSION_ROLES = {
         ],
         allowedPlatformTypes: ['UAV'],
         defaultHullName: 'MQ-4C Triton',
+        suggestedHullNames: ['MQ-4C Triton', 'MQ-8C Fire Scout', 'MQ-25 Stingray'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
     ],
   },
@@ -117,6 +149,7 @@ export const MISSION_ROLES = {
   // roles[] must match that order so effectiveRoster positional mapping is correct.
   KINETIC_EFFECTS: {
     missionLabel: 'Kinetic Effects — Long-Range Strike',
+    minVessels: 3,
     roles: [
       {
         roleKey: 'KE_M48_STRIKE',
@@ -130,6 +163,11 @@ export const MISSION_ROLES = {
         // VLS container strike system — large surface vessels only; no small USVs, UUVs, or UAVs
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'AEGIR-H',
+        suggestedHullNames: ['M48', 'AEGIR-H'],
+        requirements: {
+          categories: ['WEAPONS', 'COMMS', 'NAV'],
+          subTypes: ['STRIKE_WEAPON', 'NAV_INS'],
+        },
       },
       {
         roleKey: 'KE_SPECTRE_BDA',
@@ -144,6 +182,11 @@ export const MISSION_ROLES = {
         // Full BDA payload totals ~63 kg — excludes micro-USVs like SubSeaSail Horus (10 kg cap)
         allowedPlatformTypes: ['USV', 'USV/UUV', 'UUV'],
         defaultHullName: 'AEGIR-W',
+        suggestedHullNames: ['Saildrone Spectre', 'M48', 'AEGIR-W', 'ZeroUSV Oceanus17'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
       {
         // Index 2 — maps to VESSEL_ROSTER[2]: MQ-4C Triton
@@ -154,6 +197,11 @@ export const MISSION_ROLES = {
         // Aerial ISR cueing role — UAV only
         allowedPlatformTypes: ['UAV'],
         defaultHullName: 'MQ-4C Triton',
+        suggestedHullNames: ['MQ-4C Triton', 'MQ-8C Fire Scout'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
     ],
   },
@@ -165,6 +213,7 @@ export const MISSION_ROLES = {
   //                     'EMATT Mod 4 Acoustic Decoy Module', 'Passive ESM/SIGINT Collection Module']
   NON_KINETIC_EW: {
     missionLabel: 'Non-Kinetic EW — Taiwan Strait NEMESIS',
+    minVessels: 3,
     roles: [
       {
         roleKey: 'NK_M48_ALPHA',
@@ -178,6 +227,11 @@ export const MISSION_ROLES = {
         // EW decoy projection + active jammer containers — surface vessels only
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'AEGIR-H',
+        suggestedHullNames: ['M48', 'AEGIR-H', 'AEGIR-W'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['EW_DECOY', 'EW_JAMMER'],
+        },
       },
       {
         roleKey: 'NK_M48_BRAVO',
@@ -191,6 +245,11 @@ export const MISSION_ROLES = {
         // EW decoy + passive ESM — surface vessels only
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'AEGIR-H',
+        suggestedHullNames: ['M48', 'AEGIR-H', 'AEGIR-W'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['EW_DECOY'],
+        },
       },
       {
         roleKey: 'NK_BLACKSEA_M48',
@@ -204,6 +263,11 @@ export const MISSION_ROLES = {
         // High-power active EW jamming — surface vessels only
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'AEGIR-W',
+        suggestedHullNames: ['M48', 'AEGIR-H'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['EW_JAMMER'],
+        },
       },
     ],
   },
@@ -213,6 +277,7 @@ export const MISSION_ROLES = {
   // MISSION_SET_CAPS = ['HiddenLevel Passive RF Sensor', 'cUxS Escort Picket', 'Advance Screen 5nm Ahead']
   PROTECTIONS: {
     missionLabel: 'Protections — cUxS Escort',
+    minVessels: 2,
     roles: [
       {
         roleKey: 'PROT_M48_ESCORT',
@@ -225,6 +290,11 @@ export const MISSION_ROLES = {
         // Escort/patrol with HPM and intercept systems — surface vessels, including sail USVs
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         defaultHullName: 'AEGIR-H',
+        suggestedHullNames: ['M48', 'AEGIR-H', 'ZeroUSV Oceanus17'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
       {
         roleKey: 'PROT_SHADOW_FOX',
@@ -237,6 +307,11 @@ export const MISSION_ROLES = {
         // Advance screen — surface and stealthy subsurface platforms eligible
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         defaultHullName: 'AEGIR-W',
+        suggestedHullNames: ['M48', 'AEGIR-W', 'Mariner'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
     ],
   },
@@ -247,6 +322,7 @@ export const MISSION_ROLES = {
   //                     'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration']
   COUNTER_C5ISR: {
     missionLabel: 'Counter-C5ISR — Strait of Hormuz',
+    minVessels: 1,
     roles: [
       {
         roleKey: 'CC5ISR_M48',
@@ -261,6 +337,11 @@ export const MISSION_ROLES = {
         // Tethered UAS host + ISR — surface vessels only (needs deck space for tether)
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['TETHERED_UAS'],
+        },
       },
     ],
   },
@@ -270,6 +351,7 @@ export const MISSION_ROLES = {
   // MISSION_SET_CAPS = ['HiddenLevel Passive RF Sensor', 'Project Scion (Northrop Grumman)', 'RazorChassis C5ISR Link']
   ISR: {
     missionLabel: 'Taiwan Strait ISR — Median Line Patrol',
+    minVessels: 1,
     roles: [
       {
         roleKey: 'ISR_M48_LANTERN',
@@ -284,6 +366,11 @@ export const MISSION_ROLES = {
         // Tethered UAS host + ISR — surface vessels only (needs deck space for tether)
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['TETHERED_UAS'],
+        },
       },
     ],
   },
@@ -293,6 +380,7 @@ export const MISSION_ROLES = {
   // MISSION_SET_CAPS = ['Encrypted Mesh Link to T82', 'Site-Clear Relay Authorization']
   CONTESTED_LOGISTICS: {
     missionLabel: 'Contested Logistics — EABO Resupply',
+    minVessels: 2,
     roles: [
       {
         roleKey: 'CL_T82',
@@ -304,6 +392,12 @@ export const MISSION_ROLES = {
         // Cargo carrier role — surface vessels with meaningful payload volume
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H'],
+        cargoRole: true,
+        requirements: {
+          categories: ['COMMS', 'NAV'],
+          subTypes: ['NAV_INS'],
+        },
       },
       {
         roleKey: 'CL_T12',
@@ -318,6 +412,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
       },
     ],
   },
@@ -328,6 +426,7 @@ export const MISSION_ROLES = {
   //                     'LOS Mesh Radio', 'Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100']
   MCM: {
     missionLabel: 'Mine Clearance — Strait of Hormuz',
+    minVessels: 3,
     roles: [
       {
         roleKey: 'MCM_FREEDOM_AUV',
@@ -342,6 +441,10 @@ export const MISSION_ROLES = {
         // Underwater sweep and mine marking — AUVs and subsurface-capable platforms
         allowedPlatformTypes: ['UUV', 'USV/UUV'],
         defaultHullName: 'Freedom AUV',
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['SONAR_FLS', 'ACOUSTIC_MODEM'],
+        },
       },
       {
         roleKey: 'MCM_HORUS_1',
@@ -357,6 +460,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['SubSeaSail Horus', 'Triton'],
         defaultHullName: 'SubSeaSail Horus',
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'WEAPONS'],
+          subTypes: ['STRIKE_WEAPON'],
+        },
       },
       {
         roleKey: 'MCM_HORUS_2',
@@ -372,6 +479,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['SubSeaSail Horus', 'Triton'],
         defaultHullName: 'SubSeaSail Horus',
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'WEAPONS'],
+          subTypes: ['STRIKE_WEAPON'],
+        },
       },
     ],
   },
@@ -381,6 +492,7 @@ export const MISSION_ROLES = {
   // MISSION_SET_CAPS = ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'OceanSonics icListen HF Smart Hydrophone Array', 'MOOS-IvP']
   PORT_SECURITY: {
     missionLabel: 'Port Security — Naval Base San Diego',
+    minVessels: 3,
     roles: [
       {
         roleKey: 'PS_HORUS_1',
@@ -396,6 +508,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['HYDROPHONE'],
+        },
       },
       {
         roleKey: 'PS_HORUS_2',
@@ -411,6 +527,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['HYDROPHONE'],
+        },
       },
       {
         roleKey: 'PS_HORUS_3',
@@ -426,14 +546,19 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['SubSeaSail Horus', 'Triton', 'Otter X'],
         defaultHullName: 'SubSeaSail Horus',
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['HYDROPHONE'],
+        },
       },
     ],
   },
 
   // ─── Sea Jeep — MDA Base Config (South China Sea) ────────────────────────────
-  // MISSION_SET_KEY = 'SEA_JEEP_MDA'
-  SEA_JEEP_MDA: {
+  // MISSION_SET_KEY = 'SEAJEEP_BASE'
+  SEAJEEP_BASE: {
     missionLabel: 'Sea Jeep MDA — South China Sea',
+    minVessels: 1,
     roles: [
       {
         roleKey: 'SJM_SEAJEEP_1',
@@ -448,14 +573,19 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['GP-USV Sea Jeep', 'Otter X'],
         defaultHullName: 'GP-USV Sea Jeep',
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'NAV'],
+          subTypes: [],
+        },
       },
     ],
   },
 
   // ─── Sea Jeep — ISR Config (Bab-el-Mandeb) ───────────────────────────────────
-  // MISSION_SET_KEY = 'SEA_JEEP_ISR'
-  SEA_JEEP_ISR: {
+  // MISSION_SET_KEY = 'SEAJEEP_ISR'
+  SEAJEEP_ISR: {
     missionLabel: 'Sea Jeep ISR — Bab-el-Mandeb',
+    minVessels: 1,
     roles: [
       {
         roleKey: 'SEA_JEEP_ISR_1',
@@ -470,14 +600,19 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['GP-USV Sea Jeep'],
         defaultHullName: 'GP-USV Sea Jeep',
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'NAV'],
+          subTypes: [],
+        },
       },
     ],
   },
 
   // ─── Sea Jeep — MCM Config (Black Sea / Odessa Corridor) ─────────────────────
-  // MISSION_SET_KEY = 'SEA_JEEP_MCM'
-  SEA_JEEP_MCM: {
+  // MISSION_SET_KEY = 'SEAJEEP_MCM'
+  SEAJEEP_MCM: {
     missionLabel: 'Sea Jeep MCM — Black Sea',
+    minVessels: 1,
     roles: [
       {
         roleKey: 'SJC_SEAJEEP_1',
@@ -494,14 +629,19 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['GP-USV Sea Jeep'],
         defaultHullName: 'GP-USV Sea Jeep',
+        requirements: {
+          categories: ['SENSORS', 'COMMS', 'NAV'],
+          subTypes: ['SONAR_FLS', 'SONAR_SIDESCAN'],
+        },
       },
     ],
   },
 
   // ─── Sea Jeep — Logistics Config (Batanes / Resupply) ────────────────────────
-  // MISSION_SET_KEY = 'SEA_JEEP_LOGISTICS'
-  SEA_JEEP_LOGISTICS: {
+  // MISSION_SET_KEY = 'SEAJEEP_LOGISTICS'
+  SEAJEEP_LOGISTICS: {
     missionLabel: 'Sea Jeep Logistics — Batanes Resupply',
+    minVessels: 1,
     roles: [
       {
         roleKey: 'SJL_SEAJEEP_1',
@@ -516,6 +656,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['USV', 'USV/UUV'],
         allowedHullNames: ['GP-USV Sea Jeep'],
         defaultHullName: 'GP-USV Sea Jeep',
+        cargoRole: true,
+        requirements: {
+          categories: ['COMMS', 'NAV'],
+        },
       },
     ],
   },

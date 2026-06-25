@@ -167,12 +167,14 @@ const MarketplacePage = ({ onLogoClick }) => {
               >
                 Capabilities
               </button>
+              {/* Mission Matrix nav hidden — keep for future use
               <button
                 onClick={() => setSelectedView('matrix')}
                 className={`${selectedView === 'matrix' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
               >
                 Mission Matrix
               </button>
+              */}
               <button
                 onClick={() => setSelectedView('squadron')}
                 className={`${selectedView === 'squadron' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
@@ -259,10 +261,11 @@ const MarketplacePage = ({ onLogoClick }) => {
               />
             )}
             
-            {/* Mission Matrix */}
+            {/* Mission Matrix — hidden, keep for future use
             {selectedView === 'matrix' && (
               <MissionMatrix />
             )}
+            */}
 
             {/* Mission Planner */}
             {selectedView === 'squadron' && (

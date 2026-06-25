@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Ship, ChevronLeft, Check, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Ship, ChevronLeft, Check, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -12,10 +12,14 @@ import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 
 const VESSEL_ROSTER = [
-  { name: 'M48', image: imgM48, hullName: 'M48', capabilities: ['20-ft TEU Dry Cargo Module', '20-ft TEU Fuel Bladder Module', 'Lattice Mesh Network', 'Bow Ramp Delivery System'] },
-  { name: 'SubSeaSail HORUS Scout', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['EO/IR Beach Recon Camera', 'Echodyne EchoGuard CR', 'Encrypted Mesh Link to M48', 'Lattice Mesh Network'] },
+  { name: 'M48 (Supply Carrier)', roleDescriptor: '(Supply Carrier)', image: imgM48, hullName: 'M48', capabilities: ['20-ft TEU Dry Cargo Module', '20-ft TEU Fuel Bladder Module', 'Lattice Mesh Network', 'Bow Ramp Delivery System'], roleKey: 'CL_T82' },
+  { name: 'SubSeaSail Horus (Beach Scout)', roleDescriptor: '(Beach Scout)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['EO/IR Beach Recon Camera', 'Echodyne EchoGuard CR', 'Encrypted Mesh Link to M48', 'Lattice Mesh Network'], roleKey: 'CL_T12' },
 ];
 
 const MISSION_SET_KEY = 'CONTESTED_LOGISTICS';
@@ -238,9 +242,11 @@ const MapInvalidateSize = () => {
 const ContestedLogisticsMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -248,13 +254,30 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   const [missionName,       setMissionName]       = useState(mission?.name || '');
   const [currentTick,       setCurrentTick]       = useState(0);
@@ -274,6 +297,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
   const loopTimer      = useRef(null);
   const addEvtRef      = useRef(null);
   const runScenarioRef = useRef(null);
+  const vesselLabelsRef = useRef([]);
 
   const phase    = getPhase(currentTick);
   const t82Pos   = getT82Pos(currentTick);
@@ -305,6 +329,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
@@ -322,11 +347,16 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
 
     setPendingMissionSetCaps(vessel.capabilities);
 
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -368,6 +398,8 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'M48 (Supply Carrier)';
+      const v1 = vesselLabelsRef.current[1] ?? 'SubSeaSail Horus (Beach Scout)';
       setCurrentTick(tick);
 
       if (tick === T_LOAD_COMPLETE) {
@@ -375,14 +407,14 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
         addEvtRef.current('TempestOS: Pre-departure checklist complete — nav systems, comms, emergency RTB behavior loaded', 'info');
       }
       if (tick === T_TRANSIT_START) {
-        addEvtRef.current('M48 BRAVO: Departing ESB — autonomous transit initiated — EMCON route active', 'info');
+        addEvtRef.current(`${v0}: Departing ESB — autonomous transit initiated — EMCON route active`, 'info');
         addEvtRef.current('TempestOS: Primary route loaded — alternate route + emergency RTB waypoints pre-calculated', 'info');
         addEvtRef.current('Iridium: LPI burst schedule active — position update every 47 minutes', 'info');
       }
       if (tick === T_EMCON_CONFIRM) {
-        addEvtRef.current('M48 BRAVO: Waypoint BRAVO — entering DF-26 WEZ — radio silence maintained', 'warn');
+        addEvtRef.current(`${v0}: Waypoint BRAVO — entering DF-26 WEZ — radio silence maintained`, 'warn');
         addEvtRef.current('TempestOS: EMCON mode engaged — all non-essential emissions silenced', 'warn');
-        addEvtRef.current('INDOPACOM: M48 BRAVO tracking via Iridium schedule — 0 emissions detected by PLAN sensors', 'info');
+        addEvtRef.current(`INDOPACOM: ${v0} tracking via Iridium schedule — 0 emissions detected by PLAN sensors`, 'info');
       }
       if (tick === T_GPS_ENTRY) {
         setGpsDeniedVisible(true);
@@ -391,43 +423,43 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_INS_FALLBACK) {
         addEvtRef.current('DriveAI: INS navigation active — position hold confirmed — continuing to EABO delivery point', 'success');
-        addEvtRef.current('M48 BRAVO: Speed maintained at 15 kts on INS — ETA delivery point 42 minutes', 'info');
+        addEvtRef.current(`${v0}: Speed maintained at 15 kts on INS — ETA delivery point 42 minutes`, 'info');
       }
       if (tick === T_PLAN_PROBE) {
         setPlanContactVisible(true);
         addEvtRef.current('TempestOS: PLAN surface contact — bearing 025 — estimated Type-022 Houbei FAC — range 12nm', 'alert');
-        addEvtRef.current('TempestOS: Contact tracking M48 BRAVO — DriveAI maintaining course, speed, behavior profile', 'warn');
-        addEvtRef.current('M48 BRAVO: No deviations — PLAN vessel passed without intercept — contact fading', 'success');
+        addEvtRef.current(`TempestOS: Contact tracking ${v0} — DriveAI maintaining course, speed, behavior profile`, 'warn');
+        addEvtRef.current(`${v0}: No deviations — PLAN vessel passed without intercept — contact fading`, 'success');
       }
       if (tick === T_SCOUT_LAUNCH) {
-        addEvtRef.current('HORUS: Scout launched ahead of M48 — advancing to EABO island for LZ recon', 'info');
-        addEvtRef.current('HORUS: EO/IR online — coastal surface radar active — clear-to-deliver check initiated', 'info');
+        addEvtRef.current(`${v1}: Scout launched ahead of M48 — advancing to EABO island for LZ recon`, 'info');
+        addEvtRef.current(`${v1}: EO/IR online — coastal surface radar active — clear-to-deliver check initiated`, 'info');
       }
       if (tick === T_BEACH_CLEAR) {
         setPlanContactVisible(false);
-        addEvtRef.current('HORUS: LZ CLEAR — no threat contacts — beach delivery zone confirmed safe', 'success');
-        addEvtRef.current('HORUS: Encrypted mesh link → M48 BRAVO — GO signal sent — entering LZ overwatch', 'success');
+        addEvtRef.current(`${v1}: LZ CLEAR — no threat contacts — beach delivery zone confirmed safe`, 'success');
+        addEvtRef.current(`${v1}: Encrypted mesh link → ${v0} — GO signal sent — entering LZ overwatch`, 'success');
       }
       if (tick === T_APPROACH_START) {
-        addEvtRef.current('M48 BRAVO: Beach-clear signal received — beginning final approach at 6 kts', 'info');
+        addEvtRef.current(`${v0}: Beach-clear signal received — beginning final approach at 6 kts`, 'info');
         addEvtRef.current('TempestOS: Visual nav active — switching to EO-based approach guidance', 'info');
       }
       if (tick === T_RAMP_DEPLOY) {
         setOffloadActive(true);
-        addEvtRef.current('M48 BRAVO: BOW RAMP DEPLOYED — offload sequence initiated', 'success');
-        addEvtRef.current('M48 BRAVO: Dry cargo module offloading — Marine SIF receiving element on beach', 'info');
+        addEvtRef.current(`${v0}: BOW RAMP DEPLOYED — offload sequence initiated`, 'success');
+        addEvtRef.current(`${v0}: Dry cargo module offloading — Marine SIF receiving element on beach`, 'info');
       }
       if (tick === T_RAMP_DEPLOY + 7) {
-        addEvtRef.current('M48 BRAVO: Fuel bladder autonomous pump-out — JP-8 transfer to shore tank — 15,000L', 'info');
+        addEvtRef.current(`${v0}: Fuel bladder autonomous pump-out — JP-8 transfer to shore tank — 15,000L`, 'info');
       }
       if (tick === T_OFFLOAD_DONE) {
         setOffloadActive(false);
-        addEvtRef.current('M48 BRAVO: OFFLOAD COMPLETE — manifest confirmed by receiving unit — 8.5 MT delivered', 'success');
-        addEvtRef.current('M48 BRAVO: Bow ramp retracted — RTB via alternate route — departing EABO position', 'info');
+        addEvtRef.current(`${v0}: OFFLOAD COMPLETE — manifest confirmed by receiving unit — 8.5 MT delivered`, 'success');
+        addEvtRef.current(`${v0}: Bow ramp retracted — RTB via alternate route — departing EABO position`, 'info');
       }
       if (tick === T_RTB_START) {
         addEvtRef.current('TempestOS: RTB route loaded — alternate heading 135° — emergency RTB waypoint set', 'info');
-        addEvtRef.current('M48 BRAVO: RTB transit — EMCON maintained — Iridium LPI schedule active', 'info');
+        addEvtRef.current(`${v0}: RTB transit — EMCON maintained — Iridium LPI schedule active`, 'info');
       }
       if (tick === T_GPS_RESTORED) {
         setGpsDeniedVisible(false);
@@ -435,7 +467,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
         addEvtRef.current('TempestOS: DriveAI INS accumulated drift within spec', 'success');
       }
       if (tick === T_RTB_COMPLETE - 5) {
-        addEvtRef.current('M48 BRAVO: ESB approach — comms transitioning from Iridium to tactical UHF', 'info');
+        addEvtRef.current(`${v0}: ESB approach — comms transitioning from Iridium to tactical UHF`, 'info');
       }
       if (tick >= TOTAL_TICKS) {
         clearInterval(mainTimer.current);
@@ -547,9 +579,9 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
+            missionName.trim() && isDeployable
               ? 'bg-violet-700 hover:bg-violet-600 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
@@ -758,8 +790,8 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
               <div className="px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#8b5cf6', label: 'M48 — Main Supply Run' },
-                    { color: '#06b6d4', label: 'SubSeaSail HORUS — Scout / LZ Overwatch' },
+                    { color: '#8b5cf6', label: `${effectiveRoster[0]?.name ?? 'M48 (Supply Carrier)'} — Main Supply Run` },
+                    { color: '#06b6d4', label: `${effectiveRoster[1]?.name ?? 'SubSeaSail Horus (Beach Scout)'} — Scout / LZ Overwatch` },
                     { color: '#3b82f6', label: 'ESB Staging Vessel' },
                     { color: '#10b981', label: 'EABO Island — USMC SIF' },
                     { color: '#f59e0b', label: 'GPS-Denied Zone' },
@@ -845,8 +877,8 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -861,18 +893,60 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
+                {missionRoleDefs[idx]?.cargoRole && (
+                  <div className="mt-1 px-2 py-1.5 rounded bg-amber-900/20 border border-amber-500/30 text-[0.6rem] text-amber-400 leading-snug">
+                    ⚠ Cargo role — verify your hull has sufficient payload capacity for your intended cargo.
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
 
       </div>
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

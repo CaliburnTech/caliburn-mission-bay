@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, CircleMarker, Circle, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, ChevronLeft, Check, Zap, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronLeft, Check, Zap, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -13,6 +13,10 @@ import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
 import imgSaildrone from '../../assets/images/SaildroneUSV.png';
 import imgMQ4CTriton from '../../assets/images/MQ4C Triton.png';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 
 const MISSION_SET_KEY = 'KINETIC_EFFECTS';
 const MISSION_SET_CAPS = ['Mk 70 Payload Delivery System', 'SeaFIND Inertial Navigation', 'BDA Assessment'];
@@ -193,9 +197,9 @@ const TRITON_MOUNTS = [
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'M48 (Mk70 PDS)', image: imgM48, hullName: 'M48', capabilities: ['Mk 70 Payload Delivery System', 'Tomahawk Block V 8-cell VLS', 'SeaFIND Inertial Navigation', 'EMCON Transit Capable'] },
-  { name: 'Saildrone Spectre', image: imgSaildrone, hullName: 'Saildrone Spectre', capabilities: ['Teledyne FLIR EO/IR Turret', 'Scion ESM Electronic Support', 'BDA Assessment', '365-Day Endurance'] },
-  { name: 'MQ-4C Triton', image: imgMQ4CTriton, hullName: 'MQ-4C Triton', capabilities: ['AN/ZPY-3 AESA Radar', '150km+ Periscope Detection', 'Ka-SATCOM to TempestOS', 'Wide-Area Target Cue'] },
+  { name: 'M48 (Mk70 PDS)', roleDescriptor: '(Mk70 PDS)', image: imgM48, hullName: 'M48', capabilities: ['Mk 70 Payload Delivery System', 'Tomahawk Block V 8-cell VLS', 'SeaFIND Inertial Navigation', 'EMCON Transit Capable'], roleKey: 'KE_M48_STRIKE' },
+  { name: 'Saildrone Spectre', image: imgSaildrone, hullName: 'Saildrone Spectre', capabilities: ['Teledyne FLIR EO/IR Turret', 'Scion ESM Electronic Support', 'BDA Assessment', '365-Day Endurance'] , roleKey: 'KE_SPECTRE_BDA'},
+  { name: 'MQ-4C Triton', image: imgMQ4CTriton, hullName: 'MQ-4C Triton', capabilities: ['AN/ZPY-3 AESA Radar', '150km+ Periscope Detection', 'Ka-SATCOM to TempestOS', 'Wide-Area Target Cue'] , roleKey: 'KE_TRITON_ISR'},
 ];
 
 // ─── Map helpers ──────────────────────────────────────────────────────────────
@@ -224,9 +228,11 @@ const EVENT_COLORS = {
 const KineticEffectsMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -234,13 +240,30 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
   const [missionName, setMissionName] = useState(mission?.name || '');
   const [tick,     setTick]    = useState(0);
   const [events,   setEvents]  = useState([]);
@@ -254,6 +277,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
   const mainTimer  = useRef(null);
   const resetTimer = useRef(null);
   const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
   const runScenRef = useRef(null);
 
   const phase      = getPhase(tick);
@@ -286,11 +310,16 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
 
     setPendingMissionSetCaps(vessel.capabilities);
 
     setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -316,6 +345,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
 
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   const stopAll = useCallback(() => {
     clearInterval(mainTimer.current);
@@ -338,7 +368,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
       const t = ++tickRef.current;
       setTick(t);
 
-      if (t === T_STAGED)       { addEvtRef.current('CTF-72: Strike package staged — Luzon Strait east', 'info'); addEvtRef.current('M48 USVs: on station — EMCON White — all emitters secured', 'info'); }
+      if (t === T_STAGED)       { addEvtRef.current(`CTF-72: Strike package staged — Luzon Strait east`, 'info'); addEvtRef.current(`${v0}: on station — EMCON White — all emitters secured`, 'info'); }
       if (t === T_ISR_CUE)      { addEvtRef.current('MQ-4C Triton: PLAN Type-052D at 20.80°N 117.30°E — 94% confidence', 'warn'); addEvtRef.current('Target designated ECHO-4 — HOSTILE — pending CCDR auth', 'warn'); }
       if (t === T_TASKING)      { addEvtRef.current('TempestOS: 3× M48, 12 VLS cells — time-on-target synced', 'info'); addEvtRef.current('Authorization chain opened: Intel → LEGAD → CO → CCDR', 'info'); }
       if (t === T_EMCON_START)  { addEvtRef.current('EMCON transit: RF emitters secured — GPS-hardened nav active', 'info'); }
@@ -394,7 +424,8 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors flex items-center gap-1.5 ${saved ? 'bg-emerald-700 text-white' : 'bg-red-700 hover:bg-red-600 text-white'}`}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors flex items-center gap-1.5 ${saved ? 'bg-emerald-700 text-white' : missionName.trim() && isDeployable ? 'bg-red-700 hover:bg-red-600 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
         >
           {saved ? <><Check size={11} /> Saved</> : 'Save Draft'}
         </button>
@@ -500,11 +531,11 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
               <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#ef4444', label: 'M70-ALPHA — M48 Strike USV',           dashed: false },
-                    { color: '#f97316', label: 'M70-BRAVO — M48 Strike USV',           dashed: false },
-                    { color: '#fbbf24', label: 'M70-CHARLIE — M48 Strike USV',         dashed: false },
-                    { color: '#06b6d4', label: 'Saildrone Spectre — ISR / BDA',        dashed: false },
-                    { color: '#3b82f6', label: 'MQ-4C Triton — Target Cue',            dashed: false },
+                    { color: '#ef4444', label: `M70-ALPHA — ${effectiveRoster[0]?.name ?? 'M48 (Mk70 PDS)'}`, dashed: false },
+                    { color: '#f97316', label: `M70-BRAVO — ${effectiveRoster[0]?.name ?? 'M48 (Mk70 PDS)'}`, dashed: false },
+                    { color: '#fbbf24', label: `M70-CHARLIE — ${effectiveRoster[0]?.name ?? 'M48 (Mk70 PDS)'}`, dashed: false },
+                    { color: '#06b6d4', label: `${effectiveRoster[1]?.name ?? 'Saildrone Spectre'} — ISR / BDA`, dashed: false },
+                    { color: '#3b82f6', label: `${effectiveRoster[2]?.name ?? 'MQ-4C Triton'} — Target Cue`, dashed: false },
                     { color: '#ef4444', label: 'ECHO-4 — PLAN Type-052D (HOSTILE)',    dashed: true  },
                   ].map(({ color, label, dashed }) => (
                     <div key={label} className="flex items-center gap-2">
@@ -597,8 +628,8 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -613,18 +644,55 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
 
       </div>{/* /scrollable body */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

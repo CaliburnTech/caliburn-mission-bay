@@ -168,6 +168,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Settings,
       category: "UNMANNED SYSTEMS",
+      subType: null,
       // SWaP (Size, Weight, Power) - Software only, runs on existing compute
       swap: {
         weight: 0,        // Software - no additional hardware
@@ -249,6 +250,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Settings,
       category: "LOGISTICS",
+      subType: null,
       swap: {
         weight: 15,       // Server rack unit
         power: 0.8,       // kW - compute intensive
@@ -297,6 +299,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: NGHTSIcon,
       category: "EO/IR SENSORS",
+      subType: null,
       swap: {
         weight: 4.5,      // Real: "< 10 lbs" confirmed by NG press release
         power: 0.12,      // Estimated; multi-sensor laser designator
@@ -321,6 +324,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: ScionESMIcon,
       category: "ELECTRONIC SUPPORT",
+      subType: null,
       // Real SWaP data from specs
       swap: {
         weight: 57,       // 102.4 + 12.2 + 10.8 lbs = 125.4 lbs = 57 kg total
@@ -358,6 +362,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: HiddenLevelRadarIcon,
       category: "RADAR/RF",
+      subType: null,
       swap: {
         weight: 45,       // Real: Surge sensor 34kg + coprocessor 11kg = 45kg (hiddenlevel.com)
         power: 0.59,      // Real: Surge 335W + coprocessor 250W = 585W (hiddenlevel.com)
@@ -381,6 +386,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: TowedSonarIcon,
       category: "ACOUSTIC/SONAR",
+      subType: 'SONAR_TOWED',
       swap: {
         weight: 200,      // Towed array + winch system
         power: 1.0,       // kW
@@ -404,6 +410,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: TowedSonarIcon,
       category: "ACOUSTIC/SONAR",
+      subType: 'HYDROPHONE',
       swap: {
         weight: 7,        // 2× icListen HF (3.2 kg each) + tow cable ≈ 7 kg total
         power: 0.01,      // 2× ~3.6W per unit = ~7W total; battery-backed, tethered power optional
@@ -427,6 +434,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: AntennaIcon,
       category: "SATCOM",
+      subType: null,
       swap: {
         weight: 0.315,      // Real: 315g per OrbComm Hardware Guide T406
         power: 0.008,       // Real: 7.8W peak TX (652mA @ 12V) per spec sheet
@@ -450,6 +458,7 @@ export const individualCapabilities = [
       trl: "TRL 8",
       icon: Cpu,
       category: "UNMANNED SYSTEMS",
+      subType: null,
       swap: {
         weight: 0,
         power: 0.05,
@@ -473,6 +482,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: SM6MissileIcon,
       category: "KINETIC WEAPONS",
+      subType: 'STRIKE_WEAPON',
       swap: {
         weight: 1700,     // Real: SM-6 missile 1,500 kg (confirmed) + canister ~200 kg
         power: 2.0,       // kW - fire control standby
@@ -495,6 +505,7 @@ export const individualCapabilities = [
       trl: "TRL 7",
       icon: HighEnergyLaserIcon,
       category: "DIRECTED ENERGY",
+      subType: 'STRIKE_WEAPON',
       swap: {
         weight: 500,      // Laser + cooling + power systems
         power: 50,        // kW - very power intensive
@@ -517,6 +528,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: ScionESMIcon,
       category: "RF COMMUNICATIONS",
+      subType: null,
       swap: {
         weight: 5,
         power: 0.1,
@@ -539,6 +551,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: HiddenLevelRadarIcon,
       category: "SATCOM",
+      subType: null,
       swap: {
         weight: 25,
         power: 0.4,
@@ -561,6 +574,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: NGHTSIcon,
       category: "RF COMMUNICATIONS",
+      subType: null,
       swap: {
         weight: 15,
         power: 0.3,
@@ -584,6 +598,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Settings,
       category: "COMMAND & CONTROL",
+      subType: null,
       swap: {
         weight: 0,
         power: 0.2,
@@ -606,6 +621,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: FlightControllerIcon,
       category: "COMMAND & CONTROL",
+      subType: null,
       swap: {
         weight: 0,        // Software only
         power: 0.3,
@@ -628,6 +644,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: AntennaIcon,
       category: "COMMAND & CONTROL",
+      subType: null,
       swap: {
         weight: 0,
         power: 0.5,
@@ -651,6 +668,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: GPSIcon,
       category: "UNMANNED SYSTEMS",
+      subType: null,
       swap: {
         weight: 8,
         power: 0.3,
@@ -674,6 +692,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: CameraIcon,
       category: "EO/IR SENSORS",
+      subType: null,
       swap: {
         weight: 12,
         power: 0.15,
@@ -697,6 +716,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: GPSIcon,
       category: "NAVIGATION",
+      subType: null,
       swap: {
         weight: 2,
         power: 0.05,
@@ -719,6 +739,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: BatteryIcon,
       category: "NAVIGATION",
+      subType: null,
       swap: {
         weight: 50,
         power: -5,        // Negative = provides power
@@ -741,6 +762,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: AntennaIcon,
       category: "RF COMMUNICATIONS",
+      subType: null,
       swap: {
         weight: 30,
         power: 0.5,
@@ -763,6 +785,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: MotorIcon,
       category: "UNMANNED SYSTEMS",
+      subType: null,
       swap: {
         weight: 8,
         power: 0.8,
@@ -785,6 +808,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: FrameIcon,
       category: "UNMANNED SYSTEMS",
+      subType: null,
       swap: {
         weight: -5,       // Negative = reduces weight
         power: 0,
@@ -807,6 +831,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: StabilizerIcon,
       category: "EO/IR SENSORS",
+      subType: null,
       swap: {
         weight: 5,
         power: 0.1,
@@ -829,6 +854,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: InfraredIcon,
       category: "EO/IR SENSORS",
+      subType: null,
       swap: {
         weight: 3,
         power: 0.08,
@@ -852,6 +878,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: DownwardSensorIcon,
       category: "NAVIGATION",
+      subType: null,
       swap: {
         weight: 4,
         power: 0.2,
@@ -874,6 +901,7 @@ export const individualCapabilities = [
       trl: "TRL 7",
       icon: Brain,
       category: "COMMAND & CONTROL",
+      subType: null,
       swap: {
         weight: 0,
         power: 1.0,       // AI compute intensive
@@ -904,6 +932,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Brain,
       category: "ELECTRONIC ATTACK",
+      subType: 'EW_JAMMER',
       swap: {
         weight: 80,
         power: 2.0,
@@ -938,6 +967,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Zap,
       category: "KINETIC WEAPONS",
+      subType: 'STRIKE_WEAPON',
       // Real specs: 600 km/h, 100 km range, 4.5 kg payload
       swap: {
         weight: 45,       // Small loitering munition
@@ -978,6 +1008,7 @@ export const individualCapabilities = [
       trl: "TRL 8",
       icon: ShieldCheck,
       category: "ELECTRONIC ATTACK",
+      subType: 'EW_JAMMER',
       // Designed for low SWaP
       swap: {
         weight: 35,
@@ -1013,6 +1044,7 @@ export const individualCapabilities = [
       trl: "TRL 7",
       icon: ShieldCheck,
       category: "ELECTRONIC ATTACK",
+      subType: 'EW_JAMMER',
       format: "20-ft ISO TEU",
       swap: {
         weight: 12000,
@@ -1040,6 +1072,7 @@ export const individualCapabilities = [
       trl: "TRL 7",
       icon: Radio,
       category: "ELECTRONIC ATTACK",
+      subType: 'EW_DECOY',
       format: "20-ft ISO TEU",
       swap: {
         weight: 4500,
@@ -1067,6 +1100,7 @@ export const individualCapabilities = [
       trl: "TRL 6",
       icon: Zap,
       category: "ELECTRONIC ATTACK",
+      subType: 'EW_DECOY',
       format: "Deck-mounted launcher rack",
       swap: {
         weight: 1800,
@@ -1094,6 +1128,7 @@ export const individualCapabilities = [
       trl: "TRL 8",
       icon: Waves,
       category: "ACOUSTIC DECOY",
+      subType: 'EW_DECOY',
       format: "Tube-launch from XLUUV payload module",
       swap: {
         weight: 10,         // Comparable expendable form factor; ~10 kg per tube-launched decoy class
@@ -1121,6 +1156,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Signal,
       category: "SIGNALS INTELLIGENCE",
+      subType: null,
       format: "20-ft ISO TEU",
       swap: {
         weight: 1800,
@@ -1149,6 +1185,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Compass,
       category: "NAVIGATION",
+      subType: 'NAV_INS',
       swap: {
         weight: 10.4,     // Real: EU 4.9 kg + IMU 5.5 kg per NG SeaFIND official datasheet
         power: 0.06,      // Real: ~50-60W for FOG INS of this class
@@ -1187,6 +1224,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Shield,
       category: "ELECTRONIC PROTECTION",
+      subType: null,
       swap: {
         weight: 25,       // Portable system
         power: 0.6,
@@ -1228,6 +1266,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: ShieldCheck,
       category: "RF COMMUNICATIONS",
+      subType: null,
       swap: {
         weight: 2,        // Software primarily
         power: 0.1,
@@ -1297,6 +1336,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Wifi,
       category: "RF COMMUNICATIONS",
+      subType: null,
       swap: {
         weight: 0.43,     // Real: 430g per Peplink BR1 Mini HW3 official datasheet
         power: 0.018,     // Real: 18W max / 13W nominal per datasheet (adapter is 24W but device draws less)
@@ -1370,6 +1410,7 @@ export const individualCapabilities = [
       trl: "TRL 9",
       icon: Shield,
       category: "C2 SYSTEMS",
+      subType: null,
       swap: {
         weight: 0,
         power: 0.1,
@@ -1425,6 +1466,7 @@ export const individualCapabilities = [
       type: "Tactical Data Link Gateway",
       description: "Tactical Radio Application Extension (TRAX) routes data between incompatible hardware and software applications with bi-directional translation across 21 data protocols. Combat-proven with 100K+ global users across 60+ disparate systems.",
       category: "C2 SYSTEMS",
+      subType: null,
       capabilities: [
         "Link-16 Gateway",
         "JREAP A/C Translation",
@@ -1509,6 +1551,7 @@ export const individualCapabilities = [
       trl: "TRL 8",
       icon: Cpu,
       category: "UNMANNED SYSTEMS",
+      subType: null,
       swap: {
         weight: 15,       // Compact shipboard computer + sensor suite
         power: 0.3,       // kW - ruggedized compute + perception sensors
@@ -1570,6 +1613,7 @@ export const individualCapabilities = [
       trl: "TRL 5-6",
       icon: Eye,
       category: "EO/IR SENSORS",
+      subType: null,
       swap: {
         weight: 0,
         power: 0.25,
@@ -1624,6 +1668,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: TowedSonarIcon,
     category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_FLS',
     swap: {
       weight: 59,         // Real: ~29.5 kg dry per side × 2 sides = ~59 kg full system (NG µSAS-MV datasheet)
       power: 0.1,         // Real: 50W nominal per side + processing overhead
@@ -1670,6 +1715,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: TowedSonarIcon,
     category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_TOWED',
     swap: {
       weight: 3740,       // Real: deployable payload only — Tow Body 1,250 kg + Towed Array 2,490 kg (Google/Sonar 2087 data). Full shipboard system incl. handling is 30+ tonnes but that's ship infrastructure, not payload weight.
       power: 50,          // Real: 50-100 kW active transmit; 15 kW was passive-only
@@ -1716,6 +1762,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: TowedSonarIcon,
     category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_TOWED',
     swap: {
       weight: 3000,
       power: 8,
@@ -1755,6 +1802,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Brain,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: {
       weight: 0,
       power: 0.5,
@@ -1801,6 +1849,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Target,
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: {
       weight: 12,
       power: 0,
@@ -1837,6 +1886,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Target,
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: {
       weight: 50,
       power: 0,
@@ -1873,6 +1923,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: SM6MissileIcon,
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: {
       weight: 2000,
       power: 1.0,
@@ -1920,6 +1971,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Eye,
     category: "EO/IR SENSORS",
+    subType: 'TETHERED_UAS',
     swap: {
       weight: 4500,
       power: 4,
@@ -1970,6 +2022,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Waves,
     category: "ACOUSTIC SENSORS",
+    subType: 'SONAR_TOWED',
     swap: { weight: 280, power: 0.8, size: "medium" },
     statImpacts: { speed: -1, power: -3, weight: 2, range: 4, stealth: 0 },
     securityLevel: ["NATO Qualified", "ITAR Controlled"],
@@ -2003,6 +2056,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Target,
     category: "WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: { weight: 1200, power: 2.5, size: "large" },
     statImpacts: { speed: -2, power: -5, weight: 5, range: 3, stealth: -3 },
     securityLevel: ["ITAR Controlled", "FMS Eligible"],
@@ -2036,6 +2090,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Radio,
     category: "COMMUNICATIONS",
+    subType: null,
     swap: { weight: 12, power: 0.4, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: -1 },
     securityLevel: ["NSA Type 1 Encrypted", "Link 16 Certified", "SOCOM Fielded"],
@@ -2068,6 +2123,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Target,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["ITAR Controlled", "Navy Certified"],
@@ -2100,6 +2156,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Eye,
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 0.84, power: 0.015, size: "small" },  // Real: 840g, 15W avg / 75W peak (Trillium HD40-XV 2024 datasheet)
     statImpacts: { speed: 0, power: -1, weight: 1, range: 3, stealth: 0 },
     securityLevel: ["ITAR Controlled", "USN Qualified"],
@@ -2133,6 +2190,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Radar,
     category: "RADAR SENSORS",
+    subType: null,
     swap: { weight: 6, power: 0.3, size: "small" },
     statImpacts: { speed: -1, power: -4, weight: 2, range: 5, stealth: -2 },
     securityLevel: ["ITAR Controlled", "Classified"],
@@ -2165,6 +2223,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Waves,
     category: "ACOUSTIC SENSORS",
+    subType: 'ACOUSTIC_MODEM',
     swap: { weight: 18, power: 0.15, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 1, range: 2, stealth: 1 },
     securityLevel: ["NATO Qualified"],
@@ -2197,6 +2256,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Target,
     category: "WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: { weight: 4, power: 0, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 1, range: 2, stealth: -1 },
     securityLevel: ["NATO Qualified", "ITAR Controlled"],
@@ -2231,6 +2291,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Waves,
     category: "ACOUSTIC SENSORS",
+    subType: 'SONAR_FLS',
     swap: { weight: 25, power: 0.1, size: "small" },  // Real: est. 15-40 kg for 3-beam AUV SAS; ~100W per SAMDIS NG 3x reduction claim
     statImpacts: { speed: -1, power: -2, weight: 1, range: 3, stealth: 1 },
     securityLevel: ["NATO Qualified", "ITAR Controlled"],
@@ -2264,6 +2325,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Anchor,
     category: "MCM SYSTEMS",
+    subType: 'ACOUSTIC_MODEM',
     swap: { weight: 2.5, power: 0.05, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 1, range: 1, stealth: 0 },
     securityLevel: ["NATO Qualified"],
@@ -2297,6 +2359,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Radio,
     category: "COMMUNICATIONS",
+    subType: 'ACOUSTIC_MODEM',
     swap: { weight: 1.8, power: 0.05, size: "small" },  // Real: peak TX 40-65W; 1.8 kg reasonable for mid-size modem (evologics.de spec table)
     statImpacts: { speed: 0, power: -2, weight: 1, range: 2, stealth: -1 },
     securityLevel: ["NATO Qualified", "CE Certified"],
@@ -2330,6 +2393,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Radio,
     category: "COMMUNICATIONS",
+    subType: null,
     swap: { weight: 0.39, power: 0.04, size: "small" },  // Real: 391g per PS spec sheet Rev.R; 40W peak TX / ~20W avg
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
     securityLevel: ["FIPS 140-2 Encrypted", "NSA Type 1 Compatible", "SOF Qualified"],
@@ -2367,6 +2431,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Zap,
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: {
       weight: 18000,
       power: 75,
@@ -2417,6 +2482,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Anchor,
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: {
       weight: 800,        // Real: Mk 54 torpedo 276 kg + encapsulation/mooring/sensors; CAPTOR comparator 933 kg
       power: 0,
@@ -2467,6 +2533,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Waves,
     category: "UNMANNED SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.05, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 4 },
     securityLevel: [],
@@ -2495,6 +2562,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Signal,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["ITAR Controlled", "Encrypted"],
@@ -2522,6 +2590,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Shield,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.05, size: "small" },
     statImpacts: { speed: 1, power: 0, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["Government Purpose Rights"],
@@ -2549,6 +2618,7 @@ export const individualCapabilities = [
     trl: "TRL 6",
     icon: Radar,
     category: "SIGNALS INTELLIGENCE",
+    subType: null,
     swap: { weight: 5, power: 0.3, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 0, stealth: 6 },
     securityLevel: ["Passive — No RF Emissions", "ITAR Controlled"],
@@ -2577,6 +2647,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Eye,
     category: "ISR & SURVEILLANCE",
+    subType: null,
     swap: { weight: 10, power: 0.4, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 5, stealth: 4 },
     securityLevel: ["Passive Sensors", "EMCON Compliant"],
@@ -2605,6 +2676,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Waves,
     category: "COMMUNICATIONS",
+    subType: 'ACOUSTIC_MODEM',
     swap: { weight: 3, power: 0.25, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 4, stealth: 2 },
     securityLevel: ["Encrypted Acoustic Link"],
@@ -2633,6 +2705,7 @@ export const individualCapabilities = [
     trl: "TRL 6",
     icon: Brain,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.3, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
     securityLevel: ["Encrypted", "DDIL Capable"],
@@ -2661,6 +2734,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Lock,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.08, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: -1 },
     securityLevel: ["Dual-Key Authorization", "End-to-End Encrypted", "ITAR Controlled"],
@@ -2689,6 +2763,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Shield,
     category: "KINETIC WEAPONS",
+    subType: null,
     swap: { weight: 650, power: 4.0, size: "medium" },
     statImpacts: { speed: -1, power: -5, weight: 5, range: -2, stealth: -2 },
     securityLevel: ["DODD 3000.09 Compliant", "HITL Fire Control"],
@@ -2717,6 +2792,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: ShieldCheck,
     category: "ELECTRONIC PROTECTION",
+    subType: null,
     swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 0, range: 2, stealth: -3 },
     securityLevel: ["DODD 3000.09 Compliant"],
@@ -2744,6 +2820,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Radio,
     category: "RF COMMUNICATIONS",
+    subType: null,
     swap: { weight: 0.53, power: 0.012, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
     securityLevel: ["AES-256 Encrypted", "NSA Type 1 Compatible", "DDIL Capable"],
@@ -2773,6 +2850,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Radio,
     category: "RF COMMUNICATIONS",
+    subType: null,
     swap: { weight: 3.2, power: 0.08, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: -1 },
     securityLevel: ["NSA Type 1 Compatible", "AES-256 Encrypted", "DDIL Capable"],
@@ -2801,6 +2879,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Radio,
     category: "RF COMMUNICATIONS",
+    subType: null,
     swap: { weight: 0.53, power: 0.012, size: "small" },  // Real: TW-950 = 531g with battery (trellisware.com datasheet)
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
     securityLevel: ["AES-256 Encrypted", "NSA Type 1 Compatible", "DDIL Capable"],
@@ -2830,6 +2909,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Target,
     category: "SENSORS & DETECTION",
+    subType: null,
     swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 5, stealth: 0 },
     securityLevel: ["ITAR Controlled", "NSA-Approved Crypto"],
@@ -2858,6 +2938,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Brain,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.5, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 0, range: 3, stealth: 0 },
     securityLevel: ["DODD 3000.09 Compliant", "HITL Authorization", "End-to-End Encrypted"],
@@ -2886,6 +2967,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Target,
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 10, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 1, range: 2, stealth: -2 },
     securityLevel: ["ITAR Controlled", "Encrypted Data Link"],
@@ -2914,6 +2996,7 @@ export const individualCapabilities = [
     trl: "TRL 6",
     icon: Eye,
     category: "ISR & SURVEILLANCE",
+    subType: null,
     swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["ITAR Controlled", "Encrypted"],
@@ -2942,6 +3025,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Ban,
     category: "KINETIC WEAPONS",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
     securityLevel: ["DODD 3000.09 Compliant", "Hague VIII Compliant", "HITL Activation"],
@@ -2970,6 +3054,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: ShieldCheck,
     category: "ELECTRONIC PROTECTION",
+    subType: null,
     swap: { weight: 2500, power: 25, size: "large" },
     statImpacts: { speed: -2, power: -15, weight: 8, range: -3, stealth: -4 },
     securityLevel: ["DODD 3000.09 Compliant", "HITL Fire Control"],
@@ -2998,6 +3083,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Compass,
     category: "UNMANNED SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 2, power: 0, weight: 0, range: 3, stealth: 1 },
     securityLevel: ["Encrypted Comms"],
@@ -3026,6 +3112,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Target,
     category: "COMMAND & CONTROL",
+    subType: null,
     swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
     securityLevel: ["ITAR Controlled", "Encrypted"],
@@ -3054,6 +3141,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Zap,
     category: "DIRECTED ENERGY",
+    subType: null,
     swap: { weight: 1200, power: 50, size: "large" },  // Real: HPM operational input ~50-100 kW; 20 kW was standby only
     statImpacts: { speed: -2, power: -18, weight: 6, range: -3, stealth: -6 },
     securityLevel: ["DODD 3000.09 Compliant"],
@@ -3089,6 +3177,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: Shield,
     category: "UNMANNED SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 2, power: 0, weight: 0, range: 2, stealth: 1 },
     securityLevel: ["Encrypted Comms"],
@@ -3117,6 +3206,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: Radio,
     category: "UNMANNED SYSTEMS",
+    subType: null,
     swap: { weight: 5, power: 0.15, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: 15 },
     securityLevel: ["Zero RF Emissions", "EMCON Compliant", "Passive Only"],
@@ -3142,6 +3232,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Waves",
     category: "ACOUSTIC/SONAR",
+    subType: null,
     swap: { weight: 120, power: 0.4, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: 0 },
     securityLevel: ["ITAR Controlled"],
@@ -3158,6 +3249,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Waves",
     category: "ACOUSTIC/SONAR",
+    subType: null,
     swap: { weight: 80, power: 0.3, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 1, range: 2, stealth: 0 },
     securityLevel: ["Encrypted"],
@@ -3174,6 +3266,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Radio",
     category: "RF COMMUNICATIONS",
+    subType: null,
     swap: { weight: 2, power: 0.05, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: -1 },
     securityLevel: ["USCG Compliant"],
@@ -3190,6 +3283,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Shield",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["SECRET capable", "NSA Approved Crypto"],
@@ -3206,6 +3300,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Waves",
     category: "ACOUSTIC/SONAR",
+    subType: null,
     swap: { weight: 15, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["Encrypted"],
@@ -3222,6 +3317,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Shield",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
     securityLevel: ["Encrypted"],
@@ -3238,6 +3334,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Shield",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.1, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 1, stealth: 0 },
     securityLevel: ["NATO STANAG 4193", "ITAR Controlled"],
@@ -3254,6 +3351,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Radio",
     category: "RF COMMUNICATIONS",
+    subType: null,
     swap: { weight: 19.3, power: 0.35, size: "small" },  // Real: MIDS-LVT(1) RT = 19.28 kg; 350W at 70% TSDF (L3Harris sell sheet 2025)
     statImpacts: { speed: 0, power: -2, weight: 0, range: 3, stealth: -2 },
     securityLevel: ["NSA Type 1 Encrypted", "ITAR Controlled"],
@@ -3270,6 +3368,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Anchor",
     category: "LOGISTICS",
+    subType: 'CARGO_MODULE',
     swap: { weight: 24000, power: 0, size: "large" },
     statImpacts: { speed: -3, power: 0, weight: 8, range: -2, stealth: -1 },
     securityLevel: [],
@@ -3286,6 +3385,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Anchor",
     category: "LOGISTICS",
+    subType: 'CARGO_MODULE',
     swap: { weight: 22000, power: 0.1, size: "large" },
     statImpacts: { speed: -3, power: -1, weight: 8, range: -2, stealth: -1 },
     securityLevel: ["Hazmat Compliant"],
@@ -3302,6 +3402,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Anchor",
     category: "LOGISTICS",
+    subType: 'CARGO_MODULE',
     swap: { weight: 800, power: 0.5, size: "medium" },
     statImpacts: { speed: -1, power: -2, weight: 3, range: -1, stealth: -1 },
     securityLevel: [],
@@ -3318,6 +3419,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Eye",
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 4, power: 0.15, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
     securityLevel: ["ITAR Controlled"],
@@ -3334,6 +3436,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Satellite",
     category: "RADAR/RF",
+    subType: null,
     swap: { weight: 12, power: 0.15, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 2, stealth: -2 },
     securityLevel: [],
@@ -3357,6 +3460,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: Radar,
     category: "RADAR/RF",
+    subType: null,
     swap: {
       weight: 1.25,   // Real: 1.25 kg per Echodyne EchoGuard CR datasheet
       power: 0.023,   // Real: 23 W avg per Echodyne EchoGuard CR datasheet
@@ -3391,6 +3495,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Target",
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: { weight: 28000, power: 8, size: "large" },  // Real: Mk 41 8-cell ~15,000 kg empty + 8x Tomahawk ~1,510 kg each; power 8 kW operational
     statImpacts: { speed: -3, power: -5, weight: 9, range: 0, stealth: -3 },
     securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant", "NSA Type 1 Crypto"],
@@ -3407,6 +3512,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Radio",
     category: "NAVIGATION",
+    subType: null,
     swap: { weight: 0, power: 0, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 10 },
     securityLevel: ["EMCON Compliant"],
@@ -3423,6 +3529,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Eye",
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 18, power: 0.3, size: "medium" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: -1 },
     securityLevel: ["ITAR Controlled"],
@@ -3439,6 +3546,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Satellite",
     category: "RADAR/RF",
+    subType: null,
     swap: { weight: 45, power: 0.8, size: "medium" },
     statImpacts: { speed: 0, power: -3, weight: 2, range: 4, stealth: 0 },
     securityLevel: ["ITAR Controlled", "NSA Approved"],
@@ -3455,6 +3563,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Compass",
     category: "NAVIGATION",
+    subType: null,
     swap: { weight: 0, power: 0, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 10, stealth: 2 },
     securityLevel: [],
@@ -3471,6 +3580,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Zap",
     category: "DIRECTED ENERGY",
+    subType: 'EW_JAMMER',
     swap: { weight: 1200, power: 50, size: "large" },  // Real: HPM operational input ~50-100 kW; 20 kW was standby only
     statImpacts: { speed: -2, power: -18, weight: 6, range: -3, stealth: -6 },
     securityLevel: ["DODD 3000.09 Compliant"],
@@ -3487,6 +3597,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Target",
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: { weight: 400, power: 0.5, size: "medium" },  // Real: Block 3NK est. ~30 kg/airframe × 8 + launcher hardware; total ~400 kg
     statImpacts: { speed: -1, power: -3, weight: 3, range: 0, stealth: -2 },
     securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant"],
@@ -3503,6 +3614,7 @@ export const individualCapabilities = [
     trl: "TRL 7",
     icon: "Satellite",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.2, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: [],
@@ -3519,6 +3631,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Satellite",
     category: "RADAR/RF",
+    subType: null,
     swap: { weight: 10, power: 0.3, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: 0 },
     securityLevel: [],
@@ -3535,6 +3648,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Brain",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.5, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 0, range: 5, stealth: 0 },
     securityLevel: ["Encrypted", "FedRAMP Authorized"],
@@ -3551,6 +3665,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Eye",
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 8, power: 0.15, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: -1 },
     securityLevel: ["ITAR Controlled"],
@@ -3567,6 +3682,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Waves",
     category: "ACOUSTIC/SONAR",
+    subType: 'ACOUSTIC_MODEM',
     swap: { weight: 3, power: 0.025, size: "small" },  // Real: 48g DSP board; ~2-5 kg with housing, PA, transducer; 25W avg
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: ["Encrypted ACOMMS"],
@@ -3583,6 +3699,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Anchor",
     category: "LOGISTICS",
+    subType: null,
     swap: { weight: 1200, power: 1.0, size: "large" },
     statImpacts: { speed: -1, power: -4, weight: 4, range: 0, stealth: -1 },
     securityLevel: [],
@@ -3599,6 +3716,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Shield",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.5, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 0, range: 0, stealth: 0 },
     securityLevel: ["SECRET capable", "NSA Approved"],
@@ -3615,6 +3733,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Satellite",
     category: "SATCOM",
+    subType: null,
     swap: { weight: 150, power: 0.7, size: "medium" },  // Real: 1m Ka maritime terminal ~150-170 kg total; ~700W typical (Viasat GMT-6524 datasheet)
     statImpacts: { speed: 0, power: -4, weight: 2, range: 5, stealth: -2 },
     securityLevel: ["NSA Type 1 Encrypted", "ITAR Controlled"],
@@ -3631,6 +3750,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Target",
     category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
     swap: { weight: 1676, power: 0, size: "large" },
     statImpacts: { speed: 0, power: 0, weight: 5, range: 0, stealth: 0 },
     securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant"],
@@ -3647,6 +3767,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Target",
     category: "C2 SYSTEMS",
+    subType: null,
     swap: { weight: 0, power: 0.5, size: "small" },
     statImpacts: { speed: 0, power: -2, weight: 0, range: 3, stealth: 0 },
     securityLevel: ["ITAR Controlled", "NSA Type 1", "DODD 3000.09 Compliant"],
@@ -3663,6 +3784,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Satellite",
     category: "RADAR/RF",
+    subType: null,
     swap: { weight: 0, power: 0, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 5, stealth: 0 },
     securityLevel: ["ITAR Controlled"],
@@ -3679,6 +3801,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Satellite",
     category: "RADAR/RF",
+    subType: null,
     swap: { weight: 0, power: 0, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 5, stealth: 0 },
     securityLevel: ["ITAR Controlled"],
@@ -3695,6 +3818,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Satellite",
     category: "SATCOM",
+    subType: null,
     swap: { weight: 60, power: 0.7, size: "medium" },  // Real: compact Ka maritime terminal ~60 kg; ~700W typical
     statImpacts: { speed: 0, power: -5, weight: 1, range: 5, stealth: -2 },
     securityLevel: ["NSA Type 1 Encrypted", "ITAR Controlled"],
@@ -3713,6 +3837,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Eye",
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 1, power: 0.02, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 2, stealth: 0 },
     securityLevel: [],
@@ -3728,6 +3853,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Eye",
     category: "EO/IR SENSORS",
+    subType: null,
     swap: { weight: 1, power: 0.02, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 3, stealth: 0 },
     securityLevel: [],
@@ -3743,6 +3869,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Navigation",
     category: "UTILITY",
+    subType: null,
     swap: { weight: 4, power: 0.1, size: "medium" },
     statImpacts: { speed: -1, power: 0, weight: 1, range: 0, stealth: -2 },
     securityLevel: [],
@@ -3758,6 +3885,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Satellite",
     category: "SATCOM",
+    subType: null,
     swap: { weight: 0.5, power: 0.01, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: -1 },
     securityLevel: [],
@@ -3773,6 +3901,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Satellite",
     category: "SATCOM",
+    subType: null,
     swap: { weight: 0.5, power: 0.01, size: "small" },
     statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: -1 },
     securityLevel: [],
@@ -3788,6 +3917,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Navigation",
     category: "NAVIGATION",
+    subType: null,
     swap: { weight: 0.3, power: 0.005, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3803,6 +3933,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Navigation",
     category: "NAVIGATION",
+    subType: null,
     swap: { weight: 0.3, power: 0.005, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3818,6 +3949,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Navigation",
     category: "NAVIGATION",
+    subType: 'NAV_INS',
     swap: { weight: 0.5, power: 0.01, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3833,6 +3965,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Navigation",
     category: "NAVIGATION",
+    subType: null,
     swap: { weight: 0.3, power: 0.005, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 0, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3848,6 +3981,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Zap",
     category: "UTILITY",
+    subType: null,
     swap: { weight: 3, power: 0, size: "medium" },
     statImpacts: { speed: 0, power: 0, weight: 1, range: 10, stealth: 2 },
     securityLevel: [],
@@ -3863,6 +3997,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Zap",
     category: "UTILITY",
+    subType: null,
     swap: { weight: 3, power: 0, size: "medium" },
     statImpacts: { speed: 0, power: 0, weight: 1, range: 10, stealth: 2 },
     securityLevel: [],
@@ -3878,6 +4013,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Waves",
     category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_FLS',
     swap: { weight: 5, power: 0.3, size: "medium" },
     statImpacts: { speed: -1, power: -2, weight: 2, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3893,6 +4029,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Waves",
     category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_SIDESCAN',
     swap: { weight: 8, power: 0.5, size: "medium" },
     statImpacts: { speed: -2, power: -3, weight: 3, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3908,6 +4045,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Anchor",
     category: "UTILITY",
+    subType: null,
     swap: { weight: 6, power: 0.2, size: "medium" },
     statImpacts: { speed: -1, power: -1, weight: 2, range: 0, stealth: 0 },
     securityLevel: [],
@@ -3923,6 +4061,7 @@ export const individualCapabilities = [
     trl: "TRL 9",
     icon: "Zap",
     category: "UTILITY",
+    subType: null,
     swap: { weight: 2, power: 0, size: "small" },
     statImpacts: { speed: 0, power: 0, weight: 1, range: 8, stealth: 0 },
     securityLevel: [],
@@ -3938,6 +4077,7 @@ export const individualCapabilities = [
     trl: "TRL 8",
     icon: "Package",
     category: "UTILITY",
+    subType: 'CARGO_MODULE',
     swap: { weight: 20, power: 0, size: "large" },
     statImpacts: { speed: -1, power: 0, weight: 5, range: -3, stealth: 0 },
     securityLevel: [],
@@ -4385,6 +4525,7 @@ export const missionFlowTemplates = {
   REFLEX_SWARM_ATTACK: {
     name: "Reflex Swarm Attack",
     category: "COMBAT",
+    subType: null,
     nodes: [
       { id: 'trigger', type: 'trigger', label: 'Threat Detected', position: { x: 50, y: 150 } },
       { id: 'sense', type: 'sense', label: 'Sense', position: { x: 200, y: 150 } },
@@ -4403,6 +4544,7 @@ export const missionFlowTemplates = {
   ROBOT_DEFENSE_OODA: {
     name: "Robot Defense OODA Loop",
     category: "DEFENSE",
+    subType: null,
     nodes: [
       { id: 'observe', type: 'observe', label: 'Observe', position: { x: 50, y: 100 } },
       { id: 'orient', type: 'orient', label: 'Orient', position: { x: 200, y: 100 } },
@@ -4426,6 +4568,7 @@ export const missionFlowTemplates = {
   LIFEBOAT_TRACKING: {
     name: "Lifeboat Tracking",
     category: "SAR",
+    subType: null,
     nodes: [
       { id: 'trigger', type: 'trigger', label: 'Distress Signal', position: { x: 50, y: 150 } },
       { id: 'search', type: 'action', label: 'Search Area', position: { x: 200, y: 150 } },
@@ -4448,6 +4591,7 @@ export const missionFlowTemplates = {
   ONE_WAY_ATTACK: {
     name: "One-Way Attack",
     category: "COMBAT",
+    subType: null,
     nodes: [
       { id: 'launch', type: 'trigger', label: 'Launch Command', position: { x: 50, y: 150 } },
       { id: 'transit', type: 'action', label: 'Transit to AO', position: { x: 200, y: 150 } },
@@ -4470,6 +4614,7 @@ export const missionFlowTemplates = {
   RECONNAISSANCE: {
     name: "Reconnaissance",
     category: "ISR",
+    subType: null,
     nodes: [
       { id: 'deploy', type: 'trigger', label: 'Deploy to AO', position: { x: 50, y: 150 } },
       { id: 'scan', type: 'sense', label: 'Area Scan', position: { x: 200, y: 150 } },
@@ -4493,6 +4638,7 @@ export const missionFlowTemplates = {
   PATROL: {
     name: "Patrol",
     category: "ISR",
+    subType: null,
     nodes: [
       { id: 'start', type: 'trigger', label: 'Begin Patrol', position: { x: 50, y: 150 } },
       { id: 'waypoint', type: 'action', label: 'Navigate Waypoint', position: { x: 200, y: 150 } },
@@ -4518,6 +4664,7 @@ export const missionFlowTemplates = {
   CONTESTED_LOGISTICS: {
     name: "Contested Logistics",
     category: "LOGISTICS",
+    subType: null,
     nodes: [
       { id: 'launch', type: 'trigger', label: 'Mission Start', position: { x: 50, y: 150 } },
       { id: 'passive_scan', type: 'sense', label: 'Passive ESM Scan', position: { x: 200, y: 150 } },
@@ -4550,6 +4697,7 @@ export const missionFlowTemplates = {
   SEA_DENIAL: {
     name: "Sea Denial",
     category: "SEA_CONTROL",
+    subType: null,
     nodes: [
       { id: 'deploy', type: 'trigger', label: 'Deploy to Zone', position: { x: 50, y: 150 } },
       { id: 'patrol', type: 'action', label: 'Patrol Zone', position: { x: 200, y: 150 } },
@@ -4585,6 +4733,7 @@ export const missionFlowTemplates = {
   ESCORT: {
     name: "Escort Protection",
     category: "ESCORT",
+    subType: null,
     nodes: [
       { id: 'form', type: 'trigger', label: 'Form Screen', position: { x: 50, y: 150 } },
       { id: 'screen', type: 'action', label: 'Maintain Screen', position: { x: 200, y: 150 } },
@@ -4627,6 +4776,7 @@ export const missionFlowTemplates = {
   PORT_SECURITY: {
     name: "Port Security",
     category: "FORCE_PROTECTION",
+    subType: null,
     nodes: [
       { id: 'on_station', type: 'trigger', label: 'On Station', position: { x: 50, y: 150 } },
       { id: 'patrol', type: 'action', label: 'Randomized Patrol', position: { x: 200, y: 150 } },
@@ -4658,6 +4808,7 @@ export const missionFlowTemplates = {
   MCM: {
     name: "Mine Countermeasures",
     category: "MCM",
+    subType: null,
     nodes: [
       { id: 'deploy_auv',    type: 'trigger',          label: 'Deploy Freedom AUV',              position: { x: 50,   y: 150 } },
       { id: 'sas_sweep',     type: 'action',           label: 'SAS Lawnmower Sweep\n(150m swath)', position: { x: 220, y: 150 } },
@@ -4689,6 +4840,7 @@ export const missionFlowTemplates = {
   ISR: {
     name: "ISR — Tethered Drone",
     category: "ISR",
+    subType: null,
     nodes: [
       { id: 'on_station',   type: 'trigger',          label: 'M48 On Station\n(DriveAI Patrol)',       position: { x: 50,   y: 150 } },
       { id: 'lantern_up',   type: 'action',           label: 'Deploy LANTERN\n(200ft Tethered)',       position: { x: 220,  y: 150 } },
@@ -4721,6 +4873,7 @@ export const missionFlowTemplates = {
   NON_KINETIC_EW: {
     name: "Non-Kinetic Effects — NEMESIS EW Deception",
     category: "EW",
+    subType: null,
     nodes: [
       { id: 'intel_cue',     type: 'trigger',          label: 'Intel Cue\n(Sensor Pass / Threat Vector)',  position: { x: 50,   y: 150 } },
       { id: 'asset_posit',   type: 'action',           label: 'TempestOS\nPositions NEMESIS Package',      position: { x: 220,  y: 150 } },
@@ -4757,6 +4910,7 @@ export const missionFlowTemplates = {
   ASW: {
     name: "ASW — CAPTAS/MFTA Multistatic + HORUS Mesh",
     category: "ASW",
+    subType: null,
     nodes: [
       { id: 'deploy',      type: 'trigger',          label: 'Deploy M48 + HORUS\n(CTF-72 Tasking)',        position: { x: 50,   y: 150 } },
       { id: 'captas_ping', type: 'action',            label: 'CAPTAS-4 Active Ping\n(900-2100Hz / 150km)', position: { x: 220,  y: 150 } },

@@ -3,18 +3,22 @@ import {
   MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
 import {
-  Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings
+  Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings, ArrowLeftRight
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
-const MISSION_SET_KEY = 'SEA_JEEP_ISR';
+const MISSION_SET_KEY = 'SEAJEEP_ISR';
 const MISSION_SET_CAPS = [
   'Trillium HD25e Gimbal (Mast-Mounted)',
   'Extended ISR Mast + Counterweight Keel',
@@ -119,7 +123,8 @@ const SEA_JEEP_ISR_MOUNTS = [
 
 const VESSEL_ROSTER = [
   {
-    name: 'GP-USV Sea Jeep — ISR Config (Extended Mast)',
+    name: 'SEA-JEEP-ISR-1',
+    roleDescriptor: '(ISR)',
     image: imgSeaJeep,
     hullName: 'GP-USV Sea Jeep',
     roleKey: 'SEA_JEEP_ISR_1',
@@ -143,9 +148,11 @@ const MapInvalidateSize = () => {
 const SeaJeepISRMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull }            = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
   const { setSelectedView }            = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -153,9 +160,23 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
     const roleDef   = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
-    return { ...vessel, name: assignment.vesselLabel || assignment.hullName, hullName: assignment.hullName };
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
+    return { ...vessel, name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName), hullName: assignment.hullName, capabilities, image: HULL_IMAGES[assignment.hullName] || vessel.image };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [missionName,  setMissionName]  = useState(mission?.name || '');
@@ -185,6 +206,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
   const launchTimer     = useRef(null);
   const mastTimer       = useRef(null);
   const addEvtRef       = useRef(null);
+  const vesselLabelsRef = useRef([]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const _addEvent = (msg, type = 'info') => {
@@ -195,6 +217,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
   };
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   // Mast stability pulse when on_station or later
   useEffect(() => {
@@ -272,6 +295,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'SEA-JEEP-ISR-1';
       setCurrentTick(tick);
 
       // ── Drone position — appears at T_DRONE_TRACKED, advances toward intercept ──
@@ -290,29 +314,29 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
       // ── Phase transitions + events ──
       if (tick === T_TRANSIT) {
         setPhase('transit');
-        addEvtRef.current('SEA-JEEP-ISR-1: Transit to Bab-el-Mandeb station — mast stowed', 'info');
+        addEvtRef.current(`${v0}: Transit to Bab-el-Mandeb station — mast stowed`, 'info');
       }
       if (tick === T_ON_STATION) {
         setPhase('on_station');
-        addEvtRef.current('SEA-JEEP-ISR-1: On station — ISR mast deployed, EO/IR active', 'info');
-        addEvtRef.current('SEA-JEEP-ISR-1: Keel counterweight deployed — mast stabilized Sea State 3', 'info');
+        addEvtRef.current(`${v0}: On station — ISR mast deployed, EO/IR active`, 'info');
+        addEvtRef.current(`${v0}: Keel counterweight deployed — mast stabilized Sea State 3`, 'info');
       }
       if (tick === T_ON_STATION + 3) {
         setPhase('mast_deployed');
       }
       if (tick === T_LOITERING) {
         setPhase('loitering');
-        addEvtRef.current('SEA-JEEP-ISR-1: Scanning Yemeni coastline — no contacts', 'info');
+        addEvtRef.current(`${v0}: Scanning Yemeni coastline — no contacts`, 'info');
         addEvtRef.current('MOC NSA BAHRAIN: Sea Jeep ISR-1 on station — DDG alerted, standing by', 'info');
       }
       if (tick === T_LAUNCH_FLASH) {
         setPhase('launch_flash');
-        addEvtRef.current('SEA-JEEP-ISR-1: LAUNCH FLASH — Yemeni coast, bearing 045 — UAS suspected', 'warn');
+        addEvtRef.current(`${v0}: LAUNCH FLASH — Yemeni coast, bearing 045 — UAS suspected`, 'warn');
       }
       if (tick === T_DRONE_TRACKED) {
         setPhase('drone_tracked');
-        addEvtRef.current('SEA-JEEP-ISR-1: UAS track confirmed — bearing 045, closure rate ~130 knots', 'warn');
-        addEvtRef.current('SEA-JEEP-ISR-1: Target elevation 500ft AGL, heading 225 — relaying to DDG', 'warn');
+        addEvtRef.current(`${v0}: UAS track confirmed — bearing 045, closure rate ~130 knots`, 'warn');
+        addEvtRef.current(`${v0}: Target elevation 500ft AGL, heading 225 — relaying to DDG`, 'warn');
       }
       if (tick === T_RELAY_TO_DDG) {
         setPhase('relay_to_ddg');
@@ -335,7 +359,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_RESUME_WATCH) {
         setPhase('resume_watch');
-        addEvtRef.current('SEA-JEEP-ISR-1: Threat eliminated — resuming scan, mast stable', 'info');
+        addEvtRef.current(`${v0}: Threat eliminated — resuming scan, mast stable`, 'info');
         addEvtRef.current('MOC NSA BAHRAIN: MARAD notified — lane BRAVO-2 remains open', 'info');
       }
       if (tick >= TOTAL_TICKS) {
@@ -386,11 +410,16 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
     const hull = vesselHullData.find(h => h.name === vessel.hullName);
     if (!hull) return;
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
     setPendingMissionSetCaps(vessel.capabilities);
     setPendingMissionSetKey(MISSION_SET_KEY);
     if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
     else setPendingRoleKey(null);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -398,7 +427,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
     if (!missionName.trim()) return;
     const data = {
       name: missionName.trim(),
-      template: 'SEA_JEEP_ISR',
+      template: 'SEAJEEP_ISR',
       domain: 'MARITIME',
       status: 'active',
       duration: 'continuous',
@@ -460,9 +489,9 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
+            missionName.trim() && isDeployable
               ? 'bg-cyan-700 hover:bg-cyan-600 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
@@ -750,8 +779,8 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 border-t border-gray-700/50 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -766,12 +795,37 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 {vessel.capabilities.slice(0, 4).map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
               </div>
             </div>
           ))}
@@ -788,6 +842,17 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
         </div>
 
       </div>{/* /scrollable content */}
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

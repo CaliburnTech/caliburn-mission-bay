@@ -3,7 +3,7 @@ import {
   MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
 import {
-  Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings
+  Play, Pause, RotateCcw, Anchor, ChevronLeft, Check, Settings, ArrowLeftRight
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
@@ -13,6 +13,10 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 
 const MISSION_SET_KEY = 'PORT_SECURITY';
 const MISSION_SET_CAPS = ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'OceanSonics icListen HF Smart Hydrophone Array', 'MOOS-IvP'];
@@ -93,9 +97,9 @@ const HORUS_MOUNTS = [
 
 // ─── Vessel roster ────────────────────────────────────────────────────────────
 const VESSEL_ROSTER = [
-  { name: 'HORUS-1 (NW Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_1', capabilities: ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'VHF Hailing Capability'] },
-  { name: 'HORUS-2 (W Harbor)',  image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_2', capabilities: ['Echodyne EchoGuard CR', 'IFF Negative Alert', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
-  { name: 'HORUS-3 (SW Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_3', capabilities: ['Echodyne EchoGuard CR', 'VHF Hailing Capability', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+  { name: 'HORUS-1 (NW Harbor)', roleDescriptor: '(NW Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_1', capabilities: ['Echodyne EchoGuard CR', 'OrbComm ST 6100', 'LOS Mesh Radio', 'VHF Hailing Capability'] },
+  { name: 'HORUS-2 (W Harbor)', roleDescriptor: '(W Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_2', capabilities: ['Echodyne EchoGuard CR', 'IFF Negative Alert', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
+  { name: 'HORUS-3 (SW Harbor)', roleDescriptor: '(SW Harbor)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', roleKey: 'PS_HORUS_3', capabilities: ['Echodyne EchoGuard CR', 'VHF Hailing Capability', 'OrbComm ST 6100', 'LOS Mesh Radio'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -147,9 +151,11 @@ const MapInvalidateSize = () => {
 const PortSecurityMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
   const { setSelectedView } = useNavigationStore();
   const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -157,13 +163,30 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     const roleDef = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name: assignment.vesselLabel || assignment.hullName,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
       hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   // Metadata
   const [missionName, setMissionName] = useState(mission?.name || '');
@@ -194,6 +217,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
   const meshTimer  = useRef(null);
   const circTimer  = useRef(null);
   const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
 
   // Keep addEvent fresh in closures — update the ref outside render via useLayoutEffect
   const _addEvent = (msg, type = 'info') => {
@@ -290,6 +314,9 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'SubSeaSail Horus (NW Harbor)';
+      const v1 = vesselLabelsRef.current[1] ?? 'SubSeaSail Horus (W Harbor)';
+      const v2 = vesselLabelsRef.current[2] ?? 'SubSeaSail Horus (SW Harbor)';
 
       // ── Bad guy position — intercept happens before approach track ends ──
       if (tick < INTERCEPT_TICK) {
@@ -310,27 +337,27 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         // bogey crosses HORUS-3's 3nm radar circle — computed tick
         setDetectedBoats(new Set(['HORUS-3']));
         setPhase('detection');
-        addEvtRef.current('HORUS-3: ZONE BREACH — SIERRA-7743 crossed 3nm barrier. IFF negative. VHF no reply. Alerting cordon.', 'alert');
+        addEvtRef.current(`${v2}: ZONE BREACH — SIERRA-7743 crossed 3nm barrier. IFF negative. VHF no reply. Alerting cordon.`, 'alert');
       }
       if (tick === 35) {
-        addEvtRef.current('HORUS-3 → HORUS-2: Detection relay — cueing second sensor', 'info');
+        addEvtRef.current(`${v2} → ${v1}: Detection relay — cueing second sensor`, 'info');
       }
       if (tick === LOCALIZE_TICK) {
         // HORUS-2 independently acquires — 2 sensors tracking → LOCALIZATION achieved
         setDetectedBoats(new Set(['HORUS-3', 'HORUS-2']));
         setLocalized(true);
         setPhase('localization');
-        addEvtRef.current('HORUS-2: Track corroborated — LOCALIZATION acquired. 2 sensors on SIERRA-7743.', 'blue');
+        addEvtRef.current(`${v1}: Track corroborated — LOCALIZATION acquired. 2 sensors on SIERRA-7743.`, 'blue');
         addEvtRef.current('NET: Multi-sensor fusion complete — cueing blue force interceptor', 'blue');
       }
       if (tick === 40) {
         // h2→h1 mesh link completes — H1 pings shore
         setPhase('mesh_alert');
-        addEvtRef.current('HORUS-1: Alert received — relaying to MOC NBSD', 'info');
+        addEvtRef.current(`${v0}: Alert received — relaying to MOC NBSD`, 'info');
       }
       if (tick === 47) {
         // h1→shore completes — MOC receives alert
-        addEvtRef.current('NBSD MOC: Alert received from HORUS-1 — track confirmed hostile', 'alert');
+        addEvtRef.current(`NBSD MOC: Alert received from ${v0} — track confirmed hostile`, 'alert');
       }
       if (tick === 51) {
         addEvtRef.current('MOC NBSD: Blue forces authorized — intercepting', 'alert');
@@ -397,7 +424,11 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     if (!hull) return;
 
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
     setPendingMissionSetCaps(vessel.capabilities);
     setPendingMissionSetKey(MISSION_SET_KEY);
     // Pass the specific role key so LoadoutBuilder applies the correct HORUS role
@@ -407,6 +438,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     } else {
       setPendingRoleKey(null);
     }
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -462,9 +494,9 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
+            missionName.trim() && isDeployable
               ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
@@ -695,7 +727,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
             <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
               <div className="flex flex-col gap-1">
                 {[
-                  { color: '#06b6d4', label: 'HORUS USV — Barrier Sensor Node' },
+                  { color: '#06b6d4', label: `${effectiveRoster[0]?.hullName ?? 'SubSeaSail Horus'} — Barrier Sensor Node` },
                   { color: '#ef4444', label: 'SIERRA-7743 — Hostile USV' },
                   { color: '#10b981', label: 'Naval Base San Diego' },
                   { color: '#3b82f6', label: 'Interceptor — Blue Force' },
@@ -826,8 +858,8 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
 
       {/* ── Vessel Roster ── */}
       <div className="p-4 grid grid-cols-2 gap-3">
-        {effectiveRoster.map(vessel => (
-          <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+        {effectiveRoster.map((vessel, idx) => (
+          <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
             <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
               <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
             </div>
@@ -842,18 +874,55 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
                 >
                   <Settings size={13} />
                 </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                  disabled={!missionRoleDefs[idx]}
+                  className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Swap vessel"
+                >
+                  <ArrowLeftRight size={13} />
+                </button>
               </div>
               {vessel.capabilities.map((cap, i) => (
                 <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                   {cap}
                 </div>
               ))}
+              {missionRoleDefs[idx] && (
+                <ReadinessChecklist
+                  config={
+                    (() => {
+                      const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                      if (!assignment) return null;
+                      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                    })()
+                  }
+                  role={missionRoleDefs[idx]}
+                  isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                />
+              )}
             </div>
           </div>
         ))}
       </div>
 
       </div>{/* /scrollable content */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };

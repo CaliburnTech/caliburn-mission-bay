@@ -8,17 +8,21 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import {
   MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Package, ChevronLeft, Check, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Package, ChevronLeft, Check, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgSeaJeep from '../../assets/images/SeaJeep.png';
 
-const MISSION_SET_KEY = 'SEA_JEEP_LOGISTICS';
+const MISSION_SET_KEY = 'SEAJEEP_LOGISTICS';
 const MISSION_SET_CAPS = ['Sealed Dry Cargo Pod (~20kg)', 'GPS/INS + AIS Transponder', 'Iridium SATCOM', 'Solar Wing + Li-ion Battery Bank'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
@@ -193,6 +197,7 @@ const SEA_JEEP_LOGISTICS_MOUNTS = [
 const VESSEL_ROSTER = [
   {
     name: 'SEA-JEEP-LOG-1',
+    roleDescriptor: '(Logistics)',
     image: imgSeaJeep,
     hullName: 'GP-USV Sea Jeep',
     roleKey: 'SJL_SEAJEEP_1',
@@ -228,9 +233,11 @@ const MapInvalidateSize = () => {
 const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull }            = useOutfitterStore();
-  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey } = useConfigurationStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
   const { setSelectedView }            = useNavigationStore();
   const roleAssignments                = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -238,13 +245,29 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
     const roleDef    = missionRoleDefs[idx];
     if (!roleDef) return vessel;
     const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
-    if (!assignment) return vessel;
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
     return {
       ...vessel,
-      name:     assignment.vesselLabel || assignment.hullName,
-      hullName: assignment.hullName,
+      name:         vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
+      hullName:     assignment.hullName,
+      capabilities,
+      image:        HULL_IMAGES[assignment.hullName] || vessel.image,
     };
   });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
 
   // ── State ────────────────────────────────────────────────────────────────
   const [missionName, setMissionName] = useState(mission?.name || '');
@@ -262,6 +285,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
   const pulseTimer       = useRef(null);
   const loopTimer        = useRef(null);
   const addEvtRef        = useRef(null);
+  const vesselLabelsRef  = useRef([]);
   const runScenarioRef   = useRef(null);
 
   // Derived from tick
@@ -287,6 +311,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
   };
 
   useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
 
   // ── Pulse timer (gentle, delivery/approach phases) ────────────────────────
   useEffect(() => {
@@ -350,31 +375,32 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'SEA-JEEP-LOG-1';
       setCurrentTick(tick);
 
       if (tick === T_CARGO_LOADING) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Cargo pod loaded — Subic Bay — 18.5kg critical supplies', 'info');
-        addEvtRef.current('SEA-JEEP-LOG-1: Contents: batteries, Iridium handset, rations (7-day), medical kit', 'info');
+        addEvtRef.current(`${v0}: Cargo pod loaded — Subic Bay — 18.5kg critical supplies`, 'info');
+        addEvtRef.current(`${v0}: Contents: batteries, Iridium handset, rations (7-day), medical kit`, 'info');
       }
       if (tick === T_OUTBOUND_TRANSIT) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Departing Subic Bay — autonomous transit initiated', 'info');
+        addEvtRef.current(`${v0}: Departing Subic Bay — autonomous transit initiated`, 'info');
         addEvtRef.current('MOC LUZON: Resupply route WHISKEY-3 authorized — 380nm to Batanes', 'info');
       }
       if (tick === T_WAYPOINT_BRAVO) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Waypoint BRAVO — North Luzon coast, on track', 'info');
+        addEvtRef.current(`${v0}: Waypoint BRAVO — North Luzon coast, on track`, 'info');
       }
       if (tick === T_WAYPOINT_CHARLIE) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Waypoint CHARLIE — open water transit, solar charging 4.8kts', 'info');
+        addEvtRef.current(`${v0}: Waypoint CHARLIE — open water transit, solar charging 4.8kts`, 'info');
       }
       if (tick === T_WAYPOINT_DELTA) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Waypoint DELTA — Batanes approach, 28nm to delivery', 'info');
+        addEvtRef.current(`${v0}: Waypoint DELTA — Batanes approach, 28nm to delivery`, 'info');
         addEvtRef.current('MOC LUZON: Sea Jeep on track — alerting forward post, ETA 6 hours', 'info');
       }
       if (tick === T_APPROACH_BATANES) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Batan Island — delivery point in sight', 'info');
+        addEvtRef.current(`${v0}: Batan Island — delivery point in sight`, 'info');
       }
       if (tick === T_DELIVERY) {
-        addEvtRef.current('SEA-JEEP-LOG-1: DELIVERY CONFIRMED — cargo pod released, post acknowledged', 'success');
+        addEvtRef.current(`${v0}: DELIVERY CONFIRMED — cargo pod released, post acknowledged`, 'success');
         addEvtRef.current('BATANES OBS POST: Resupply received — 18.5kg, all items intact', 'success');
         addEvtRef.current('MOC LUZON: Mission success — WHISKEY-3 resupply complete', 'success');
         // Brief flash of yellow cargo dot at delivery point
@@ -382,13 +408,13 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
         setTimeout(() => setDeliveryFlash(false), 2000);
       }
       if (tick === T_RETURN_TRANSIT) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Initiating recovery transit — Aparri Naval Station, 130nm', 'info');
+        addEvtRef.current(`${v0}: Initiating recovery transit — Aparri Naval Station, 130nm`, 'info');
       }
       if (tick === T_RETURN_WAYPOINT) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Transiting Babuyan Channel — Aparri approach, 65nm', 'info');
+        addEvtRef.current(`${v0}: Transiting Babuyan Channel — Aparri approach, 65nm`, 'info');
       }
       if (tick === T_ARRIVAL_APARRI) {
-        addEvtRef.current('SEA-JEEP-LOG-1: Arrived Aparri Naval Station — recovery complete, ready for reload', 'success');
+        addEvtRef.current(`${v0}: Arrived Aparri Naval Station — recovery complete, ready for reload`, 'success');
         addEvtRef.current('MOC LUZON: WHISKEY-3 complete — Subic→Batanes→Aparri, ~520nm, zero crew, zero fuel cost', 'success');
       }
       if (tick >= TOTAL_TICKS) {
@@ -415,11 +441,16 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
     const hull = vesselHullData.find(h => h.name === vessel.hullName);
     if (!hull) return;
     setSelectedHull(hull);
-    startNewConfiguration(vessel.hullName);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
     setPendingMissionSetCaps(vessel.capabilities);
     setPendingMissionSetKey(MISSION_SET_KEY);
     if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
     else setPendingRoleKey(null);
+    setPendingVesselLabel(vessel.name);
     setSelectedView('outfitter');
   };
 
@@ -428,7 +459,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
     if (!missionName.trim()) return;
     const data = {
       name: missionName.trim(),
-      template: 'SEA_JEEP_LOGISTICS',
+      template: 'SEAJEEP_LOGISTICS',
       domain: 'MARITIME',
       status: 'active',
       duration: '30d',
@@ -441,7 +472,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
       },
       assignedSquadrons: [],
       missionProfile: {
-        type: 'SEA_JEEP_LOGISTICS',
+        type: 'SEAJEEP_LOGISTICS',
         lane: 'ISLAND_CHAIN_RESUPPLY',
         platform: 'GP-USV Sea Jeep — Logistics Config (No RADAR/PTZ)',
         cargoWeight_kg: 18.5,
@@ -496,9 +527,9 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
         />
         <button
           onClick={handleSave}
-          disabled={!missionName.trim()}
+          disabled={!missionName.trim() || !isDeployable}
           className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
-            missionName.trim()
+            missionName.trim() && isDeployable
               ? 'bg-cyan-700 hover:bg-cyan-600 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
           }`}
@@ -785,8 +816,8 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
 
         {/* ── Vessel Roster ── */}
         <div className="p-4 border-t border-gray-700/50 grid grid-cols-2 gap-3">
-          {effectiveRoster.map(vessel => (
-            <div key={vessel.name} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
               <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
                 <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
               </div>
@@ -801,6 +832,14 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
                   >
                     <Settings size={13} />
                   </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
                 </div>
                 <div className="text-[0.58rem] text-gray-600 mb-0.5">Ocean Aero Triton placeholder</div>
                 {vessel.capabilities.map((cap, i) => (
@@ -808,6 +847,28 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
                     {cap}
                   </div>
                 ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        if (saved) return saved;
+                        // Also check the in-flight active config (user may not have saved yet)
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
+                {missionRoleDefs[idx]?.cargoRole && (
+                  <div className="mt-1 px-2 py-1.5 rounded bg-amber-900/20 border border-amber-500/30 text-[0.6rem] text-amber-400 leading-snug">
+                    ⚠ Cargo role — verify your hull has sufficient payload capacity for your intended cargo.
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -824,6 +885,17 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
         </div>
 
       </div>{/* /scrollable content */}
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
     </div>
   );
 };
