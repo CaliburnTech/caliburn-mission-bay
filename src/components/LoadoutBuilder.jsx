@@ -149,6 +149,7 @@ const LoadoutBuilder = () => {
     activeConfig,
     startNewConfiguration,
     setSlotCapability,
+    setConfigName,
     addSlot,
     removeSlot,
     saveActiveConfiguration,
@@ -183,6 +184,9 @@ const LoadoutBuilder = () => {
     const configId = activeConfig?.id;
     return configId ? (s.versionHistory[configId] || []).length : 0;
   });
+
+  // Config name validation
+  const [nameError, setNameError] = useState(false);
 
   // SBOM / Architecture diagram / Version modal state
   const [showSBOM, setShowSBOM] = useState(false);
@@ -713,6 +717,13 @@ const LoadoutBuilder = () => {
 
   // Handle save configuration — saves config, then shows version commit modal
   const handleSave = () => {
+    // Name is required — block save if blank
+    if (!activeConfig?.name?.trim()) {
+      setNameError(true);
+      document.getElementById('config-name-input')?.focus();
+      return;
+    }
+    setNameError(false);
     // Snapshot active config before saveActiveConfiguration mutates the store
     const configSnapshot = useConfigurationStore.getState().activeConfig;
     const configId = saveActiveConfiguration();
@@ -740,6 +751,7 @@ const LoadoutBuilder = () => {
     // Generate SBOM at save time so the admin portal can display it without needing the catalog
     const sbom = generateSBOMFromActiveConfig(configSnapshot, selectedHull?.name || '');
     const payload = {
+      id: pending.configId,
       name: commitMessage || configSnapshot.name || 'Untitled Configuration',
       config_data: { ...configSnapshot, sbom: sbom ?? null },
       submitted_by: submittedBy || null,
@@ -856,8 +868,27 @@ const LoadoutBuilder = () => {
             {backButtonText}
           </button>
           <div>
-            <h1 className="text-gray-100 text-2xl font-bold">{selectedHull.name.toUpperCase()}</h1>
-            <p className="text-gray-500">{selectedHull.type} • {selectedHull.displacement}</p>
+            <input
+              id="config-name-input"
+              type="text"
+              value={activeConfig?.name || ''}
+              onChange={(e) => { setConfigName(e.target.value); setNameError(false); }}
+              placeholder="Configuration name (required)"
+              className="text-gray-100 text-xl font-bold bg-transparent outline-none border-b transition-colors"
+              style={{
+                borderColor: nameError ? '#ef4444' : 'transparent',
+                borderBottomColor: nameError ? '#ef4444' : 'rgba(75,85,99,0.4)',
+                paddingBottom: '2px',
+                minWidth: '260px',
+                color: nameError && !activeConfig?.name?.trim() ? '#ef4444' : undefined,
+              }}
+              onFocus={e => { e.target.style.borderBottomColor = nameError ? '#ef4444' : 'rgba(203,253,0,0.6)'; }}
+              onBlur={e => { e.target.style.borderBottomColor = nameError ? '#ef4444' : 'rgba(75,85,99,0.4)'; }}
+            />
+            {nameError && !activeConfig?.name?.trim() && (
+              <p style={{ fontSize: '11px', color: '#ef4444', margin: '2px 0 0' }}>Name required before saving</p>
+            )}
+            <p className="text-gray-500 text-xs mt-0.5">{selectedHull.name} • {selectedHull.type}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">

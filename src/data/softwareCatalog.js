@@ -2,6 +2,8 @@
 // Each entry enriches loadout component names with version, license, supplier,
 // dependencies, and interface/data-flow metadata for SV-2 generation.
 
+import { individualCapabilities, engineeringStacks } from './marketplaceData';
+
 export const softwareCatalog = {
   // ============ CORE PLATFORM ============
   "TempestOS Core": {
@@ -582,17 +584,42 @@ export const sv2Architectures = {
   }
 };
 
-// Helper: get catalog entry, returning a minimal stub if not found
+// Helper: get catalog entry, returning a minimal stub if not found.
+// Falls back to individualCapabilities / engineeringStacks from the marketplace
+// so that capabilities show real supplier/category instead of "Unknown".
 export const getCatalogEntry = (name) => {
   if (softwareCatalog[name]) return softwareCatalog[name];
+
+  const marketplaceCap =
+    individualCapabilities.find(c => c.name === name) ||
+    engineeringStacks.find(s => s.name === name) ||
+    null;
+
+  if (marketplaceCap) {
+    const slug = name.toLowerCase().replace(/\s+/g, '-');
+    return {
+      componentName: name,
+      version: marketplaceCap.version || 'Unknown',
+      supplier: marketplaceCap.provider || marketplaceCap.supplier || marketplaceCap.manufacturer || 'Unknown',
+      license: marketplaceCap.license || 'Proprietary',
+      purl: `pkg:generic/${slug}@${marketplaceCap.version || '0.0.0'}`,
+      category: marketplaceCap.type || marketplaceCap.category || 'Unknown',
+      description: marketplaceCap.description || '',
+      protocols: [],
+      dependencies: [],
+      interfaces: {},
+      dataFlows: {}
+    };
+  }
+
   return {
     componentName: name,
-    version: "Unknown",
-    supplier: "Unknown",
-    license: "Unknown",
+    version: 'Unknown',
+    supplier: 'Unknown',
+    license: 'Unknown',
     purl: `pkg:generic/unknown/${name.toLowerCase().replace(/\s+/g, '-')}@0.0.0`,
-    category: "Unknown",
-    description: "",
+    category: 'Unknown',
+    description: '',
     protocols: [],
     dependencies: [],
     interfaces: {},

@@ -271,6 +271,33 @@ const useConfigurationStore = create(
       // ============================================
 
       // Save the active configuration
+      /**
+       * Load an activeConfig from a version snapshot so the user can edit it in the Loadout Builder.
+       * Also upserts into savedConfigurations so save/re-save works correctly.
+       */
+      loadFromVersionSnapshot: (version) => {
+        if (!version?.snapshot) return null;
+        const { snapshot, configId } = version;
+        const now = Date.now();
+        const configObj = {
+          id: configId,
+          name: snapshot.name || 'Untitled',
+          hullName: snapshot.hullName || '',
+          slots: snapshot.slots || {},
+          squadronId: snapshot.squadronId || null,
+          unitCount: 1,
+          status: { missionReady: 1, deployed: 0 },
+          createdAt: now,
+          updatedAt: now,
+          isDirty: false,
+        };
+        set(s => ({
+          savedConfigurations: { ...s.savedConfigurations, [configId]: configObj },
+          activeConfig: configObj,
+        }));
+        return configId;
+      },
+
       saveActiveConfiguration: () => {
         const { activeConfig, savedConfigurations } = get();
         if (!activeConfig) return null;

@@ -8,13 +8,16 @@
  */
 
 import { GitCommit, Tag, Clock, ChevronRight, Diff } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import useVersionStore from '../../store/versionStore';
 
 const VersionTimeline = ({ configId, onSelectVersion, onCompareVersions, selectedVersionId }) => {
-  const versions = useVersionStore(s => {
+  // shallow prevents infinite re-render loop: .map().filter() always creates a new array
+  // reference, which React 18's useSyncExternalStore treats as a changed value without it.
+  const versions = useVersionStore(useShallow(s => {
     const ids = s.versionHistory[configId] || [];
     return ids.map(id => s.versions[id]).filter(Boolean);
-  });
+  }));
 
   if (versions.length === 0) {
     return (

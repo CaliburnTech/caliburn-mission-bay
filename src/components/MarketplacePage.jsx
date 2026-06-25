@@ -20,6 +20,7 @@ import DeploymentModal from './DeploymentModal';
 import SquadronManagementModal from './SquadronManagementModal';
 import CapabilityDetailsModal from './CapabilityDetailsModal';
 import VersionControlView from './VersionControlView';
+import AdminSubmissionsView from './AdminSubmissionsView';
 import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
 
@@ -277,6 +278,11 @@ const MarketplacePage = ({ onLogoClick }) => {
             {/* Versions */}
             {selectedView === 'versions' && (
               <VersionControlView />
+            )}
+
+            {/* Admin Submissions */}
+            {selectedView === 'submissions' && (
+              <AdminSubmissionsView />
             )}
 
           </div>

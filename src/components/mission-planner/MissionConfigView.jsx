@@ -379,12 +379,6 @@ const MissionConfigView = ({ mission, onBack }) => {
       {/* Header with Back Button */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="px-2.5 py-1.5 bg-transparent border border-gray-600/40 rounded-md text-gray-400 text-[0.65rem] cursor-pointer flex items-center gap-1"
-          >
-            <ChevronLeft size={14} /> Back to Library
-          </button>
           <h2 className="text-gray-50 text-base font-semibold m-0">
             {mission ? 'Edit Mission' : 'New Mission'}
           </h2>

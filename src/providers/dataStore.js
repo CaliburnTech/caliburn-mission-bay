@@ -185,18 +185,19 @@ const useDataStore = create((set, get) => ({
 
   createConfig: async (data) => {
     const { supabase } = await import('../auth/supabaseClient');
+    const now = new Date().toISOString();
     const { data: row, error } = await supabase
       .from('SavedConfiguration')
-      .insert({
-        id: crypto.randomUUID(),
+      .upsert({
+        id: data.id || crypto.randomUUID(),
         userId: 'demo-user-000000000000',
         companyId: 'demo-company-00000000000',
         name: data.name,
         configData: data.config_data ?? {},
         submittedBy: data.submitted_by ?? null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      })
+        createdAt: now,
+        updatedAt: now,
+      }, { onConflict: 'id', ignoreDuplicates: false })
       .select()
       .single();
     if (error) { console.error('[createConfig]', error); return null; }
