@@ -1103,18 +1103,34 @@ const LoadoutBuilder = () => {
 
           {/* Configure for Mission panel */}
           {(() => {
-            // Sort ALL_MISSIONS: 1) hull name matches a role's defaultHullName, 2) platformType in role's allowedPlatformTypes, 3) rest
             const hullName = selectedHull?.name;
             const platformType = selectedHull?.platformType;
-            const sortedMissions = [...ALL_MISSIONS].sort((a, b) => {
-              const score = (mission) => {
+
+            // Returns the best role this hull can fill in a given role list.
+            // Priority: allowedHullNames > suggestedHullNames > defaultHullName > platformType (only if no hull hard-filter).
+            const getBestFitRole = (roles) => (
+              roles.find(r => r.allowedHullNames?.includes(hullName)) ||
+              roles.find(r => r.suggestedHullNames?.includes(hullName)) ||
+              roles.find(r => r.defaultHullName === hullName) ||
+              roles.find(r => !r.allowedHullNames?.length && platformType && r.allowedPlatformTypes?.includes(platformType)) ||
+              null
+            );
+
+            // Filter to only missions where this hull has a valid role, then sort by fit quality.
+            const sortedMissions = ALL_MISSIONS
+              .filter(mission => {
                 const roles = MISSION_ROLES[mission.key]?.roles || [];
-                if (roles.some(r => r.defaultHullName === hullName)) return 0;
-                if (platformType && roles.some(r => r.allowedPlatformTypes?.includes(platformType))) return 1;
-                return 2;
-              };
-              return score(a) - score(b);
-            });
+                return getBestFitRole(roles) !== null;
+              })
+              .sort((a, b) => {
+                const score = (mission) => {
+                  const roles = MISSION_ROLES[mission.key]?.roles || [];
+                  if (roles.some(r => r.defaultHullName === hullName)) return 0;
+                  if (roles.some(r => r.allowedHullNames?.includes(hullName) || r.suggestedHullNames?.includes(hullName))) return 1;
+                  return 2;
+                };
+                return score(a) - score(b);
+              });
 
             // Use configMission (persisted local state) so the dropdown keeps its selection
             // after the useEffect clears pendingMissionSetKey.
@@ -1123,13 +1139,12 @@ const LoadoutBuilder = () => {
               ? ALL_MISSIONS.find(m => m.key === activeMissionKey)
               : null;
 
-            // Determine which role to show in the checklist for the selected mission
+            // Determine which role to show in the checklist / assign on "Go to Mission".
+            // Prefer the exact role this session was opened for (sessionRoleKey), then
+            // use getBestFitRole so the hull lands in its correct slot, not always slot 0.
             const selectedMissionRoles = activeMissionKey ? (MISSION_ROLES[activeMissionKey]?.roles || []) : [];
-            // Prefer the exact role this session was opened for (sessionRoleKey) so that
-            // configuring ASW_BRAVO doesn't accidentally assign back to ASW_ALPHA.
-            // Fall back to platformType matching when opened via the mission dropdown.
             const matchedRole = (sessionRoleKey && selectedMissionRoles.find(r => r.roleKey === sessionRoleKey))
-              || selectedMissionRoles.find(r => platformType && r.allowedPlatformTypes?.includes(platformType))
+              || getBestFitRole(selectedMissionRoles)
               || selectedMissionRoles[0]
               || null;
 
@@ -1161,14 +1176,15 @@ const LoadoutBuilder = () => {
                         {sortedMissions.map(mission => {
                           const roles = MISSION_ROLES[mission.key]?.roles || [];
                           const isRecommended = roles.some(r => r.defaultHullName === hullName);
-                          const isCompatible = !isRecommended && platformType && roles.some(r => r.allowedPlatformTypes?.includes(platformType));
+                          const isCompatible = !isRecommended;
                           return (
                             <button
                               key={mission.key}
                               onClick={() => {
+                                const bestRole = getBestFitRole(roles);
                                 setPendingMissionSetKey(mission.key);
                                 setConfigMission(mission.key);
-                                setPendingRoleKey(null);
+                                setPendingRoleKey(bestRole?.roleKey || null);
                                 setConfigMissionOpen(false);
                               }}
                               className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700/50 transition-colors flex items-center gap-2 ${
