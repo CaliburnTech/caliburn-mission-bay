@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   ChevronLeft, Eye, Crosshair, Shield, Navigation, Cpu,
   Wifi, Zap, Plus, X, Check, Ship,
@@ -725,7 +725,7 @@ const LoadoutBuilder = () => {
   };
 
   // Ref to hold data for the pending API save (set in handleSave, consumed in handleVersionModalClose)
-  const _pendingSaveRef = useState(() => ({ current: null }))[0];
+  const _pendingSaveRef = useRef(null);
 
   // Called when the version modal closes — fires the backend save as fire-and-forget
   const handleVersionModalClose = (versionId, submittedBy, commitMessage) => {
@@ -750,7 +750,7 @@ const LoadoutBuilder = () => {
       dataStoreAdapter.createConfig(payload).catch(() => {
         // Best-effort — swallow errors silently
       });
-    } catch (_err) {
+    } catch {
       // Best-effort — swallow errors silently
     }
   };
