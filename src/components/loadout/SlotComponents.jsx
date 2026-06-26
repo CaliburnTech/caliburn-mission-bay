@@ -97,7 +97,8 @@ export const CategorySlotCard = ({
   onAddSlot,
   onRemoveSlot,
   onHide,
-  isSelected
+  isSelected,
+  requirementUnmet = false,
 }) => {
   const Icon = category.icon;
   const totalCapacity = baseCapacity + extraSlots;
@@ -107,7 +108,11 @@ export const CategorySlotCard = ({
   return (
     <div
       className={`bg-darker rounded-xl border-2 p-4 transition-all relative group ${
-        isSelected ? 'border-lime-brand shadow-lg shadow-lime-brand/10' : 'border-gray-700/50'
+        isSelected
+          ? 'border-lime-brand shadow-lg shadow-lime-brand/10'
+          : requirementUnmet
+          ? 'border-red-500/70 shadow-lg shadow-red-500/10'
+          : 'border-gray-700/50'
       }`}
     >
       {/* Hide button */}

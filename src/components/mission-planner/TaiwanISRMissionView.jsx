@@ -927,11 +927,12 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                       (() => {
                         const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
                         if (!assignment) return null;
-                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
-                        if (saved) return saved;
-                        // Also check the in-flight active config (user may not have saved yet)
+                        // Prefer the in-flight active config — it reflects the latest unsaved changes.
+                        // Only fall back to savedConfigurations if activeConfig is for a different hull.
                         const ac = useConfigurationStore.getState().activeConfig;
-                        return (ac && ac.hullName === assignment.hullName) ? ac : null;
+                        if (ac && ac.hullName === assignment.hullName) return ac;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        return saved ?? null;
                       })()
                     }
                     role={missionRoleDefs[idx]}

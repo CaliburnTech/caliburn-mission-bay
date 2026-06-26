@@ -6,6 +6,7 @@ import {
   FileText, GitBranch, Map
 } from 'lucide-react';
 import { getEligibleRolesByMission } from '../utils/roleUtils';
+import { meetsRequirements } from '../utils/missionReadiness';
 import { MISSION_ROLES } from '../data/missionRoles';
 import { ALL_MISSIONS } from './mission-planner/constants';
 import ReadinessChecklist from './mission-planner/ReadinessChecklist';
@@ -565,6 +566,21 @@ const LoadoutBuilder = () => {
     () => useConfigurationStore.getState().pendingRoleKey || ''
   );
 
+  // Compute which required slot categories are currently unmet for the active mission.
+  // Used to draw a red outline on the relevant slot cards.
+  const missingRequiredCategories = useMemo(() => {
+    const activeMissionKey = configMission || pendingMissionSetKey;
+    if (!activeMissionKey || !activeConfig) return new Set();
+    const roles = MISSION_ROLES[activeMissionKey]?.roles || [];
+    const matchedRole = (sessionRoleKey && roles.find(r => r.roleKey === sessionRoleKey))
+      || roles.find(r => r.platformTypes?.includes(selectedHull?.type))
+      || roles[0]
+      || null;
+    if (!matchedRole) return new Set();
+    const { missing } = meetsRequirements(activeConfig, matchedRole);
+    return new Set(missing.filter(m => m.type === 'category').map(m => m.key));
+  }, [configMission, pendingMissionSetKey, activeConfig, sessionRoleKey, selectedHull]);
+
   // Apply a mission role's capabilities to the loadout, then record the assignment.
   // vesselLabel overrides the default (selectedHull.name) — pass the displayed card name
   // so tactical callsigns like 'M48-ALPHA (CAPTAS)' survive configure round-trips.
@@ -752,7 +768,9 @@ const LoadoutBuilder = () => {
     const sbom = generateSBOMFromActiveConfig(configSnapshot, selectedHull?.name || '');
     const payload = {
       id: pending.configId,
-      name: commitMessage || configSnapshot.name || 'Untitled Configuration',
+      name: commitMessage
+        ? `${configSnapshot.name || 'Untitled Configuration'} - ${commitMessage}`
+        : configSnapshot.name || 'Untitled Configuration',
       config_data: { ...configSnapshot, sbom: sbom ?? null },
       submitted_by: submittedBy || null,
       products,
@@ -790,9 +808,10 @@ const LoadoutBuilder = () => {
       return;
     }
 
-    // Only start a new config if there's no active config at all
-    // If activeConfig exists (e.g., loaded from "Edit Configuration"), keep it
-    if (!activeConfig) {
+    // Start a new config if there's none, or if the active config belongs to a
+    // different hull (stale from a previous configure session). Editing an existing
+    // config is safe because its hullName will always match selectedHull.name.
+    if (!activeConfig || activeConfig.hullName !== selectedHull.name) {
       startNewConfiguration(selectedHull.name);
     }
   }, [selectedHull, setSelectedView, activeConfig, startNewConfiguration]);
@@ -877,13 +896,25 @@ const LoadoutBuilder = () => {
               className="text-gray-100 text-xl font-bold bg-transparent outline-none border-b transition-colors"
               style={{
                 borderColor: nameError ? '#ef4444' : 'transparent',
-                borderBottomColor: nameError ? '#ef4444' : 'rgba(75,85,99,0.4)',
+                borderBottomColor: nameError
+                  ? '#ef4444'
+                  : !activeConfig?.name?.trim()
+                  ? 'rgba(239,68,68,0.35)'
+                  : 'rgba(75,85,99,0.4)',
                 paddingBottom: '2px',
-                minWidth: '260px',
+                minWidth: '420px',
                 color: nameError && !activeConfig?.name?.trim() ? '#ef4444' : undefined,
               }}
-              onFocus={e => { e.target.style.borderBottomColor = nameError ? '#ef4444' : 'rgba(203,253,0,0.6)'; }}
-              onBlur={e => { e.target.style.borderBottomColor = nameError ? '#ef4444' : 'rgba(75,85,99,0.4)'; }}
+              onFocus={e => {
+                e.target.style.borderBottomColor = nameError ? '#ef4444' : 'rgba(203,253,0,0.6)';
+              }}
+              onBlur={e => {
+                e.target.style.borderBottomColor = nameError
+                  ? '#ef4444'
+                  : !e.target.value.trim()
+                  ? 'rgba(239,68,68,0.35)'
+                  : 'rgba(75,85,99,0.4)';
+              }}
             />
             {nameError && !activeConfig?.name?.trim() && (
               <p style={{ fontSize: '11px', color: '#ef4444', margin: '2px 0 0' }}>Name required before saving</p>
@@ -1103,6 +1134,7 @@ const LoadoutBuilder = () => {
               onRemoveSlot={handleRemoveSlot}
               onHide={handleHideCategory}
               isSelected={selectedSlotIndex?.category === key}
+              requirementUnmet={missingRequiredCategories.has(key)}
             />
           ))}
         </div>
@@ -1159,6 +1191,7 @@ const LoadoutBuilder = () => {
               onRemoveSlot={handleRemoveSlot}
               onHide={handleHideCategory}
               isSelected={selectedSlotIndex?.category === key}
+              requirementUnmet={missingRequiredCategories.has(key)}
             />
           ))}
         </div>

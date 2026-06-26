@@ -153,6 +153,7 @@ export function Submissions() {
             <tr>
               <th className="w-6 px-3 py-3" />
               <th className="text-left px-4 py-3 font-medium text-gray-600">Config Name</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">Vessel</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Submitted By</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Saved At</th>
             </tr>
@@ -160,7 +161,7 @@ export function Submissions() {
           <tbody className="divide-y divide-gray-100">
             {loading && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-gray-400">Loading…</td>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading…</td>
               </tr>
             )}
             {!loading && rows.length === 0 && (
@@ -175,6 +176,7 @@ export function Submissions() {
               const slots = row.configData?.slots
               const sbom = row.configData?.sbom
               const hasSbom = !!sbom?.components?.length
+              const hullName = row.configData?.hullName
               return (
                 <>
                   <tr
@@ -193,6 +195,9 @@ export function Submissions() {
                       {slots && <SlotsSummary slots={slots} />}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
+                      {hullName || <span className="text-gray-400 italic">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
                       {row.submittedBy || <span className="text-gray-400 italic">anonymous</span>}
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
@@ -201,7 +206,7 @@ export function Submissions() {
                   </tr>
                   {expanded === row.id && (
                     <tr key={`${row.id}-detail`} className="bg-gray-50">
-                      <td colSpan={4} className="px-6 py-5 space-y-4">
+                      <td colSpan={5} className="px-6 py-5 space-y-4">
                         {hasSbom ? (
                           <>
                             <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">

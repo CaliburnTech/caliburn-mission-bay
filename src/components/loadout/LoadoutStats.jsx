@@ -58,7 +58,7 @@ const StatBar = ({ label, icon: Icon, value, maxValue, unit, color, previewDelta
       </div>
       <div className="w-20 text-right">
         <span className={`text-sm font-bold ${showWarning ? 'text-red-400' : 'text-gray-200'}`}>
-          {isCapacity ? `${value}` : typeof value === 'number' ? value.toFixed(1) : value}
+          {typeof value === 'number' ? value.toFixed(1) : value}
         </span>
         {previewDelta !== 0 && previewDelta && (
           <span className={`text-xs ml-1 font-semibold ${
@@ -69,7 +69,7 @@ const StatBar = ({ label, icon: Icon, value, maxValue, unit, color, previewDelta
                 : (previewDelta > 0 ? 'text-green-400' : 'text-red-400')
           }`}
           >
-            {previewDelta > 0 ? '+' : ''}{isCapacity ? -previewDelta : previewDelta.toFixed(1)}
+            {previewDelta > 0 ? '+' : ''}{(isCapacity ? -previewDelta : previewDelta).toFixed(1)}
           </span>
         )}
         <span className="text-gray-500 text-xs ml-1">{unit}</span>

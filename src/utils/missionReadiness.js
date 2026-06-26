@@ -245,3 +245,50 @@ export function getMissionReadiness(missionKey, roleAssignments, savedConfigurat
   const deployable = roleResults.every(r => r.ready);
   return { deployable, roles: roleResults };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Capability category → slot key mapping (mirrors LOADOUT_CATEGORIES in LoadoutBuilder)
+// ─────────────────────────────────────────────────────────────────────────────
+const CAP_CATEGORY_TO_SLOT = {
+  'EO/IR SENSORS': 'SENSORS', 'RADAR/RF': 'SENSORS', 'ACOUSTIC/SONAR': 'SENSORS',
+  'ELECTRONIC SUPPORT': 'SENSORS', 'ELECTRONIC PROTECTION': 'SENSORS',
+  'ACOUSTIC SENSORS': 'SENSORS', 'ACOUSTIC DECOY': 'SENSORS', 'RADAR SENSORS': 'SENSORS',
+  'SENSORS & DETECTION': 'SENSORS', 'SIGNALS INTELLIGENCE': 'SENSORS',
+  'ISR': 'SENSORS', 'ISR & SURVEILLANCE': 'SENSORS', 'SAR': 'SENSORS',
+  'MCM': 'SENSORS', 'MCM SYSTEMS': 'SENSORS', 'EW': 'SENSORS', 'ASW': 'SENSORS',
+  'RF COMMUNICATIONS': 'COMMS', 'SATCOM': 'COMMS',
+  'UNDERWATER COMMS': 'COMMS', 'COMMUNICATIONS': 'COMMS',
+  'KINETIC WEAPONS': 'WEAPONS', 'DIRECTED ENERGY': 'WEAPONS', 'WEAPONS': 'WEAPONS',
+  'COMBAT': 'WEAPONS', 'SEA_CONTROL': 'WEAPONS', 'FORCE_PROTECTION': 'WEAPONS',
+  'ELECTRONIC ATTACK': 'WEAPONS',
+  'C2 SYSTEMS': 'C2', 'COMMAND & CONTROL': 'C2',
+  'NAVIGATION': 'NAV',
+  'UNMANNED SYSTEMS': 'AI',
+  'LOGISTICS': 'UTILITY', 'LOGISTICS & SUPPORT': 'UTILITY', 'MAINTENANCE': 'UTILITY',
+  'SUPPLY CHAIN': 'UTILITY', 'DATA PROCESSING': 'UTILITY', 'CYBER DEFENSE': 'UTILITY',
+  'DEFENSE': 'UTILITY', 'ESCORT': 'UTILITY',
+};
+
+/**
+ * Given a list of required subTypes, return the set of slot-category keys
+ * that are already "covered" — i.e. satisfying the subType requirement
+ * inherently satisfies the broader category requirement.
+ *
+ * Used by ReadinessChecklist to suppress redundant category rows when a
+ * more specific subType requirement is present.
+ *
+ * @param {string[]} requiredSubTypes
+ * @returns {Set<string>} slot-category keys covered (e.g. {'SENSORS'})
+ */
+export function getSlotKeysCoveredBySubTypes(requiredSubTypes) {
+  const covered = new Set();
+  for (const subType of requiredSubTypes) {
+    for (const cap of individualCapabilities) {
+      if (cap.subType === subType && cap.category) {
+        const slotKey = CAP_CATEGORY_TO_SLOT[cap.category];
+        if (slotKey) covered.add(slotKey);
+      }
+    }
+  }
+  return covered;
+}
