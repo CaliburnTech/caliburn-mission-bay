@@ -4,6 +4,7 @@ import {
   Anchor, Target, Shield, Radio, Navigation, Cpu, Zap,
   Battery, Wrench, Clock, MapPin
 } from 'lucide-react';
+import useIsMobile from '../../hooks/useIsMobile';
 import { swarmSquadrons, squadronUnitConfigurations, getDeploymentsByMission, getDeploymentsByHull } from '../../data/fleetData';
 import useMissionStore from '../../store/missionStore';
 
@@ -526,6 +527,7 @@ const DeploymentFlowModal = ({ isOpen, onClose, hull, loadout, onNavigateToMissi
   const [selectedMission, setSelectedMission] = useState(null);
   const [vesselCount, setVesselCount] = useState(1);
   const { updateMission } = useMissionStore();
+  const isMobile = useIsMobile();
 
   // Calculate max available vessels
   const maxVessels = useMemo(() => {
@@ -564,8 +566,8 @@ const DeploymentFlowModal = ({ isOpen, onClose, hull, loadout, onNavigateToMissi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-darker rounded-2xl border border-gray-700/50 w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col animate-slide-in-right">
+    <div className={`fixed inset-0 bg-black/70 z-50 flex ${isMobile ? 'items-end justify-center' : 'items-center justify-center p-4'}`}>
+      <div className={`bg-darker border border-gray-700/50 overflow-hidden flex flex-col animate-slide-in-right ${isMobile ? 'w-full rounded-t-2xl rounded-b-none max-h-[85vh]' : 'rounded-2xl w-full max-w-5xl max-h-[90vh]'}`}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-700/50 flex items-center justify-between">
           <div>

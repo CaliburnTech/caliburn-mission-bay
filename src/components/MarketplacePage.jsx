@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Ship } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Ship, SlidersHorizontal } from 'lucide-react';
 import { engineeringStacks, individualCapabilities, capabilityCategories } from '../data/marketplaceData';
 import useDataStore from '../providers/dataStore';
 import useNavigationStore from '../store/navigationStore';
@@ -26,6 +26,7 @@ import CartDropdown from './CartDropdown';
 
 const MarketplacePage = ({ onLogoClick }) => {
   const _dataStore = useDataStore();
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Navigation store
   const { selectedView, setSelectedView } = useNavigationStore();
@@ -92,7 +93,7 @@ const MarketplacePage = ({ onLogoClick }) => {
     <div className="min-h-screen bg-dark-bg text-white">
       {/* Header */}
       <header className="bg-darker border-b-2 border-lime-brand/30">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-3 py-2 md:px-6 md:py-5 flex items-center justify-between gap-2">
           <div
             onClick={() => {
               if (onLogoClick) {
@@ -104,55 +105,34 @@ const MarketplacePage = ({ onLogoClick }) => {
               setSelectedMountPoint(null);
               setSearchTerm('');
             }}
-            className="flex items-center gap-8 cursor-pointer group"
+            className="flex items-center gap-2 md:gap-8 cursor-pointer group min-w-0"
             title="Return to Home"
           >
             <img
               src={caliburnLogotype}
               alt="Caliburn"
-              className="h-12 w-auto transition-transform group-hover:scale-105"
+              className="h-7 md:h-12 w-auto flex-shrink-0 transition-transform group-hover:scale-105"
             />
-            <div className="border-l border-gray-600/50 pl-8">
-              <h1 className="text-2xl font-bold text-lime-brand tracking-tight leading-none">
+            <div className="border-l border-gray-600/50 pl-2 md:pl-8 min-w-0">
+              <div className="text-base md:text-2xl font-bold text-lime-brand tracking-tight leading-none whitespace-nowrap">
                 Mission Bay
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
+              </div>
+              <p className="hidden md:block text-sm text-gray-400 mt-1">
                 Pre-integrated capabilities ready for deployment on TempestOS
               </p>
             </div>
           </div>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowCart(!showCart)}
-              className="bg-transparent text-lime-brand border border-lime-brand/50 p-3 rounded-lg cursor-pointer flex items-center transition-all duration-200 hover:bg-lime-brand/10 hover:border-lime-brand"
-            >
-              <Ship size={20} />
-              {outfitterCart.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                  {outfitterCart.length}
-                </span>
-              )}
-            </button>
-            <CartDropdown
-              isOpen={showCart}
-              onClose={() => setShowCart(false)}
-              items={outfitterCart}
-              onRemoveItem={(name) => removeFromOutfitterCart(name)}
-              onClearCart={clearCart}
-              onNavigateToOutfitter={() => setSelectedView('shipyard')}
-            />
-          </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-3 md:p-6">
         {/* Navigation Bar */}
         <div className="mb-10 py-6 bg-transparent border-b border-gray-700/60">
           {/* Navigation Tabs and Search in flex container */}
           <div className="flex justify-between items-center gap-4 flex-wrap">
             {/* Navigation Tabs - Squadrons first */}
-            <div className="flex gap-2 items-center flex-wrap">
+            <div className="flex gap-2 items-center overflow-x-auto pb-1 md:flex-wrap scrollbar-hide">
               <button
                 onClick={() => {
                   setSelectedView('shipyard');
@@ -190,7 +170,8 @@ const MarketplacePage = ({ onLogoClick }) => {
               </button>
             </div>
 
-            {/* Global Search */}
+            {/* Global Search — desktop only */}
+            <div className="hidden md:block">
             <GlobalSearch
               onNavigate={(view, data) => {
                 // Redirect stacks to capabilities
@@ -207,27 +188,69 @@ const MarketplacePage = ({ onLogoClick }) => {
                 setSelectedView(targetView);
               }}
             />
+            </div>
           </div>
         </div>
 
         {/* Main Content Layout */}
         <div className="flex gap-6">
-          {/* Left Sidebar - Filters (for capabilities view) */}
+          {/* Left Sidebar - Filters (desktop only) */}
           {selectedView === 'capabilities' && (
-            <FilterSidebar
-              selectedFilters={selectedFilters}
-              selectedSecurityFilters={selectedSecurityFilters}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              toggleFilter={toggleFilter}
-              setSelectedSecurityFilters={setSelectedSecurityFilters}
-              clearAllFilters={clearAllFilters}
-              capabilityCategories={capabilityCategories}
-            />
+            <div className="hidden md:block">
+              <FilterSidebar
+                selectedFilters={selectedFilters}
+                selectedSecurityFilters={selectedSecurityFilters}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                toggleFilter={toggleFilter}
+                setSelectedSecurityFilters={setSelectedSecurityFilters}
+                clearAllFilters={clearAllFilters}
+                capabilityCategories={capabilityCategories}
+              />
+            </div>
+          )}
+
+          {/* Mobile Filter bottom sheet */}
+          {selectedView === 'capabilities' && showMobileFilters && (
+            <div className="md:hidden fixed inset-0 z-[800] flex flex-col justify-end bg-black/60" onClick={() => setShowMobileFilters(false)}>
+              <div
+                className="bg-darkest rounded-t-2xl p-5 max-h-[85vh] overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+              >
+                <FilterSidebar
+                  selectedFilters={selectedFilters}
+                  selectedSecurityFilters={selectedSecurityFilters}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  toggleFilter={toggleFilter}
+                  setSelectedSecurityFilters={setSelectedSecurityFilters}
+                  clearAllFilters={clearAllFilters}
+                  capabilityCategories={capabilityCategories}
+                  onClose={() => setShowMobileFilters(false)}
+                />
+              </div>
+            </div>
           )}
 
           {/* Main Content Area */}
           <div className="flex-1 min-w-0 overflow-x-clip">
+            {/* Mobile Filter button — capabilities only */}
+            {selectedView === 'capabilities' && (
+              <div className="md:hidden mb-3">
+                <button
+                  onClick={() => setShowMobileFilters(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600/50 bg-darker text-gray-300 text-sm font-semibold hover:border-lime-brand/50 hover:text-lime-brand transition-colors"
+                >
+                  <SlidersHorizontal size={15} />
+                  Filters
+                  {(selectedFilters.length > 0 || selectedSecurityFilters.length > 0) && (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-lime-brand text-black text-[0.6rem] font-bold">
+                      {selectedFilters.length + selectedSecurityFilters.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
             {selectedView === 'capabilities' && (
               <CapabilitiesView
                 individualCapabilities={individualCapabilities}
@@ -270,7 +293,12 @@ const MarketplacePage = ({ onLogoClick }) => {
 
             {/* Mission Planner */}
             {selectedView === 'squadron' && (
-              <div style={{ height: 'calc(100vh - 260px)', overflow: 'hidden' }}>
+              <div className="hidden md:block" style={{ height: 'calc(100vh - 260px)', overflow: 'hidden' }}>
+                <MissionPlanner />
+              </div>
+            )}
+            {selectedView === 'squadron' && (
+              <div className="md:hidden overflow-y-auto">
                 <MissionPlanner />
               </div>
             )}

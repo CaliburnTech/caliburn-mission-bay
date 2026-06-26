@@ -422,7 +422,18 @@ const MissionConfigView = ({ mission, onBack }) => {
         {selectedDomain === 'MARITIME' && (
           <div className="flex items-center gap-2 mb-4">
             <span className="text-gray-600 text-[0.6rem] uppercase tracking-widest">Filter:</span>
-            <div className="flex gap-1">
+            {/* Mobile: dropdown */}
+            <select
+              className="md:hidden bg-darkest border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-1.5 focus:border-lime-brand focus:outline-none"
+              value={navyGroup}
+              onChange={e => setNavyGroup(e.target.value)}
+            >
+              {NAVY_GROUPS.map(({ key, label }) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+            {/* Desktop: pills */}
+            <div className="hidden md:flex gap-1">
               {NAVY_GROUPS.map(({ key, label }) => (
                 <button
                   key={key}
@@ -441,7 +452,7 @@ const MissionConfigView = ({ mission, onBack }) => {
         )}
 
         {/* Mission Cards */}
-        <div className={`grid gap-3 ${filteredMissions.length <= 4 ? 'grid-cols-4' : filteredMissions.length <= 5 ? 'grid-cols-5' : 'grid-cols-6'}`}>
+        <div className={`grid gap-3 grid-cols-2 ${filteredMissions.length <= 4 ? 'md:grid-cols-4' : filteredMissions.length <= 5 ? 'md:grid-cols-5' : 'md:grid-cols-6'}`}>
           {filteredMissions.map((m) => {
             const Icon = m.icon;
             const isSelected = selectedMissionTemplate === m.key;
@@ -469,7 +480,7 @@ const MissionConfigView = ({ mission, onBack }) => {
                 >
                   {m.name}
                 </div>
-                <div className="text-gray-500 text-[0.5rem] leading-tight">
+                <div className="hidden md:block text-gray-500 text-[0.5rem] leading-tight">
                   {m.description}
                 </div>
               </button>

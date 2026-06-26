@@ -5,6 +5,7 @@ import {
   AlertCircle, CheckCircle2, Search, Layers, ChevronDown,
   FileText, GitBranch, Map
 } from 'lucide-react';
+import useIsMobile from '../hooks/useIsMobile';
 import { getEligibleRolesByMission } from '../utils/roleUtils';
 import { meetsRequirements } from '../utils/missionReadiness';
 import { MISSION_ROLES } from '../data/missionRoles';
@@ -869,6 +870,14 @@ const LoadoutBuilder = () => {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isMobile = useIsMobile();
+  const [mobileTab, setMobileTab] = useState('slots'); // 'slots' | 'missions'
+  const [expandedCategories, setExpandedCategories] = useState({}); // { SENSORS: true, etc }
+
+  const toggleCategory = (key) => {
+    setExpandedCategories(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   // Don't render anything while redirecting
   if (!selectedHull) {
     return null;
@@ -877,23 +886,23 @@ const LoadoutBuilder = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
           <button
             onClick={handleBack}
-            className="px-3 py-2 bg-transparent border border-lime-brand/50 text-lime-brand rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-lime-brand/10 transition-colors"
+            className="px-3 py-2 bg-transparent border border-lime-brand/50 text-lime-brand rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-lime-brand/10 transition-colors flex-shrink-0"
           >
             <ChevronLeft size={18} />
             {backButtonText}
           </button>
-          <div>
+          <div className="hidden md:block flex-1 min-w-0">
             <input
               id="config-name-input"
               type="text"
               value={activeConfig?.name || ''}
               onChange={(e) => { setConfigName(e.target.value); setNameError(false); }}
               placeholder="Configuration name (required)"
-              className="text-gray-100 text-xl font-bold bg-transparent outline-none border-b transition-colors"
+              className="text-gray-100 text-xl font-bold bg-transparent outline-none border-b transition-colors w-full"
               style={{
                 borderColor: nameError ? '#ef4444' : 'transparent',
                 borderBottomColor: nameError
@@ -902,7 +911,7 @@ const LoadoutBuilder = () => {
                   ? 'rgba(239,68,68,0.35)'
                   : 'rgba(75,85,99,0.4)',
                 paddingBottom: '2px',
-                minWidth: '420px',
+                minWidth: isMobile ? '0' : '420px',
                 color: nameError && !activeConfig?.name?.trim() ? '#ef4444' : undefined,
               }}
               onFocus={e => {
@@ -924,7 +933,7 @@ const LoadoutBuilder = () => {
         </div>
         <div className="flex items-center gap-3">
           {/* Status Badge */}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
+          <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
             deploymentStatus.isReady
               ? 'bg-lime-brand/20 text-lime-brand border border-lime-brand/30'
               : 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30'
@@ -938,12 +947,12 @@ const LoadoutBuilder = () => {
           </div>
           <button
             onClick={handleGenerateSBOM}
-            className="px-3 py-3 bg-transparent border border-cyan-500/40 text-cyan-500 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-cyan-500/10 transition-colors"
+            className="hidden md:flex px-3 py-3 bg-transparent border border-cyan-500/40 text-cyan-500 rounded-lg text-xs font-semibold items-center gap-1.5 hover:bg-cyan-500/10 transition-colors"
             title="Generate SBOM"
           >
             <FileText size={15} /> SBOM
           </button>
-          <div style={{ position: 'relative', display: 'flex' }}>
+          <div className="hidden md:flex" style={{ position: 'relative' }}>
             <button
               onClick={() => setShowArch(true)}
               className="px-3 py-3 bg-transparent border border-violet-500/40 text-violet-500 text-xs font-semibold flex items-center gap-1.5 hover:bg-violet-500/10 transition-colors"
@@ -1000,16 +1009,9 @@ const LoadoutBuilder = () => {
               className="w-full pl-10 pr-4 py-2.5 bg-darker border border-gray-700/50 rounded-lg text-gray-100 placeholder:text-gray-500 focus:border-lime-brand/50 focus:outline-none transition-colors"
             />
           </div>
-          <button
-            onClick={handleGlobalSearch}
-            className="px-4 py-2.5 bg-lime-brand/10 border border-lime-brand/30 text-lime-brand rounded-lg text-sm font-semibold hover:bg-lime-brand/20 transition-colors flex items-center gap-2"
-          >
-            <Search size={16} />
-            Browse All
-          </button>
 
           {/* Quick Apply Dropdown */}
-          <div className="relative">
+          <div className="relative hidden md:block">
             <button
               onClick={() => setQuickApplyOpen(!quickApplyOpen)}
               className="px-4 py-2.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-lg text-sm font-semibold hover:bg-purple-500/20 transition-colors flex items-center gap-2"
@@ -1116,220 +1118,258 @@ const LoadoutBuilder = () => {
         </div>
       )}
 
-      {/* Main Layout */}
-      <div className="grid grid-cols-[1fr_260px_1fr_300px] gap-6">
-        {/* Left Column - Sensors, Comms, Weapons, Other */}
-        <div className="space-y-4">
-          {['SENSORS', 'COMMS', 'WEAPONS', 'OTHER'].filter(key => visibleCategories[key]).map(key => (
-            <CategorySlotCard
-              key={key}
-              categoryKey={key}
-              category={LOADOUT_CATEGORIES[key]}
-              equipped={getEquippedWithEmptySlots(key)}
-              baseCapacity={baseSlotCapacity[key] || 0}
-              extraSlots={extraSlots[key] || 0}
-              onSlotClick={handleSlotClick}
-              onRemove={handleRemove}
-              onAddSlot={handleAddSlot}
-              onRemoveSlot={handleRemoveSlot}
-              onHide={handleHideCategory}
-              isSelected={selectedSlotIndex?.category === key}
-              requirementUnmet={missingRequiredCategories.has(key)}
-            />
-          ))}
-        </div>
+      {/* Main Layout — Desktop: 4-column grid, Mobile: tab layout */}
+      {!isMobile ? (
+        <div className="grid grid-cols-[1fr_260px_1fr_300px] gap-6">
+          {/* Left Column - Sensors, Comms, Weapons, Other */}
+          <div className="space-y-4">
+            {['SENSORS', 'COMMS', 'WEAPONS', 'OTHER'].filter(key => visibleCategories[key]).map(key => (
+              <CategorySlotCard
+                key={key}
+                categoryKey={key}
+                category={LOADOUT_CATEGORIES[key]}
+                equipped={getEquippedWithEmptySlots(key)}
+                baseCapacity={baseSlotCapacity[key] || 0}
+                extraSlots={extraSlots[key] || 0}
+                onSlotClick={handleSlotClick}
+                onRemove={handleRemove}
+                onAddSlot={handleAddSlot}
+                onRemoveSlot={handleRemoveSlot}
+                onHide={handleHideCategory}
+                isSelected={selectedSlotIndex?.category === key}
+                requirementUnmet={missingRequiredCategories.has(key)}
+              />
+            ))}
+          </div>
 
-        {/* Center - Vessel Preview + Stats */}
-        <div className="flex flex-col items-center">
-          <div className="bg-darker rounded-2xl border border-gray-700/50 p-6 w-full">
-            <div className="aspect-[4/3] flex items-center justify-center bg-gradient-to-b from-gray-800/30 to-transparent rounded-xl">
-              {VesselHull ? (
-                <VesselHull size={180} />
-              ) : (
-                <Ship size={100} className="text-gray-600" />
-              )}
+          {/* Center - Vessel Preview + Stats */}
+          <div className="flex flex-col items-center">
+            <div className="bg-darker rounded-2xl border border-gray-700/50 p-6 w-full">
+              <div className="aspect-[4/3] flex items-center justify-center bg-gradient-to-b from-gray-800/30 to-transparent rounded-xl">
+                {VesselHull ? (
+                  <VesselHull size={180} />
+                ) : (
+                  <Ship size={100} className="text-gray-600" />
+                )}
+              </div>
+              <div className="text-center mt-3">
+                <div className="text-lime-brand font-bold text-lg">{selectedHull.name}</div>
+                <div className="text-gray-500 text-sm">{selectedHull.type}</div>
+              </div>
             </div>
-            <div className="text-center mt-3">
-              <div className="text-lime-brand font-bold text-lg">{selectedHull.name}</div>
-              <div className="text-gray-500 text-sm">{selectedHull.type}</div>
+
+            {/* Mario Kart Style Stats */}
+            <div className="mt-4 w-full">
+              <LoadoutStatsDisplay
+                vessel={selectedHull}
+                loadout={loadout}
+                previewCapability={previewCapability}
+              />
+            </div>
+
+            {/* Deployment Status */}
+            <div className="w-full">
+              <DeploymentStatus
+                isReady={deploymentStatus.isReady}
+                issues={deploymentStatus.issues}
+                equippedCount={deploymentStatus.equippedCount}
+                onDeploy={handleDeploy}
+              />
             </div>
           </div>
 
-          {/* Mario Kart Style Stats */}
-          <div className="mt-4 w-full">
-            <LoadoutStatsDisplay
-              vessel={selectedHull}
-              loadout={loadout}
-              previewCapability={previewCapability}
-            />
+          {/* Right Column - C2, Nav, AI, Utility */}
+          <div className="space-y-4">
+            {['C2', 'NAV', 'AI', 'UTILITY'].filter(key => visibleCategories[key]).map(key => (
+              <CategorySlotCard
+                key={key}
+                categoryKey={key}
+                category={LOADOUT_CATEGORIES[key]}
+                equipped={getEquippedWithEmptySlots(key)}
+                baseCapacity={baseSlotCapacity[key] || 0}
+                extraSlots={extraSlots[key] || 0}
+                onSlotClick={handleSlotClick}
+                onRemove={handleRemove}
+                onAddSlot={handleAddSlot}
+                onRemoveSlot={handleRemoveSlot}
+                onHide={handleHideCategory}
+                isSelected={selectedSlotIndex?.category === key}
+                requirementUnmet={missingRequiredCategories.has(key)}
+              />
+            ))}
           </div>
 
-          {/* Deployment Status */}
-          <div className="w-full">
-            <DeploymentStatus
-              isReady={deploymentStatus.isReady}
-              issues={deploymentStatus.issues}
-              equippedCount={deploymentStatus.equippedCount}
-              onDeploy={handleDeploy}
-            />
-          </div>
-        </div>
+          {/* Mission Sets Column */}
+          <div className="flex flex-col gap-4">
+            {/* Port Security Mission Set button removed — HORUS roles appear in the dynamic role list below */}
 
-        {/* Right Column - C2, Nav, AI, Utility */}
-        <div className="space-y-4">
-          {['C2', 'NAV', 'AI', 'UTILITY'].filter(key => visibleCategories[key]).map(key => (
-            <CategorySlotCard
-              key={key}
-              categoryKey={key}
-              category={LOADOUT_CATEGORIES[key]}
-              equipped={getEquippedWithEmptySlots(key)}
-              baseCapacity={baseSlotCapacity[key] || 0}
-              extraSlots={extraSlots[key] || 0}
-              onSlotClick={handleSlotClick}
-              onRemove={handleRemove}
-              onAddSlot={handleAddSlot}
-              onRemoveSlot={handleRemoveSlot}
-              onHide={handleHideCategory}
-              isSelected={selectedSlotIndex?.category === key}
-              requirementUnmet={missingRequiredCategories.has(key)}
-            />
-          ))}
-        </div>
+            {/* Configure for Mission panel */}
+            {(() => {
+              const hullName = selectedHull?.name;
+              const platformType = selectedHull?.platformType;
 
-        {/* Mission Sets Column */}
-        <div className="flex flex-col gap-4">
-          {/* Port Security Mission Set button removed — HORUS roles appear in the dynamic role list below */}
+              // Returns the best role this hull can fill in a given role list.
+              // Priority: allowedHullNames > suggestedHullNames > defaultHullName > platformType (only if no hull hard-filter).
+              const getBestFitRole = (roles) => (
+                roles.find(r => r.allowedHullNames?.includes(hullName)) ||
+                roles.find(r => r.suggestedHullNames?.includes(hullName)) ||
+                roles.find(r => r.defaultHullName === hullName) ||
+                roles.find(r => !r.allowedHullNames?.length && platformType && r.allowedPlatformTypes?.includes(platformType)) ||
+                null
+              );
 
-          {/* Configure for Mission panel */}
-          {(() => {
-            const hullName = selectedHull?.name;
-            const platformType = selectedHull?.platformType;
-
-            // Returns the best role this hull can fill in a given role list.
-            // Priority: allowedHullNames > suggestedHullNames > defaultHullName > platformType (only if no hull hard-filter).
-            const getBestFitRole = (roles) => (
-              roles.find(r => r.allowedHullNames?.includes(hullName)) ||
-              roles.find(r => r.suggestedHullNames?.includes(hullName)) ||
-              roles.find(r => r.defaultHullName === hullName) ||
-              roles.find(r => !r.allowedHullNames?.length && platformType && r.allowedPlatformTypes?.includes(platformType)) ||
-              null
-            );
-
-            // Filter to only missions where this hull has a valid role, then sort by fit quality.
-            const sortedMissions = ALL_MISSIONS
-              .filter(mission => {
-                const roles = MISSION_ROLES[mission.key]?.roles || [];
-                return getBestFitRole(roles) !== null;
-              })
-              .sort((a, b) => {
-                const score = (mission) => {
+              // Filter to only missions where this hull has a valid role, then sort by fit quality.
+              const sortedMissions = ALL_MISSIONS
+                .filter(mission => {
                   const roles = MISSION_ROLES[mission.key]?.roles || [];
-                  if (roles.some(r => r.defaultHullName === hullName)) return 0;
-                  if (roles.some(r => r.allowedHullNames?.includes(hullName) || r.suggestedHullNames?.includes(hullName))) return 1;
-                  return 2;
-                };
-                return score(a) - score(b);
-              });
+                  return getBestFitRole(roles) !== null;
+                })
+                .sort((a, b) => {
+                  const score = (mission) => {
+                    const roles = MISSION_ROLES[mission.key]?.roles || [];
+                    if (roles.some(r => r.defaultHullName === hullName)) return 0;
+                    if (roles.some(r => r.allowedHullNames?.includes(hullName) || r.suggestedHullNames?.includes(hullName))) return 1;
+                    return 2;
+                  };
+                  return score(a) - score(b);
+                });
 
-            // Use configMission (persisted local state) so the dropdown keeps its selection
-            // after the useEffect clears pendingMissionSetKey.
-            const activeMissionKey = configMission || pendingMissionSetKey;
-            const selectedMissionEntry = activeMissionKey
-              ? ALL_MISSIONS.find(m => m.key === activeMissionKey)
-              : null;
+              // Use configMission (persisted local state) so the dropdown keeps its selection
+              // after the useEffect clears pendingMissionSetKey.
+              const activeMissionKey = configMission || pendingMissionSetKey;
+              const selectedMissionEntry = activeMissionKey
+                ? ALL_MISSIONS.find(m => m.key === activeMissionKey)
+                : null;
 
-            // Determine which role to show in the checklist / assign on "Go to Mission".
-            // Prefer the exact role this session was opened for (sessionRoleKey), then
-            // use getBestFitRole so the hull lands in its correct slot, not always slot 0.
-            const selectedMissionRoles = activeMissionKey ? (MISSION_ROLES[activeMissionKey]?.roles || []) : [];
-            const matchedRole = (sessionRoleKey && selectedMissionRoles.find(r => r.roleKey === sessionRoleKey))
-              || getBestFitRole(selectedMissionRoles)
-              || selectedMissionRoles[0]
-              || null;
+              // Determine which role to show in the checklist / assign on "Go to Mission".
+              // Prefer the exact role this session was opened for (sessionRoleKey), then
+              // use getBestFitRole so the hull lands in its correct slot, not always slot 0.
+              const selectedMissionRoles = activeMissionKey ? (MISSION_ROLES[activeMissionKey]?.roles || []) : [];
+              const matchedRole = (sessionRoleKey && selectedMissionRoles.find(r => r.roleKey === sessionRoleKey))
+                || getBestFitRole(selectedMissionRoles)
+                || selectedMissionRoles[0]
+                || null;
 
-            return (
-              <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
-                <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Configure for Mission</p>
+              return (
+                <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                  <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Configure for Mission</p>
 
-                {/* Picker button */}
-                <div className="relative">
-                  <button
-                    onClick={() => setConfigMissionOpen(prev => !prev)}
-                    className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold border border-gray-600 text-gray-300 bg-transparent hover:border-lime-brand/60 hover:text-white transition-colors flex items-center justify-between gap-2"
-                  >
-                    <span className="truncate">
-                      {selectedMissionEntry ? selectedMissionEntry.name : 'Configure for mission ▾'}
-                    </span>
-                    <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${configMissionOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                  {/* Picker button */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setConfigMissionOpen(prev => !prev)}
+                      className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold border border-gray-600 text-gray-300 bg-transparent hover:border-lime-brand/60 hover:text-white transition-colors flex items-center justify-between gap-2"
+                    >
+                      <span className="truncate">
+                        {selectedMissionEntry ? selectedMissionEntry.name : 'Configure for mission ▾'}
+                      </span>
+                      <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${configMissionOpen ? 'rotate-180' : ''}`} />
+                    </button>
 
-                  {/* Dropdown */}
-                  {configMissionOpen && (
-                    <>
-                      {/* Click-away backdrop */}
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setConfigMissionOpen(false)}
-                      />
-                      <div className="absolute left-0 right-0 top-full mt-1 bg-darkest border border-gray-700/50 rounded-xl shadow-xl z-50 overflow-hidden max-h-64 overflow-y-auto">
-                        {sortedMissions.map(mission => {
-                          const roles = MISSION_ROLES[mission.key]?.roles || [];
-                          const isRecommended = roles.some(r => r.defaultHullName === hullName);
-                          const isCompatible = !isRecommended;
-                          return (
-                            <button
-                              key={mission.key}
-                              onClick={() => {
-                                const bestRole = getBestFitRole(roles);
-                                setPendingMissionSetKey(mission.key);
-                                setConfigMission(mission.key);
-                                setPendingRoleKey(bestRole?.roleKey || null);
-                                setConfigMissionOpen(false);
-                              }}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700/50 transition-colors flex items-center gap-2 ${
-                                activeMissionKey === mission.key ? 'text-lime-brand bg-lime-brand/10' : 'text-gray-300'
-                              }`}
-                            >
-                              {isRecommended && (
-                                <span className="text-yellow-400 text-xs flex-shrink-0">★</span>
-                              )}
-                              <span className="flex-1 truncate">{mission.name}</span>
-                              {isRecommended && (
-                                <span className="text-[0.58rem] text-yellow-400/70 flex-shrink-0">Recommended</span>
-                              )}
-                              {isCompatible && !isRecommended && (
-                                <span className="text-[0.58rem] text-cyan-500/70 flex-shrink-0">Compatible</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
+                    {/* Dropdown */}
+                    {configMissionOpen && (
+                      <>
+                        {/* Click-away backdrop */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setConfigMissionOpen(false)}
+                        />
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-darkest border border-gray-700/50 rounded-xl shadow-xl z-50 overflow-hidden max-h-64 overflow-y-auto">
+                          {sortedMissions.map(mission => {
+                            const roles = MISSION_ROLES[mission.key]?.roles || [];
+                            const isRecommended = roles.some(r => r.defaultHullName === hullName);
+                            const isCompatible = !isRecommended;
+                            return (
+                              <button
+                                key={mission.key}
+                                onClick={() => {
+                                  const bestRole = getBestFitRole(roles);
+                                  setPendingMissionSetKey(mission.key);
+                                  setConfigMission(mission.key);
+                                  setPendingRoleKey(bestRole?.roleKey || null);
+                                  setConfigMissionOpen(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700/50 transition-colors flex items-center gap-2 ${
+                                  activeMissionKey === mission.key ? 'text-lime-brand bg-lime-brand/10' : 'text-gray-300'
+                                }`}
+                              >
+                                {isRecommended && (
+                                  <span className="text-yellow-400 text-xs flex-shrink-0">★</span>
+                                )}
+                                <span className="flex-1 truncate">{mission.name}</span>
+                                {isRecommended && (
+                                  <span className="text-[0.58rem] text-yellow-400/70 flex-shrink-0">Recommended</span>
+                                )}
+                                {isCompatible && !isRecommended && (
+                                  <span className="text-[0.58rem] text-cyan-500/70 flex-shrink-0">Compatible</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Live requirements checklist */}
+                  {activeMissionKey && matchedRole && (
+                    <ReadinessChecklist
+                      config={activeConfig}
+                      role={matchedRole}
+                      isDefault={false}
+                    />
+                  )}
+
+                  {/* Go to Mission button */}
+                  {activeMissionKey && (
+                    <button
+                      onClick={() => {
+                        // Assign this hull to the best-matched role before navigating
+                        // so the mission view shows the configured boat, not the default preset.
+                        // Use sessionVesselLabel (the card's displayed name, e.g. 'M48-ALPHA (CAPTAS)')
+                        // so tactical callsigns are preserved rather than reverting to hull name.
+                        if (matchedRole && selectedHull) {
+                          const labelToUse = sessionVesselLabel || selectedHull.name;
+                          assignVesselToRole(activeMissionKey, matchedRole.roleKey, selectedHull.name, selectedHull.name, labelToUse);
+                        }
+                        setSelectedMissionTemplate(activeMissionKey);
+                        setPendingMissionOpen(true);
+                        setSelectedView('squadron');
+                      }}
+                      className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                    >
+                      Go to Mission →
+                    </button>
                   )}
                 </div>
+              );
+            })()}
 
-                {/* Live requirements checklist */}
-                {activeMissionKey && matchedRole && (
-                  <ReadinessChecklist
-                    config={activeConfig}
-                    role={matchedRole}
-                    isDefault={false}
-                  />
-                )}
-
-                {/* Go to Mission button */}
-                {activeMissionKey && (
+            {/* Generic mission set — for all non-Port-Security missions */}
+            {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (
+              <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Set</p>
+                <button
+                  onClick={genericMissionSetApplied ? handleRemoveGenericMissionSet : handleApplyGenericMissionSet}
+                  className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
+                    genericMissionSetApplied
+                      ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
+                      : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                  }`}
+                >
+                  <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${genericMissionSetApplied ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                    {genericMissionSetApplied && <Check size={10} className="text-black" />}
+                  </span>
+                  {MISSION_SET_LABELS[effectiveMissionSetKey]}
+                </button>
+                {genericMissionSetApplied && (
                   <button
                     onClick={() => {
-                      // Assign this hull to the best-matched role before navigating
-                      // so the mission view shows the configured boat, not the default preset.
-                      // Use sessionVesselLabel (the card's displayed name, e.g. 'M48-ALPHA (CAPTAS)')
-                      // so tactical callsigns are preserved rather than reverting to hull name.
-                      if (matchedRole && selectedHull) {
-                        const labelToUse = sessionVesselLabel || selectedHull.name;
-                        assignVesselToRole(activeMissionKey, matchedRole.roleKey, selectedHull.name, selectedHull.name, labelToUse);
+                      const roleKey = useConfigurationStore.getState().pendingRoleKey;
+                      if (effectiveMissionSetKey && roleKey && selectedHull) {
+                        assignVesselToRole(effectiveMissionSetKey, roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
                       }
-                      setSelectedMissionTemplate(activeMissionKey);
+                      setSelectedMissionTemplate(effectiveMissionSetKey);
                       setPendingMissionOpen(true);
                       setSelectedView('squadron');
                     }}
@@ -1339,111 +1379,410 @@ const LoadoutBuilder = () => {
                   </button>
                 )}
               </div>
-            );
-          })()}
+            )}
 
-          {/* Generic mission set — for all non-Port-Security missions */}
-          {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (
-            <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
-              <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Set</p>
-              <button
-                onClick={genericMissionSetApplied ? handleRemoveGenericMissionSet : handleApplyGenericMissionSet}
-                className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
-                  genericMissionSetApplied
-                    ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
-                    : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
-                }`}
-              >
-                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${genericMissionSetApplied ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
-                  {genericMissionSetApplied && <Check size={10} className="text-black" />}
-                </span>
-                {MISSION_SET_LABELS[effectiveMissionSetKey]}
-              </button>
-              {genericMissionSetApplied && (
-                <button
-                  onClick={() => {
-                    const roleKey = useConfigurationStore.getState().pendingRoleKey;
-                    if (effectiveMissionSetKey && roleKey && selectedHull) {
-                      assignVesselToRole(effectiveMissionSetKey, roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
-                    }
-                    setSelectedMissionTemplate(effectiveMissionSetKey);
-                    setPendingMissionOpen(true);
-                    setSelectedView('squadron');
-                  }}
-                  className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
-                >
-                  Go to Mission →
-                </button>
-              )}
+            {/* Dynamic Mission Sets — SWaP-based eligibility */}
+            {(() => {
+              const eligibleByMission = getEligibleRolesByMission(selectedHull.name);
+              const missionKeys = Object.keys(eligibleByMission);
+              if (missionKeys.length === 0) return null;
+              // True if any role is currently assigned to this hull
+              const hasActiveAssignment = activeRoleCaps !== null;
+              return (
+                <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <Map size={12} className="text-gray-500" />
+                    <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Preconfigured Mission Sets</p>
+                  </div>
+                  {missionKeys.map(missionKey => {
+                    const { missionLabel, roles } = eligibleByMission[missionKey];
+                    return (
+                      <div key={missionKey} className="flex flex-col gap-1.5">
+                        <p className="text-[0.6rem] text-gray-500 font-semibold uppercase tracking-wide">{missionLabel}</p>
+                        {roles.map(role => {
+                          const assignment = roleAssignments?.[missionKey]?.[role.roleKey];
+                          const isAssigned = !!(assignment && assignment.hullName === selectedHull.name);
+                          const isLocked = hasActiveAssignment && !isAssigned;
+                          return (
+                            <div key={role.roleKey} className="flex flex-col gap-1.5">
+                              <button
+                                disabled={isLocked}
+                                onClick={() => isAssigned ? handleRemoveRole(missionKey, role) : handleAssignRole(missionKey, role)}
+                                className={`w-full py-2.5 px-4 rounded-lg text-xs font-semibold border-2 transition-all flex items-start gap-2 text-left ${
+                                  isAssigned
+                                    ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
+                                    : isLocked
+                                    ? 'bg-transparent border-gray-700/30 text-gray-600 cursor-not-allowed opacity-40'
+                                    : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isAssigned ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                                  {isAssigned && <Check size={10} className="text-black" />}
+                                </span>
+                                {role.roleLabel}
+                              </button>
+                              {isAssigned && (
+                                <button
+                                  onClick={() => {
+                                    if (selectedHull) {
+                                      assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+                                    }
+                                    setSelectedMissionTemplate(missionKey);
+                                    setPendingMissionOpen(true);
+                                    setSelectedView('squadron');
+                                  }}
+                                  className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                                >
+                                  Go to Mission →
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      ) : (
+        /* ── Mobile Layout ── */
+        <div className="flex flex-col">
+          {/* Vessel strip */}
+          <div className="flex items-center gap-3 p-3 bg-darker rounded-xl border border-gray-700/50 mb-3">
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-900/60 rounded-lg flex-shrink-0">
+              {VesselHull ? <VesselHull size={48} /> : <Ship size={32} className="text-gray-600" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-lime-brand font-bold text-sm">{selectedHull.name}</div>
+              <div className="text-gray-500 text-xs">{selectedHull.type}</div>
+            </div>
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[0.65rem] font-semibold flex-shrink-0 ${
+              deploymentStatus.isReady
+                ? 'bg-lime-brand/20 text-lime-brand border border-lime-brand/30'
+                : 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30'
+            }`}>
+              {deploymentStatus.isReady ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
+              {deploymentStatus.isReady ? 'Ready' : 'Incomplete'}
+            </div>
+          </div>
+
+          {/* Tab bar */}
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setMobileTab('slots')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                mobileTab === 'slots'
+                  ? 'bg-lime-brand text-black'
+                  : 'bg-transparent border border-gray-600/40 text-gray-300'
+              }`}
+            >
+              Slots
+            </button>
+            <button
+              onClick={() => setMobileTab('missions')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                mobileTab === 'missions'
+                  ? 'bg-lime-brand text-black'
+                  : 'bg-transparent border border-gray-600/40 text-gray-300'
+              }`}
+            >
+              Mission Sets
+            </button>
+          </div>
+
+          {/* Slots tab — accordion */}
+          {mobileTab === 'slots' && (
+            <div className="space-y-2">
+              {['SENSORS', 'COMMS', 'WEAPONS', 'OTHER', 'C2', 'NAV', 'AI', 'UTILITY'].filter(key => visibleCategories[key]).map(key => {
+                const cat = LOADOUT_CATEGORIES[key];
+                const Icon = cat.icon;
+                const equipped = getEquippedWithEmptySlots(key);
+                const filledCount = equipped.filter(s => s !== null).length;
+                const isOpen = !!expandedCategories[key];
+                return (
+                  <div key={key} className="rounded-xl border border-gray-700/50 bg-gray-800/20 overflow-hidden">
+                    {/* Accordion header */}
+                    <button
+                      onClick={() => toggleCategory(key)}
+                      className="w-full flex items-center gap-3 p-3 text-left"
+                    >
+                      <Icon size={16} style={{ color: cat.color }} />
+                      <span className="flex-1 text-sm font-semibold text-gray-200">{cat.name}</span>
+                      <span className="text-xs text-gray-500">{filledCount}/{equipped.length}</span>
+                      <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {/* Accordion body */}
+                    {isOpen && (
+                      <div className="border-t border-gray-700/40 p-2">
+                        <CategorySlotCard
+                          categoryKey={key}
+                          category={cat}
+                          equipped={equipped}
+                          baseCapacity={baseSlotCapacity[key] || 0}
+                          extraSlots={extraSlots[key] || 0}
+                          onSlotClick={handleSlotClick}
+                          onRemove={handleRemove}
+                          onAddSlot={handleAddSlot}
+                          onRemoveSlot={handleRemoveSlot}
+                          onHide={handleHideCategory}
+                          isSelected={selectedSlotIndex?.category === key}
+                          requirementUnmet={missingRequiredCategories.has(key)}
+                          hideCategoryHeader
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Deploy button pinned at bottom of slots */}
+              <div className="pt-2">
+                <DeploymentStatus
+                  isReady={deploymentStatus.isReady}
+                  issues={deploymentStatus.issues}
+                  equippedCount={deploymentStatus.equippedCount}
+                  onDeploy={handleDeploy}
+                />
+              </div>
             </div>
           )}
 
-          {/* Dynamic Mission Sets — SWaP-based eligibility */}
-          {(() => {
-            const eligibleByMission = getEligibleRolesByMission(selectedHull.name);
-            const missionKeys = Object.keys(eligibleByMission);
-            if (missionKeys.length === 0) return null;
-            // True if any role is currently assigned to this hull
-            const hasActiveAssignment = activeRoleCaps !== null;
-            return (
-              <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <Map size={12} className="text-gray-500" />
-                  <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Preconfigured Mission Sets</p>
-                </div>
-                {missionKeys.map(missionKey => {
-                  const { missionLabel, roles } = eligibleByMission[missionKey];
-                  return (
-                    <div key={missionKey} className="flex flex-col gap-1.5">
-                      <p className="text-[0.6rem] text-gray-500 font-semibold uppercase tracking-wide">{missionLabel}</p>
-                      {roles.map(role => {
-                        const assignment = roleAssignments?.[missionKey]?.[role.roleKey];
-                        const isAssigned = !!(assignment && assignment.hullName === selectedHull.name);
-                        const isLocked = hasActiveAssignment && !isAssigned;
-                        return (
-                          <div key={role.roleKey} className="flex flex-col gap-1.5">
-                            <button
-                              disabled={isLocked}
-                              onClick={() => isAssigned ? handleRemoveRole(missionKey, role) : handleAssignRole(missionKey, role)}
-                              className={`w-full py-2.5 px-4 rounded-lg text-xs font-semibold border-2 transition-all flex items-start gap-2 text-left ${
-                                isAssigned
-                                  ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
-                                  : isLocked
-                                  ? 'bg-transparent border-gray-700/30 text-gray-600 cursor-not-allowed opacity-40'
-                                  : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
-                              }`}
-                            >
-                              <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isAssigned ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
-                                {isAssigned && <Check size={10} className="text-black" />}
-                              </span>
-                              {role.roleLabel}
-                            </button>
-                            {isAssigned && (
-                              <button
-                                onClick={() => {
-                                  if (selectedHull) {
-                                    assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
-                                  }
-                                  setSelectedMissionTemplate(missionKey);
-                                  setPendingMissionOpen(true);
-                                  setSelectedView('squadron');
-                                }}
-                                className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
-                              >
-                                Go to Mission →
-                              </button>
-                            )}
+          {/* Mission Sets tab */}
+          {mobileTab === 'missions' && (
+            <div className="flex flex-col gap-4">
+              {/* Port Security Mission Set button removed — HORUS roles appear in the dynamic role list below */}
+
+              {/* Configure for Mission panel */}
+              {(() => {
+                const hullName = selectedHull?.name;
+                const platformType = selectedHull?.platformType;
+
+                const getBestFitRole = (roles) => (
+                  roles.find(r => r.allowedHullNames?.includes(hullName)) ||
+                  roles.find(r => r.suggestedHullNames?.includes(hullName)) ||
+                  roles.find(r => r.defaultHullName === hullName) ||
+                  roles.find(r => !r.allowedHullNames?.length && platformType && r.allowedPlatformTypes?.includes(platformType)) ||
+                  null
+                );
+
+                const sortedMissions = ALL_MISSIONS
+                  .filter(mission => {
+                    const roles = MISSION_ROLES[mission.key]?.roles || [];
+                    return getBestFitRole(roles) !== null;
+                  })
+                  .sort((a, b) => {
+                    const score = (mission) => {
+                      const roles = MISSION_ROLES[mission.key]?.roles || [];
+                      if (roles.some(r => r.defaultHullName === hullName)) return 0;
+                      if (roles.some(r => r.allowedHullNames?.includes(hullName) || r.suggestedHullNames?.includes(hullName))) return 1;
+                      return 2;
+                    };
+                    return score(a) - score(b);
+                  });
+
+                const activeMissionKey = configMission || pendingMissionSetKey;
+                const selectedMissionEntry = activeMissionKey
+                  ? ALL_MISSIONS.find(m => m.key === activeMissionKey)
+                  : null;
+
+                const selectedMissionRoles = activeMissionKey ? (MISSION_ROLES[activeMissionKey]?.roles || []) : [];
+                const matchedRole = (sessionRoleKey && selectedMissionRoles.find(r => r.roleKey === sessionRoleKey))
+                  || getBestFitRole(selectedMissionRoles)
+                  || selectedMissionRoles[0]
+                  || null;
+
+                return (
+                  <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                    <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Configure for Mission</p>
+
+                    <div className="relative">
+                      <button
+                        onClick={() => setConfigMissionOpen(prev => !prev)}
+                        className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold border border-gray-600 text-gray-300 bg-transparent hover:border-lime-brand/60 hover:text-white transition-colors flex items-center justify-between gap-2"
+                      >
+                        <span className="truncate">
+                          {selectedMissionEntry ? selectedMissionEntry.name : 'Configure for mission ▾'}
+                        </span>
+                        <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${configMissionOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {configMissionOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setConfigMissionOpen(false)}
+                          />
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-darkest border border-gray-700/50 rounded-xl shadow-xl z-50 overflow-hidden max-h-64 overflow-y-auto">
+                            {sortedMissions.map(mission => {
+                              const roles = MISSION_ROLES[mission.key]?.roles || [];
+                              const isRecommended = roles.some(r => r.defaultHullName === hullName);
+                              const isCompatible = !isRecommended;
+                              return (
+                                <button
+                                  key={mission.key}
+                                  onClick={() => {
+                                    const bestRole = getBestFitRole(roles);
+                                    setPendingMissionSetKey(mission.key);
+                                    setConfigMission(mission.key);
+                                    setPendingRoleKey(bestRole?.roleKey || null);
+                                    setConfigMissionOpen(false);
+                                  }}
+                                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700/50 transition-colors flex items-center gap-2 ${
+                                    activeMissionKey === mission.key ? 'text-lime-brand bg-lime-brand/10' : 'text-gray-300'
+                                  }`}
+                                >
+                                  {isRecommended && (
+                                    <span className="text-yellow-400 text-xs flex-shrink-0">★</span>
+                                  )}
+                                  <span className="flex-1 truncate">{mission.name}</span>
+                                  {isRecommended && (
+                                    <span className="text-[0.58rem] text-yellow-400/70 flex-shrink-0">Recommended</span>
+                                  )}
+                                  {isCompatible && !isRecommended && (
+                                    <span className="text-[0.58rem] text-cyan-500/70 flex-shrink-0">Compatible</span>
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
+                        </>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
+
+                    {activeMissionKey && matchedRole && (
+                      <ReadinessChecklist
+                        config={activeConfig}
+                        role={matchedRole}
+                        isDefault={false}
+                      />
+                    )}
+
+                    {activeMissionKey && (
+                      <button
+                        onClick={() => {
+                          if (matchedRole && selectedHull) {
+                            const labelToUse = sessionVesselLabel || selectedHull.name;
+                            assignVesselToRole(activeMissionKey, matchedRole.roleKey, selectedHull.name, selectedHull.name, labelToUse);
+                          }
+                          setSelectedMissionTemplate(activeMissionKey);
+                          setPendingMissionOpen(true);
+                          setSelectedView('squadron');
+                        }}
+                        className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                      >
+                        Go to Mission →
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Generic mission set — for all non-Port-Security missions */}
+              {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (
+                <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                  <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Mission Set</p>
+                  <button
+                    onClick={genericMissionSetApplied ? handleRemoveGenericMissionSet : handleApplyGenericMissionSet}
+                    className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all flex items-center gap-2 ${
+                      genericMissionSetApplied
+                        ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
+                        : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                    }`}
+                  >
+                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${genericMissionSetApplied ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                      {genericMissionSetApplied && <Check size={10} className="text-black" />}
+                    </span>
+                    {MISSION_SET_LABELS[effectiveMissionSetKey]}
+                  </button>
+                  {genericMissionSetApplied && (
+                    <button
+                      onClick={() => {
+                        const roleKey = useConfigurationStore.getState().pendingRoleKey;
+                        if (effectiveMissionSetKey && roleKey && selectedHull) {
+                          assignVesselToRole(effectiveMissionSetKey, roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+                        }
+                        setSelectedMissionTemplate(effectiveMissionSetKey);
+                        setPendingMissionOpen(true);
+                        setSelectedView('squadron');
+                      }}
+                      className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                    >
+                      Go to Mission →
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Dynamic Mission Sets — SWaP-based eligibility */}
+              {(() => {
+                const eligibleByMission = getEligibleRolesByMission(selectedHull.name);
+                const missionKeys = Object.keys(eligibleByMission);
+                if (missionKeys.length === 0) return null;
+                const hasActiveAssignment = activeRoleCaps !== null;
+                return (
+                  <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <Map size={12} className="text-gray-500" />
+                      <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Preconfigured Mission Sets</p>
+                    </div>
+                    {missionKeys.map(missionKey => {
+                      const { missionLabel, roles } = eligibleByMission[missionKey];
+                      return (
+                        <div key={missionKey} className="flex flex-col gap-1.5">
+                          <p className="text-[0.6rem] text-gray-500 font-semibold uppercase tracking-wide">{missionLabel}</p>
+                          {roles.map(role => {
+                            const assignment = roleAssignments?.[missionKey]?.[role.roleKey];
+                            const isAssigned = !!(assignment && assignment.hullName === selectedHull.name);
+                            const isLocked = hasActiveAssignment && !isAssigned;
+                            return (
+                              <div key={role.roleKey} className="flex flex-col gap-1.5">
+                                <button
+                                  disabled={isLocked}
+                                  onClick={() => isAssigned ? handleRemoveRole(missionKey, role) : handleAssignRole(missionKey, role)}
+                                  className={`w-full py-2.5 px-4 rounded-lg text-xs font-semibold border-2 transition-all flex items-start gap-2 text-left ${
+                                    isAssigned
+                                      ? 'bg-lime-brand/10 border-lime-brand text-lime-brand hover:bg-red-900/20 hover:border-red-400 hover:text-red-300'
+                                      : isLocked
+                                      ? 'bg-transparent border-gray-700/30 text-gray-600 cursor-not-allowed opacity-40'
+                                      : 'bg-transparent border-gray-600 text-gray-300 hover:border-lime-brand/60 hover:text-white'
+                                  }`}
+                                >
+                                  <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isAssigned ? 'bg-lime-brand border-lime-brand' : 'border-gray-500'}`}>
+                                    {isAssigned && <Check size={10} className="text-black" />}
+                                  </span>
+                                  {role.roleLabel}
+                                </button>
+                                {isAssigned && (
+                                  <button
+                                    onClick={() => {
+                                      if (selectedHull) {
+                                        assignVesselToRole(missionKey, role.roleKey, selectedHull.name, selectedHull.name, selectedHull.name);
+                                      }
+                                      setSelectedMissionTemplate(missionKey);
+                                      setPendingMissionOpen(true);
+                                      setSelectedView('squadron');
+                                    }}
+                                    className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold bg-lime-brand text-black hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
+                                  >
+                                    Go to Mission →
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Capability Browser */}
       <CapabilityBrowser

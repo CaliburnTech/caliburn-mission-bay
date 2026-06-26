@@ -134,7 +134,7 @@ const ShipyardView = ({
   return (
     <div>
       {/* Header with Hangar/Pier Toggle */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           {/* Sub-tab Toggle */}
           <div className="toggle-group mb-3">
@@ -166,10 +166,11 @@ const ShipyardView = ({
               setShowHullPicker(!showHullPicker);
             }
           }}
-          className="px-5 py-3 bg-lime-brand text-black rounded-lg font-bold flex items-center gap-2 hover:bg-lime-brand/90 transition-colors text-sm"
+          className="px-4 py-2.5 md:px-5 md:py-3 bg-lime-brand text-black rounded-lg font-bold flex items-center gap-2 hover:bg-lime-brand/90 transition-colors text-sm"
         >
-          <Plus size={18} />
-          New Configuration
+          <Plus size={16} />
+          <span className="hidden sm:inline">New Configuration</span>
+          <span className="sm:hidden">New Config</span>
         </button>
       </div>
 
@@ -218,8 +219,8 @@ const ShipyardView = ({
         </div>
       )}
 
-      {/* Capability Legend */}
-      <div className="flex items-center justify-end gap-4 mb-3 text-[0.65rem]">
+      {/* Capability Legend — desktop only */}
+      <div className="hidden md:flex items-center justify-end gap-4 mb-3 text-[0.65rem]">
         <span className="text-gray-500 uppercase tracking-wide">Capabilities:</span>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-cyan-500/20 flex items-center justify-center">
@@ -277,7 +278,7 @@ const ShipyardView = ({
             </button>
           </div>
         ) : (
-        <div className="grid grid-cols-6 gap-3">
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-2 md:grid md:grid-cols-3 md:overflow-visible lg:grid-cols-6" style={{ scrollbarWidth: 'none' }}>
           {swarmSquadrons.map((rawSquadron) => {
             const squadron = getResolvedSquadron(rawSquadron.id) || rawSquadron;
             const HullComponent = vesselHullComponents[squadron.icon];
@@ -294,7 +295,8 @@ const ShipyardView = ({
               <button
                 key={squadron.id}
                 onClick={() => setSelectedSquadronId(squadron.id)}
-                className={`relative p-3 rounded-xl border-2 transition-all h-[180px] flex flex-col items-center justify-between ${
+                className={`relative p-3 rounded-xl border-2 transition-all h-[180px] flex flex-col items-center justify-between
+                  snap-start flex-shrink-0 w-[75%] md:w-auto md:flex-shrink ${
                   isSelected
                     ? 'bg-lime-brand/10 border-lime-brand shadow-[0_0_20px_rgba(203,253,0,0.15)]'
                     : isInComparison
@@ -437,9 +439,9 @@ const ShipyardView = ({
               <div className="absolute inset-0 bg-gradient-to-r from-lime-brand/5 via-transparent to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-darker" />
 
-              <div className="relative flex items-center p-8">
+              <div className="relative flex flex-col md:flex-row items-center p-5 md:p-8 gap-2 md:gap-0">
                 {/* Large Hull Visualization */}
-                <div className="flex-shrink-0 mr-10">
+                <div className="flex-shrink-0 md:mr-10">
                   <div className="relative">
                     {/* Glow effect */}
                     <div className="absolute inset-0 blur-3xl bg-lime-brand/15 rounded-full scale-75" />
@@ -451,16 +453,27 @@ const ShipyardView = ({
                       )}
                     </div>
                   </div>
+                  {/* Mobile: Configure button under image */}
+                  <button
+                    onClick={() => {
+                      const vessel = vesselHullData.find(v => v.name === squadron.icon || v.icon === squadron.icon);
+                      if (vessel) onSelectHull(vessel);
+                    }}
+                    className="md:hidden mt-4 w-full px-6 py-2.5 bg-lime-brand text-black rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-lime-brand/90 transition-colors"
+                  >
+                    Configure
+                    <ChevronRight size={18} />
+                  </button>
                 </div>
 
                 {/* Squadron Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-6">
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex items-start justify-between mb-3 md:mb-6">
                     <div>
-                      <h3 className="text-gray-50 font-bold text-3xl mb-2">
+                      <h3 className="text-gray-50 font-bold text-2xl md:text-3xl mb-2 text-center md:text-left">
                         {squadron.name}
                       </h3>
-                      <p className="text-gray-400">
+                      <p className="text-gray-400 hidden md:block">
                         {squadron.type} • {squadron.description}
                       </p>
                       {squadron.isVariation && (
@@ -482,7 +495,7 @@ const ShipyardView = ({
                           addToComparison(squadron.id);
                         }
                       }}
-                      className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-colors ${
+                      className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
                         isInComparison
                           ? 'bg-blue-500 border-blue-500'
                           : 'border-gray-600 hover:border-blue-400 bg-darkest/50'
@@ -493,8 +506,8 @@ const ShipyardView = ({
                     </button>
                   </div>
 
-                  {/* Stats Row */}
-                  <div className="flex items-center gap-8">
+                  {/* Stats Row — desktop only */}
+                  <div className="hidden md:flex items-center gap-8">
                     {/* Total Vessels */}
                     <div>
                       <div className="text-5xl font-bold text-lime-brand">{totalUnits.toLocaleString()}</div>
@@ -580,7 +593,7 @@ const ShipyardView = ({
 
             {/* Configurations Section */}
             {configs.length > 0 && (
-              <div className="px-8 pb-6 pt-2">
+              <div className="hidden md:block px-8 pb-6 pt-2">
                 <div className="flex items-center gap-2 mb-4">
                   <Package size={16} className="text-gray-500" />
                   <span className="text-gray-400 text-sm font-semibold uppercase tracking-wide">
@@ -651,7 +664,7 @@ const ShipyardView = ({
 
             {/* No Configs Yet */}
             {configs.length === 0 && (
-              <div className="px-8 pb-6 pt-2">
+              <div className="hidden md:block px-8 pb-6 pt-2">
                 <button
                   onClick={() => {
                     const vessel = vesselHullData.find(v => v.name === squadron.icon || v.icon === squadron.icon);

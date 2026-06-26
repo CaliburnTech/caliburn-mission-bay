@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Ship, Settings, Rocket, MapPin, Clock, Users, ChevronRight, GitBranch, Unlink, Scale } from 'lucide-react';
+import useIsMobile from '../hooks/useIsMobile';
 import useSquadronStore from '../store/squadronStore';
 import useNavigationStore from '../store/navigationStore';
 import useOutfitterStore from '../store/outfitterStore';
@@ -21,6 +22,7 @@ const SquadronManagementModal = () => {
   const { setSelectedView } = useNavigationStore();
   const { setSelectedHull, loadSavedConfiguration } = useOutfitterStore();
 
+  const isMobile = useIsMobile();
   const [showCreateVariation, setShowCreateVariation] = useState(false);
   const [showSpinOutConfirm, setShowSpinOutConfirm] = useState(false);
 
@@ -92,8 +94,8 @@ const SquadronManagementModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[1000] flex items-center justify-center p-8">
-      <div className="bg-darkest border-2 border-lime-brand/30 rounded-2xl w-[95%] max-w-[900px] max-h-[90%] overflow-hidden flex flex-col">
+    <div className={`fixed inset-0 bg-black/80 z-[1000] flex ${isMobile ? 'items-end justify-center' : 'items-center justify-center p-8'}`}>
+      <div className={`bg-darkest border-2 border-lime-brand/30 overflow-hidden flex flex-col ${isMobile ? 'w-full max-w-full max-h-[90vh] rounded-t-2xl rounded-b-none' : 'rounded-2xl w-[95%] max-w-[900px] max-h-[90%]'}`}>
         {/* Header */}
         <div className="p-6 border-b border-gray-600/30">
           <div className="flex justify-between items-start">

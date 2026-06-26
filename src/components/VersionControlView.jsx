@@ -23,6 +23,7 @@ import VersionDiffViewer from './versions/VersionDiffViewer';
 import FleetStatusBoard from './versions/FleetStatusBoard';
 import SBOMDisplay from './shared/SBOMDisplay';
 import MermaidDiagram from './shared/MermaidDiagram';
+import useIsMobile from '../hooks/useIsMobile';
 
 /** Shown when a config is selected but has no saved versions yet */
 const ConfigNoVersionPanel = ({ config }) => {
@@ -101,6 +102,8 @@ const VersionControlView = () => {
   const [selectedVersionId, setSelectedVersionId] = useState(null);
   const [comparisonVersionIds, setComparisonVersionIds] = useState(null); // [idA, idB]
   const [rightPanel, setRightPanel] = useState('detail'); // 'detail' | 'diff' | 'fleet'
+
+  const isMobile = useIsMobile();
 
   // Modal state
   const [sbomModalData, setSbomModalData] = useState(null);   // opens SBOMDisplay
@@ -214,12 +217,12 @@ const VersionControlView = () => {
     <>
     <div className="card-accent">
       {/* Header */}
-      <div className="flex justify-between items-start mb-lg">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start mb-lg">
         <div>
           <h2 className="section-title">Version Control</h2>
           <p className="section-subtitle">Track configuration versions, fleet deployment state, and changes over time</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <div className="stat-card" style={{ padding: '8px 16px' }}>
             <div className="stat-value" style={{ fontSize: '20px' }}>{totalVersions}</div>
             <div className="stat-label">Total Versions</div>
@@ -279,77 +282,18 @@ const VersionControlView = () => {
         </div>
       ) : (
         /* ── Version History Mode ── */
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '16px', minHeight: '500px' }}>
-
-          {/* Left: Config list with boat thumbnails */}
-          <div className="flex flex-col gap-1" style={{ overflowY: 'auto', maxHeight: '75vh' }}>
-            <div className="subsection-label mb-1">Configurations ({configs.length})</div>
-            {configs.length === 0 ? (
-              <div className="card-inner p-4 text-center">
-                <p className="text-gray-600 text-xs">No saved configurations yet</p>
-              </div>
-            ) : (
-              configs.map(config => {
-                const HullSvg = vesselHullComponents[config.hullName] || null;
-                const isSelected = selectedConfigId === config.id;
-                return (
-                  <div key={config.id} className="relative group">
-                    <button
-                      onClick={() => { setSelectedConfigId(config.id); setSelectedVersionId(null); setComparisonVersionIds(null); setRightPanel('detail'); }}
-                      className="text-left w-full rounded-lg cursor-pointer transition-colors pr-7 overflow-hidden"
-                      style={{
-                        backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(17,24,32,0.4)',
-                        border: isSelected ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(75, 85, 99, 0.2)',
-                        display: 'flex', alignItems: 'stretch',
-                      }}
-                    >
-                      {/* Boat thumbnail */}
-                      {HullSvg && (
-                        <div
-                          style={{
-                            width: '56px', flexShrink: 0,
-                            backgroundColor: isSelected ? 'rgba(59,130,246,0.08)' : 'rgba(75,85,99,0.1)',
-                            borderRight: '1px solid rgba(75,85,99,0.2)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            padding: '6px',
-                          }}
-                        >
-                          <HullSvg size={40} />
-                        </div>
-                      )}
-                      <div style={{ padding: '8px 10px', flex: 1, minWidth: 0 }}>
-                        <div className="text-gray-200 font-semibold truncate" style={{ fontSize: '12px' }}>
-                          {config.name || 'Untitled'}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '1px' }}>
-                          {config.hullName} • {config.updatedAt ? new Date(config.updatedAt).toLocaleDateString() : '—'}
-                        </div>
-                        {config.submitted_by && (
-                          <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>
-                            {config.submitted_by}
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteConfig(config.id, e)}
-                      title="Delete configuration"
-                      className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ padding: '3px', borderRadius: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Right: Timeline on top, detail below */}
-          <div className="flex flex-col gap-3" style={{ minHeight: 0 }}>
+        isMobile ? (
+          /* Mobile: master-detail */
+          <div className="flex flex-col gap-3" style={{ minHeight: '500px' }}>
             {selectedConfigId ? (
+              /* Detail view */
               <>
-                {/* Version Timeline — always visible when config selected */}
+                <button
+                  onClick={() => { setSelectedConfigId(null); setSelectedVersionId(null); setComparisonVersionIds(null); }}
+                  className="flex items-center gap-2 text-sm text-lime-brand font-semibold self-start mb-1"
+                >
+                  ← Back to Configurations
+                </button>
                 <div className="card-inner" style={{ padding: '8px 10px', flexShrink: 0 }}>
                   <div className="subsection-label mb-2" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <History size={11} /> Version History
@@ -363,8 +307,6 @@ const VersionControlView = () => {
                     />
                   </div>
                 </div>
-
-                {/* Detail / Diff panel */}
                 <div className="card-inner" style={{ padding: 0, overflow: 'hidden', flex: 1 }}>
                   {rightPanel === 'diff' && comparisonVersionIds ? (
                     <div style={{ padding: '12px' }}>
@@ -382,21 +324,159 @@ const VersionControlView = () => {
                       onShowSV2={selectedVersion?.snapshot?.sv2Snapshot?.mermaidSource ? handleShowSV2 : undefined}
                     />
                   ) : (
-                    /* Config selected, no versions yet */
                     <ConfigNoVersionPanel config={selectedConfig} />
                   )}
                 </div>
               </>
             ) : (
-              <div className="card-inner flex items-center justify-center" style={{ flex: 1 }}>
-                <div className="text-center">
-                  <GitCommit size={32} className="mx-auto mb-3 opacity-20 text-gray-500" />
-                  <p className="text-gray-500 text-sm">Select a configuration to view its history</p>
-                </div>
+              /* Config list */
+              <div className="flex flex-col gap-1">
+                <div className="subsection-label mb-1">Configurations ({configs.length})</div>
+                {configs.length === 0 ? (
+                  <div className="card-inner p-4 text-center">
+                    <p className="text-gray-600 text-xs">No saved configurations yet</p>
+                  </div>
+                ) : (
+                  configs.map(config => {
+                    const HullSvg = vesselHullComponents[config.hullName] || null;
+                    const isSelected = selectedConfigId === config.id;
+                    return (
+                      <div key={config.id} className="relative group">
+                        <button
+                          onClick={() => { setSelectedConfigId(config.id); setSelectedVersionId(null); setComparisonVersionIds(null); setRightPanel('detail'); }}
+                          className="text-left w-full rounded-lg cursor-pointer transition-colors pr-7 overflow-hidden"
+                          style={{
+                            backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(17,24,32,0.4)',
+                            border: isSelected ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(75, 85, 99, 0.2)',
+                            display: 'flex', alignItems: 'stretch',
+                          }}
+                        >
+                          {HullSvg && (
+                            <div style={{ width: '56px', flexShrink: 0, backgroundColor: isSelected ? 'rgba(59,130,246,0.08)' : 'rgba(75,85,99,0.1)', borderRight: '1px solid rgba(75,85,99,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px' }}>
+                              <HullSvg size={40} />
+                            </div>
+                          )}
+                          <div style={{ padding: '8px 10px', flex: 1, minWidth: 0 }}>
+                            <div className="text-gray-200 font-semibold truncate" style={{ fontSize: '12px' }}>{config.name || 'Untitled'}</div>
+                            <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '1px' }}>{config.hullName} • {config.updatedAt ? new Date(config.updatedAt).toLocaleDateString() : '—'}</div>
+                            {config.submitted_by && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>{config.submitted_by}</div>}
+                          </div>
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteConfig(config.id, e)}
+                          title="Delete configuration"
+                          className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ padding: '3px', borderRadius: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
           </div>
-        </div>
+        ) : (
+          /* Desktop: side-by-side grid — unchanged */
+          <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '16px', minHeight: '500px' }}>
+
+            {/* Left: Config list with boat thumbnails */}
+            <div className="flex flex-col gap-1" style={{ overflowY: 'auto', maxHeight: '75vh' }}>
+              <div className="subsection-label mb-1">Configurations ({configs.length})</div>
+              {configs.length === 0 ? (
+                <div className="card-inner p-4 text-center">
+                  <p className="text-gray-600 text-xs">No saved configurations yet</p>
+                </div>
+              ) : (
+                configs.map(config => {
+                  const HullSvg = vesselHullComponents[config.hullName] || null;
+                  const isSelected = selectedConfigId === config.id;
+                  return (
+                    <div key={config.id} className="relative group">
+                      <button
+                        onClick={() => { setSelectedConfigId(config.id); setSelectedVersionId(null); setComparisonVersionIds(null); setRightPanel('detail'); }}
+                        className="text-left w-full rounded-lg cursor-pointer transition-colors pr-7 overflow-hidden"
+                        style={{
+                          backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(17,24,32,0.4)',
+                          border: isSelected ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(75, 85, 99, 0.2)',
+                          display: 'flex', alignItems: 'stretch',
+                        }}
+                      >
+                        {HullSvg && (
+                          <div style={{ width: '56px', flexShrink: 0, backgroundColor: isSelected ? 'rgba(59,130,246,0.08)' : 'rgba(75,85,99,0.1)', borderRight: '1px solid rgba(75,85,99,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px' }}>
+                            <HullSvg size={40} />
+                          </div>
+                        )}
+                        <div style={{ padding: '8px 10px', flex: 1, minWidth: 0 }}>
+                          <div className="text-gray-200 font-semibold truncate" style={{ fontSize: '12px' }}>{config.name || 'Untitled'}</div>
+                          <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '1px' }}>{config.hullName} • {config.updatedAt ? new Date(config.updatedAt).toLocaleDateString() : '—'}</div>
+                          {config.submitted_by && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>{config.submitted_by}</div>}
+                        </div>
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteConfig(config.id, e)}
+                        title="Delete configuration"
+                        className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ padding: '3px', borderRadius: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Right: Timeline on top, detail below */}
+            <div className="flex flex-col gap-3" style={{ minHeight: 0 }}>
+              {selectedConfigId ? (
+                <>
+                  <div className="card-inner" style={{ padding: '8px 10px', flexShrink: 0 }}>
+                    <div className="subsection-label mb-2" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <History size={11} /> Version History
+                    </div>
+                    <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                      <VersionTimeline
+                        configId={selectedConfigId}
+                        selectedVersionId={effectiveVersionId}
+                        onSelectVersion={handleSelectVersion}
+                        onCompareVersions={handleCompareVersions}
+                      />
+                    </div>
+                  </div>
+                  <div className="card-inner" style={{ padding: 0, overflow: 'hidden', flex: 1 }}>
+                    {rightPanel === 'diff' && comparisonVersionIds ? (
+                      <div style={{ padding: '12px' }}>
+                        <VersionDiffViewer
+                          versionIdA={comparisonVersionIds[0]}
+                          versionIdB={comparisonVersionIds[1]}
+                          onClose={() => { setComparisonVersionIds(null); setRightPanel('detail'); }}
+                        />
+                      </div>
+                    ) : effectiveVersionId ? (
+                      <VersionDetailPanel
+                        version={selectedVersion}
+                        onEdit={handleEdit}
+                        onShowSBOM={selectedVersion?.snapshot?.sbomSnapshot ? handleShowSBOM : undefined}
+                        onShowSV2={selectedVersion?.snapshot?.sv2Snapshot?.mermaidSource ? handleShowSV2 : undefined}
+                      />
+                    ) : (
+                      <ConfigNoVersionPanel config={selectedConfig} />
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="card-inner flex items-center justify-center" style={{ flex: 1 }}>
+                  <div className="text-center">
+                    <GitCommit size={32} className="mx-auto mb-3 opacity-20 text-gray-500" />
+                    <p className="text-gray-500 text-sm">Select a configuration to view its history</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )
       )}
     </div>
 

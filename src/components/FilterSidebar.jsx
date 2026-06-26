@@ -8,10 +8,23 @@ const FilterSidebar = ({
   toggleFilter,
   setSelectedSecurityFilters,
   clearAllFilters,
-  capabilityCategories
+  capabilityCategories,
+  onClose
 }) => {
   return (
     <div className="w-[300px] flex-shrink-0">
+      {/* Mobile close button */}
+      {onClose && (
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-gray-300 font-semibold text-sm uppercase tracking-wide">Filters</span>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg bg-gray-700/60 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
       {/* Active Filters Summary */}
       {(selectedFilters.length > 0 || searchTerm.length >= 2) && (
         <div className="bg-darker rounded-lg p-4 border border-lime-brand/20 mb-4">

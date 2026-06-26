@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Anchor, X, Star } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
+import useIsMobile from '../../hooks/useIsMobile';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import { isHullSwapEligible } from '../../utils/missionReadiness';
@@ -18,6 +19,7 @@ import { HULL_IMAGES } from '../../utils/hullImages';
  */
 const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName }) => {
   const assignVesselToRole = useMissionStore(s => s.assignVesselToRole);
+  const isMobile = useIsMobile();
 
   const role = useMemo(() => {
     const missionDef = MISSION_ROLES[missionKey];
@@ -134,11 +136,11 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black/60"
+      className={`fixed inset-0 flex bg-black/60 ${isMobile ? 'items-end justify-center' : 'items-center justify-center p-8'}`}
       style={{ zIndex: 9999 }}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-gray-900 border border-gray-700/60 rounded-2xl w-[520px] max-h-[75vh] flex flex-col shadow-2xl">
+      <div className={`bg-gray-900 border border-gray-700/60 flex flex-col shadow-2xl overflow-hidden ${isMobile ? 'w-full rounded-t-2xl rounded-b-none max-h-[85vh]' : 'rounded-2xl w-[520px] max-h-[75vh]'}`}>
 
         {/* ── Header ── */}
         <div className="p-4 border-b border-gray-700/50 flex items-center justify-between flex-shrink-0">

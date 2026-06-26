@@ -156,6 +156,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
   const roleAssignments = useMissionStore(s => s.roleAssignments);
   const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
   const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
+  const [showLog, setShowLog] = useState(false);
 
   // Build effective roster — override default slots with assigned vessels
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
@@ -475,7 +476,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col h-full bg-darkest overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -490,12 +491,12 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
           value={missionName}
           onChange={e => setMissionName(e.target.value)}
           placeholder="Mission name…"
-          className="bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors"
         />
         <button
           onClick={handleSave}
           disabled={!missionName.trim() || !isDeployable}
-          className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
             missionName.trim() && isDeployable
               ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
               : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
@@ -509,7 +510,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
       <div className="flex-1 min-h-0 overflow-y-auto">
 
       {/* ── Animation row ── */}
-      <div className="flex" style={{ height: '460px' }}>
+      <div className="flex h-[40vh] md:h-[460px]">
 
         {/* ── Map ── */}
         <div className="flex-1 relative overflow-hidden">
@@ -724,7 +725,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
 
           {/* ── Map legend (bottom-left) — hidden while detection HUD is showing ── */}
           {(currentTick < 58 || currentTick >= INTERCEPT_TICK) && (
-            <div className="absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+            <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
               <div className="flex flex-col gap-1">
                 {[
                   { color: '#06b6d4', label: `${effectiveRoster[0]?.hullName ?? 'SubSeaSail Horus'} — Barrier Sensor Node` },
@@ -782,10 +783,33 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
               </div>
             </div>
           )}
+
+          {/* Mobile: Show Log button */}
+          <button
+            onClick={() => setShowLog(true)}
+            className="md:hidden absolute bottom-3 right-3 z-[500] px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/60 text-gray-300 text-xs font-semibold backdrop-blur-sm"
+          >
+            Show Log
+          </button>
         </div>
 
         {/* ── Sidebar ── */}
-        <div className="w-[300px] flex-shrink-0 flex flex-col border-l border-gray-700/50 overflow-hidden bg-darkest">
+        <div className={`
+          flex-col border-l border-gray-700/50 overflow-hidden bg-darkest
+          ${showLog
+            ? 'fixed inset-0 z-[600] flex w-full'
+            : 'hidden md:flex md:w-[300px] md:flex-shrink-0'}
+        `}>
+
+          {/* Mobile close button */}
+          <div className="md:hidden flex justify-end p-2 border-b border-gray-700/50">
+            <button
+              onClick={() => setShowLog(false)}
+              className="px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 text-xs font-semibold"
+            >
+              Close
+            </button>
+          </div>
 
           {/* Controls */}
           <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
@@ -856,8 +880,36 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
         </div>
       </div>{/* /animation row */}
 
+      {/* Mobile: play controls */}
+      <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-gray-700/30 bg-gray-900/30">
+        {running ? (
+          <button
+            onClick={pause}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-semibold transition-colors"
+          >
+            <Pause size={15} />
+            Pause
+          </button>
+        ) : (
+          <button
+            onClick={paused ? resume : runScenario}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-semibold transition-colors"
+          >
+            <Play size={15} />
+            {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+          </button>
+        )}
+        <button
+          onClick={reset}
+          className="p-2.5 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+          title="Reset"
+        >
+          <RotateCcw size={15} />
+        </button>
+      </div>
+
       {/* ── Vessel Roster ── */}
-      <div className="p-4 grid grid-cols-2 gap-3">
+      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
         {effectiveRoster.map((vessel, idx) => (
           <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
             <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
