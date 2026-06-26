@@ -1463,7 +1463,8 @@ const LoadoutBuilder = () => {
               deploymentStatus.isReady
                 ? 'bg-lime-brand/20 text-lime-brand border border-lime-brand/30'
                 : 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30'
-            }`}>
+            }`}
+            >
               {deploymentStatus.isReady ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
               {deploymentStatus.isReady ? 'Ready' : 'Incomplete'}
             </div>

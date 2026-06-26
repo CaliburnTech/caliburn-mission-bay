@@ -48,9 +48,8 @@ const MarketplacePage = ({ onLogoClick }) => {
 
   // UI store
   const {
-    outfitterCart, addToOutfitterCart, removeFromOutfitterCart, clearCart,
+    outfitterCart, addToOutfitterCart,
     expandedStack, setExpandedStack,
-    showCart, setShowCart,
     showSquadrons, setShowSquadrons
   } = useUIStore();
 

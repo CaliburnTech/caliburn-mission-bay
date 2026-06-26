@@ -733,7 +733,8 @@ const MDAISRMissionView = ({ mission, onBack }) => {
             ${showLog
               ? 'fixed inset-0 z-[600] flex w-full'
               : 'hidden md:flex md:w-[300px] md:flex-shrink-0'}
-          `}>
+          `}
+          >
 
             {/* Mobile close button */}
             <div className="md:hidden flex justify-end p-2 border-b border-gray-700/50">
