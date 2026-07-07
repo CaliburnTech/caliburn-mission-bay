@@ -6,7 +6,10 @@ import { ok, methodNotAllowed } from '../_lib/respond.js';
  * GET /api/marketplace/platforms
  * Returns published platforms (APPROVED with at least one published
  * ProductVersion), including the latest version's snapshot (SWaP + custom
- * fields) so the configurator can render specs. Requires authentication.
+ * fields) so the configurator can render specs.
+ *
+ * PUBLIC for now (anonymous catalog browsing during launch). This will be
+ * re-gated to authenticated/vetted buyers later — flip `auth` back to 'user'.
  */
 export default withHandler(
   async (req, res) => {
