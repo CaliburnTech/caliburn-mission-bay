@@ -4,7 +4,8 @@ import { productsApi } from '../api/products'
 import { StatusBadge } from '../components/StatusBadge'
 import { PageHeader, ErrorBanner } from '../components/Layout'
 import { PageSpinner, LoadingSpinner } from '../components/LoadingSpinner'
-import type { Product } from '../types'
+import { SpecEditor } from '../components/SpecEditor'
+import type { Product, ProductSpec } from '../types'
 
 const CATEGORIES = [
   'Command & Control',
@@ -28,6 +29,7 @@ export function EditProduct({ productId }: { productId: string }) {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
   const [trlLevel, setTrlLevel] = useState('')
+  const [spec, setSpec] = useState<ProductSpec>({})
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,6 +43,7 @@ export function EditProduct({ productId }: { productId: string }) {
         setDescription(p.description ?? '')
         setCategory(p.category ?? '')
         setTrlLevel(p.trlLevel?.toString() ?? '')
+        setSpec(p.specJson ?? {})
       })
       .catch((err) => setFetchError(err.message))
       .finally(() => setLoading(false))
@@ -57,6 +60,7 @@ export function EditProduct({ productId }: { productId: string }) {
         description: description || undefined,
         category: category || undefined,
         trlLevel: trlLevel ? parseInt(trlLevel) : undefined,
+        specJson: spec,
       })
       setProduct(updated)
     } catch (err) {
@@ -172,6 +176,10 @@ export function EditProduct({ productId }: { productId: string }) {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="border-t border-gray-700/40 pt-5">
+              <SpecEditor value={spec} onChange={setSpec} />
             </div>
           </fieldset>
 

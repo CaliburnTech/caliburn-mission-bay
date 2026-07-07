@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { Product, ProductStats, Lead, ConfigSummary, ProductType } from '../types'
+import type { Product, ProductStats, Lead, ConfigSummary, ProductType, ProductSpec } from '../types'
 
 export const productsApi = {
   list: () => api.get<Product[]>('/api/products'),
@@ -12,11 +12,18 @@ export const productsApi = {
     description?: string
     category?: string
     trlLevel?: number
+    specJson?: ProductSpec
   }) => api.post<Product>('/api/products', data),
 
   update: (
     id: string,
-    data: { name: string; description?: string; category?: string; trlLevel?: number },
+    data: {
+      name: string
+      description?: string
+      category?: string
+      trlLevel?: number
+      specJson?: ProductSpec
+    },
   ) => api.put<Product>(`/api/products/${id}`, data),
 
   archive: (id: string) => api.delete<{ archived: boolean }>(`/api/products/${id}`),

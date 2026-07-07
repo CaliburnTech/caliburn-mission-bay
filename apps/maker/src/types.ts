@@ -32,6 +32,12 @@ export interface AnthropicKeyStatus {
   last4?: string
 }
 
+/** Maker-authored spec: standard SWaP fields (all optional) + custom entries. */
+export interface ProductSpec {
+  swap?: Record<string, number | string>
+  customFields?: { label: string; value: string }[]
+}
+
 export interface Product {
   id: string
   companyId: string
@@ -40,6 +46,7 @@ export interface Product {
   description: string | null
   category: string | null
   trlLevel: number | null
+  specJson: ProductSpec | null
   status: ProductStatus
   createdAt: string
   updatedAt: string

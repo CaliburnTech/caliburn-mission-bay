@@ -1,6 +1,7 @@
 import prisma from '../_lib/db.js';
 import { withHandler } from '../_lib/handler.js';
 import { ok, created, badRequest, methodNotAllowed } from '../_lib/respond.js';
+import { sanitizeSpec } from '../_lib/productSpec.js';
 
 /**
  * GET  /api/products  — list vendor's own products
@@ -20,7 +21,7 @@ export default withHandler(
     }
 
     if (req.method === 'POST') {
-      const { type, name, description, category, trlLevel } = req.body ?? {};
+      const { type, name, description, category, trlLevel, specJson } = req.body ?? {};
 
       if (!['PLATFORM', 'CAPABILITY'].includes(type)) {
         return badRequest(res, 'type must be PLATFORM or CAPABILITY');
@@ -35,6 +36,7 @@ export default withHandler(
           description,
           category,
           trlLevel: trlLevel ? parseInt(trlLevel) : null,
+          specJson: sanitizeSpec(specJson) ?? undefined,
           status: 'DRAFT',
         },
       });

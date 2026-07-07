@@ -3,7 +3,8 @@ import { Cpu, Ship, ChevronLeft, HelpCircle } from 'lucide-react'
 import { productsApi } from '../api/products'
 import { PageHeader, ErrorBanner } from '../components/Layout'
 import { LoadingSpinner } from '../components/LoadingSpinner'
-import type { ProductType } from '../types'
+import { SpecEditor } from '../components/SpecEditor'
+import type { ProductType, ProductSpec } from '../types'
 
 type Step = 'type' | 'details'
 
@@ -29,6 +30,7 @@ export function AddProduct() {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
   const [trlLevel, setTrlLevel] = useState('')
+  const [spec, setSpec] = useState<ProductSpec>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,6 +51,7 @@ export function AddProduct() {
         description: description || undefined,
         category: category || undefined,
         trlLevel: trlLevel ? parseInt(trlLevel) : undefined,
+        specJson: spec,
       })
       window.location.hash = 'products'
     } catch (err) {
@@ -219,6 +222,10 @@ export function AddProduct() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="border-t border-gray-700/40 pt-5">
+            <SpecEditor value={spec} onChange={setSpec} />
           </div>
 
           <div className="pt-2">

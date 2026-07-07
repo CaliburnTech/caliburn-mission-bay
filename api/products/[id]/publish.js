@@ -41,7 +41,10 @@ export default withHandler(
     const prevVersionNumber = product.versions[0]?.versionNumber ?? 0;
     const nextVersionNumber = prevVersionNumber + 1;
 
-    // Snapshot the current product data into a new version row
+    // Snapshot the current product data (including maker-authored spec) into a
+    // new version row. SWaP goes to the dedicated swapJson column; custom fields
+    // ride along in data so the version is a complete, self-contained snapshot.
+    const spec = product.specJson ?? {};
     const newVersion = await prisma.productVersion.create({
       data: {
         productId: id,
@@ -52,7 +55,9 @@ export default withHandler(
           category: product.category,
           trlLevel: product.trlLevel,
           type: product.type,
+          customFields: spec.customFields ?? [],
         },
+        swapJson: spec.swap ?? undefined,
         changelog: changelog ?? null,
         publishedById: publisher.id,
       },

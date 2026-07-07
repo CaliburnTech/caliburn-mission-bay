@@ -158,6 +158,9 @@ model Product {
   trlLevel         Int?
   status           ProductStatus @default(DRAFT)
   currentVersionId String?
+  // Maker-authored spec while in draft/review: { swap: {..optional fields..},
+  // customFields: [{label, value}] }. Snapshotted into ProductVersion at publish.
+  specJson         Json?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 

@@ -1,6 +1,7 @@
 import prisma from '../_lib/db.js';
 import { withHandler } from '../_lib/handler.js';
 import { ok, badRequest, notFound, methodNotAllowed } from '../_lib/respond.js';
+import { sanitizeSpec } from '../_lib/productSpec.js';
 
 const getOwnProduct = async (productId, companyId) => {
   const product = await prisma.product.findUnique({ where: { id: productId } });
@@ -33,7 +34,7 @@ export default withHandler(
         return badRequest(res, 'Archived products cannot be edited');
       }
 
-      const { name, description, category, trlLevel } = req.body ?? {};
+      const { name, description, category, trlLevel, specJson } = req.body ?? {};
       if (!name?.trim()) return badRequest(res, 'name is required');
 
       const updated = await prisma.product.update({
@@ -43,6 +44,9 @@ export default withHandler(
           description,
           category,
           trlLevel: trlLevel ? parseInt(trlLevel) : null,
+          // Only overwrite spec when the client sends the field, so callers that
+          // omit it don't wipe existing spec data.
+          ...(specJson !== undefined ? { specJson: sanitizeSpec(specJson) ?? undefined } : {}),
         },
       });
       return ok(res, updated);
