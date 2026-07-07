@@ -4,15 +4,24 @@ import { ok, methodNotAllowed } from '../_lib/respond.js';
 
 /**
  * GET /api/marketplace/platforms
- * Returns all APPROVED platforms. Requires authentication.
+ * Returns published platforms (APPROVED with at least one published
+ * ProductVersion), including the latest version's snapshot (SWaP + custom
+ * fields) so the configurator can render specs. Requires authentication.
  */
 export default withHandler(
   async (req, res) => {
     if (req.method !== 'GET') return methodNotAllowed(res);
 
     const products = await prisma.product.findMany({
-      where: { type: 'PLATFORM', status: 'APPROVED' },
-      include: { company: { select: { id: true, name: true, logoUrl: true } } },
+      where: { type: 'PLATFORM', status: 'APPROVED', currentVersionId: { not: null } },
+      include: {
+        company: { select: { id: true, name: true, logoUrl: true } },
+        versions: {
+          orderBy: { versionNumber: 'desc' },
+          take: 1,
+          select: { data: true, swapJson: true, missionTags: true, platformTags: true, versionNumber: true },
+        },
+      },
       orderBy: { name: 'asc' },
     });
 

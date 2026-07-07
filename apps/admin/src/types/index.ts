@@ -14,6 +14,12 @@ export type UserRole = 'OWNER' | 'ADMIN' | 'MEMBER'
 export type ProductStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'ARCHIVED'
 export type ProductType = 'PLATFORM' | 'CAPABILITY'
 
+/** Maker-authored spec: standard SWaP fields (all optional) + custom entries. */
+export interface ProductSpec {
+  swap?: Record<string, number | string>
+  customFields?: { label: string; value: string }[]
+}
+
 /** A product awaiting Caliburn action (IN_REVIEW or APPROVED), from GET /api/admin/products. */
 export interface AdminProduct {
   id: string
@@ -22,6 +28,7 @@ export interface AdminProduct {
   type: ProductType
   category?: string | null
   trlLevel?: number | null
+  specJson?: ProductSpec | null
   status: ProductStatus
   company: { id: string; name: string }
   /** Latest published version, if any (empty until first publish). */

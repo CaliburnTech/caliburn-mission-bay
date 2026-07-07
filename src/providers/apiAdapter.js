@@ -12,37 +12,84 @@ import { createStaticAdapter } from './staticAdapter';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+// Merge the static demo catalog alongside DB-published products during the
+// transition to all-real data. Set VITE_INCLUDE_STATIC_CATALOG=false to show
+// only real published products (see product-pipeline plan, Decision 3).
+const INCLUDE_STATIC =
+  (import.meta.env.VITE_INCLUDE_STATIC_CATALOG ?? 'true') !== 'false';
+
 // ── Shape normalization ────────────────────────────────────────────────────
 
-const normalizeCapability = (product) => ({
-  ...product,
-  trl: product.trlLevel != null ? `TRL ${product.trlLevel}` : null,
-  provider: product.company?.name || null,
-  icon: null,          // API_GAP-11: no icon field in API
-  specs: {},           // API_GAP-12: no specs object in API
-  statImpacts: {},     // API_GAP-13: no SWaP effects in API
-  missionTags: [],     // API_GAP-14: no mission tags in API
-  capabilityRefs: [],  // API_GAP-15: no capability refs in API
-  components: [],      // API_GAP-16: no component list in API
-  securityClearance: null, // API_GAP-17: no security clearance in API
-  swapData: null,      // API_GAP-18: no SWaP table data in API
-  integration: product.description || '',
-});
+// Human-readable labels for the maker-authored SWaP fields (mirror of the
+// maker app's SpecEditor field set) so specs render nicely in the configurator.
+const SWAP_LABELS = {
+  lengthCm: 'Length (cm)',
+  widthCm: 'Width (cm)',
+  heightCm: 'Height (cm)',
+  weightKg: 'Weight (kg)',
+  powerW: 'Power draw (W)',
+  voltageV: 'Voltage (V)',
+  enduranceHr: 'Endurance (hr)',
+  rangeKm: 'Range (km)',
+  maxSpeedKn: 'Max speed (kn)',
+  payloadKg: 'Payload capacity (kg)',
+  interfaces: 'Interfaces / mounts',
+  ipRating: 'Environmental / IP rating',
+};
 
-const normalizePlatform = (product) => ({
-  ...product,
-  trl: product.trlLevel != null ? `TRL ${product.trlLevel}` : null,
-  provider: product.company?.name || null,
-  icon: null,          // API_GAP-19: no icon in API
-  specs: {},
-  // API_GAP-20: speed/range/payload/endurance not in API
-  // API_GAP-21: mountPoints not in API
-  // API_GAP-22: platformType not in API
-  // API_GAP-23: dimensions not in API
-  // API_GAP-24: propulsion not in API
-  // API_GAP-25: securityClassification not in API
-  // API_GAP-26: statImpacts not in API
-});
+/**
+ * Pull the published spec off a product. Prefers the latest ProductVersion
+ * snapshot (swapJson + data.customFields); falls back to the live specJson.
+ * Returns { swap, customFields, specs } where specs is a flat display map.
+ */
+const extractSpec = (product) => {
+  const version = product.versions?.[0];
+  const swap = version?.swapJson ?? product.specJson?.swap ?? {};
+  const customFields =
+    version?.data?.customFields ?? product.specJson?.customFields ?? [];
+
+  const specs = {};
+  for (const [k, v] of Object.entries(swap)) specs[SWAP_LABELS[k] ?? k] = v;
+  for (const cf of customFields) if (cf?.label) specs[cf.label] = cf.value;
+
+  return { swap, customFields, specs };
+};
+
+const normalizeCapability = (product) => {
+  const { swap, customFields, specs } = extractSpec(product);
+  return {
+    ...product,
+    trl: product.trlLevel != null ? `TRL ${product.trlLevel}` : null,
+    provider: product.company?.name || null,
+    source: 'vendor',
+    icon: null,
+    specs,
+    statImpacts: {}, // SWaP→budget effects not modeled from maker input yet
+    missionTags: product.versions?.[0]?.missionTags ?? [],
+    capabilityRefs: [],
+    components: [],
+    securityClearance: null,
+    swapData: Object.keys(swap).length ? swap : null,
+    customFields,
+    integration: product.description || '',
+  };
+};
+
+const normalizePlatform = (product) => {
+  const { swap, customFields, specs } = extractSpec(product);
+  return {
+    ...product,
+    trl: product.trlLevel != null ? `TRL ${product.trlLevel}` : null,
+    provider: product.company?.name || null,
+    source: 'vendor',
+    icon: null,
+    specs,
+    swapData: Object.keys(swap).length ? swap : null,
+    customFields,
+    missionTags: product.versions?.[0]?.missionTags ?? [],
+    platformTags: product.versions?.[0]?.platformTags ?? [],
+  };
+};
 
 // ── HTTP helpers ───────────────────────────────────────────────────────────
 
@@ -109,13 +156,28 @@ export const createApiAdapter = (authToken = null) => {
     // ── Capabilities & Platforms ─────────────────────────────────────────
 
     getCapabilities: async () => {
-      const data = await fetchJSON('/marketplace/capabilities');
-      return (data.items ?? data).map(normalizeCapability);
+      const [data, staticItems] = await Promise.all([
+        fetchJSON('/marketplace/capabilities').catch((err) => {
+          console.warn('[apiAdapter] getCapabilities API fetch failed:', err);
+          return [];
+        }),
+        INCLUDE_STATIC ? staticFallback.getCapabilities() : [],
+      ]);
+      const dbItems = (data.items ?? data).map(normalizeCapability);
+      // Static first (keeps existing demo catalog order); vendor products appended.
+      return [...staticItems, ...dbItems];
     },
 
     getVessels: async () => {
-      const data = await fetchJSON('/marketplace/platforms');
-      return (data.items ?? data).map(normalizePlatform);
+      const [data, staticItems] = await Promise.all([
+        fetchJSON('/marketplace/platforms').catch((err) => {
+          console.warn('[apiAdapter] getVessels API fetch failed:', err);
+          return [];
+        }),
+        INCLUDE_STATIC ? staticFallback.getVessels() : [],
+      ]);
+      const dbItems = (data.items ?? data).map(normalizePlatform);
+      return [...staticItems, ...dbItems];
     },
 
     getVesselByName: (name) => {
