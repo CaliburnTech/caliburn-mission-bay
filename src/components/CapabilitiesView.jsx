@@ -230,7 +230,8 @@ const CapabilitiesView = ({
           </div>
           <div className="card-grid">
             {filteredCapabilities.map((capability) => {
-              const IconComponent = capability.icon;
+              // Vendor (DB) products have no icon component; fall back to Package.
+              const IconComponent = capability.icon || Package;
               const isInCart = outfitterCart.some(item => item.name === capability.name);
               const isSelectedForFit = selectedForFit.includes(capability.name);
               const fitStatus = fitCheckVessel ? checkFit(capability) : null;
