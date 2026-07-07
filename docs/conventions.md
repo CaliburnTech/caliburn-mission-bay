@@ -1,5 +1,11 @@
 # Conventions
 
+## Two Coexisting Module Conventions (deliberate)
+- **`src/` (buyer SPA)**: JavaScript `.jsx` files with **default exports** (`export default ComponentName`). Type safety comes from strict `tsconfig.json` checking plus ESLint's JSX rules.
+- **`apps/admin` and `apps/maker`**: TypeScript `.ts`/`.tsx` files with **named exports** (`export function ProductStats(...)`). Strict tsc is the source of truth; the stylistic JSX ESLint rules below are not enforced there.
+
+Follow the convention of whichever tree you are editing — do not "normalize" one to the other.
+
 ## File Naming
 - Components: `PascalCase.jsx` (e.g., `ShipyardView.jsx`, `MissionPlanner.jsx`)
 - Stores: `camelCaseStore.js` (e.g., `navigationStore.js`, `outfitterStore.js`)
@@ -92,6 +98,4 @@ export default useExampleStore;
 ## Known Technical Debt
 - Large files needing decomposition: `marketplaceData.js` (2,658 lines), `OutfitterView.jsx` (795), `ShipyardView.jsx` (686)
 - Only 2 test files — stores and critical components need test coverage
-- Backup directories in repo should be removed (use git history instead)
-- `.gitignore` missing `.env` patterns
 - No React error boundaries

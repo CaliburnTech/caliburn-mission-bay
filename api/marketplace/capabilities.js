@@ -1,26 +1,22 @@
 import prisma from '../_lib/db.js';
-import { requireAuth, handleAuthError } from '../_lib/auth.js';
-import { ok, serverError, methodNotAllowed } from '../_lib/respond.js';
+import { withHandler } from '../_lib/handler.js';
+import { ok, methodNotAllowed } from '../_lib/respond.js';
 
 /**
  * GET /api/marketplace/capabilities
  * Returns all APPROVED capabilities. Requires authentication.
  */
-export default async function handler(req, res) {
-  if (req.method !== 'GET') return methodNotAllowed(res);
+export default withHandler(
+  async (req, res) => {
+    if (req.method !== 'GET') return methodNotAllowed(res);
 
-  try {
-    await requireAuth(req);
-  } catch (err) {
-    if (handleAuthError(err, res)) return;
-    return serverError(res, err);
-  }
+    const products = await prisma.product.findMany({
+      where: { type: 'CAPABILITY', status: 'APPROVED' },
+      include: { company: { select: { id: true, name: true, logoUrl: true } } },
+      orderBy: { name: 'asc' },
+    });
 
-  const products = await prisma.product.findMany({
-    where: { type: 'CAPABILITY', status: 'APPROVED' },
-    include: { company: { select: { id: true, name: true, logoUrl: true } } },
-    orderBy: { name: 'asc' },
-  });
-
-  return ok(res, products);
-}
+    return ok(res, products);
+  },
+  { auth: 'user' }
+);

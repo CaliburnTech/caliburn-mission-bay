@@ -4,24 +4,16 @@ import { engineeringStacks, individualCapabilities, squadrons } from '../data/ma
 import { vesselHullData } from '../data/vesselData';
 import useDataStore from '../providers/dataStore';
 
-const GlobalSearch = ({ onNavigate }) => {
-  const _dataStore = useDataStore();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const inputRef = useRef(null);
-  const dropdownRef = useRef(null);
+// Empty results structure
+const emptyResults = {
+  capabilities: [],
+  stacks: [],
+  vessels: [],
+  squadrons: []
+};
 
-  // Empty results structure
-  const emptyResults = {
-    capabilities: [],
-    stacks: [],
-    vessels: [],
-    squadrons: []
-  };
-
-  // Build search index from all data sources
-  const buildSearchResults = (query) => {
+// Build search index from all data sources (module scope — only reads static data imports)
+const buildSearchResults = (query) => {
     if (!query || query.length < 2) return emptyResults;
 
     const lowerQuery = query.toLowerCase();
@@ -101,8 +93,16 @@ const GlobalSearch = ({ onNavigate }) => {
       }
     });
 
-    return results;
-  };
+  return results;
+};
+
+const GlobalSearch = ({ onNavigate }) => {
+  const _dataStore = useDataStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   // Memoize search results to avoid rebuilding on every render
   const searchResults = useMemo(() => buildSearchResults(searchTerm), [searchTerm]);

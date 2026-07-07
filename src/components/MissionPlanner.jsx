@@ -12,6 +12,7 @@ const MissionPlanner = () => {
   // If LoadoutBuilder signalled us to open config directly, consume the flag
   useEffect(() => {
     if (pendingMissionOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- consumes a one-shot cross-view navigation signal from the store; must run after mount
       setSelectedMission(null);
       setView('config');
       setPendingMissionOpen(false);

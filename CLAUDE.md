@@ -15,7 +15,8 @@ TypeScript strict checking enabled on JS source files (tsconfig strict: true, so
 - `npm run test:ci` — lint + typecheck + tests
 - `npm run lint` — ESLint check
 - `npm run lint:fix` — ESLint auto-fix
-- `npm run typecheck` — TypeScript type checking (no emit)
+- `npm run typecheck` — TypeScript type checking (no emit; root TS files — run `npx prisma generate` first)
+- `npm run typecheck:apps` — type-check apps/admin and apps/maker
 
 ## Structure
 ```
@@ -43,11 +44,22 @@ src/
 │   ├── deploymentStore.js    # Deployment flow state
 │   ├── configurationStore.js # Capability config helpers
 │   └── missionStore.js       # Mission data management
+├── providers/                # Data adapters: staticAdapter (demo) | apiAdapter (production)
 ├── data/                     # Static data (capabilities, vessels, missions, fleet)
 ├── constants/colors.js       # Design system: category colors, status, brand
 ├── hooks/                    # Custom hooks (drag-drop)
 └── assets/images/            # Vessel images, logos, backgrounds
 ```
+
+## Backend & Sub-apps
+Beyond `src/` (the buyer SPA above), the repo contains:
+- `api/` — Vercel serverless functions (plain JavaScript ESM). Prisma → Supabase Postgres, Supabase auth token verification. Shared helpers in `api/_lib/`.
+- `apps/admin/` — Admin console, TypeScript + Vite, own `package.json`/`node_modules`. Deployed at https://caliburn-marketplace-admin.vercel.app.
+- `apps/maker/` — Maker portal, TypeScript + Vite, own `package.json`/`node_modules`. Deployed at https://mission-bay-maker.vercel.app.
+- `prisma/` — `schema.prisma`, migrations (schema of record), `seed.ts`.
+- `_archive/` — retired code (gitignored): old edge functions, `src/lib`, infra, backups. Do not resurrect from here.
+
+`src/` uses `.jsx` default exports; `apps/` use TypeScript named exports — both conventions are deliberate (see `docs/conventions.md`). Run `npm run typecheck:apps` for the sub-apps.
 
 ## Conventions
 ### React/Vite-Specific

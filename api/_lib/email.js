@@ -15,9 +15,12 @@
 
 import { Resend } from 'resend';
 
-const APP_URL = 'https://missionbay.vercel.app';
+const APP_URL = process.env.APP_URL || 'https://caliburn-marketplace.vercel.app';
 const FROM = 'Mission Bay <noreply@caliburn.us>';
 const NOTIFY = process.env.CALIBURN_NOTIFY_EMAIL ?? 'team@caliburn.us';
+
+/** True when a real Resend API key is configured (emails will actually send). */
+export const isEmailEnabled = () => Boolean(process.env.RESEND_API_KEY);
 
 let _client = null;
 const client = () => {
@@ -114,6 +117,63 @@ export const sendConfigSaved = ({ buyerEmail, configName }) =>
       <a href="${APP_URL}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:#fff;text-decoration:none;border-radius:6px">
         View your configurations →
       </a>
+    </p>
+    `,
+  );
+
+// ── Template 4b — Config updated by vendor (to buyer) ───────────────────────
+// Fired: POST /api/products/:id/publish (for each affected saved config)
+export const sendConfigUpdated = ({ buyerEmail, productName, configName }) =>
+  send(
+    buyerEmail,
+    `[Mission Bay] A product in your configuration was updated`,
+    `
+    <p><strong>${productName}</strong> has published a new version.</p>
+    <p>Your saved configuration <strong>${configName}</strong> has been updated to reference the latest version.</p>
+    <p>
+      <a href="${APP_URL}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:#fff;text-decoration:none;border-radius:6px">
+        Review your configuration →
+      </a>
+    </p>
+    `,
+  );
+
+// ── Template 4c — Vendor application received (to Caliburn team) ────────────
+// Fired: POST /api/admin/applications (public form)
+export const sendVendorApplicationReceived = ({ companyName, contactName, contactEmail }) =>
+  send(
+    NOTIFY,
+    `[Mission Bay] New vendor application — ${companyName}`,
+    `
+    <p>A new vendor application has been submitted on Mission Bay.</p>
+    <table style="border-collapse:collapse;margin:16px 0">
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Company</td><td><strong>${companyName}</strong></td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Contact</td><td>${contactName}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;color:#6b7280">Email</td><td>${contactEmail}</td></tr>
+    </table>
+    <p>
+      <a href="${APP_URL}/admin" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:#fff;text-decoration:none;border-radius:6px">
+        Review in Admin Portal →
+      </a>
+    </p>
+    `,
+  );
+
+// ── Template 4d — Password reset link (to user) ─────────────────────────────
+// Fired: POST /api/admin/users/:id/reset-password
+export const sendPasswordReset = ({ to, actionLink }) =>
+  send(
+    to,
+    `[Mission Bay] Reset your password`,
+    `
+    <p>A password reset was requested for your Mission Bay account.</p>
+    <p>
+      <a href="${actionLink}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:#fff;text-decoration:none;border-radius:6px">
+        Reset password →
+      </a>
+    </p>
+    <p style="color:#6b7280;font-size:14px">
+      If you did not request this, you can safely ignore this email.
     </p>
     `,
   );

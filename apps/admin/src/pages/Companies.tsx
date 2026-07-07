@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Search, Ban, CheckCircle, Eye, RefreshCw, Building2, Undo2 } from 'lucide-react'
 import { getAllCompanies, approveCompany, banCompany, unbanCompany, startImpersonation } from '../lib/api'
 import { setImpersonationSession } from '../lib/api'
@@ -15,25 +15,40 @@ export function Companies({ onImpersonate }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [banTarget, setBanTarget] = useState<Company | null>(null)
   const [actionInFlight, setActionInFlight] = useState<string | null>(null)
+  // Aborts the in-flight list request when a newer one starts, so stale
+  // responses can never overwrite fresher results.
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Debounce the search input (300ms) before it triggers a network request.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   const load = useCallback(async () => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     setLoading(true)
     setError(null)
     try {
       const params: Record<string, string> = {}
       if (statusFilter !== 'ALL') params.status = statusFilter
-      if (search.trim()) params.search = search.trim()
-      const res = await getAllCompanies(params)
+      if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
+      const res = await getAllCompanies(params, controller.signal)
       setCompanies(res.companies)
     } catch (err) {
+      // An aborted request means a newer one superseded it — ignore silently.
+      if (err instanceof Error && err.name === 'AbortError') return
       setError(err instanceof Error ? err.message : 'Failed to load')
     } finally {
-      setLoading(false)
+      if (abortRef.current === controller) setLoading(false)
     }
-  }, [search, statusFilter])
+  }, [debouncedSearch, statusFilter])
 
   useEffect(() => { load() }, [load])
 
@@ -83,10 +98,8 @@ export function Companies({ onImpersonate }: Props) {
       setImpersonationSession(sessionId)
       onImpersonate({
         id: sessionId,
-        actorUserId: '',
-        targetCompanyId: company.id,
-        targetCompanyName: company.name,
-        startedAt: new Date().toISOString(),
+        companyId: company.id,
+        companyName: company.name,
         expiresAt,
       })
     } catch (err) {

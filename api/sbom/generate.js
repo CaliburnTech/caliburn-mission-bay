@@ -1,7 +1,8 @@
+import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '../_lib/db.js';
-import { requireAuth, handleAuthError } from '../_lib/auth.js';
-import { created, badRequest, notFound, serverError, methodNotAllowed } from '../_lib/respond.js';
+import { withHandler } from '../_lib/handler.js';
+import { created, badRequest, notFound, forbidden, unauthorized, serverError, methodNotAllowed } from '../_lib/respond.js';
 
 /**
  * POST /api/sbom/generate
@@ -76,7 +77,7 @@ function assembleSbom(configuration) {
     const sorted = [...pv.components].sort((a, b) => a.sortOrder - b.sortOrder);
     for (const pc of sorted) {
       const c = pc.component;
-      const bomRef = c.bomRef ?? `comp-${crypto.randomUUID()}`;
+      const bomRef = c.bomRef ?? `comp-${randomUUID()}`;
       pvDeps.push(bomRef);
 
       allComponents.push({
@@ -141,7 +142,7 @@ function toCycloneDxJson(assembled, { configId, companyName, generatedAt }) {
   const bom = {
     bomFormat: 'CycloneDX',
     specVersion: '1.5',
-    serialNumber: `urn:uuid:${crypto.randomUUID()}`,
+    serialNumber: `urn:uuid:${randomUUID()}`,
     version: 1,
     metadata: {
       timestamp: generatedAt.toISOString(),
@@ -173,11 +174,21 @@ function toCycloneDxJson(assembled, { configId, companyName, generatedAt }) {
   return JSON.stringify(bom, null, 2);
 }
 
+/**
+ * Quotes a CSV cell: escapes embedded double quotes and defuses spreadsheet
+ * formula injection by prefixing =, +, -, @ with a single quote.
+ */
+function csvCell(value) {
+  let s = String(value ?? '');
+  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
 function toCsv(assembled) {
-  const header = 'name,version,supplier,license,type,category';
+  const header = 'name,version,supplier,license,type,relationship';
   const rows = assembled.allComponents.map(c =>
     [c.name, c.version, c.supplier, c.license, c.type, c.isDirect ? 'direct' : 'transitive']
-      .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`)
+      .map(csvCell)
       .join(','),
   );
   return [header, ...rows].join('\n');
@@ -292,33 +303,29 @@ export async function generateSbomForConfig(configId, userId) {
 
 // ── HTTP handler ──────────────────────────────────────────────────────────────
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return methodNotAllowed(res);
+export default withHandler(
+  async (req, res, auth) => {
+    if (req.method !== 'POST') return methodNotAllowed(res);
+    if (!auth.id) return unauthorized(res, 'Account setup incomplete — complete onboarding first');
 
-  let user;
-  try {
-    user = await requireAuth(req);
-  } catch (err) {
-    if (handleAuthError(err, res)) return;
-    return serverError(res, err);
-  }
+    const { configId } = req.body ?? {};
+    if (!configId) return badRequest(res, 'configId is required');
 
-  const { configId } = req.body ?? {};
-  if (!configId) return badRequest(res, 'configId is required');
+    // Verify ownership before generating — compare against the DB user id.
+    const config = await prisma.savedConfiguration.findUnique({
+      where: { id: configId },
+      select: { userId: true },
+    });
+    if (!config) return notFound(res);
+    if (config.userId !== auth.id) return forbidden(res, 'Config does not belong to you');
 
-  // Verify ownership before generating
-  const config = await prisma.savedConfiguration.findUnique({
-    where: { id: configId },
-    select: { userId: true },
-  });
-  if (!config) return notFound(res);
-  if (config.userId !== user.id) return badRequest(res, 'Config does not belong to you');
-
-  try {
-    const result = await generateSbomForConfig(configId, user.id);
-    return created(res, result);
-  } catch (err) {
-    console.error('[sbom/generate] generation failed:', err);
-    return serverError(res, err);
-  }
-}
+    try {
+      const result = await generateSbomForConfig(configId, auth.id);
+      return created(res, result);
+    } catch (err) {
+      console.error('[sbom/generate] generation failed:', err);
+      return serverError(res, err);
+    }
+  },
+  { auth: 'user' }
+);

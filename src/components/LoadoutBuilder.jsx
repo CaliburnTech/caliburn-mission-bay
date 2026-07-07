@@ -836,6 +836,7 @@ const LoadoutBuilder = () => {
         const existingCaps = Object.values(config.slots || {}).flat().filter(Boolean);
         if (existingCaps.length > 0) {
           // Re-entering after a previous customisation — register assignment, preserve their work.
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- consumes a one-shot navigation signal (pending mission/role keys) from the store; must run post-mount
           setActiveRoleCaps(role.capabilities); // keeps "Go to Mission" button visible
           assignVesselToRole(key, role.roleKey, selectedHull.name, selectedHull.name, vesselLabel);
         } else {

@@ -67,12 +67,36 @@ export const unbanCompany = (id: string) =>
 
 // ─── All companies ────────────────────────────────────────────────────────────
 
-export const getAllCompanies = (params?: { status?: string; search?: string }) => {
+export const getAllCompanies = (
+  params?: { status?: string; search?: string },
+  signal?: AbortSignal,
+) => {
   const qs = new URLSearchParams(params as Record<string, string>).toString()
   return request<{ companies: import('../types').Company[] }>(
     `/api/admin/companies${qs ? `?${qs}` : ''}`,
+    { signal },
   )
 }
+
+// ─── Demo submissions ─────────────────────────────────────────────────────────
+
+/**
+ * List saved boat configurations (SavedConfiguration table), super-admin only.
+ * Goes through the authenticated API (bearer token) instead of reading the
+ * table directly with the anon key.
+ * Response: { submissions: Submission[] } ordered by createdAt descending.
+ */
+export const getSubmissions = () =>
+  request<{ submissions: import('../types').Submission[] }>('/api/admin/submissions')
+
+/**
+ * Permanently delete a saved boat configuration, super-admin only.
+ * Response: { deleted: true, id }.
+ */
+export const deleteSubmission = (id: string) =>
+  request<{ deleted: true; id: string }>(`/api/admin/submissions/${id}`, {
+    method: 'DELETE',
+  })
 
 // ─── Impersonation ────────────────────────────────────────────────────────────
 

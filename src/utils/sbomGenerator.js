@@ -156,19 +156,27 @@ const buildSBOM = (allComponents, topLevelNames, context) => {
 // Export SBOM as formatted JSON string
 export const sbomToJSON = (sbom) => JSON.stringify(sbom, null, 2);
 
+// Quote a CSV field: double embedded quotes (RFC 4180) and neutralize
+// spreadsheet formula injection (leading =, +, -, @ get a ' prefix).
+const csvField = (value) => {
+  let s = value == null ? '' : String(value);
+  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  return `"${s.replace(/"/g, '""')}"`;
+};
+
 // Export SBOM as CSV
 export const sbomToCSV = (sbom) => {
   const header = 'Component Name,Version,Supplier,License,Category,PURL,Is Top-Level,Dependencies';
   const rows = sbom.components.map(c =>
     [
-      `"${c.name}"`,
-      `"${c.version}"`,
-      `"${c.supplier.name}"`,
-      `"${c.license}"`,
-      `"${c.category}"`,
-      `"${c.purl}"`,
+      csvField(c.name),
+      csvField(c.version),
+      csvField(c.supplier.name),
+      csvField(c.license),
+      csvField(c.category),
+      csvField(c.purl),
       c.isTopLevel ? 'Yes' : 'No',
-      `"${c.dependencyNames.join('; ')}"`
+      csvField(c.dependencyNames.join('; '))
     ].join(',')
   );
   return [header, ...rows].join('\n');

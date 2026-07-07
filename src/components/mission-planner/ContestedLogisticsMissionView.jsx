@@ -339,6 +339,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
       pulseTimer.current = setInterval(() => setPulseTick(p => !p), 350);
       return () => clearInterval(pulseTimer.current);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
     setPulseTick(false);
   }, [phase]);
 

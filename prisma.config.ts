@@ -3,13 +3,17 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// Only used by migration/introspection commands (prisma migrate, db pull).
+// Prefer the direct (non-pooled) connection — PgBouncer transaction mode
+// breaks migrations. Runtime connections are configured in api/_lib/db.js
+// via DATABASE_URL. Omitted entirely when no env is set (e.g. plain
+// `prisma generate`, which needs no database).
+const migrationUrl = process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"];
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
-  datasource: {
-    url: process.env["DATABASE_URL"],
-    directUrl: process.env["DIRECT_URL"],
-  },
+  ...(migrationUrl ? { datasource: { url: migrationUrl } } : {}),
 });

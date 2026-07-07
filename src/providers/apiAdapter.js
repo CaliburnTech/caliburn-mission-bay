@@ -49,6 +49,19 @@ const normalizePlatform = (product) => ({
 export const createApiAdapter = (authToken = null) => {
   const staticFallback = createStaticAdapter();
 
+  // Warn once when synchronous by-name lookups fall back to static data in
+  // production mode (the API has no synchronous lookup; callers should prefer
+  // the cached dataStore state).
+  let warnedStaticNameLookup = false;
+  const warnStaticNameLookup = (fn) => {
+    if (warnedStaticNameLookup) return;
+    warnedStaticNameLookup = true;
+    console.warn(
+      `[apiAdapter] ${fn} is using static demo data as a fallback in production mode. ` +
+      'Use the cached dataStore state (getVesselByName/getCapabilityByName on the store) for API-backed lookups.'
+    );
+  };
+
   const authHeaders = () => ({
     'Content-Type': 'application/json',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
@@ -107,11 +120,13 @@ export const createApiAdapter = (authToken = null) => {
 
     getVesselByName: (name) => {
       // Synchronous — not available from API; callers must use cached store state
+      warnStaticNameLookup('getVesselByName');
       return staticFallback.getVesselByName(name);
     },
 
     getCapabilityByName: (name) => {
       // Synchronous — not available from API; callers must use cached store state
+      warnStaticNameLookup('getCapabilityByName');
       return staticFallback.getCapabilityByName(name);
     },
 
@@ -163,10 +178,13 @@ export const createApiAdapter = (authToken = null) => {
 
     // ── Saved Configurations ──────────────────────────────────────────────
 
-    getConfigs: () => fetchJSON('/configs'),
-    createConfig: (data) => postJSON('/configs', data),
-    updateConfig: (id, data) => putJSON(`/configs/${id}`, data),
-    deleteConfig: (id) => deleteReq(`/configs/${id}`),
+    getConfigs: async () => {
+      const data = await fetchJSON('/configurations');
+      return data?.items ?? data ?? [];
+    },
+    createConfig: (data) => postJSON('/configurations', data),
+    updateConfig: (id, data) => putJSON(`/configurations/${id}`, data),
+    deleteConfig: (id) => deleteReq(`/configurations/${id}`),
 
     // ── Garage ────────────────────────────────────────────────────────────
 

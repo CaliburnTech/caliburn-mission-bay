@@ -96,8 +96,12 @@ const StripedPattern = ({ id }) => (
 const VesselStatsDisplay = () => {
   const { calculateVesselStats, calculateBalance, selectedHull, vesselConfiguration } = useOutfitterStore();
 
-  // Memoize expensive calculations - recalculate only when hull or config changes
+  // Memoize expensive calculations - recalculate only when hull or config changes.
+  // The store functions are stable references that read the latest store state, so
+  // selectedHull/vesselConfiguration are deliberate recompute keys, not real inputs.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional recompute keys for store-reading fn
   const stats = useMemo(() => calculateVesselStats(), [calculateVesselStats, selectedHull, vesselConfiguration]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional recompute keys for store-reading fn
   const balance = useMemo(() => calculateBalance(), [calculateBalance, selectedHull, vesselConfiguration]);
 
   if (!selectedHull || !stats) {

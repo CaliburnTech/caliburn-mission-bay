@@ -314,28 +314,35 @@ const useVersionStore = create(
 
         return Object.entries(state.vesselStates)
           .filter(([, vessel]) => vessel.squadronId === squadronId)
-          .map(([vesselId, vessel]) => ({
-            vesselId,
-            vesselName: vessel.vesselName,
-            runningVersionId: vessel.runningVersionId,
-            intendedVersionId: intended.intendedVersionId,
-            syncStatus: computeSyncStatus(
-              vessel.runningVersionId,
-              intended.intendedVersionId,
-              state.versions,
-              vessel.lastSeenAt,
-              vessel.overrideVersionId
-            ),
-            versionsBehind: countVersionsBehind(
+          .map(([vesselId, vessel]) => {
+            // countVersionsBehind returns -1 for divergent lineage — translate
+            // to null so the UI never renders "-1 versions behind". (The
+            // syncStatus is already DIVERGED in that case.)
+            const behind = countVersionsBehind(
               vessel.runningVersionId,
               intended.intendedVersionId,
               state.versions
-            ),
-            lastSeenAt: vessel.lastSeenAt,
-            lastSyncAt: vessel.lastSyncAt,
-            hasOverride: !!vessel.overrideVersionId,
-            overrideVersionId: vessel.overrideVersionId
-          }));
+            );
+
+            return {
+              vesselId,
+              vesselName: vessel.vesselName,
+              runningVersionId: vessel.runningVersionId,
+              intendedVersionId: intended.intendedVersionId,
+              syncStatus: computeSyncStatus(
+                vessel.runningVersionId,
+                intended.intendedVersionId,
+                state.versions,
+                vessel.lastSeenAt,
+                vessel.overrideVersionId
+              ),
+              versionsBehind: behind < 0 ? null : behind,
+              lastSeenAt: vessel.lastSeenAt,
+              lastSyncAt: vessel.lastSyncAt,
+              hasOverride: !!vessel.overrideVersionId,
+              overrideVersionId: vessel.overrideVersionId
+            };
+          });
       },
 
       /**

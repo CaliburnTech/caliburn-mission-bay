@@ -1,13 +1,20 @@
 /**
  * Admin Submissions View
  *
- * Read-only view of all SavedConfiguration rows from Supabase.
- * Shows who saved what during demos — useful for team review.
+ * Read-only view of all saved configurations, fetched through the
+ * authenticated admin API (GET /api/admin/submissions). Shows who saved
+ * what during demos — useful for team review.
+ *
+ * Note: this view previously read the SavedConfiguration table directly
+ * with the public anon key; that table now has RLS enabled and all reads
+ * go through the API (super-admin only).
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, ClipboardList } from 'lucide-react';
 import { supabase } from '../auth/supabaseClient';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const AdminSubmissionsView = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -17,14 +24,25 @@ const AdminSubmissionsView = () => {
   const fetchSubmissions = useCallback(async () => {
     setLoading(true);
     setError(null);
+    if (!supabase) {
+      setError('Supabase is not configured (VITE_SUPABASE_* env vars unset)');
+      setLoading(false);
+      return;
+    }
     try {
-      const { data, error: fetchError } = await supabase
-        .from('SavedConfiguration')
-        .select('id, name, submittedBy, configData, createdAt')
-        .order('createdAt', { ascending: false });
+      const { data: { session } = {} } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error('Sign in with a Caliburn admin account to view submissions');
 
-      if (fetchError) throw fetchError;
-      setSubmissions(data || []);
+      const res = await fetch(`${API_BASE}/api/admin/submissions`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Failed to load submissions (${res.status})`);
+      }
+      const body = await res.json();
+      setSubmissions(body.submissions || []);
     } catch (err) {
       setError(err.message || 'Failed to load submissions');
     } finally {

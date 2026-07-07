@@ -1,5 +1,10 @@
 // SV-2 (Systems Viewpoint 2) Mermaid diagram generator
 // Generates DoDAF SV-2 system communication descriptions from configurations
+//
+// LEGACY: This module is only used by SV2Display.jsx. New code should use
+// src/utils/sv2AutoGenerator.js, which is the maintained SV-2 generator.
+// Do not add new features here — the two are intentionally kept separate
+// until SV2Display is migrated (merging was judged too risky).
 
 import { getCatalogEntry, sv2Architectures, getComponentsFromLoadout, getComponentsFromMission } from '../data/softwareCatalog';
 

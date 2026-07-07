@@ -152,7 +152,10 @@ const SquadronAssignment = ({
   missionType = null // e.g., 'MCM', 'SEA_DENIAL', etc.
 }) => {
   const isCombined = missionDomain === 'COMBINED';
-  const requirements = MISSION_REQUIREMENTS[missionType] || { required: [], optional: [], labels: {} };
+  const requirements = useMemo(
+    () => MISSION_REQUIREMENTS[missionType] || { required: [], optional: [], labels: {} },
+    [missionType]
+  );
 
   // Normalize assignedSquadrons to handle both formats
   const getAssignedForDomain = (domain) => {
@@ -336,8 +339,9 @@ const SquadronAssignment = ({
     };
   };
 
-  // Mission Requirements Bar
-  const MissionRequirementsBar = () => {
+  // Mission Requirements Bar (plain render function — not a nested component,
+  // which would remount on every parent render)
+  const renderMissionRequirementsBar = () => {
     if (!missionType || requirements.required.length === 0) return null;
 
     const requiredCaps = requirements.required;
@@ -383,8 +387,8 @@ const SquadronAssignment = ({
     );
   };
 
-  // Combined Stats Display Component
-  const CombinedStatsPanel = () => {
+  // Combined Stats Display (plain render function — see note above)
+  const renderCombinedStatsPanel = () => {
     if (!combinedStats) return null;
 
     return (
@@ -708,8 +712,8 @@ const SquadronAssignment = ({
         </span>
       </div>
 
-      <MissionRequirementsBar />
-      <CombinedStatsPanel />
+      {renderMissionRequirementsBar()}
+      {renderCombinedStatsPanel()}
 
       {isCombined ? renderCombinedView() : renderSingleDomainView()}
     </div>

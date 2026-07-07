@@ -70,54 +70,71 @@ export const computeChangelog = (snapshotA, snapshotB) => {
 const diffSlots = (slotsA, slotsB) => {
   const changes = [];
 
-  // Collect all capabilities by name → category
-  const capsA = {};  // { capName: category }
-  const capsB = {};
+  // Key capabilities by `${category}::${name}` — a capability equipped in two
+  // categories must NOT collapse into a single entry. Track the set of
+  // categories each capability occupies on each side.
+  const collect = (slots) => {
+    const byName = {};  // { capName: Set<category> }
+    Object.entries(slots).forEach(([cat, arr]) => {
+      (arr || []).forEach(name => {
+        if (!name) return;
+        if (!byName[name]) byName[name] = new Set();
+        byName[name].add(cat);
+      });
+    });
+    return byName;
+  };
 
-  Object.entries(slotsA).forEach(([cat, arr]) => {
-    (arr || []).forEach(name => { if (name) capsA[name] = cat; });
-  });
-  Object.entries(slotsB).forEach(([cat, arr]) => {
-    (arr || []).forEach(name => { if (name) capsB[name] = cat; });
-  });
-
+  const capsA = collect(slotsA);
+  const capsB = collect(slotsB);
   const allCaps = new Set([...Object.keys(capsA), ...Object.keys(capsB)]);
 
   allCaps.forEach(capName => {
-    const inA = capsA[capName];
-    const inB = capsB[capName];
+    const catsA = capsA[capName] || new Set();
+    const catsB = capsB[capName] || new Set();
 
-    if (inA && !inB) {
-      // Removed
-      changes.push({
-        type: 'CAPABILITY_REMOVED',
-        category: inA,
-        subject: capName,
-        detail: `Removed from ${inA}`,
-        fromValue: inA,
-        toValue: null
-      });
-    } else if (!inA && inB) {
-      // Added
-      changes.push({
-        type: 'CAPABILITY_ADDED',
-        category: inB,
-        subject: capName,
-        detail: `Added to ${inB}`,
-        fromValue: null,
-        toValue: inB
-      });
-    } else if (inA !== inB) {
-      // Moved between categories
-      changes.push({
-        type: 'CAPABILITY_MOVED',
-        category: inB,
-        subject: capName,
-        detail: `Moved from ${inA} → ${inB}`,
-        fromValue: inA,
-        toValue: inB
-      });
+    // Single category → different single category = moved
+    if (catsA.size === 1 && catsB.size === 1) {
+      const [inA] = catsA;
+      const [inB] = catsB;
+      if (inA !== inB) {
+        changes.push({
+          type: 'CAPABILITY_MOVED',
+          category: inB,
+          subject: capName,
+          detail: `Moved from ${inA} → ${inB}`,
+          fromValue: inA,
+          toValue: inB
+        });
+      }
+      return;
     }
+
+    // Otherwise report per-category adds/removes
+    catsA.forEach(cat => {
+      if (!catsB.has(cat)) {
+        changes.push({
+          type: 'CAPABILITY_REMOVED',
+          category: cat,
+          subject: capName,
+          detail: `Removed from ${cat}`,
+          fromValue: cat,
+          toValue: null
+        });
+      }
+    });
+    catsB.forEach(cat => {
+      if (!catsA.has(cat)) {
+        changes.push({
+          type: 'CAPABILITY_ADDED',
+          category: cat,
+          subject: capName,
+          detail: `Added to ${cat}`,
+          fromValue: null,
+          toValue: cat
+        });
+      }
+    });
   });
 
   // Slot count changes per category

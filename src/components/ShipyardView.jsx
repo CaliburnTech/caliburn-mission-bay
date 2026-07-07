@@ -66,7 +66,7 @@ const ShipyardView = ({
     if ((!selectedSquadronId || !currentInList) && swarmSquadrons.length > 0) {
       setSelectedSquadronId(swarmSquadrons[0].id);
     }
-  }, [selectedSquadronId, swarmSquadrons, fleetSubTab]);
+  }, [selectedSquadronId, swarmSquadrons, fleetSubTab, setSelectedSquadronId]);
 
   // Get loadout configs for a squadron
   const getSquadronConfigs = (squadronId) => {

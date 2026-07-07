@@ -34,3 +34,8 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Archived dead code and backups (kept locally, not tracked)
+_archive/
+backups/
+src_backup_*/

@@ -135,23 +135,22 @@ export function ProductStats({ productId }: { productId: string }) {
           </section>
 
           {/* Popular configurations */}
-          {configs.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">
-                Popular Configurations
-              </h2>
+          <section>
+            <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">
+              Popular Configurations
+            </h2>
+            {configs.length > 0 ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {configs.slice(0, 8).map((c) => (
                   <ConfigCard key={c.configId} config={c} />
                 ))}
               </div>
-              {configs.length === 0 && (
-                <p className="text-sm text-gray-600 italic">
-                  No configurations saved with this product yet.
-                </p>
-              )}
-            </section>
-          )}
+            ) : (
+              <p className="text-sm text-gray-600 italic">
+                No configurations saved with this product yet.
+              </p>
+            )}
+          </section>
 
           {/* Interested buyers */}
           <section>

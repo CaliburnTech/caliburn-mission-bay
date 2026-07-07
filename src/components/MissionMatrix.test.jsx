@@ -2,18 +2,26 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import MissionMatrix from './MissionMatrix';
 
-// Mock the stores
+// Hoisted so the vi.mock factories below can reference them
+const storeMocks = vi.hoisted(() => ({
+  setSelectedView: vi.fn(),
+  setSelectedHull: vi.fn(),
+  setSelectedMountPoint: vi.fn(),
+  setVesselConfiguration: vi.fn(),
+}));
+
+// Mock the stores (MissionMatrix calls these hooks without selectors)
 vi.mock('../store/navigationStore', () => ({
   default: () => ({
-    setSelectedView: vi.fn(),
+    setSelectedView: storeMocks.setSelectedView,
   }),
 }));
 
 vi.mock('../store/outfitterStore', () => ({
   default: () => ({
-    setSelectedHull: vi.fn(),
-    setSelectedMountPoint: vi.fn(),
-    setVesselConfiguration: vi.fn(),
+    setSelectedHull: storeMocks.setSelectedHull,
+    setSelectedMountPoint: storeMocks.setSelectedMountPoint,
+    setVesselConfiguration: storeMocks.setVesselConfiguration,
   }),
 }));
 
@@ -23,23 +31,28 @@ vi.mock('../store/squadronStore', () => ({
   }),
 }));
 
-// Mock vessel data with minimal data
-vi.mock('../data/vesselData', () => ({
+// Spread the REAL modules so transitive importers keep working
+// (configurationStore needs VESSEL_SLOT_CAPACITY/engineeringStacks,
+// staticAdapter needs capabilityCategories/squadrons, etc.) and override
+// only the data the matrix renders.
+vi.mock('../data/vesselData', async (importOriginal) => ({
+  ...(await importOriginal()),
   vesselHullData: [
     { name: 'TestVessel', platformType: 'USV', icon: 'TestVessel' },
   ],
-  vesselHullComponents: {},
 }));
 
-// Mock marketplace data
-vi.mock('../data/marketplaceData', () => ({
+vi.mock('../data/marketplaceData', async (importOriginal) => ({
+  ...(await importOriginal()),
   individualCapabilities: [
     {
       name: 'TestCapability',
       provider: 'Test Provider',
       category: 'SENSORS',
       platformTypes: ['USV'],
-      missionTags: ['SEA_DENIAL'],
+      // MCM is a real KEY_MARITIME_MISSIONS key, so the TestVessel × MCM
+      // cell has exactly one compatible payload; every other cell is a gap.
+      missionTags: ['MCM'],
     },
   ],
 }));
@@ -49,43 +62,69 @@ describe('MissionMatrix', () => {
     vi.clearAllMocks();
   });
 
-  it('renders without crashing', () => {
+  it('renders the matrix with the mocked platform and mission columns', () => {
     render(<MissionMatrix />);
+
     expect(screen.getByText('Mission Matrix')).toBeInTheDocument();
+    // Vessel row (default MARITIME filter includes USV)
+    expect(screen.getByText('TestVessel')).toBeInTheDocument();
+    // A maritime mission column header
+    expect(screen.getByText('Mine Countermeasures')).toBeInTheDocument();
+    // Legend totals: exactly one limited cell (TestVessel × MCM), rest gaps
+    expect(screen.getByText(/Limited \(1\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Multiple solutions \(0\)/)).toBeInTheDocument();
   });
 
-  it('handles clicking a cell with valid data', () => {
+  it('opens the cell detail modal with compatible payloads on cell click', () => {
     render(<MissionMatrix />);
 
-    // Find and click a cell button
-    const cells = screen.getAllByRole('button');
-    const matrixCell = cells.find(btn => btn.title?.includes('payloads'));
+    // The TestVessel × MCM cell has 1 compatible payload
+    const cell = screen.getByTitle(/1 payloads for TestVessel × Mine Countermeasures/);
+    fireEvent.click(cell);
 
-    if (matrixCell) {
-      fireEvent.click(matrixCell);
-      // Should not throw an error
-      expect(true).toBe(true);
-    }
+    // Modal lists the matching capability and its provider
+    expect(screen.getByText('TestCapability')).toBeInTheDocument();
+    expect(screen.getByText('Test Provider')).toBeInTheDocument();
+    expect(screen.getByText(/1 payload options across 1 categories/)).toBeInTheDocument();
   });
 
-  it('handles domain filter changes', () => {
+  it('filters out maritime vessels when switching the domain to AERIAL', () => {
     render(<MissionMatrix />);
+    expect(screen.getByText('TestVessel')).toBeInTheDocument();
 
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: 'AERIAL' } });
 
-    // Should not throw an error
-    expect(true).toBe(true);
+    // USV vessel is hidden, aerial mission columns are shown
+    expect(screen.queryByText('TestVessel')).not.toBeInTheDocument();
+    expect(screen.getByText('Aerial ISR')).toBeInTheDocument();
   });
 
-  it('handles show gaps toggle', () => {
+  it('hides non-gap cells when the gaps toggle is on', () => {
     render(<MissionMatrix />);
 
-    const gapsButton = screen.getByText(/Show Gaps/);
-    fireEvent.click(gapsButton);
+    // The non-gap MCM cell is present before toggling
+    expect(screen.getByTitle(/1 payloads for TestVessel × Mine Countermeasures/)).toBeInTheDocument();
 
-    // Should not throw an error
-    expect(true).toBe(true);
+    fireEvent.click(screen.getByText('Show Gaps Only'));
+
+    // Toggle label flips and the non-gap cell is replaced by a placeholder
+    expect(screen.getByText('Showing Gaps')).toBeInTheDocument();
+    expect(screen.queryByTitle(/1 payloads for TestVessel × Mine Countermeasures/)).not.toBeInTheDocument();
+    // Gap cells (0 payloads) are still rendered
+    expect(screen.getAllByTitle(/0 payloads for TestVessel/).length).toBeGreaterThan(0);
+  });
+
+  it('navigates to the outfitter when a vessel row is clicked', () => {
+    render(<MissionMatrix />);
+
+    fireEvent.click(screen.getByTitle('Configure TestVessel'));
+
+    expect(storeMocks.setSelectedHull).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'TestVessel' })
+    );
+    expect(storeMocks.setVesselConfiguration).toHaveBeenCalledWith({});
+    expect(storeMocks.setSelectedView).toHaveBeenCalledWith('outfitter');
   });
 });
 

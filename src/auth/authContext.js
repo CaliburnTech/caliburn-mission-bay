@@ -15,7 +15,8 @@ export const DEMO_AUTH = {
   role: 'admin',
   mode: 'demo',
 
-  // No-op methods
+  // No-op methods (same shape as the production Supabase auth context)
   signIn: () => console.warn('[Demo] Sign in not available'),
+  signInWithOAuth: () => console.warn('[Demo] OAuth sign in not available'),
   signOut: () => console.warn('[Demo] Sign out not available'),
 };

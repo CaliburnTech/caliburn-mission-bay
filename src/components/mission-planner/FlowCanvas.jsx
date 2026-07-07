@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Layers } from 'lucide-react';
 import { nodeTypes } from './constants';
 
 const FlowCanvas = ({ template, onNodeClick, stateHierarchies = {} }) => {
-  const [dimensions, setDimensions] = useState({ width: 800, height: 350 });
-
-  useEffect(() => {
+  // Canvas size is fully derived from the template's node positions
+  const dimensions = useMemo(() => {
     if (template?.nodes) {
       const maxX = Math.max(...template.nodes.map(n => n.position.x)) + 180;
       const maxY = Math.max(...template.nodes.map(n => n.position.y)) + 80;
-      setDimensions({ width: Math.max(800, maxX), height: Math.max(320, maxY) });
+      return { width: Math.max(800, maxX), height: Math.max(320, maxY) };
     }
+    return { width: 800, height: 350 };
   }, [template]);
 
   if (!template || !template.nodes) {

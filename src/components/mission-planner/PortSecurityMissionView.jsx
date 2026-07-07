@@ -253,6 +253,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
       meshTimer.current = setInterval(() => setMeshPulse(p => !p), 280);
       return () => clearInterval(meshTimer.current);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
     setMeshPulse(false);
   }, [phase]);
 
@@ -263,6 +264,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
       circTimer.current = setInterval(() => setCircPulse(p => !p), 380);
       return () => clearInterval(circTimer.current);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
     setCircPulse(false);
   }, [phase]);
 

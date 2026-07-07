@@ -193,7 +193,7 @@ const MissionConfigView = ({ mission, onBack }) => {
       if (tmpl) loadMissionTemplate(mission.template, tmpl);
       setMissionPlannerConfig({ name: mission.name, duration: mission.duration });
     }
-  }, [mission]);
+  }, [mission, loadMissionTemplate, setMissionPlannerConfig]);
 
   const selectMission = (missionKey) => {
     // COUNTER_C5ISR uses the ISR autonomy flow template
@@ -313,6 +313,7 @@ const MissionConfigView = ({ mission, onBack }) => {
     if (!mission && selectedMissionTemplate && (!missionPlannerConfig.name || missionPlannerConfig.name.match(/^(Sea|Contested|Convoy|Swarm|Robot|ISR)/))) {
       setMissionPlannerConfig({ name: generateMissionName() });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only re-runs on template/zone change; adding missionPlannerConfig.name would overwrite user-typed names matching the default prefixes
   }, [selectedMissionTemplate, zoneConfig?.name]);
 
   if (selectedMissionTemplate === 'PORT_SECURITY' || mission?.template === 'PORT_SECURITY') {

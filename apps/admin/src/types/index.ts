@@ -56,22 +56,63 @@ export interface AuditLogEntry {
 }
 
 /**
- * Server-side impersonation session.
- * Created by POST /api/admin/impersonate/:companyId and validated on every
- * subsequent request via the X-Impersonation-Session-Id header.
+ * Client-side view of a server-side impersonation session.
+ * Created by POST /api/admin/impersonate/:companyId (which returns
+ * { sessionId, expiresAt }) and validated on every subsequent request via
+ * the X-Impersonation-Session-Id header. Only fields the client actually
+ * knows are kept here — actor/start/end bookkeeping lives server-side.
  */
 export interface ImpersonationSession {
+  /** Server-issued session id (sent as X-Impersonation-Session-Id). */
   id: string
-  actorUserId: string
-  targetCompanyId: string
-  targetCompanyName: string
-  startedAt: string
-  expiresAt: string       // default: startedAt + 1 hour
-  endedAt?: string
-  endReason?: 'manual' | 'expired' | 'super_admin_revoked'
+  /** Company being impersonated (chosen by the admin client-side). */
+  companyId: string
+  companyName: string
+  /** ISO timestamp returned by the server. */
+  expiresAt: string
 }
 
 export interface BanPayload {
   type: BanType
   reason: string
+}
+
+// ─── Demo submissions (SavedConfiguration) ───────────────────────────────────
+
+export interface SbomComponent {
+  name: string
+  version?: string
+  supplier?: { name: string }
+  category?: string
+  license?: string
+  purl?: string
+  isTopLevel?: boolean
+}
+
+export interface Sbom {
+  bomFormat?: string
+  specVersion?: string
+  components?: SbomComponent[]
+  context?: Record<string, unknown>
+}
+
+export interface ConfigData extends Record<string, unknown> {
+  sbom?: Sbom
+  slots?: Record<string, (string | null)[]>
+  hullName?: string
+}
+
+/**
+ * A saved boat configuration, as returned by GET /api/admin/submissions
+ * (super-admin only; responds { submissions: Submission[] } ordered by
+ * createdAt descending).
+ */
+export interface Submission {
+  id: string
+  name: string
+  submittedBy: string | null
+  configData: ConfigData
+  companyId: string
+  createdAt: string
+  updatedAt: string
 }

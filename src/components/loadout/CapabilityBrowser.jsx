@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { X, Shield, Plus } from 'lucide-react';
 import { individualCapabilities } from '../../data/marketplaceData';
 
@@ -17,12 +17,15 @@ const CapabilityBrowser = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
 
-  // Reset search term when initialSearchTerm changes (for global search)
-  useEffect(() => {
+  // Reset search term when initialSearchTerm changes (for global search).
+  // Uses the React "adjust state during render" pattern instead of an effect.
+  const [prevInitialSearchTerm, setPrevInitialSearchTerm] = useState(initialSearchTerm);
+  if (initialSearchTerm !== prevInitialSearchTerm) {
+    setPrevInitialSearchTerm(initialSearchTerm);
     if (initialSearchTerm) {
       setSearchTerm(initialSearchTerm);
     }
-  }, [initialSearchTerm]);
+  }
 
   // Filter capabilities by category types (or show all if types is null)
   const availableCapabilities = useMemo(() => {

@@ -10,9 +10,10 @@
  * Visual preview renders from it. AI chat modifies it.
  */
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { X, Download, Cpu, Copy, Check, PanelLeftClose, Sparkles, Save, AlertTriangle, GitCommit } from 'lucide-react';
 import MermaidDiagram from './MermaidDiagram';
+import { SV2LayerCakeRenderer } from './SV2LayerCakeRenderer';
 import AIChat from './AIChat';
 import CreateVersionModal from './CreateVersionModal';
 import { resolveSV2 } from '../../utils/sv2AutoGenerator';
@@ -30,16 +31,9 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
     return sv2DataToFlowchart(sv2Data);
   }, [sv2Data]);
 
-  // Load saved source (with engineer additions) or use generated
-  const [mermaidSource, setMermaidSource] = useState('');
-  const [configChanged, setConfigChanged] = useState(false);
-  const initializedRef = useRef(false);
-
-  // On mount: load saved Mermaid (with engineer edits) or use fresh generation
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
+  // Initial source (mount-only, previously done in an effect): load saved Mermaid
+  // (with engineer edits) or fall back to fresh generation.
+  const [initialSource] = useState(() => {
     const configKey = getConfigKey(activeConfig, hullName);
     const saved = getCustomizations(configKey);
 
@@ -48,18 +42,20 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
       // Check if the config has changed since the save
       if (hasAutoSectionChanged(generatedMermaid, saved.mermaidSource)) {
         // Config changed — merge: new auto section + preserved engineer additions
-        const merged = mergeWithEngineerAdditions(generatedMermaid, saved.mermaidSource);
-        setMermaidSource(merged);
-        setConfigChanged(true);
-      } else {
-        // Config hasn't changed — use saved as-is
-        setMermaidSource(saved.mermaidSource);
+        return {
+          source: mergeWithEngineerAdditions(generatedMermaid, saved.mermaidSource),
+          changed: true
+        };
       }
-    } else {
-      // No saved version — use fresh generation
-      setMermaidSource(generatedMermaid);
+      // Config hasn't changed — use saved as-is
+      return { source: saved.mermaidSource, changed: false };
     }
-  }, [generatedMermaid, activeConfig, hullName, getConfigKey, getCustomizations]);
+    // No saved version — use fresh generation
+    return { source: generatedMermaid, changed: false };
+  });
+
+  const [mermaidSource, setMermaidSource] = useState(initialSource.source);
+  const [configChanged, setConfigChanged] = useState(initialSource.changed);
 
   // Track user edits
   const handleSourceChange = useCallback((value) => {
@@ -297,9 +293,9 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
             </div>
           )}
 
-          {/* Center: Mermaid preview — fills all available space */}
-          <div style={{ flex: 1, overflow: 'hidden', backgroundColor: '#fff', display: 'flex', flexDirection: 'column' }}>
-            <MermaidDiagram diagram={mermaidSource} hideActions />
+          {/* Center: Layer-cake SV-2 diagram (primary view) */}
+          <div style={{ flex: 1, overflow: 'hidden', backgroundColor: '#fafaf5', display: 'flex', flexDirection: 'column' }}>
+            <SV2LayerCakeRenderer sv2Data={sv2Data} />
           </div>
 
           {/* Right: AI Chat */}
@@ -325,7 +321,7 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
             ))}
           </div>
           <span style={{ color: '#bbb', fontSize: '9px' }}>
-            DoDAF SV-2 • Edit Mermaid source or ask AI to modify • Paste into GitHub, Confluence, Notion
+            DoDAF SV-2 Layer-Cake • Toggle Code to edit Mermaid source • Toggle AI Chat to modify via Claude
           </span>
         </div>
       </div>

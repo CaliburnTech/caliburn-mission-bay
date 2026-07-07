@@ -83,7 +83,9 @@ model Company {
   bannedAt        DateTime?
   approvedAt      DateTime?
   approvedByEmail String?
-  anthropicKeyArn String?
+  // AES-256-GCM encrypted Anthropic API key, base64: iv.ciphertext.authTag;
+  // encrypted with ANTHROPIC_KEY_ENCRYPTION_SECRET (see api/_lib/crypto.js).
+  anthropicKeyEnc String?
   isSeller        Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -202,6 +204,9 @@ model SavedConfiguration {
   // (1) add nullable, (2) backfill from userId's company, (3) add NOT NULL constraint.
   companyId       String
   name            String?
+  // Free-text attribution captured during demo saves (nullable; the live DB
+  // column was added by the demo-anonymous-save change, formalized in 0004).
+  submittedBy     String?
   configData      Json
   specVersion     Int      @default(1)
   hasVendorUpdate Boolean  @default(false)

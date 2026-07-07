@@ -42,7 +42,7 @@ export function ImpersonationBanner({ session, onExit }: Props) {
     <div className="fixed top-0 inset-x-0 z-40 bg-amber-500 text-white px-4 py-2 flex items-center justify-between shadow-md">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Eye size={16} />
-        Acting as <span className="underline">{session.targetCompanyName}</span>
+        Acting as <span className="underline">{session.companyName}</span>
         <span className="text-amber-100 font-normal">
           — session expires in {remaining}
         </span>

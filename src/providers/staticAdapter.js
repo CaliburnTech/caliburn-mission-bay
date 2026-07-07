@@ -59,7 +59,19 @@ import {
  * All query methods return Promises for interface compatibility.
  * Mutation methods are no-ops that log warnings.
  */
-export const createStaticAdapter = () => ({
+export const createStaticAdapter = () => {
+  // In-memory demo state (no network, not persisted across reloads)
+  const demoConfigs = [];   // saved configurations
+  const demoGarage = [];    // garage items
+  const demoUser = {
+    id: 'demo-user',
+    email: 'demo@caliburn.local',
+    name: 'Demo User',
+    role: 'admin',
+    company: { id: 'demo-company', name: 'Caliburn Demo' }
+  };
+
+  return ({
   // ── Vessels ──
   getVessels: () => Promise.resolve(vesselHullData),
   getVesselByName: (name) => Promise.resolve(vesselHullData.find(v => v.name === name) || null),
@@ -107,6 +119,61 @@ export const createStaticAdapter = () => ({
   getSV2Layout: () => LAYOUT,
   getExternalInterfaces: (sv2Data) => getExternalInterfaces(sv2Data),
 
+  // ── User & Auth (demo identity, no network) ──
+  getMe: () => Promise.resolve(demoUser),
+
+  // ── Saved Configurations (in-memory demo store) ──
+  getConfigs: () => Promise.resolve([...demoConfigs]),
+
+  createConfig: (data) => {
+    const now = new Date().toISOString();
+    const existing = data?.id ? demoConfigs.find(c => c.id === data.id) : null;
+    if (existing) {
+      // Re-save: update in place, preserve createdAt
+      Object.assign(existing, data, { createdAt: existing.createdAt, updatedAt: now });
+      return Promise.resolve({ ...existing });
+    }
+    const row = {
+      id: data?.id || (globalThis.crypto?.randomUUID?.() || `cfg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`),
+      ...data,
+      createdAt: now,
+      updatedAt: now
+    };
+    demoConfigs.push(row);
+    return Promise.resolve({ ...row });
+  },
+
+  updateConfig: (id, data) => {
+    const existing = demoConfigs.find(c => c.id === id);
+    if (!existing) return Promise.resolve(null);
+    // Never clobber id/createdAt on update
+    Object.assign(existing, data, { id: existing.id, createdAt: existing.createdAt, updatedAt: new Date().toISOString() });
+    return Promise.resolve({ ...existing });
+  },
+
+  deleteConfig: (id) => {
+    const idx = demoConfigs.findIndex(c => c.id === id);
+    if (idx === -1) return Promise.resolve(false);
+    demoConfigs.splice(idx, 1);
+    return Promise.resolve(true);
+  },
+
+  // ── Garage (in-memory demo store) ──
+  getGarage: () => Promise.resolve([...demoGarage]),
+
+  addToGarage: (data) => {
+    const row = {
+      id: globalThis.crypto?.randomUUID?.() || `gar_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+    demoGarage.push(row);
+    return Promise.resolve({ ...row });
+  },
+
+  // ── Analytics (no-op in demo) ──
+  recordEvent: () => Promise.resolve(),
+
   // ── Mutations (no-op in demo) ──
   createVessel: () => { console.warn('[Demo] Vessel creation not available'); return Promise.resolve(null); },
   updateVessel: () => { console.warn('[Demo] Vessel update not available'); return Promise.resolve(null); },
@@ -118,4 +185,5 @@ export const createStaticAdapter = () => ({
   // ── Meta ──
   mode: 'demo',
   isReady: true
-});
+  });
+};

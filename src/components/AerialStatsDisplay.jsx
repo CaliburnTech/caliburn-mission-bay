@@ -81,7 +81,9 @@ const StripedPattern = ({ id }) => (
 const AerialStatsDisplay = () => {
   const { selectedHull, vesselConfiguration, calculateVesselStats } = useOutfitterStore();
 
-  // Calculate aerial-specific stats
+  // Calculate aerial-specific stats.
+  // calculateVesselStats is a stable store fn reading the latest store state, so
+  // vesselConfiguration is a deliberate recompute key, not a direct input.
   const aerialStats = useMemo(() => {
     if (!selectedHull || !selectedHull.aerialSpecs) return null;
 
@@ -137,6 +139,7 @@ const AerialStatsDisplay = () => {
       },
       ceiling: aerialSpecs.ceiling || 20000
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- vesselConfiguration is an intentional recompute key for the store-reading fn
   }, [selectedHull, vesselConfiguration, calculateVesselStats]);
 
   if (!selectedHull || !selectedHull.aerialSpecs || !aerialStats) {

@@ -163,10 +163,10 @@ describe('navigationStore - Edge Cases', () => {
     const store = useNavigationStore.getState();
 
     act(() => {
-      store.setSelectedView('a');
-      store.setSelectedView('b');
-      store.setSelectedView('c');
-      store.setSelectedView('d');
+      store.setSelectedView('outfitter');
+      store.setSelectedView('capabilities');
+      store.setSelectedView('matrix');
+      store.setSelectedView('squadron');
     });
 
     expect(useNavigationStore.getState().viewHistory).toHaveLength(4);
@@ -176,7 +176,7 @@ describe('navigationStore - Edge Cases', () => {
       store.goBack();
     });
 
-    expect(useNavigationStore.getState().selectedView).toBe('b');
+    expect(useNavigationStore.getState().selectedView).toBe('capabilities');
   });
 
   it('handles going back more times than history length', () => {

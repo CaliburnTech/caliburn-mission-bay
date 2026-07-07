@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-// Fallback for before dataStore is initialized
+// Fallback for before dataStore is initialized.
+// NOTE: Missions are static-only for now — seeded from src/data/missionsData
+// pending a backend missions API endpoint (see API_GAP-02 in apiAdapter.js).
 import { initialMissions } from '../data/missionsData';
 
 const useMissionStore = create((set, get) => ({

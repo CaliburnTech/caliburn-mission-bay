@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { X, Ship, Zap, Shield, Check, AlertTriangle, Target, Radio, Eye, Radar, Anchor, Scale } from 'lucide-react';
 import useSquadronStore from '../../store/squadronStore';
 import VariationBadge from './VariationBadge';
@@ -15,21 +15,29 @@ const ComparisonView = () => {
     getComparisonData,
     removeFromComparison,
     clearComparison,
-    squadronUnitConfigurations
+    squadronUnitConfigurations,
+    swarmSquadrons
   } = useSquadronStore();
 
-  // Get squadrons data - call before useMemo to avoid conditional hook calls
-  const squadrons = isComparisonViewOpen && comparisonSquadronIds.length >= 2
-    ? getComparisonData()
-    : [];
+  // Get squadrons data - call before useMemo to avoid conditional hook calls.
+  // getComparisonData is a stable store fn that resolves from swarmSquadrons,
+  // so swarmSquadrons is a deliberate recompute key rather than a direct input.
+  const squadrons = useMemo(
+    () => (isComparisonViewOpen && comparisonSquadronIds.length >= 2
+      ? getComparisonData()
+      : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- swarmSquadrons is an intentional recompute key for the store-reading fn
+    [isComparisonViewOpen, comparisonSquadronIds, getComparisonData, swarmSquadrons]
+  );
 
-  // Get capabilities from unit configs
-  const getSquadronCapabilities = (squadronId) => {
+  // Get capabilities from unit configs — memoized on the config map so the
+  // memos below recompute exactly when unit configurations change
+  const getSquadronCapabilities = useCallback((squadronId) => {
     const config = squadronUnitConfigurations[squadronId];
     if (!config?.outfits) return [];
     const allCaps = config.outfits.flatMap(o => o.capabilities || []);
     return [...new Set(allCaps)]; // Unique capabilities
-  };
+  }, [squadronUnitConfigurations]);
 
   // Get all unique capabilities across all compared squadrons
   const allCapabilities = useMemo(() => {
@@ -37,7 +45,7 @@ const ComparisonView = () => {
     return [...new Set(
       squadrons.flatMap(s => getSquadronCapabilities(s.id))
     )].sort();
-  }, [squadrons, squadronUnitConfigurations]);
+  }, [squadrons, getSquadronCapabilities]);
 
   // Analyze capability compatibility
   const capabilityAnalysis = useMemo(() => {
@@ -64,7 +72,7 @@ const ComparisonView = () => {
     });
 
     return { shared, unique };
-  }, [squadrons, allCapabilities]);
+  }, [squadrons, allCapabilities, getSquadronCapabilities]);
 
   // Early return AFTER all hooks
   if (!isComparisonViewOpen || comparisonSquadronIds.length < 2) return null;

@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { api } from './client'
-import type { Company } from '../types'
+import type { AnthropicKeyStatus, Company } from '../types'
 
 /** Bucket must exist in your Supabase project with public read enabled. */
 const LOGO_BUCKET = 'logos'
@@ -16,6 +16,18 @@ export const companyApi = {
     phone?: string
     logoUrl?: string
   }) => api.put<Company>('/api/company', data),
+}
+
+/**
+ * Company Anthropic API key (seller OWNER/ADMIN only).
+ * The key is stored encrypted server-side; only configured + last4 ever
+ * come back to the client.
+ */
+export const anthropicKeyApi = {
+  get: () => api.get<AnthropicKeyStatus>('/api/company/anthropic-key'),
+  set: (apiKey: string) =>
+    api.put<AnthropicKeyStatus>('/api/company/anthropic-key', { apiKey }),
+  remove: () => api.delete<AnthropicKeyStatus>('/api/company/anthropic-key'),
 }
 
 /**

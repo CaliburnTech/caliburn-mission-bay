@@ -3,10 +3,12 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import react from 'eslint-plugin-react'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', '**/dist/**', '**/cdk.out/**', 'backups', 'src_backup_*', '.claude/', 'api/', 'apps/**', 'infra/**', 'src/lambda/**', 'src/lib/**']),
+  globalIgnores(['dist', '**/dist/**', '**/node_modules/**', 'coverage', '**/coverage/**', '_archive/**', '.claude/', 'backend/**']),
   // Test files - allow vitest globals
   {
     files: ['**/*.{test,spec}.{js,jsx,ts,tsx}', '**/test/**/*.{js,jsx,ts,tsx}'],
@@ -102,6 +104,66 @@ export default defineConfig([
       'react/no-deprecated': 'error',
       'react/jsx-no-target-blank': 'error',
       'react/jsx-pascal-case': 'error',
+    },
+  },
+  // Vercel serverless functions (api/) run on Node — needs node globals.
+  {
+    files: ['api/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+    },
+  },
+  // TypeScript sub-apps (apps/admin, apps/maker).
+  // Semantic rules only — tsc (strict) is the source of truth for types, and
+  // stylistic JSX formatting is intentionally not enforced on the TS apps.
+  {
+    files: ['apps/admin/src/**/*.{ts,tsx}', 'apps/maker/src/**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat['recommended-latest'],
+    ],
+    plugins: {
+      '@typescript-eslint': tseslint,
+      react,
+    },
+    languageOptions: {
+      parser: tsParser,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+    rules: {
+      // Handled better by the TypeScript compiler
+      'no-undef': 'off',
+      'no-redeclare': 'off', // TS type/value declaration merging is legal
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
+
+      // React semantic rules
+      'react/jsx-uses-vars': 'error',
+      'react/jsx-key': 'error',
+      'react/jsx-no-duplicate-props': 'error',
+      'react/jsx-no-undef': 'error',
+      'react/jsx-no-target-blank': 'error',
+      'react/no-unknown-property': 'error',
+      'react/no-string-refs': 'error',
+      'react/no-deprecated': 'error',
+
+      // React Compiler rules (react-hooks v7) — warn for now, matching src/
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/static-components': 'warn',
     },
   },
 ])

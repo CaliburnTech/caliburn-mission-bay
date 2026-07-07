@@ -227,6 +227,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
       mastTimer.current = setInterval(() => setMastPulse(p => !p), 1800);
       return () => clearInterval(mastTimer.current);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
     setMastPulse(false);
   }, [phase]);
 
@@ -237,6 +238,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
       launchTimer.current = setInterval(() => setLaunchPulse(p => !p), 300);
       return () => clearInterval(launchTimer.current);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
     setLaunchPulse(false);
   }, [phase]);
 

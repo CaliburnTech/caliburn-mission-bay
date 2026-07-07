@@ -58,8 +58,11 @@ const SBOMDisplay = ({ sbom, onClose }) => {
     setTimeout(() => setCopiedJSON(false), 2000);
   };
 
-  const SortHeader = ({ field, label }) => (
+  // Plain render function (not a nested component) — defining components
+  // during render remounts them on every parent render.
+  const renderSortHeader = (field, label) => (
     <th
+      key={field}
       className="text-left cursor-pointer select-none"
       style={{ padding: '10px 12px', color: '#9ca3af', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid rgba(75, 85, 99, 0.3)' }}
       onClick={() => handleSort(field)}
@@ -109,11 +112,11 @@ const SBOMDisplay = ({ sbom, onClose }) => {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <SortHeader field="name" label="Component" />
-                <SortHeader field="version" label="Version" />
-                <SortHeader field="supplier" label="Supplier" />
-                <SortHeader field="license" label="License" />
-                <SortHeader field="category" label="Category" />
+                {renderSortHeader('name', 'Component')}
+                {renderSortHeader('version', 'Version')}
+                {renderSortHeader('supplier', 'Supplier')}
+                {renderSortHeader('license', 'License')}
+                {renderSortHeader('category', 'Category')}
                 <th style={{ padding: '10px 12px', color: '#9ca3af', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid rgba(75, 85, 99, 0.3)' }}>Deps</th>
               </tr>
             </thead>

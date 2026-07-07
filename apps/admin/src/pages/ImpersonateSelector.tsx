@@ -44,10 +44,8 @@ export function ImpersonateSelector({ onImpersonate, activeSession }: Props) {
       setImpersonationSession(sessionId)
       onImpersonate({
         id: sessionId,
-        actorUserId: '',
-        targetCompanyId: company.id,
-        targetCompanyName: company.name,
-        startedAt: new Date().toISOString(),
+        companyId: company.id,
+        companyName: company.name,
         expiresAt,
       })
     } catch (err) {
@@ -79,7 +77,7 @@ export function ImpersonateSelector({ onImpersonate, activeSession }: Props) {
       {activeSession && (
         <div className="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
           <span className="font-medium">Active session:</span> Acting as{' '}
-          <span className="font-semibold">{activeSession.targetCompanyName}</span> — expires{' '}
+          <span className="font-semibold">{activeSession.companyName}</span> — expires{' '}
           {new Date(activeSession.expiresAt).toLocaleTimeString()}. Starting a new session will replace it.
         </div>
       )}
@@ -107,7 +105,7 @@ export function ImpersonateSelector({ onImpersonate, activeSession }: Props) {
           <div className="text-center py-12 text-gray-400 text-sm">No companies match</div>
         )}
         {filtered.map((company) => {
-          const isActive = activeSession?.targetCompanyId === company.id
+          const isActive = activeSession?.companyId === company.id
           return (
             <div
               key={company.id}

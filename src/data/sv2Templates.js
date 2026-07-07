@@ -1,14 +1,13 @@
 // SV-2 Architecture Templates
 // Pre-built system resource flow diagrams that users can modify
-// Each template defines layers, components within layers, and data flow edges
 
 export const sv2Templates = {
-  // ANTX Coastal Trident 2026 - SubSeaSail HORUS METOC
+
+  // SSS ANTX Coastal Trident — Mission Bay Configuration
   "ANTX_HORUS": {
     name: "SSS ANTX System Resource Flow",
-    description: "SubSeaSail HORUS AUSV — ANTX Coastal Trident 2026 METOC Configuration",
+    description: "SubSeaSail — ANTX Coastal Trident Mission Bay Configuration",
 
-    // Match rules: if any rule matches, this template is used instead of auto-generation
     matchRules: [
       { configName: 'antx' },
       { configName: 'horus' },
@@ -16,200 +15,189 @@ export const sv2Templates = {
       { hullName: 'subseasail' }
     ],
 
-    // Layers define the colored horizontal bands (top to bottom)
+    // ── Layers (top → bottom) ─────────────────────────────────────────────────
     layers: [
       {
         id: "layer-shore",
         label: "Shore Environments",
-        color: "#e8d5e8",
+        color: "#ecd5e3",
         y: 0,
-        height: 200
+        height: 160
       },
       {
-        id: "layer-cloud",
-        label: "SubSeaSail Cloud",
-        color: "#fde8c8",
-        y: 230,
-        height: 130
-      },
-      {
-        id: "layer-equipment",
-        label: "Equipment",
+        id: "layer-hardware",
+        label: "Mission Bay Hardware",
         color: "#d4e4f7",
-        y: 390,
-        height: 280
+        y: 180,
+        height: 315
       },
       {
-        id: "layer-applications",
-        label: "Applications",
-        color: "#d4edda",
-        y: 700,
-        height: 180
+        id: "layer-software",
+        label: "Mission Bay Software",
+        color: "#d8edd9",
+        y: 515,
+        height: 155
       },
       {
         id: "layer-tempestos",
-        label: "TempestOS",
-        color: "#e8f5e9",
-        y: 910,
-        height: 180
-      },
-      {
-        id: "layer-compute",
-        label: "Compute",
-        color: "#d4e4f7",
-        y: 1120,
-        height: 180
+        label: "TempestOS & Services",
+        color: "#fde8c8",
+        y: 690,
+        height: 390
       }
     ],
 
-    // Sub-groups within layers
+    // ── Subgroups ─────────────────────────────────────────────────────────────
     subgroups: [
       {
-        id: "sg-avalon",
+        id: "sg-nobus",
         layerId: "layer-shore",
-        label: "Avalon",
-        x: 40,
-        y: 20,
-        width: 220,
+        label: "Nobus",
+        x: 10,
+        y: 15,
+        width: 225,
         height: 120,
-        color: "#f5f0f5"
+        color: "#f0e0f0"
       },
+      // Edit 1: renamed 'Radios' → 'Comms'
       {
-        id: "sg-radios",
-        layerId: "layer-equipment",
-        label: "Radios",
-        x: 40,
-        y: 20,
-        width: 240,
-        height: 160,
+        id: "sg-comms",
+        layerId: "layer-hardware",
+        label: "Comms",
+        x: 10,
+        y: 10,
+        width: 290,
+        height: 280,
         color: "#c8d8eb"
       },
       {
         id: "sg-sensing",
-        layerId: "layer-equipment",
+        layerId: "layer-hardware",
         label: "Sensing",
-        x: 300,
-        y: 20,
-        width: 560,
-        height: 160,
+        x: 315,
+        y: 10,
+        width: 265,
+        height: 280,
         color: "#c8d8eb"
       },
       {
-        id: "sg-horus-main",
-        layerId: "layer-compute",
-        label: "Horus Main Domain",
-        x: 40,
-        y: 20,
-        width: 520,
-        height: 100,
-        color: "#c8d8eb"
-      },
-      {
-        id: "sg-mcu",
-        layerId: "layer-compute",
-        label: "MCU",
-        x: 600,
-        y: 20,
-        width: 220,
-        height: 100,
-        color: "#c8d8eb"
+        id: "sg-mcu-enclave",
+        layerId: "layer-hardware",
+        label: "MCU Enclave",
+        x: 597,
+        y: 10,
+        width: 288,
+        height: 280,
+        color: "#f0d4d4"
       }
     ],
 
-    // Components (nodes) placed within layers/subgroups
+    // ── Components ────────────────────────────────────────────────────────────
     components: [
+
       // Shore Environments
-      { id: "tak-server", label: "TAK Server", subgroupId: "sg-avalon", x: 30, y: 35, width: 160, height: 50 },
-      { id: "remote-control", label: "Remote Control", layerId: "layer-cloud", x: 100, y: 20, width: 160, height: 40 },
-      { id: "data-collection", label: "Data Collection", layerId: "layer-cloud", x: 300, y: 20, width: 160, height: 40 },
+      { id: "tak-server",     label: "TAK Server",     subgroupId: "sg-nobus",  x: 22,  y: 32, width: 178, height: 55 },
+      // Edit 4: Drawbridge Hub added to shore layer
+      { id: "drawbridge-hub", label: "Drawbridge Hub", layerId: "layer-shore",  x: 250, y: 22, width: 165, height: 110 },
+      { id: "observer-user",  label: "Observer User",  layerId: "layer-shore",  x: 555, y: 20, width: 155, height: 50 },
+      { id: "command-user",   label: "Command User",   layerId: "layer-shore",  x: 555, y: 90, width: 155, height: 50 },
 
-      // Equipment - Radios
-      { id: "doodle", label: "Doodle", subgroupId: "sg-radios", x: 20, y: 50, width: 90, height: 45 },
-      { id: "sat-comm", label: "Sat Comm", subgroupId: "sg-radios", x: 125, y: 50, width: 90, height: 45 },
+      // Hardware — Comms (Edit 1: subgroupId updated)
+      { id: "los-radio", label: "LOS Radio\nDoodle OEM Mini RM-1700-22M3",  subgroupId: "sg-comms", x: 15, y: 28,  width: 258, height: 65 },
+      { id: "satcom",    label: "SATCOM\nOrbCom - arch TBD pending Adrian",  subgroupId: "sg-comms", x: 15, y: 115, width: 258, height: 65 },
 
-      // Equipment - Sensors
-      { id: "microphone", label: "Microphone", subgroupId: "sg-sensing", x: 20, y: 30, width: 140, height: 45 },
-      { id: "water-temp", label: "Water Temperature", subgroupId: "sg-sensing", x: 180, y: 30, width: 160, height: 45 },
-      { id: "salinity", label: "Salinity", subgroupId: "sg-sensing", x: 360, y: 30, width: 140, height: 45 },
-      { id: "hdg-gps", label: "HDG, GPS", subgroupId: "sg-sensing", x: 20, y: 90, width: 140, height: 45 },
-      { id: "anemometer", label: "Anemometer", subgroupId: "sg-sensing", x: 180, y: 90, width: 160, height: 45 },
-      { id: "depth-sensor", label: "Depth Sensor", subgroupId: "sg-sensing", x: 360, y: 90, width: 140, height: 45 },
+      // Hardware — Sensing
+      { id: "gps",           label: "GPS\nNMEA0183 + Antennae", subgroupId: "sg-sensing", x: 12, y: 28,  width: 240, height: 65 },
+      { id: "other-sensors", label: "Other Sensors",             subgroupId: "sg-sensing", x: 12, y: 115, width: 240, height: 65 },
 
-      // Applications
-      { id: "tak-mobile", label: 'TAK "Mobile"', layerId: "layer-applications", x: 40, y: 40, width: 140, height: 50 },
-      { id: "drawbridge", label: "Drawbridge", layerId: "layer-applications", x: 220, y: 40, width: 160, height: 50 },
-      { id: "moos-ivp", label: "MOOS IvP\n(Navigation Autonomy)", layerId: "layer-applications", x: 520, y: 40, width: 200, height: 50 },
+      // Hardware — MCU Enclave
+      { id: "automated-piloting", label: "Automated Piloting",             subgroupId: "sg-mcu-enclave", x: 55, y: 55,  width: 178, height: 52 },
+      { id: "rc-boat",            label: "RC Boat\nManual Direct Control", subgroupId: "sg-mcu-enclave", x: 55, y: 165, width: 178, height: 52 },
 
-      // TempestOS
-      { id: "main-mcu-svc", label: "Main to MCU Service", layerId: "layer-tempestos", x: 40, y: 40, width: 180, height: 50 },
-      { id: "tms", label: "Tempest Messaging\nService", layerId: "layer-tempestos", x: 280, y: 40, width: 180, height: 50 },
-      { id: "sensor-pub", label: "Sensor publisher", layerId: "layer-tempestos", x: 520, y: 40, width: 160, height: 50 },
+      // Mission Bay Software
+      { id: "moos-ivp", label: "MOOS IvP\nNavigation Autonomy", layerId: "layer-software", x: 350, y: 42, width: 235, height: 70 },
 
-      // Compute - Horus Main Domain
-      { id: "arm-a53", label: "4x ARM A53", subgroupId: "sg-horus-main", x: 20, y: 35, width: 130, height: 45 },
-      { id: "ram", label: "RAM", subgroupId: "sg-horus-main", x: 170, y: 35, width: 100, height: 45 },
-      { id: "storage", label: "Storage", subgroupId: "sg-horus-main", x: 290, y: 35, width: 130, height: 45 },
+      // TempestOS — Row 1
+      // Edit 3: 'Comms Interface' → 'Comms Manager'
+      { id: "comms-interface", label: "Comms Manager\nRadio/SATCOM",       layerId: "layer-tempestos", x: 20,  y: 25, width: 168, height: 62 },
+      { id: "cot-interface",   label: "CoT Interface\nJSON/XML",            layerId: "layer-tempestos", x: 208, y: 25, width: 168, height: 62 },
+      { id: "tms",             label: "Tempest Messaging\nService (TMS)",   layerId: "layer-tempestos", x: 396, y: 25, width: 188, height: 62 },
+      { id: "nmea-interface",  label: "NMEA 0183\nInterface",               layerId: "layer-tempestos", x: 608, y: 25, width: 148, height: 62 },
+      { id: "hal",             label: "HAL",                                layerId: "layer-tempestos", x: 776, y: 25, width: 104, height: 62 },
 
-      // Compute - MCU
-      { id: "mcu-arm-1", label: "1x ARM", subgroupId: "sg-mcu", x: 20, y: 35, width: 80, height: 45 },
-      { id: "mcu-arm-2", label: "1x ARM", subgroupId: "sg-mcu", x: 115, y: 35, width: 80, height: 45 }
+      // TempestOS — Row 2
+      { id: "drawbridge",    label: "Drawbridge Edge\nResilient transport layer", layerId: "layer-tempestos", x: 20,  y: 125, width: 168, height: 62 },
+      { id: "tak-client",    label: "TAK Client\nEdge/TempestOS",                 layerId: "layer-tempestos", x: 208, y: 125, width: 168, height: 62 },
+      { id: "sss-interface", label: "SSS Interface",                              layerId: "layer-tempestos", x: 776, y: 125, width: 104, height: 62 },
+
+      // TempestOS — Row 3: OWL radio adapters (stacked left so west-channel wires are short)
+      // OWLs bridge Drawbridge Hub (shore) ↔ Comms Manager (TempestOS)
+      // OrbOwl = OrbCom satellite adapter, DoodleOwl = LoS radio adapter
+      { id: "orb-owl",    label: "OrbOwl\nSATCOM adapter",   layerId: "layer-tempestos", x: 20,  y: 235, width: 168, height: 55 },
+      { id: "doodle-owl", label: "DoodleOwl\nLoS adapter",   layerId: "layer-tempestos", x: 20,  y: 303, width: 168, height: 55 }
     ],
 
-    // Edges with labeled data flows
+    // ── Edges ─────────────────────────────────────────────────────────────────
+    //
+    // Routing strategy:
+    //   • West channel (route:'west'): ONLY for truly long cross-layer spans that
+    //     cannot be routed without cutting through 3+ layers of content.
+    //     Currently: OWL ↔ Drawbridge Hub (TempestOS → Shore, 4-layer span).
+    //     Lanes 0 and 1 (x=138, 146) — just 2 thin lines in the label column.
+    //
+    //   • Right-side arcs (arcOffset): same-layer going-up feedback paths.
+    //     arcOffset staggers them so they don't overlap: 0→1132, 1→1160, 2→1188.
+    //
+    //   • Standard bezier: all other cross-layer connections (≤2-layer spans).
+    //     Fan-in/fan-out spreading keeps same-source or same-target edges apart.
+    //
     edges: [
-      // Shore → Cloud
-      { source: "tak-server", target: "remote-control", label: "C2" },
-      { source: "tak-server", target: "data-collection", label: "C2 down, Env Data Up" },
 
-      // Cloud → Equipment
-      { source: "remote-control", target: "doodle", label: "RC Commands", style: "dashed" },
+      // Shore internal (horizontal auto-route)
+      { source: "tak-server",   target: "observer-user", label: "Readout, CoT" },
+      { source: "command-user", target: "tak-server",    label: "Waypoints/commands" },
 
-      // Equipment → Applications
-      { source: "hdg-gps", target: "drawbridge", label: "(NMEA 2000) Lat, Long, HDG" },
-      { source: "anemometer", target: "drawbridge", label: "NMEA Wind Speed" },
-      { source: "depth-sensor", target: "drawbridge", label: "???, ft" },
-      { source: "water-temp", target: "drawbridge", label: "???, F" },
-      { source: "salinity", target: "drawbridge", label: "???, psu?" },
-      { source: "doodle", target: "tak-mobile", label: "RC Commands" },
+      // LOS Radio / SATCOM → Comms Manager.
+      // C2 flows through TempestOS (Radio → Comms Manager → CoT → TAK Client →
+      // Drawbridge → Shore), so no direct Radio↔TAK Server edge is needed.
+      // Going DOWN from Hardware to TempestOS, these beziers exit the bottom of
+      // each radio, pass through empty space in the lower Comms subgroup, cross
+      // the Software layer left of MOOS IvP, and enter Comms Manager cleanly.
+      { source: "los-radio", target: "comms-interface", label: "LOS radio" },
+      { source: "satcom",    target: "comms-interface", label: "CoT/JSON" },
 
-      // Applications internal
-      { source: "drawbridge", target: "moos-ivp", label: "GPS, HDG, C2" },
+      // Sensing → TempestOS (cross-layer, right side — standard bezier)
+      { source: "gps",           target: "nmea-interface", label: "NMEA0183" },
+      { source: "other-sensors", target: "tms",            label: "Sensor data" },
 
-      // Applications → TempestOS
-      { source: "tak-mobile", target: "tms", label: "C2" },
-      { source: "drawbridge", target: "tms", label: "Env Data" },
-      { source: "drawbridge", target: "sensor-pub", label: "Env Data" },
-      { source: "moos-ivp", target: "main-mcu-svc", label: "Nav Commands" },
+      // MOOS-IvP ↔ TMS (bidirectional, 1-layer span)
+      { source: "moos-ivp", target: "tms", label: "Pub / Sub", bidirectional: true },
 
-      // TempestOS internal
-      { source: "tms", target: "main-mcu-svc", label: "Nav Commands" },
+      // TempestOS Row 1 chain (horizontal)
+      { source: "comms-interface", target: "cot-interface" },
+      { source: "cot-interface",   target: "tms" },
+      { source: "nmea-interface",  target: "tms" },
 
-      // TempestOS → Compute
-      { source: "main-mcu-svc", target: "arm-a53", label: "Nav Commands" },
-      { source: "sensor-pub", target: "storage", label: "Env Data" },
-      { source: "ram", target: "storage", label: "Sensor Logs\nText" },
+      // Same-layer going UP arcs — all use left-arc, staggered by arcOffset.
+      // These hug the LEFT side of the label column (only 8-34px past main content
+      // boundary) rather than the right-side arc that sweeps 900px+ across.
+      { source: "drawbridge", target: "comms-interface", label: "Relay",      route: 'left-arc', arcOffset: 2 },
+      { source: "orb-owl",    target: "comms-interface", bidirectional: true,  route: 'left-arc', arcOffset: 0 },
+      { source: "doodle-owl", target: "comms-interface", bidirectional: true,  route: 'left-arc', arcOffset: 1 },
 
-      // Compute cross-domain
-      { source: "arm-a53", target: "mcu-arm-1", label: "Vehicle Control Behaviors" },
-
-      // MCU Embedded Code (vertical sidebar concept - represented as edge)
-      { source: "storage", target: "mcu-arm-2", label: "Env Data" },
-
-      // Equipment outputs upward
-      { source: "doodle", target: "tak-server", label: "Env Data" },
-      { source: "sat-comm", target: "tak-server", label: "C2" },
-
-      // Sensor to TempestOS direct
-      { source: "microphone", target: "sensor-pub", label: "???, dB?" }
+      // OWL ↔ Drawbridge Hub — very long cross-layer (TempestOS → Shore, 4 layers).
+      // Layer-boundary bezier: path stays near sCX inside TempestOS, transitions x
+      // in the inter-layer gaps, arrives at tCX inside Shore. No west-channel snaking.
+      { source: "orb-owl",    target: "drawbridge-hub", label: "SATCOM link", bidirectional: true },
+      { source: "doodle-owl", target: "drawbridge-hub", label: "LoS link",    bidirectional: true }
     ]
   }
 };
 
 /**
  * Find a matching hand-crafted template using matchRules.
- * Accepts a string (config name, hull name, etc.) and checks against all templates.
  *
- * @param {string} identifier - config name, hull name, or other identifier to match
+ * @param {string} identifier - config name, hull name, or other string to match
  * @returns {object|null} matching template or null
  */
 export const getSV2Template = (identifier) => {
@@ -220,7 +208,7 @@ export const getSV2Template = (identifier) => {
     if (!template.matchRules) continue;
     const matches = template.matchRules.some(rule => {
       if (rule.configName && lower.includes(rule.configName)) return true;
-      if (rule.hullName && lower.includes(rule.hullName)) return true;
+      if (rule.hullName   && lower.includes(rule.hullName))   return true;
       return false;
     });
     if (matches) return template;
@@ -228,5 +216,4 @@ export const getSV2Template = (identifier) => {
   return null;
 };
 
-// Get all available template keys
 export const getAvailableTemplates = () => Object.keys(sv2Templates);

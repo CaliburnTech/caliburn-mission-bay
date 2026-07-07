@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './lib/supabase'
+import { meApi } from './api/me'
+import { signOut } from './api/client'
 import { Layout } from './components/Layout'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { Login } from './pages/Login'
+import { Onboarding, PendingApproval, BannedNotice } from './pages/Onboarding'
 import { MyProducts } from './pages/MyProducts'
 import { AddProduct } from './pages/AddProduct'
 import { EditProduct } from './pages/EditProduct'
 import { CompanyProfile } from './pages/CompanyProfile'
 import { ProductStats } from './pages/ProductStats'
 import { Settings } from './pages/Settings'
+import type { Me } from './types'
 
 type Route =
   | { page: 'products' }
@@ -32,6 +36,23 @@ export default function App() {
   // null = still checking session (show spinner), false = not authed, true = authed
   const [authenticated, setAuthenticated] = useState<boolean | null>(null)
   const [route, setRoute] = useState<Route>(() => parseHash(window.location.hash))
+
+  // /api/me drives onboarding + approval gating. null = not loaded yet.
+  const [me, setMe] = useState<Me | null>(null)
+  const [meError, setMeError] = useState<string | null>(null)
+
+  const loadMe = useCallback(async () => {
+    setMeError(null)
+    try {
+      const data = await meApi.get()
+      setMe(data)
+    } catch (e) {
+      // A 401 already triggered sign-out inside the client; anything else is
+      // a real error the user should see.
+      setMe(null)
+      setMeError(e instanceof Error ? e.message : 'Failed to load your account')
+    }
+  }, [])
 
   useEffect(() => {
     // Resolve current session on mount (fast — reads from localStorage)
@@ -59,6 +80,16 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Fetch /api/me whenever we become authenticated; clear it on sign-out.
+  useEffect(() => {
+    if (authenticated) {
+      void loadMe()
+    } else {
+      setMe(null)
+      setMeError(null)
+    }
+  }, [authenticated, loadMe])
+
   // Listen to hash changes for inner navigation (same as before)
   useEffect(() => {
     const handleHash = () => {
@@ -82,7 +113,53 @@ export default function App() {
     return <Login />
   }
 
-  // ── Authenticated ─────────────────────────────────────────────────────────
+  // ── Authenticated: resolve /api/me before showing anything ────────────────
+  if (meError) {
+    return (
+      <div className="min-h-screen bg-[#0f1419] flex items-center justify-center px-4">
+        <div className="w-full max-w-sm text-center">
+          <div className="bg-red-900/30 border border-red-700/50 text-red-300 px-4 py-3 rounded-lg text-sm mb-4">
+            {meError}
+          </div>
+          <button
+            onClick={() => void loadMe()}
+            className="text-sm text-[#cbfd00] hover:text-[#b8e600] transition-colors"
+          >
+            Try again
+          </button>
+          <button
+            onClick={() => void signOut()}
+            className="block mx-auto mt-3 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!me) {
+    return (
+      <div className="min-h-screen bg-[#0f1419] flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  // ── Onboarding / approval gates ────────────────────────────────────────────
+  if (!me.companyId) {
+    return <Onboarding email={me.email} onComplete={loadMe} />
+  }
+
+  if (me.company?.status === 'PENDING_APPROVAL') {
+    return <PendingApproval companyName={me.company.name} />
+  }
+
+  if (me.company?.status === 'BANNED') {
+    return <BannedNotice companyName={me.company.name} />
+  }
+
+  // ── Approved company: full portal ──────────────────────────────────────────
   const currentHash = window.location.hash.replace(/^#/, '')
 
   const content = (() => {
@@ -98,7 +175,7 @@ export default function App() {
       case 'company':
         return <CompanyProfile />
       case 'settings':
-        return <Settings />
+        return <Settings role={me.role} />
     }
   })()
 

@@ -1,45 +1,33 @@
 import prisma from '../../_lib/db.js';
-import { requireCaliburnAdmin, handleAuthError } from '../../_lib/auth.js';
-import { ok, serverError } from '../../_lib/respond.js';
-import { handleCors } from '../../_lib/cors.js';
+import { withHandler } from '../../_lib/handler.js';
+import { ok, methodNotAllowed } from '../../_lib/respond.js';
 
-export default async function handler(req, res) {
-  if (handleCors(req, res)) return;
-  if (req.method !== 'GET') {
-    const { methodNotAllowed } = await import('../../_lib/respond.js');
-    return methodNotAllowed(res);
-  }
+export default withHandler(
+  async (req, res) => {
+    if (req.method !== 'GET') return methodNotAllowed(res);
 
-  let admin;
-  try {
-    admin = await requireCaliburnAdmin(req);
-  } catch (err) {
-    if (handleAuthError(err, res)) return;
-    return serverError(res, err);
-  }
+    const { status, search } = req.query;
 
-  void admin;
+    const where = {};
 
-  const { status, search } = req.query;
+    if (status) {
+      where.status = status;
+    }
 
-  const where = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-  if (status) {
-    where.status = status;
-  }
+    const companies = await prisma.company.findMany({
+      where,
+      include: { _count: { select: { users: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
 
-  if (search) {
-    where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
-    ];
-  }
-
-  const companies = await prisma.company.findMany({
-    where,
-    include: { _count: { select: { users: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  return ok(res, { companies });
-}
+    return ok(res, { companies });
+  },
+  { auth: 'admin' }
+);

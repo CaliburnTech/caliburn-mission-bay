@@ -1,48 +1,21 @@
-import { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, ChevronDown, ChevronRight, Inbox } from 'lucide-react'
-import { supabase } from '../lib/supabase'
-
-interface SbomComponent {
-  name: string
-  version?: string
-  supplier?: { name: string }
-  category?: string
-  license?: string
-  purl?: string
-  isTopLevel?: boolean
-}
-
-interface Sbom {
-  bomFormat?: string
-  specVersion?: string
-  components?: SbomComponent[]
-  context?: Record<string, unknown>
-}
-
-interface ConfigData extends Record<string, unknown> {
-  sbom?: Sbom
-  slots?: Record<string, (string | null)[]>
-  hullName?: string
-}
-
-interface Submission {
-  id: string
-  name: string
-  submittedBy: string | null
-  configData: ConfigData
-  companyId: string
-  createdAt: string
-  updatedAt: string
-}
+import { Fragment, useEffect, useState, useCallback } from 'react'
+import { RefreshCw, ChevronDown, ChevronRight, Inbox, Trash2 } from 'lucide-react'
+import { getSubmissions, deleteSubmission } from '../lib/api'
+import type { Sbom, Submission } from '../types'
 
 function SlotsSummary({ slots }: { slots: Record<string, (string | null)[]> }) {
-  const equipped = Object.entries(slots)
-    .flatMap(([, names]) => names.filter(Boolean) as string[])
+  // Key by category + slot index — capability names can repeat across
+  // categories (or within one), so the name alone is not a stable key.
+  const equipped = Object.entries(slots).flatMap(([category, names]) =>
+    names.flatMap((name, i) =>
+      name ? [{ key: `${category}:${i}`, name }] : [],
+    ),
+  )
   if (equipped.length === 0) return <span className="text-gray-400 italic text-xs">no capabilities equipped</span>
   return (
     <div className="flex flex-wrap gap-1 mt-1">
-      {equipped.map((name) => (
-        <span key={name} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">
+      {equipped.map(({ key, name }) => (
+        <span key={key} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">
           {name}
         </span>
       ))}
@@ -97,18 +70,15 @@ export function Submissions() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const { data, error: err } = await supabase
-        .from('SavedConfiguration')
-        .select('id, name, submittedBy, configData, companyId, createdAt, updatedAt')
-        .order('createdAt', { ascending: false })
-
-      if (err) throw new Error(err.message)
-      setRows((data ?? []) as Submission[])
+      const { submissions } = await getSubmissions()
+      setRows(submissions)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
@@ -120,6 +90,22 @@ export function Submissions() {
 
   function toggleExpand(id: string) {
     setExpanded((prev) => (prev === id ? null : id))
+  }
+
+  async function handleDelete(id: string) {
+    if (deletingId) return
+    setDeletingId(id)
+    setError(null)
+    try {
+      await deleteSubmission(id)
+      setRows((prev) => prev.filter((r) => r.id !== id))
+      setExpanded((prev) => (prev === id ? null : prev))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete submission')
+    } finally {
+      setDeletingId(null)
+      setConfirmDeleteId(null)
+    }
   }
 
   return (
@@ -156,17 +142,18 @@ export function Submissions() {
               <th className="text-left px-4 py-3 font-medium text-gray-600">Vessel</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Submitted By</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Saved At</th>
+              <th className="w-24 px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading…</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading…</td>
               </tr>
             )}
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-10 text-center text-gray-400">
                   <Inbox size={32} className="mx-auto mb-2 opacity-30" />
                   No submissions yet
                 </td>
@@ -178,9 +165,8 @@ export function Submissions() {
               const hasSbom = !!sbom?.components?.length
               const hullName = row.configData?.hullName
               return (
-                <>
+                <Fragment key={row.id}>
                   <tr
-                    key={row.id}
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() => toggleExpand(row.id)}
                   >
@@ -203,10 +189,44 @@ export function Submissions() {
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                       {new Date(row.createdAt).toLocaleString()}
                     </td>
+                    <td
+                      className="px-4 py-3 text-right whitespace-nowrap"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {confirmDeleteId === row.id ? (
+                        <span className="inline-flex items-center gap-2 text-xs">
+                          <span className="text-gray-500">Delete?</span>
+                          <button
+                            onClick={() => handleDelete(row.id)}
+                            disabled={deletingId === row.id}
+                            className="text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
+                          >
+                            {deletingId === row.id ? 'Deleting…' : 'Yes'}
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            disabled={deletingId === row.id}
+                            className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                          >
+                            No
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDeleteId(row.id)}
+                          disabled={!!deletingId}
+                          title="Delete submission"
+                          aria-label="Delete submission"
+                          className="text-gray-400 hover:text-red-600 disabled:opacity-50 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                   {expanded === row.id && (
-                    <tr key={`${row.id}-detail`} className="bg-gray-50">
-                      <td colSpan={5} className="px-6 py-5 space-y-4">
+                    <tr className="bg-gray-50">
+                      <td colSpan={6} className="px-6 py-5 space-y-4">
                         {hasSbom ? (
                           <>
                             <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
@@ -230,7 +250,7 @@ export function Submissions() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               )
             })}
           </tbody>

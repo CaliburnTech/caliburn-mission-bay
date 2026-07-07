@@ -15,6 +15,26 @@ import { AuthContext, DEMO_AUTH } from './authContext';
 import { supabase } from './supabaseClient';
 import useDataStore from '../providers/dataStore';
 
+/**
+ * Fallback for production mode when the Supabase client could not be created
+ * (VITE_SUPABASE_* env vars unset). Provides demo auth so the app still boots,
+ * and initializes the data store with no token.
+ */
+const DemoFallbackProvider = ({ children }) => {
+  const initialize = useDataStore(s => s.initialize);
+
+  useEffect(() => {
+    console.warn('[AuthProvider] Supabase client unavailable — running with demo auth.');
+    initialize(null);
+  }, [initialize]);
+
+  return (
+    <AuthContext.Provider value={DEMO_AUTH}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
 const SupabaseAuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +78,11 @@ const SupabaseAuthProvider = ({ children }) => {
 
 export const AuthProvider = ({ children }) => {
   if (APP_MODE === 'production') {
+    // If the Supabase client could not be created (missing env vars),
+    // fall back to demo auth instead of crashing at boot.
+    if (!supabase) {
+      return <DemoFallbackProvider>{children}</DemoFallbackProvider>;
+    }
     return <SupabaseAuthProvider>{children}</SupabaseAuthProvider>;
   }
 

@@ -5,16 +5,21 @@
  * The AI reads the current Mermaid source as context and outputs
  * modified Mermaid that gets applied to the editor.
  *
- * Uses Claude API via Anthropic SDK.
- * API key stored in localStorage (user enters once).
+ * Two modes:
+ * - Authenticated (Supabase session): requests go through the server proxy
+ *   at POST /api/ai/chat — no API key ever touches the browser.
+ * - Demo (no session): falls back to the browser Anthropic SDK with a
+ *   user-supplied API key stored in localStorage.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Key, X, Bot, User, Sparkles, AlertCircle } from 'lucide-react';
+import { Send, Key, Bot, User, Sparkles, AlertCircle } from 'lucide-react';
 import Anthropic from '@anthropic-ai/sdk';
+import { supabase } from '../../auth/supabaseClient';
 
 const STORAGE_KEY = 'caliburn-anthropic-api-key';
 const MODEL = 'claude-sonnet-4-20250514';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const SYSTEM_PROMPT = `You are an expert defense systems architect helping configure autonomous vessel architectures in the Caliburn Mission Bay platform.
 
@@ -71,12 +76,26 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
     try { return localStorage.getItem(STORAGE_KEY) || ''; } catch { return ''; }
   });
   const [showKeyInput, setShowKeyInput] = useState(!apiKey);
+  const [hasSession, setHasSession] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Detect an authenticated Supabase session — if present, use the server
+  // proxy and skip the browser API-key flow entirely.
+  useEffect(() => {
+    if (!supabase) return undefined;
+    let cancelled = false;
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (!cancelled && data?.session) setHasSession(true);
+      })
+      .catch(() => { /* stay in demo mode */ });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,7 +109,8 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
   }, []);
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || !apiKey || loading) return;
+    if (!input.trim() || loading) return;
+    if (!hasSession && !apiKey) return;
 
     const userMessage = input.trim();
     setInput('');
@@ -99,8 +119,6 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
     setError(null);
 
     try {
-      const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
-
       // Build conversation with current diagram context
       const contextMessage = `Here is the current Mermaid diagram source:\n\n\`\`\`mermaid\n${mermaidSource}\n\`\`\`\n\nDiagram: ${diagramName || 'SV-2 Architecture'}`;
 
@@ -111,14 +129,52 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
         { role: 'user', content: userMessage }
       ];
 
-      const response = await client.messages.create({
-        model: MODEL,
-        max_tokens: 4096,
-        system: SYSTEM_PROMPT,
-        messages: conversationMessages
-      });
+      let assistantContent;
 
-      const assistantContent = response.content[0]?.text || 'No response';
+      if (hasSession && supabase) {
+        // Authenticated mode — server proxy holds the API key.
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) {
+          throw new Error('Your session has expired. Please sign in again.');
+        }
+
+        const res = await fetch(`${API_BASE}/api/ai/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            messages: conversationMessages,
+            system: SYSTEM_PROMPT
+          })
+        });
+
+        if (!res.ok) {
+          let serverError = null;
+          try { serverError = (await res.json())?.error; } catch { /* non-JSON body */ }
+          if (res.status === 503) throw new Error("AI isn't configured yet — contact your administrator.");
+          if (res.status === 429) throw new Error('Rate limited — please try again shortly.');
+          if (res.status === 401) throw new Error('Your session has expired. Please sign in again.');
+          throw new Error(serverError || `AI request failed (${res.status})`);
+        }
+
+        const payload = await res.json();
+        assistantContent = payload.reply || 'No response';
+      } else {
+        // Demo mode — user-supplied key, browser SDK.
+        const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+
+        const response = await client.messages.create({
+          model: MODEL,
+          max_tokens: 4096,
+          system: SYSTEM_PROMPT,
+          messages: conversationMessages
+        });
+
+        assistantContent = response.content[0]?.text || 'No response';
+      }
 
       // Check if response contains a mermaid code block
       const mermaidMatch = assistantContent.match(/```mermaid\n([\s\S]*?)```/);
@@ -137,7 +193,7 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
 
     } catch (err) {
       const errorMsg = err.message || 'Failed to get response';
-      if (errorMsg.includes('401') || errorMsg.includes('authentication')) {
+      if (!hasSession && (errorMsg.includes('401') || errorMsg.includes('authentication'))) {
         setError('Invalid API key. Please check and re-enter.');
         setShowKeyInput(true);
       } else {
@@ -151,7 +207,7 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
     } finally {
       setLoading(false);
     }
-  }, [input, apiKey, loading, mermaidSource, messages, diagramName, onApplyMermaid]);
+  }, [input, apiKey, loading, hasSession, mermaidSource, messages, diagramName, onApplyMermaid]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -160,8 +216,8 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
     }
   };
 
-  // API Key input screen
-  if (showKeyInput) {
+  // API Key input screen (demo mode only — authenticated users go through the proxy)
+  if (!hasSession && showKeyInput) {
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', backgroundColor: '#fafaf5' }}>
         <Key size={24} style={{ color: '#d4a843', marginBottom: '12px' }} />
@@ -204,13 +260,15 @@ const AIChat = ({ mermaidSource, onApplyMermaid, diagramName }) => {
           <Sparkles size={14} style={{ color: '#d4a843' }} />
           <span style={{ fontSize: '11px', fontWeight: 700, color: '#555' }}>AI ARCHITECT</span>
         </div>
-        <button
-          onClick={() => setShowKeyInput(true)}
-          title="Change API key"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
-        >
-          <Key size={12} style={{ color: '#aaa' }} />
-        </button>
+        {!hasSession && (
+          <button
+            onClick={() => setShowKeyInput(true)}
+            title="Change API key"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}
+          >
+            <Key size={12} style={{ color: '#aaa' }} />
+          </button>
+        )}
       </div>
 
       {/* Messages */}

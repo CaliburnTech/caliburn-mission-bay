@@ -171,37 +171,19 @@ const useDataStore = create((set, get) => ({
   },
 
   // ── Saved Configurations ──
-  // Use the Supabase JS client directly — bypasses Edge Function gateway issues.
+  // All config operations go through the active adapter:
+  //   production → apiAdapter (API resolves user/company from the bearer token)
+  //   demo       → staticAdapter (in-memory only, no network)
   getConfigs: async () => {
-    const { supabase } = await import('../auth/supabaseClient');
-    const { data, error } = await supabase
-      .from('SavedConfiguration')
-      .select('id, name, submittedBy, configData, createdAt, updatedAt, companyId')
-      .eq('companyId', 'demo-company-00000000000')
-      .order('createdAt', { ascending: false });
-    if (error) { console.error('[getConfigs]', error); return []; }
-    return data ?? [];
+    const { adapter } = get();
+    if (!adapter) return [];
+    return adapter.getConfigs();
   },
 
   createConfig: async (data) => {
-    const { supabase } = await import('../auth/supabaseClient');
-    const now = new Date().toISOString();
-    const { data: row, error } = await supabase
-      .from('SavedConfiguration')
-      .upsert({
-        id: data.id || crypto.randomUUID(),
-        userId: 'demo-user-000000000000',
-        companyId: 'demo-company-00000000000',
-        name: data.name,
-        configData: data.config_data ?? {},
-        submittedBy: data.submitted_by ?? null,
-        createdAt: now,
-        updatedAt: now,
-      }, { onConflict: 'id', ignoreDuplicates: false })
-      .select()
-      .single();
-    if (error) { console.error('[createConfig]', error); return null; }
-    return row;
+    const { adapter } = get();
+    if (!adapter) return null;
+    return adapter.createConfig(data);
   },
 
   updateConfig: async (id, data) => {

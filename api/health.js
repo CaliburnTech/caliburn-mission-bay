@@ -1,17 +1,19 @@
-/* global process */
 /**
  * Health check endpoint
  * GET /api/health
  *
- * Returns the API status and mode. Used to verify the production
- * deployment is running with backend services.
+ * Returns the API status. Used to verify the production deployment is
+ * running with backend services.
  */
 
-export default function handler(req, res) {
-  res.status(200).json({
-    status: 'ok',
-    mode: process.env.VITE_APP_MODE || 'demo',
-    timestamp: new Date().toISOString(),
-    version: '3.0.0'
-  });
-}
+import { withHandler } from './_lib/handler.js';
+
+export default withHandler(
+  (req, res) =>
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      version: '3.0.0',
+    }),
+  { auth: 'none' }
+);

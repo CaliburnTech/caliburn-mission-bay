@@ -124,6 +124,64 @@ const DraggableMarker = ({ position, index, color, onDrag }) => {
   );
 };
 
+// Default data based on geometry type
+const getDefaultConfig = (geometryType, missionType) => {
+  switch (geometryType) {
+    case 'route':
+      return {
+        waypoints: [
+          { lat: 25.0, lng: -80.5, label: 'A' },
+          { lat: 25.5, lng: -79.5, label: 'B' },
+          { lat: 26.0, lng: -78.5, label: 'C' }
+        ]
+      };
+    case 'target':
+      return {
+        targets: [
+          { lat: 25.2, lng: -80.0, label: 'T1', type: 'primary' }
+        ],
+        staging: { lat: 25.0, lng: -81.0, label: 'STAGING' }
+      };
+    case 'perimeter':
+      if (missionType === 'PORT_SECURITY') {
+        return {
+          center: { lat: 21.35, lng: -157.97 },
+          radius: 8,
+          assetName: 'Naval Station Pearl Harbor'
+        };
+      }
+      return {
+        center: { lat: 25.2, lng: -80.0 },
+        radius: 20,
+        assetName: 'HVU Alpha'
+      };
+    default:
+      return {
+        coordinates: [
+          { lat: 25.0, lng: -80.5 },
+          { lat: 25.5, lng: -80.0 },
+          { lat: 25.3, lng: -79.3 },
+          { lat: 24.8, lng: -79.5 }
+        ]
+      };
+  }
+};
+
+// Check if zone config has actual geometry data for current geometry type
+const hasGeometryData = (cfg, geometryType) => {
+  if (!cfg) return false;
+  switch (geometryType) {
+    case 'route':
+      return cfg.waypoints && cfg.waypoints.length > 0;
+    case 'target':
+      return cfg.targets && cfg.targets.length > 0;
+    case 'perimeter':
+      return !!cfg.center;
+    default:
+      return cfg.coordinates && cfg.coordinates.length > 0;
+  }
+};
+
 // Interactive Nautical Map Zone Editor with Leaflet + OpenSeaMap
 const MapZoneEditor = ({ zoneConfig, setZoneConfig, missionType }) => {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
@@ -148,69 +206,16 @@ const MapZoneEditor = ({ zoneConfig, setZoneConfig, missionType }) => {
     }
   })();
 
-  // Default data based on geometry type
-  const getDefaultConfig = () => {
-    switch (geometryType) {
-      case 'route':
-        return {
-          waypoints: [
-            { lat: 25.0, lng: -80.5, label: 'A' },
-            { lat: 25.5, lng: -79.5, label: 'B' },
-            { lat: 26.0, lng: -78.5, label: 'C' }
-          ]
-        };
-      case 'target':
-        return {
-          targets: [
-            { lat: 25.2, lng: -80.0, label: 'T1', type: 'primary' }
-          ],
-          staging: { lat: 25.0, lng: -81.0, label: 'STAGING' }
-        };
-      case 'perimeter':
-        if (missionType === 'PORT_SECURITY') {
-          return {
-            center: { lat: 21.35, lng: -157.97 },
-            radius: 8,
-            assetName: 'Naval Station Pearl Harbor'
-          };
-        }
-        return {
-          center: { lat: 25.2, lng: -80.0 },
-          radius: 20,
-          assetName: 'HVU Alpha'
-        };
-      default:
-        return {
-          coordinates: [
-            { lat: 25.0, lng: -80.5 },
-            { lat: 25.5, lng: -80.0 },
-            { lat: 25.3, lng: -79.3 },
-            { lat: 24.8, lng: -79.5 }
-          ]
-        };
-    }
-  };
-
-  // Check if zone config has actual geometry data for current geometry type
-  const hasGeometryData = (cfg) => {
-    if (!cfg) return false;
-    switch (geometryType) {
-      case 'route':
-        return cfg.waypoints && cfg.waypoints.length > 0;
-      case 'target':
-        return cfg.targets && cfg.targets.length > 0;
-      case 'perimeter':
-        return !!cfg.center;
-      default:
-        return cfg.coordinates && cfg.coordinates.length > 0;
-    }
-  };
-
   // Use defaults if zoneConfig is empty or lacks geometry for current type
-  const config = hasGeometryData(zoneConfig) ? zoneConfig : { ...zoneConfig, ...getDefaultConfig() };
-  const points = config.coordinates || [];
-  const waypoints = config.waypoints || [];
-  const targets = config.targets || [];
+  const config = useMemo(
+    () => (hasGeometryData(zoneConfig, geometryType)
+      ? zoneConfig
+      : { ...zoneConfig, ...getDefaultConfig(geometryType, missionType) }),
+    [zoneConfig, geometryType, missionType]
+  );
+  const points = useMemo(() => config.coordinates || [], [config]);
+  const waypoints = useMemo(() => config.waypoints || [], [config]);
+  const targets = useMemo(() => config.targets || [], [config]);
   const staging = config.staging;
   const perimeterCenter = config.center;
   const perimeterRadius = config.radius || 20;

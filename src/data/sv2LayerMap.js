@@ -96,21 +96,39 @@ export const SV2_LAYERS = [
     color: '#e8f5e9',
     description: 'Operating system layer — bootc (bootable containers), atomic read-only filesystem, STIG\'d + SELinux enforcing, Podman runtime, K8s/systemd orchestration',
     scope: 'per-vessel',
-    defaultHeight: 140,
-    minHeight: 100,
-    // TempestOS has named sub-components that are architecturally distinct
+    defaultHeight: 200,
+    minHeight: 160,
+    // Layer-cake model: four core services stacked top-to-bottom.
+    // Data flows upward: TMS → Drawbridge → Policy Engine → AOP/Avalon Edge Connector (out to AOP).
     subLayers: [
       {
         id: 'sublayer-tms',
         label: 'TMS (Tempest Messaging Service)',
-        description: 'Integration layer built on Protobuf + NATS JetStream. Stateful topic-based streams. Payloads subscribe and produce data. Handles protocol conversions (CAN, NMEA 0183, STANAG 4817, MAVLink, CoT).',
+        description: 'Pub/sub backbone built on Protobuf + NATS JetStream. All on-vessel payloads publish and subscribe via stateful topic-based streams. Handles protocol conversions (CAN, NMEA 0183, STANAG 4817, MAVLink, CoT).',
+        order: 1,
         alwaysPresent: true
       },
       {
-        id: 'sublayer-os-services',
-        label: 'OS Services',
-        description: 'Core OS services — MCU bridge, sensor publisher, container management',
+        id: 'sublayer-drawbridge',
+        label: 'Drawbridge',
+        description: 'Data bridge layer — encrypted DDIL-resilient connectivity. Handles protocol translation, data formatting, and secure relay between TMS and higher layers. Manages link state and bandwidth negotiation.',
+        order: 2,
         alwaysPresent: true
+      },
+      {
+        id: 'sublayer-policy-engine',
+        label: 'Policy Engine',
+        description: 'Authorization and routing policy layer. Enforces mission-configured rules for which data flows are permitted between services, vessels, and external systems. Gates Drawbridge relay decisions.',
+        order: 3,
+        alwaysPresent: true
+      },
+      {
+        id: 'sublayer-aop-connector',
+        label: 'AOP / Avalon Edge Connector',
+        description: 'External interface to the Autonomous Operations Platform (AOP). Transmits approved, policy-filtered data outbound to AOP; receives mission tasking and software updates inbound. The external boundary of TempestOS.',
+        order: 4,
+        alwaysPresent: true,
+        externalInterface: true
       }
     ]
   },
@@ -252,33 +270,63 @@ export const getArchitectureLayer = (capability, slotCategory) => {
 
 export const BASELINE_COMPONENTS = {
   // ── TempestOS layer ──
-  // Split into TMS (pub/sub bus) and OS Services (MCU bridge, sensor pub, etc.)
+  // Layer-cake model: four core services in stack order (bottom to top).
+  // TMS (pub/sub bus) → Drawbridge (bridge/relay) → Policy Engine (authorization)
+  // → AOP/Avalon Edge Connector (external interface to AOP).
+  // Data from sensors/payloads enters at TMS, flows up through Drawbridge and
+  // Policy Engine, and exits the vessel via the AOP/Avalon Edge Connector.
   tempestos: [
     {
       id: 'tms',
-      label: 'TMS\n(Tempest Messaging Service)',
+      label: 'TMS',
       layerId: 'layer-tempestos',
       sublayerId: 'sublayer-tms',
-      description: 'Integration layer built on Protobuf + NATS JetStream. Runs as containerized services. Pub/sub on stateful, topic-based streams. Handles conversions between CAN, NMEA 0183, STANAG 4817, MAVLink, CoT, and proprietary protocols.',
+      description: 'Pub/sub backbone built on Protobuf + NATS JetStream. All on-vessel payloads publish and subscribe via stateful topic-based streams. Handles conversions between CAN, NMEA 0183, STANAG 4817, MAVLink, CoT, and proprietary protocols.',
       alwaysPresent: true,
       protocols: ['Protobuf', 'NATS JetStream', 'NMEA 0183', 'CAN', 'STANAG 4817', 'MAVLink', 'CoT'],
-      // TMS is the hub — payloads subscribe and produce data on topic-based streams
       isHub: true
     },
     {
-      id: 'main-mcu-svc',
-      label: 'Main to MCU Service',
+      id: 'drawbridge',
+      label: 'Drawbridge',
       layerId: 'layer-tempestos',
-      sublayerId: 'sublayer-os-services',
-      description: 'Bridge between main processor domain and MCU for vehicle control commands',
+      sublayerId: 'sublayer-drawbridge',
+      description: 'Encrypted DDIL-resilient data bridge. Translates, formats, and securely relays data between TMS and higher layers (Policy Engine, external links). Manages link state and bandwidth negotiation.',
+      alwaysPresent: true,
+      protocols: ['TLS 1.3', 'STANAG 4817', 'NMEA 2000']
+    },
+    {
+      id: 'policy-engine',
+      label: 'Policy Engine',
+      layerId: 'layer-tempestos',
+      sublayerId: 'sublayer-policy-engine',
+      description: 'Authorization and routing policy enforcement. Applies mission-configured rules governing which data flows are permitted between services, vessels, and external systems. Gates all Drawbridge relay decisions.',
+      alwaysPresent: true
+    },
+    {
+      id: 'aop-connector',
+      label: 'AOP / Avalon Edge Connector',
+      layerId: 'layer-tempestos',
+      sublayerId: 'sublayer-aop-connector',
+      description: 'External interface to the Autonomous Operations Platform (AOP). Transmits policy-approved data outbound to AOP; receives mission tasking and software updates inbound. The outer boundary of TempestOS.',
+      alwaysPresent: true,
+      externalInterface: true,
+      protocols: ['CoT', 'Protobuf', 'HTTPS']
+    },
+    {
+      id: 'main-mcu-svc',
+      label: 'Main → MCU Service',
+      layerId: 'layer-tempestos',
+      sublayerId: 'sublayer-tms',
+      description: 'Bridge between the main processor domain and the vehicle MCU. Routes navigation and control commands from TMS down to embedded vehicle control firmware.',
       alwaysPresent: true
     },
     {
       id: 'sensor-pub',
       label: 'Sensor Publisher',
       layerId: 'layer-tempestos',
-      sublayerId: 'sublayer-os-services',
-      description: 'Aggregates raw sensor data, publishes to TMS channels and local storage',
+      sublayerId: 'sublayer-tms',
+      description: 'Aggregates raw sensor data from hardware interfaces and publishes to TMS channels and local storage.',
       requiresCategory: 'SENSORS'
     }
   ],
@@ -347,16 +395,15 @@ export const DEFAULT_EDGE_RULES = [
     description: 'Radio comms relay to cloud services'
   },
 
-  // ── TMS as the hub ──
+  // ── Layer-cake: TMS → Drawbridge → Policy Engine → AOP Connector ──
   // Everything on-vessel publishes to and subscribes from TMS
-  // Applications ↔ TMS (bidirectional pub/sub)
   {
     sourceFilter: { layerId: 'layer-applications' },
     targetId: 'tms',
     defaultLabel: 'Pub/Sub',
     description: 'Applications publish commands and subscribe to data via TMS channels'
   },
-  // Sensor Publisher → TMS (sensor data becomes available to all subscribers)
+  // Sensor Publisher → TMS
   {
     sourceId: 'sensor-pub',
     targetId: 'tms',
@@ -368,7 +415,35 @@ export const DEFAULT_EDGE_RULES = [
     sourceId: 'tms',
     targetId: 'main-mcu-svc',
     defaultLabel: 'Nav Commands',
-    description: 'Navigation/control commands from TMS to MCU bridge'
+    description: 'Navigation/control commands from TMS down to MCU bridge'
+  },
+  // TMS → Drawbridge (data ready for relay passes up to bridge layer)
+  {
+    sourceId: 'tms',
+    targetId: 'drawbridge',
+    defaultLabel: 'Data / Telemetry',
+    description: 'TMS topics relay upward to Drawbridge for encrypted forwarding'
+  },
+  // Drawbridge → Policy Engine (all relay attempts are policy-gated)
+  {
+    sourceId: 'drawbridge',
+    targetId: 'policy-engine',
+    defaultLabel: 'Policy Check',
+    description: 'Drawbridge submits relay decisions to Policy Engine for authorization'
+  },
+  // Policy Engine → AOP/Avalon Edge Connector (approved flows exit the vessel)
+  {
+    sourceId: 'policy-engine',
+    targetId: 'aop-connector',
+    defaultLabel: 'Approved Flows',
+    description: 'Policy Engine forwards authorized data to AOP/Avalon Edge Connector for outbound transmission'
+  },
+  // AOP Connector ← AOP inbound (mission tasking and SW updates arrive here)
+  {
+    sourceId: 'aop-connector',
+    targetId: 'tms',
+    defaultLabel: 'Tasking / Updates',
+    description: 'Inbound AOP tasking and Avalon software packages flow back down to TMS for distribution'
   },
 
   // ── Cloud ↔ Shore ──
@@ -386,12 +461,12 @@ export const DEFAULT_EDGE_RULES = [
   },
 
   // ── Shore ecosystem ──
-  // Avalon deploys software to vessels (via cloud)
+  // Avalon deploys software to vessels (via AOP connector)
   {
     sourceId: 'avalon',
-    targetId: 'remote-control',
+    targetId: 'aop-connector',
     defaultLabel: 'SW Packages',
-    description: 'Avalon pushes software updates and configurations to vessels via cloud relay'
+    description: 'Avalon pushes software builds and configurations to vessels via AOP/Avalon Edge Connector'
   },
   // Avalon connects to C2 for mission deployment
   {

@@ -25,7 +25,8 @@
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["src"],
-  "exclude": ["src/lambda", "src/lib"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  // Root TS surface: build/tooling files only. App source is .jsx (checked by
+  // ESLint + tests, not tsc). The TS sub-apps have their own tsconfigs —
+  // run `npm run typecheck:apps` for those.
+  "include": ["vite.config.ts", "prisma.config.ts", "prisma/seed.ts"]
 }

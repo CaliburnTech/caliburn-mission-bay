@@ -9,10 +9,12 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
+    "typecheck:apps": "tsc --noEmit -p apps/admin && tsc --noEmit -p apps/maker",
     "typecheck:watch": "tsc --noEmit --watch",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "test:ci": "npm run lint && npm run typecheck && vitest run",
     "prebuild": "npm run lint && npm run typecheck",
     "prepare": "husky"
@@ -52,6 +54,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@playwright/test": "^1.50.0",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -74,7 +77,7 @@
     "tailwindcss": "^4.1.18",
     "tsx": "^4.19.4",
     "typescript": "^5.9.3",
-    "vite": "^7.1.7",
+    "vite": "^6.4.3",
     "vitest": "^3.2.4"
   }
 }
