@@ -30,5 +30,5 @@ export default withHandler(
 
     return ok(res, products);
   },
-  { auth: 'user' }
+  { auth: 'none' }
 );

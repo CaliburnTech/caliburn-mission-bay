@@ -26,6 +26,12 @@ import CartDropdown from './CartDropdown';
 
 const MarketplacePage = ({ onLogoClick }) => {
   const _dataStore = useDataStore();
+  // Prefer the data store's capabilities (static + published DB products, merged
+  // by the adapter) so vendor products appear alongside the static catalog.
+  // Falls back to the static import before the store has loaded.
+  const mergedCapabilities = _dataStore.capabilities?.length
+    ? _dataStore.capabilities
+    : individualCapabilities;
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Navigation store
@@ -252,7 +258,7 @@ const MarketplacePage = ({ onLogoClick }) => {
             )}
             {selectedView === 'capabilities' && (
               <CapabilitiesView
-                individualCapabilities={individualCapabilities}
+                individualCapabilities={mergedCapabilities}
                 engineeringStacks={engineeringStacks}
                 getFilteredItems={getFilteredItems}
                 searchTerm={searchTerm}
