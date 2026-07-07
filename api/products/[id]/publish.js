@@ -1,23 +1,20 @@
 import prisma from '../../_lib/db.js';
 import { withHandler } from '../../_lib/handler.js';
-import { ok, badRequest, forbidden, notFound, methodNotAllowed } from '../../_lib/respond.js';
+import { ok, badRequest, notFound, methodNotAllowed } from '../../_lib/respond.js';
 import { sendConfigUpdated } from '../../_lib/email.js';
 
 /**
  * POST /api/products/:id/publish
  * Body: { changelog?: string }
  *
- * Creates a new ProductVersion snapshot, updates all buyer saved configs
- * that reference the previous version, and notifies affected buyers.
+ * Admin-only (product publishing is a Caliburn action for now — see the
+ * product-pipeline plan, Decision 4). Creates a new ProductVersion snapshot,
+ * updates all buyer saved configs that reference the previous version, and
+ * notifies affected buyers.
  */
 export default withHandler(
-  async (req, res, auth) => {
+  async (req, res, admin) => {
     if (req.method !== 'POST') return methodNotAllowed(res);
-
-    // ProductVersion.publishedById references a DB User row.
-    if (!auth.id) {
-      return forbidden(res, 'Publishing requires a user record — complete onboarding first');
-    }
 
     const { id } = req.query;
     const product = await prisma.product.findUnique({
@@ -25,9 +22,19 @@ export default withHandler(
       include: { versions: { orderBy: { versionNumber: 'desc' }, take: 1 } },
     });
 
-    if (!product || product.companyId !== auth.effectiveCompanyId) return notFound(res);
+    if (!product) return notFound(res);
     if (product.status !== 'APPROVED') {
       return badRequest(res, 'Only APPROVED products can be published');
+    }
+
+    // ProductVersion.publishedById references a DB User row. Admins authenticate
+    // via Supabase without necessarily having a User row yet, so resolve (or
+    // create) one for the publishing admin to attribute the version.
+    let publisher = await prisma.user.findUnique({ where: { authId: admin.authId } });
+    if (!publisher) {
+      publisher = await prisma.user.create({
+        data: { authId: admin.authId, email: admin.email },
+      });
     }
 
     const { changelog } = req.body ?? {};
@@ -47,7 +54,7 @@ export default withHandler(
           type: product.type,
         },
         changelog: changelog ?? null,
-        publishedById: auth.id,
+        publishedById: publisher.id,
       },
     });
 
@@ -93,5 +100,5 @@ export default withHandler(
 
     return ok(res, { version: newVersion, updatedConfigs: true });
   },
-  { auth: 'seller' }
+  { auth: 'admin' }
 );

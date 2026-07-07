@@ -98,6 +98,30 @@ export const deleteSubmission = (id: string) =>
     method: 'DELETE',
   })
 
+// ─── Product review & publish ─────────────────────────────────────────────────
+
+/** Products awaiting Caliburn action (IN_REVIEW to approve/reject, APPROVED to publish). */
+export const getReviewProducts = () =>
+  request<import('../types').AdminProduct[]>('/api/admin/products')
+
+export const approveProduct = (id: string) =>
+  request<import('../types').AdminProduct>(`/api/admin/products/${id}/approve`, {
+    method: 'POST',
+  })
+
+export const rejectProduct = (id: string, reason?: string) =>
+  request<import('../types').AdminProduct>(`/api/admin/products/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ reason: reason ?? '' }),
+  })
+
+/** Admin-only publish (creates a new ProductVersion snapshot). */
+export const publishProduct = (id: string, changelog?: string) =>
+  request<{ version: { versionNumber: number } }>(`/api/products/${id}/publish`, {
+    method: 'POST',
+    body: JSON.stringify({ changelog: changelog ?? '' }),
+  })
+
 // ─── Impersonation ────────────────────────────────────────────────────────────
 
 /**

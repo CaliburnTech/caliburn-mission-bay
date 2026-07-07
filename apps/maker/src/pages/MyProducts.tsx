@@ -4,7 +4,15 @@ import { productsApi } from '../api/products'
 import { StatusBadge } from '../components/StatusBadge'
 import { PageHeader, ErrorBanner } from '../components/Layout'
 import { PageSpinner } from '../components/LoadingSpinner'
-import type { Product } from '../types'
+import type { Product, ProductStatus } from '../types'
+
+/** Plain-language "what happens next" per status. Publishing is a Caliburn step. */
+const NEXT_STEP: Record<ProductStatus, string> = {
+  DRAFT: 'Open Edit and submit for Caliburn review when ready.',
+  IN_REVIEW: 'Awaiting Caliburn review.',
+  APPROVED: 'Approved — Caliburn will publish it to the marketplace.',
+  ARCHIVED: '',
+}
 
 function ProductCard({
   product,
@@ -62,6 +70,9 @@ function ProductCard({
           <span>·</span>
           <span>Updated {new Date(product.updatedAt).toLocaleDateString()}</span>
         </div>
+        {NEXT_STEP[product.status] && (
+          <div className="text-xs text-gray-500 mt-1.5 italic">{NEXT_STEP[product.status]}</div>
+        )}
       </div>
 
       {/* Actions */}

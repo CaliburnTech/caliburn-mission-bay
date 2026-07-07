@@ -11,6 +11,23 @@ export type { SupabaseAuthUser }
 export type CompanyStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'BANNED'
 export type BanType = 'SOFT' | 'HARD'
 export type UserRole = 'OWNER' | 'ADMIN' | 'MEMBER'
+export type ProductStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'ARCHIVED'
+export type ProductType = 'PLATFORM' | 'CAPABILITY'
+
+/** A product awaiting Caliburn action (IN_REVIEW or APPROVED), from GET /api/admin/products. */
+export interface AdminProduct {
+  id: string
+  name: string
+  description?: string | null
+  type: ProductType
+  category?: string | null
+  trlLevel?: number | null
+  status: ProductStatus
+  company: { id: string; name: string }
+  /** Latest published version, if any (empty until first publish). */
+  versions: { versionNumber: number; publishedAt: string }[]
+  updatedAt: string
+}
 
 export interface Company {
   id: string

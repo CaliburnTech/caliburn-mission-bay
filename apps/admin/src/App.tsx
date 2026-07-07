@@ -1,20 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Shield, Clock, Building2, Eye, ScrollText, Inbox } from 'lucide-react'
+import { Shield, Clock, Building2, Eye, ScrollText, Inbox, Package } from 'lucide-react'
 import { PendingApprovals } from './pages/PendingApprovals'
 import { Companies } from './pages/Companies'
 import { ImpersonateSelector } from './pages/ImpersonateSelector'
 import { AuditLog } from './pages/AuditLog'
 import { Submissions } from './pages/Submissions'
+import { ProductReview } from './pages/ProductReview'
 import { ImpersonationBanner } from './components/ImpersonationBanner'
 import { endImpersonation, setImpersonationSession } from './lib/api'
 import { supabase } from './lib/supabase'
 import type { ImpersonationSession } from './types'
 import type { Session } from '@supabase/supabase-js'
 
-type Page = 'pending' | 'companies' | 'impersonate' | 'audit' | 'submissions'
+type Page = 'pending' | 'products' | 'companies' | 'impersonate' | 'audit' | 'submissions'
 
 const NAV: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'pending', label: 'Pending Approvals', icon: <Clock size={16} /> },
+  { id: 'products', label: 'Product Review', icon: <Package size={16} /> },
   { id: 'companies', label: 'Companies', icon: <Building2 size={16} /> },
   { id: 'impersonate', label: 'Impersonate', icon: <Eye size={16} /> },
   { id: 'audit', label: 'Audit Log', icon: <ScrollText size={16} /> },
@@ -178,6 +180,7 @@ export default function App() {
         {/* Main content */}
         <main className="flex-1 overflow-auto p-8">
           {page === 'pending' && <PendingApprovals />}
+          {page === 'products' && <ProductReview />}
           {page === 'companies' && (
             <Companies onImpersonate={handleImpersonate} />
           )}
