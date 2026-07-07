@@ -39,6 +39,7 @@ export default withHandler(
       where: { id },
       data: {
         status: 'APPROVED',
+        isSeller: true,
         approvedAt: new Date(),
         approvedByEmail: admin.email,
       },
