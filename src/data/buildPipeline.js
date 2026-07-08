@@ -51,7 +51,7 @@ export const TEMPESTOS_CORE_PIPELINE = [
     componentName: 'TempestOS Core Platform',
     layer: 'base',
     required: true,
-    description: 'AlmaLinux 9.3 bootc image — atomic read-only filesystem, STIG\'d, SELinux enforcing, Podman runtime'
+    description: 'TempestOS bootc image — atomic read-only filesystem, STIG\'d, SELinux enforcing, Podman runtime'
   },
   {
     purl: 'pkg:generic/caliburn/tms@2.1.0',

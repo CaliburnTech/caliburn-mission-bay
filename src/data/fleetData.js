@@ -23,7 +23,7 @@ export const swarmSquadrons = [
   {
     id: "sqdn_004",
     name: "SubSeaSail Horus",
-    type: "Autonomous AUSV",
+    type: "USV",
     platformType: "USV",
     totalUnits: 45,
     status: {

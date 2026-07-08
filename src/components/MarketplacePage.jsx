@@ -5,6 +5,7 @@ import useDataStore from '../providers/dataStore';
 import useNavigationStore from '../store/navigationStore';
 import useFilterStore from '../store/filterStore';
 import useOutfitterStore from '../store/outfitterStore';
+import useConfigurationStore from '../store/configurationStore';
 import useUIStore from '../store/uiStore';
 import useSquadronStore from '../store/squadronStore';
 import caliburnLogotype from '../assets/Caliburn Logotype Dark Mode.png';
@@ -285,6 +286,11 @@ const MarketplacePage = ({ onLogoClick }) => {
                   setSelectedHull(hull);
                   setSelectedMountPoint(null);
                   setVesselConfiguration({});
+                  // Configuring a hull from the Squadrons page always starts a
+                  // brand-new configuration (separate config, not a new version of
+                  // the last one). Editing from the Versions page keeps the config
+                  // id and produces a new version instead.
+                  useConfigurationStore.getState().startNewConfiguration(hull.name);
                   setSelectedView('outfitter');
                 }}
               />
@@ -298,7 +304,7 @@ const MarketplacePage = ({ onLogoClick }) => {
 
             {/* Mission Planner */}
             {selectedView === 'squadron' && (
-              <div className="hidden md:block" style={{ height: 'calc(100vh - 260px)', overflow: 'hidden' }}>
+              <div className="hidden md:block">
                 <MissionPlanner />
               </div>
             )}

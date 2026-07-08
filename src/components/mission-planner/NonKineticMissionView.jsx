@@ -529,7 +529,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-darkest overflow-hidden">
+    <div className="flex flex-col bg-darkest">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
@@ -559,7 +559,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div>
 
         {/* Animation row */}
         <div className="flex h-[40vh] md:h-[460px]">
@@ -571,7 +571,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
               zoom={MAP_ZOOM}
               style={{ width: '100%', height: '100%' }}
               zoomControl={false}
-              scrollWheelZoom
+              scrollWheelZoom={false}
               attributionControl={false}
             >
               <ZoomControl position="topright" />

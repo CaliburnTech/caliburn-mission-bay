@@ -2,6 +2,10 @@ import { useState, useMemo } from 'react';
 import { X, Shield, Plus } from 'lucide-react';
 import { individualCapabilities } from '../../data/marketplaceData';
 
+// TempestOS is the fixed core platform — it lives in its own locked "Operating System"
+// slot on the config screen and must never be selectable/swappable into any category.
+const OS_ONLY_CAPABILITIES = new Set(['TempestOS Core Platform', 'TempestOS Core']);
+
 /**
  * Slide-out panel for browsing and selecting capabilities.
  * Used in the loadout builder to add capabilities to slots.
@@ -32,11 +36,14 @@ const CapabilityBrowser = ({
     if (!category) return [];
     // If types is null, show all capabilities (global search mode)
     if (category.types === null) {
-      return individualCapabilities.filter(cap => !equippedIds.includes(cap.name));
+      return individualCapabilities.filter(cap =>
+        !equippedIds.includes(cap.name) && !OS_ONLY_CAPABILITIES.has(cap.name)
+      );
     }
     return individualCapabilities.filter(cap =>
       category.types.includes(cap.category) &&
-      !equippedIds.includes(cap.name)
+      !equippedIds.includes(cap.name) &&
+      !OS_ONLY_CAPABILITIES.has(cap.name)
     );
   }, [category, equippedIds]);
 

@@ -3,7 +3,7 @@ import {
   ChevronLeft, Eye, Crosshair, Shield, Navigation, Cpu,
   Wifi, Zap, Plus, X, Check, Ship,
   AlertCircle, CheckCircle2, Search, Layers, ChevronDown,
-  FileText, GitBranch, Map
+  FileText, GitBranch, Map, Lock
 } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import { getEligibleRolesByMission } from '../utils/roleUtils';
@@ -16,6 +16,7 @@ import useNavigationStore from '../store/navigationStore';
 import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../store/configurationStore';
 import useMissionStore from '../store/missionStore';
 import { generateSBOMFromActiveConfig } from '../utils/sbomGenerator';
+import { submitPublicConfig } from '../services/submissions';
 import useVersionStore from '../store/versionStore';
 import useDataStore from '../providers/dataStore';
 import SBOMDisplay from './shared/SBOMDisplay';
@@ -83,8 +84,8 @@ const LOADOUT_CATEGORIES = {
     icon: Cpu,
     color: CATEGORY_COLORS.AI.hex,
     types: ['UNMANNED SYSTEMS', 'COMMAND & CONTROL'],
-    description: 'Autonomous control systems',
-    hasCore: true // TempestOS always present
+    description: 'Autonomous control systems'
+    // TempestOS is NOT here — it lives in its own locked "Operating System" slot (see OS card)
   },
   UTILITY: {
     name: 'Utility',
@@ -767,23 +768,29 @@ const LoadoutBuilder = () => {
     const products = Object.values(configSnapshot.slots || {}).flat().filter(Boolean);
     // Generate SBOM at save time so the admin portal can display it without needing the catalog
     const sbom = generateSBOMFromActiveConfig(configSnapshot, selectedHull?.name || '');
-    const payload = {
-      id: pending.configId,
-      name: commitMessage
-        ? `${configSnapshot.name || 'Untitled Configuration'} - ${commitMessage}`
-        : configSnapshot.name || 'Untitled Configuration',
-      config_data: { ...configSnapshot, sbom: sbom ?? null },
-      submitted_by: submittedBy || null,
-      products,
-    };
-    const dataStoreAdapter = useDataStore.getState();
+    const displayName = commitMessage
+      ? `${configSnapshot.name || 'Untitled Configuration'} - ${commitMessage}`
+      : configSnapshot.name || 'Untitled Configuration';
+    // Everything the admin portal needs travels inside configData (products + SBOM
+    // embedded), since anonymous demo capabilities don't map to real Product rows.
+    const configData = { ...configSnapshot, sbom: sbom ?? null, products, hullName: selectedHull?.name || configSnapshot.hullName || '' };
+
+    // Persist to the backend via the PUBLIC submissions endpoint so non-signed-in
+    // users' builds always reach the admin Submissions page — regardless of demo
+    // vs production mode. Fire-and-forget; a failed submit must not block the UI.
+    submitPublicConfig({ name: displayName, configData, submittedBy: submittedBy || null })
+      .catch(() => { /* best-effort — swallow errors silently */ });
+
+    // Also mirror into the local data store so in-app/demo views stay in sync.
     try {
-      dataStoreAdapter.createConfig(payload).catch(() => {
-        // Best-effort — swallow errors silently
-      });
-    } catch {
-      // Best-effort — swallow errors silently
-    }
+      useDataStore.getState().createConfig({
+        id: pending.configId,
+        name: displayName,
+        config_data: configData,
+        submitted_by: submittedBy || null,
+        products,
+      }).catch(() => { /* best-effort local mirror */ });
+    } catch { /* best-effort local mirror */ }
   };
 
   // Handle back navigation - close active config and go to previous view
@@ -1118,6 +1125,33 @@ const LoadoutBuilder = () => {
           })}
         </div>
       )}
+
+      {/* Operating System — TempestOS is the fixed platform base for every build.
+          It is non-swappable and lives on its own, separate from AI & Autonomy. */}
+      <div className="bg-darker rounded-xl border-2 border-lime-brand/40 p-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${BRAND_COLORS.lime.hex}20` }}
+          >
+            <Cpu size={20} color={BRAND_COLORS.lime.hex} />
+          </div>
+          <div className="min-w-0">
+            <div className="text-gray-100 text-sm font-semibold flex items-center gap-2">
+              Operating System
+              <span className="inline-flex items-center gap-1 px-1.5 py-px rounded text-[0.6rem] font-semibold bg-lime-brand/15 text-lime-brand border border-lime-brand/30 uppercase tracking-wide">
+                <Lock size={9} /> Non-swappable
+              </span>
+            </div>
+            <div className="text-gray-400 text-xs truncate">
+              TempestOS Core Platform <span className="text-gray-600">• Caliburn</span>
+            </div>
+          </div>
+        </div>
+        <div className="text-gray-500 text-[0.65rem] text-right hidden md:block max-w-[240px]">
+          Included on every configuration as the platform base. Cannot be removed or replaced.
+        </div>
+      </div>
 
       {/* Main Layout — Desktop: 4-column grid, Mobile: tab layout */}
       {!isMobile ? (

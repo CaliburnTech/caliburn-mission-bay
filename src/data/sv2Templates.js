@@ -22,27 +22,27 @@ export const sv2Templates = {
         label: "Shore Environments",
         color: "#ecd5e3",
         y: 0,
-        height: 160
+        height: 175
       },
       {
         id: "layer-hardware",
         label: "Mission Bay Hardware",
         color: "#d4e4f7",
-        y: 180,
+        y: 195,
         height: 315
       },
       {
         id: "layer-software",
         label: "Mission Bay Software",
         color: "#d8edd9",
-        y: 515,
+        y: 530,
         height: 155
       },
       {
         id: "layer-tempestos",
         label: "TempestOS & Services",
         color: "#fde8c8",
-        y: 690,
+        y: 705,
         height: 390
       }
     ],
@@ -95,12 +95,12 @@ export const sv2Templates = {
     // ── Components ────────────────────────────────────────────────────────────
     components: [
 
-      // Shore Environments
+      // Shore Environments (Shore IS the cloud-connected ops environment)
       { id: "tak-server",     label: "TAK Server",     subgroupId: "sg-nobus",  x: 22,  y: 32, width: 178, height: 55 },
-      // Edit 4: Drawbridge Hub added to shore layer
-      { id: "drawbridge-hub", label: "Drawbridge Hub", layerId: "layer-shore",  x: 250, y: 22, width: 165, height: 110 },
-      { id: "observer-user",  label: "Observer User",  layerId: "layer-shore",  x: 555, y: 20, width: 155, height: 50 },
-      { id: "command-user",   label: "Command User",   layerId: "layer-shore",  x: 555, y: 90, width: 155, height: 50 },
+      { id: "merlin",         label: "Merlin\nCloud Platform", layerId: "layer-shore", x: 250, y: 15, width: 200, height: 140 },
+      { id: "drawbridge-hub", label: "Drawbridge Hub", layerId: "layer-shore",  x: 465, y: 22, width: 165, height: 110 },
+      { id: "observer-user",  label: "Observer User",  layerId: "layer-shore",  x: 665, y: 20, width: 155, height: 50 },
+      { id: "command-user",   label: "Command User",   layerId: "layer-shore",  x: 665, y: 90, width: 155, height: 50 },
 
       // Hardware — Comms (Edit 1: subgroupId updated)
       { id: "los-radio", label: "LOS Radio\nDoodle OEM Mini RM-1700-22M3",  subgroupId: "sg-comms", x: 15, y: 28,  width: 258, height: 65 },
@@ -153,6 +153,9 @@ export const sv2Templates = {
     //
     edges: [
 
+      // Cloud ↔ Shore
+      { source: "tak-server", target: "merlin", label: "Mission data", bidirectional: true },
+
       // Shore internal (horizontal auto-route)
       { source: "tak-server",   target: "observer-user", label: "Readout, CoT" },
       { source: "command-user", target: "tak-server",    label: "Waypoints/commands" },
@@ -177,6 +180,22 @@ export const sv2Templates = {
       { source: "comms-interface", target: "cot-interface" },
       { source: "cot-interface",   target: "tms" },
       { source: "nmea-interface",  target: "tms" },
+
+      // CoT Interface → Automated Piloting (cross-layer TempestOS → Hardware MCU Enclave)
+      { source: "cot-interface", target: "automated-piloting", label: "CoT commands" },
+
+      // TMS → TAK Client (TMS publishes CoT/SA; TAK Client formats and forwards
+      // to TAK Server via the Drawbridge resilient transport).
+      { source: "tms", target: "tak-client", label: "CoT / SA" },
+
+      // TAK Client → Drawbridge Edge (hands off to resilient transport layer)
+      { source: "tak-client", target: "drawbridge", label: "Transport" },
+
+      // SSS Interface (SubSeaSail boat control adapter)
+      // ↔ TMS: publishes boat status, subscribes to control commands
+      // → RC Boat: direct helm commands (cross-layer TempestOS → Hardware MCU Enclave)
+      { source: "sss-interface", target: "tms",     label: "Boat status / cmds", bidirectional: true },
+      { source: "sss-interface", target: "rc-boat", label: "Helm control" },
 
       // Same-layer going UP arcs — all use left-arc, staggered by arcOffset.
       // These hug the LEFT side of the label column (only 8-34px past main content

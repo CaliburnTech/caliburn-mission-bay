@@ -95,7 +95,7 @@ export const fleetVessels = [
     id: "vessel-subseaail-001",
     name: "Glider One",
     hull: "SubSeaSail Horus",
-    hullType: "Autonomous AUSV",
+    hullType: "USV",
     manufacturer: "SubSeaSail",
     status: "returned",
     capabilities: ["subsurface-ISR", "autonomous-glider"],

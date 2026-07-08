@@ -19,7 +19,7 @@
  * Fan-in: multiple edges entering the same target spread across its entry edge.
  */
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
 // ─── Layout constants ────────────────────────────────────────────────────────
@@ -47,7 +47,6 @@ const WEST_LANE_STEP  = 5;                  // 5px per lane
 
 const LABEL_COLORS = {
   'layer-shore':        '#7c3aed',
-  'layer-cloud':        '#c2410c',
   'layer-missionbay':   '#1d4ed8',
   'layer-hardware':     '#1d4ed8',
   'layer-software':     '#15803d',
@@ -271,11 +270,19 @@ function deriveCommsBars(sv2Data) {
 
 export const SV2LayerCakeRenderer = ({ sv2Data, testSuiteLabel }) => {
   const [zoom, setZoom] = useState(1);
+  const canvasRef = useRef(null);
+  // Tracks whether the user has manually zoomed — once they have, we stop
+  // auto-fitting so we don't fight their choice.
+  const userZoomedRef = useRef(false);
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
+    userZoomedRef.current = true;
     setZoom(z => Math.min(2.5, Math.max(0.25, z - e.deltaY * 0.001)));
   }, []);
+
+  const zoomIn  = useCallback(() => { userZoomedRef.current = true; setZoom(z => Math.min(2.5, z + 0.15)); }, []);
+  const zoomOut = useCallback(() => { userZoomedRef.current = true; setZoom(z => Math.max(0.25, z - 0.15)); }, []);
 
   const { sgMap, compMap } = useMemo(() => buildPositionIndex(sv2Data), [sv2Data]);
   const commsBars = useMemo(() => deriveCommsBars(sv2Data), [sv2Data]);
@@ -295,6 +302,29 @@ export const SV2LayerCakeRenderer = ({ sv2Data, testSuiteLabel }) => {
   const rightW  = commsBars.length ? RIGHT_PANEL_W : 0;
   const totalW  = LEFT_PANEL_W + LABEL_COL_W + MAIN_W + rightW;
 
+  // Fit the whole diagram (including the right-hand comms panel) to the panel
+  // width so nothing is clipped on the right by default. Users can still zoom.
+  const fitToWidth = useCallback(() => {
+    const el = canvasRef.current;
+    if (!el || !totalW) return;
+    const avail = el.clientWidth - 16; // small padding allowance
+    if (avail > 0) setZoom(Math.min(1, avail / totalW));
+  }, [totalW]);
+
+  // Auto-fit on mount and whenever the diagram width changes — but only until the
+  // user manually zooms.
+  useLayoutEffect(() => {
+    if (userZoomedRef.current) return;
+    fitToWidth();
+    const el = canvasRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => { if (!userZoomedRef.current) fitToWidth(); });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fitToWidth]);
+
+  const resetFit = useCallback(() => { userZoomedRef.current = false; fitToWidth(); }, [fitToWidth]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f8f8f4' }}>
 
@@ -304,17 +334,18 @@ export const SV2LayerCakeRenderer = ({ sv2Data, testSuiteLabel }) => {
         borderBottom: '1px solid #e5e5e5', background: '#fff', alignItems: 'center',
       }}
       >
-        <button onClick={() => setZoom(z => Math.min(2.5, z + 0.15))} style={zBtnStyle}><ZoomIn size={13} /></button>
-        <button onClick={() => setZoom(z => Math.max(0.25, z - 0.15))} style={zBtnStyle}><ZoomOut size={13} /></button>
-        <button onClick={() => setZoom(1)} style={zBtnStyle}><Maximize2 size={13} /></button>
-        <span style={{ fontSize: 10, color: '#aaa', marginLeft: 4 }}>{Math.round(zoom * 100)}% · scroll to zoom</span>
+        <button onClick={zoomIn} style={zBtnStyle}><ZoomIn size={13} /></button>
+        <button onClick={zoomOut} style={zBtnStyle}><ZoomOut size={13} /></button>
+        <button onClick={resetFit} style={zBtnStyle} title="Fit to width"><Maximize2 size={13} /></button>
+        <span style={{ fontSize: 10, color: '#aaa', marginLeft: 4 }}>{Math.round(zoom * 100)}% · fit to width · scroll to zoom</span>
         <span style={{ fontSize: 10, color: '#bbb', marginLeft: 'auto' }}>{sv2Data.name}</span>
       </div>
 
-      {/* Canvas */}
-      <div onWheel={handleWheel} style={{ flex: 1, overflow: 'auto' }}>
-        <div style={{ transformOrigin: 'top left', transform: `scale(${zoom})`, width: totalW, height: totalH }}>
-          <svg viewBox={`0 0 ${totalW} ${totalH}`} width={totalW} height={totalH}
+      {/* Canvas — the SVG is sized to totalW*zoom so the scroll region matches the
+          visible content and the right-hand side is always reachable. */}
+      <div ref={canvasRef} onWheel={handleWheel} style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ width: totalW * zoom, height: totalH * zoom }}>
+          <svg viewBox={`0 0 ${totalW} ${totalH}`} width={totalW * zoom} height={totalH * zoom}
             xmlns="http://www.w3.org/2000/svg"
             style={{ display: 'block', fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
           >

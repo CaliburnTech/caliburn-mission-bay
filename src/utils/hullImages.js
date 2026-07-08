@@ -20,6 +20,7 @@ import imgSeaJeep    from '../assets/images/SeaJeep.png';
 import imgGARC       from '../assets/images/GARC.png';
 import imgZeroUSV    from '../assets/images/ZeroUSV-Oceanus17.png';
 import imgMQ4C       from '../assets/images/MQ4C Triton.png';
+import imgOceanAeroTriton from '../assets/images/OceanAeroTriton.png';
 import imgMQ8C       from '../assets/images/MQ8C Fire.png';
 import imgMQ25       from '../assets/images/MQ25 Stingray.png';
 
@@ -42,7 +43,9 @@ export const HULL_IMAGES = {
   'GP-USV Sea Jeep':    imgSeaJeep,
   'GARC':               imgGARC,
   'ZeroUSV Oceanus17':  imgZeroUSV,
-  'Triton':             imgMQ4C,
+  // Ocean Aero "Triton" is a small sail/solar surface-subsurface USV — NOT the MQ-4C
+  // aircraft. Uses its own Ocean Aero Triton image so it renders correctly in swap lists.
+  'Triton':             imgOceanAeroTriton,
   'MQ-4C Triton':       imgMQ4C,
   'MQ-8C Fire Scout':   imgMQ8C,
   'MQ-25 Stingray':     imgMQ25,

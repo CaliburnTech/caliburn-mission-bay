@@ -2212,7 +2212,7 @@ export const individualCapabilities = [
     name: "Acoustic Marker Receiver",
     provider: "Thales",
     type: "Acoustic Sensor",
-    description: "Thales passive acoustic marker receiver deployed by USV for mine detection cueing. Receives acoustic signals from deployed mine markers and indicator buoys, providing precise localization data to the mine clearance commander.",
+    description: "Thales passive acoustic marker receiver deployed by USV for mine detection cueing. Receives acoustic signals from deployed mine markers and acoustic indicators, providing precise localization data to the mine clearance commander.",
     capabilities: [
       "Passive acoustic reception from mine markers",
       "Precise localization via time-difference-of-arrival",
@@ -2311,10 +2311,10 @@ export const individualCapabilities = [
     missionTags: ["MCM", "Mine Clearance", "SURVEY"]
   },
   {
-    name: "Acoustic Indicator Buoy",
+    name: "Acoustic Indicator",
     provider: "Oceaneering",
     type: "MCM Marking System",
-    description: "Oceaneering acoustic indicator buoy deployed by Freedom AUV to mark located mine contacts for prosecution. Transmits encoded acoustic signal received by surface USV acoustic marker receivers, maintaining position of buried or moored mine contacts.",
+    description: "Oceaneering acoustic indicator deployed by Freedom AUV to mark located mine contacts for prosecution. Transmits encoded acoustic signal received by surface USV acoustic marker receivers, maintaining position of buried or moored mine contacts.",
     capabilities: [
       "Acoustic position marking of mine contacts",
       "Autonomous deployment by AUV",

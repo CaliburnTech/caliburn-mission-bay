@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { Anchor, X, Star } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
 import useIsMobile from '../../hooks/useIsMobile';
-import { vesselHullData } from '../../data/vesselData';
+import { vesselHullData, isAerialPlatform } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import { isHullSwapEligible } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -52,6 +52,24 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
       });
     }
 
+    // ── Global domain guard ────────────────────────────────────────────────
+    // A replacement must be the SAME domain as the vessel it replaces: an aerial
+    // platform (UAV) can never replace a boat, and a boat/sub can never replace a
+    // UAV. Anchor on the vessel being swapped, falling back to the role's default
+    // hull and then its allowed platform types. This runs even when a role lookup
+    // fails (role === null), which is what previously let UAVs leak into boat lists.
+    const anchorType =
+      vesselHullData.find(h => h.name === currentHullName)?.platformType ||
+      vesselHullData.find(h => h.name === role?.defaultHullName)?.platformType ||
+      platformTypes[0] ||
+      null;
+    if (anchorType) {
+      const anchorIsAerial = isAerialPlatform(anchorType);
+      candidates = candidates.filter(
+        hull => isAerialPlatform(hull.platformType) === anchorIsAerial
+      );
+    }
+
     // Annotate with SWaP eligibility
     const annotated = candidates.map(hull => {
       if (!role) return { hull, eligible: true };
@@ -76,7 +94,7 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
     otherList.sort((a, b) => (b.eligible ? 1 : 0) - (a.eligible ? 1 : 0));
 
     return { suggested: suggestedList, other: otherList };
-  }, [role]);
+  }, [role, currentHullName]);
 
   const handleSelect = useCallback((hullName) => {
     assignVesselToRole(missionKey, roleKey, hullName, hullName, hullName);

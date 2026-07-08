@@ -15,7 +15,7 @@ export const softwareCatalog = {
     category: "Operating System",
     description: "Bootable container (bootc) based maritime OS with atomic, read-only filesystem. RHEL build model, heavily debloated, STIG'd and SELinux enforcing by default. Podman container runtime, KVM virtualization (installed if needed). Containerized apps run via K8s or systemd.",
     protocols: ["NMEA 0183", "CAN", "STANAG 4817", "MAVLink", "Protobuf"],
-    dependencies: ["AlmaLinux 9.3", "Podman 4.8", "NATS JetStream", "KVM Hypervisor"],
+    dependencies: ["Podman 4.8", "NATS JetStream", "KVM Hypervisor"],
     interfaces: {},
     dataFlows: {}
   },

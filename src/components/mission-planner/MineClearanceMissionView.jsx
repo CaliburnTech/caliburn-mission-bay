@@ -18,7 +18,7 @@ import imgFreedomAUV from '../../assets/images/FreedomAUV.png';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
 
 const MISSION_SET_KEY = 'MCM';
-const MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio', 'Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100'];
+const MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio', 'Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const MAP_CENTER = [26.52, 56.35];
@@ -54,7 +54,7 @@ const HORUS_VESSELS = [
 
 // ─── Loadouts ─────────────────────────────────────────────────────────────────
 const HORUS_MCM_MOUNTS = [
-  { slot: 'ACOUSTIC SENSORS', name: 'Acoustic Marker Receiver',  vendor: 'Thales',            description: 'Passive acoustic receiver — homes on the 37.5 kHz acoustic indicator buoy deployed by the Freedom AUV for terminal mine localization' },
+  { slot: 'ACOUSTIC SENSORS', name: 'Acoustic Marker Receiver',  vendor: 'Thales',            description: 'Passive acoustic receiver — homes on the 37.5 kHz acoustic indicator deployed by the Freedom AUV for terminal mine localization' },
   { slot: 'WEAPONS',        name: 'M30 Supercavitating Round', vendor: 'Thales',            description: 'Single-shot mine neutralization — fires through hull bottom' },
   { slot: 'SATCOM',         name: 'OrbComm ST 6100',           vendor: 'OrbComm',          description: 'C2 link — receives mine coordinates via SATCOM relay from Freedom AUV' },
   { slot: 'COMMS',          name: 'LOS Mesh Radio',            vendor: 'Persistent Systems', description: 'Direct LOS data link to Freedom AUV at surface — mine contact handoff and coordination' },
@@ -62,13 +62,13 @@ const HORUS_MCM_MOUNTS = [
 
 const FREEDOM_AUV_MOUNTS = [
   { slot: 'SENSORS', name: 'Micro-SAS Sonar (SAMDIS)',  vendor: 'Thales',             description: '150m swath, 30mm resolution — detects, classifies, localizes mines' },
-  { slot: 'PAYLOAD', name: 'Acoustic Indicator Buoy',   vendor: 'Oceaneering',        description: 'Deploys acoustic pinger on confirmed mine for HORUS homing' },
+  { slot: 'PAYLOAD', name: 'Acoustic Indicator',   vendor: 'Oceaneering',        description: 'Deploys acoustic pinger on confirmed mine for HORUS homing' },
   { slot: 'COMMS',   name: 'EvoLogics Acoustic Modem',  vendor: 'EvoLogics',          description: 'Relays mine coordinates to surface relay via underwater acoustic link' },
   { slot: 'COMMS',   name: 'LOS Mesh Radio',            vendor: 'Persistent Systems', description: 'Surface-to-surface mesh link with HORUS when AUV is at/near surface — high-bandwidth contact data sync' },
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'FREEDOM AUV', roleDescriptor: '(Mine Hunter)', image: imgFreedomAUV, hullName: 'Freedom AUV', capabilities: ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio'], roleKey: 'MCM_FREEDOM_AUV' },
+  { name: 'FREEDOM AUV', roleDescriptor: '(Mine Hunter)', image: imgFreedomAUV, hullName: 'Freedom AUV', capabilities: ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio'], roleKey: 'MCM_FREEDOM_AUV' },
   { name: 'HORUS-1 SSS', roleDescriptor: '(Scout 1)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_1' },
   { name: 'HORUS-2 SSS', roleDescriptor: '(Scout 2)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_2' },
 ];
@@ -79,7 +79,7 @@ const PHASE_NARRATIVE = {
   auv_transit:       { title: 'AUV Transit to Minefield', body: 'FREEDOM-1 AUV deployed from USS Lewis B. Puller (ESB-3). Initiating transit to Strait of Hormuz shipping lane Alpha-7. Micro-SAS sonar powering up for boustrophedon sweep.' },
   sweeping:          { title: 'Micro-SAS Sweep Active', body: 'FREEDOM-1 executing 5-pass lawnmower survey at 4kt. 150m swath, 30mm resolution. Contacts logged to onboard memory — AUV does not divert. Full minefield picture before any re-attack.' },
   sweep_complete:    { title: 'Sweep Complete — Uploading Contacts', body: 'All 5 passes complete. FREEDOM-1 surfacing. Contact list uploading via EvoLogics acoustic modem → SATCOM relay → MOC Bahrain. 2 bottom contacts confirmed. Initiating re-attack.' },
-  marking_alpha:     { title: 'Re-Attack Phase — Marking Mines', body: 'FREEDOM-1 returning to MINE-ALPHA contact position. Deploying Oceaneering acoustic indicator buoy. Will transit to MINE-BRAVO to complete marking before HORUS engagement.' },
+  marking_alpha:     { title: 'Re-Attack Phase — Marking Mines', body: 'FREEDOM-1 returning to MINE-ALPHA contact position. Deploying Oceaneering acoustic indicator. Will transit to MINE-BRAVO to complete marking before HORUS engagement.' },
   horus_inbound:     { title: 'All Mines Marked — HORUS Inbound', body: 'MINE-ALPHA and MINE-BRAVO both marked with 37.5kHz acoustic beacons. HORUS-1 and HORUS-2 homing on pinger signals. M30 supercavitating rounds armed. FREEDOM-1 RTB.' },
   horus_locked:      { title: 'Acoustic Lock Achieved', body: 'HORUS-1 and HORUS-2 on station — 37.5kHz pinger locks confirmed. Supercavitating rounds aligned to mine-bearing vectors. MOC Bahrain: weapons free.' },
   engaging_alpha:    { title: 'Engaging MINE-ALPHA', body: 'HORUS-1: M30 supercavitating round away — penetrating water column. Kinetic neutralization via hull perforation initiates sympathetic detonation sequence on MINE-ALPHA.' },
@@ -433,11 +433,11 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
         addEvtRef.current(`${v0}: Re-attack phase initiated — returning to MINE-ALPHA`, 'info');
       }
       if (tick === T_MARK_A) {
-        addEvtRef.current(`${v0}: Acoustic indicator buoy deployed on MINE-ALPHA — pinger active 37.5kHz`, 'info');
+        addEvtRef.current(`${v0}: Acoustic indicator deployed on MINE-ALPHA — pinger active 37.5kHz`, 'info');
         addEvtRef.current(`${v0}: Transiting to MINE-BRAVO`, 'info');
       }
       if (tick === T_MARK_B) {
-        addEvtRef.current(`${v0}: Acoustic indicator buoy deployed on MINE-BRAVO — both mines marked`, 'info');
+        addEvtRef.current(`${v0}: Acoustic indicator deployed on MINE-BRAVO — both mines marked`, 'info');
         addEvtRef.current(`${v0}: Re-attack complete — RTB to USS Lewis B. Puller (ESB-3)`, 'info');
         addEvtRef.current(`MOC Bahrain: ${v1} ${v2} tasked — homing on acoustic beacons`, 'info');
       }
@@ -539,7 +539,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-darkest overflow-hidden">
+    <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
@@ -578,7 +578,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
       </div>
 
       {/* ── Scrollable content ── */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div>
 
         {/* ── Animation row ── */}
         <div className="flex h-[40vh] md:h-[460px]">
@@ -590,7 +590,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
               zoom={MAP_ZOOM}
               style={{ width: '100%', height: '100%' }}
               zoomControl={false}
-              scrollWheelZoom
+              scrollWheelZoom={false}
               attributionControl={false}
             >
               <ZoomControl position="topright" />

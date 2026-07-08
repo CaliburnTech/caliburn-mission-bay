@@ -420,7 +420,7 @@ export const MISSION_ROLES = {
 
   // ─── Mine Clearance — Strait of Hormuz ───────────────────────────────────────
   // MISSION_SET_KEY = 'MCM'
-  // MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem',
+  // MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator', 'EvoLogics Acoustic Modem',
   //                     'LOS Mesh Radio', 'Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100']
   MCM: {
     missionLabel: 'Mine Clearance — Strait of Hormuz',
@@ -429,10 +429,10 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MCM_FREEDOM_AUV',
         roleLabel: 'Sweep & Mark AUV (Freedom AUV)',
-        description: 'Executes boustrophedon sonar sweep at 4 kt. Detects, classifies, and localizes mines via Micro-SAS. Deploys acoustic indicator buoys on confirmed mines and relays coordinates via acoustic modem.',
+        description: 'Executes boustrophedon sonar sweep at 4 kt. Detects, classifies, and localizes mines via Micro-SAS. Deploys acoustic indicators on confirmed mines and relays coordinates via acoustic modem.',
         capabilities: [
           'Micro-SAS Sonar (SAMDIS)',
-          'Acoustic Indicator Buoy',
+          'Acoustic Indicator',
           'EvoLogics Acoustic Modem',
           'LOS Mesh Radio',
         ],
@@ -447,16 +447,17 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MCM_HORUS_1',
         roleLabel: 'Mine Neutralizer (HORUS-1)',
-        description: 'Acoustic marker receiver homes on the 37.5 kHz acoustic indicator buoy deployed by the Freedom AUV; fires M30 supercavitating round for kinetic mine neutralization. SATCOM link to MOC Bahrain. Mesh radio sync with Freedom AUV for terminal guidance.',
+        description: 'Acoustic marker receiver homes on the 37.5 kHz acoustic indicator deployed by the Freedom AUV; fires M30 supercavitating round for kinetic mine neutralization. SATCOM link to MOC Bahrain. Mesh radio sync with Freedom AUV for terminal guidance.',
         capabilities: [
           'Acoustic Marker Receiver',
           'M30 Supercavitating Round',
           'OrbComm ST 6100',
           'LOS Mesh Radio',
         ],
-        // Only micro-sail USVs — Horus or Ocean Aero Triton; no large USVs
-        allowedPlatformTypes: ['USV', 'USV/UUV'],
-        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        // MCM strict lock — a SubSeaSail may only be swapped for a Freedom AUV or
+        // an Ocean Aero Triton (per operator rule). No other hulls offered here.
+        allowedPlatformTypes: ['USV', 'USV/UUV', 'UUV'],
+        allowedHullNames: ['SubSeaSail Horus', 'Freedom AUV', 'Triton'],
         defaultHullName: 'SubSeaSail Horus',
         requirements: {
           categories: ['SENSORS', 'COMMS', 'WEAPONS'],
@@ -466,16 +467,17 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MCM_HORUS_2',
         roleLabel: 'Mine Neutralizer (HORUS-2)',
-        description: 'Second neutralization vessel. Acoustic marker receiver homes on the acoustic indicator buoy for independent mine localization while HORUS-1 handles MINE-ALPHA — parallel prosecution.',
+        description: 'Second neutralization vessel. Acoustic marker receiver homes on the acoustic indicator for independent mine localization while HORUS-1 handles MINE-ALPHA — parallel prosecution.',
         capabilities: [
           'Acoustic Marker Receiver',
           'M30 Supercavitating Round',
           'OrbComm ST 6100',
           'LOS Mesh Radio',
         ],
-        // Only micro-sail USVs — Horus or Ocean Aero Triton; no large USVs
-        allowedPlatformTypes: ['USV', 'USV/UUV'],
-        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        // MCM strict lock — a SubSeaSail may only be swapped for a Freedom AUV or
+        // an Ocean Aero Triton (per operator rule). No other hulls offered here.
+        allowedPlatformTypes: ['USV', 'USV/UUV', 'UUV'],
+        allowedHullNames: ['SubSeaSail Horus', 'Freedom AUV', 'Triton'],
         defaultHullName: 'SubSeaSail Horus',
         requirements: {
           categories: ['SENSORS', 'COMMS', 'WEAPONS'],

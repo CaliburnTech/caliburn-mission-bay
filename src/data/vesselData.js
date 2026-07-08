@@ -130,7 +130,7 @@ export const vesselHullData = [
   // ============ USV CATEGORY ============
   {
     name: "SubSeaSail Horus",
-    type: "Autonomous AUSV",
+    type: "USV",
     platformType: "USV/UUV",
     displacement: "< 1 ton",
     description: "Autonomous undersea and surface vehicle. 100% energy harvesting, submersible, solar + LiFePO4.",
