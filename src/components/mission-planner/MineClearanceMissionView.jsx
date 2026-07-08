@@ -15,11 +15,10 @@ import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
 import imgFreedomAUV from '../../assets/images/FreedomAUV.png';
-import imgArleighBurke from '../../assets/images/ArleighBurke.png';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
 
 const MISSION_SET_KEY = 'MCM';
-const MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio', 'Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100'];
+const MISSION_SET_CAPS = ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio', 'Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const MAP_CENTER = [26.52, 56.35];
@@ -55,7 +54,7 @@ const HORUS_VESSELS = [
 
 // ─── Loadouts ─────────────────────────────────────────────────────────────────
 const HORUS_MCM_MOUNTS = [
-  { slot: 'RADAR/RF',       name: 'Echodyne EchoGuard CR',    vendor: 'Echodyne',           description: '1.25 kg ESA radar — locates mine marker buoys and area surveillance; IP67 weatherproof' },
+  { slot: 'ACOUSTIC SENSORS', name: 'Acoustic Marker Receiver',  vendor: 'Thales',            description: 'Passive acoustic receiver — homes on the 37.5 kHz acoustic indicator buoy deployed by the Freedom AUV for terminal mine localization' },
   { slot: 'WEAPONS',        name: 'M30 Supercavitating Round', vendor: 'Thales',            description: 'Single-shot mine neutralization — fires through hull bottom' },
   { slot: 'SATCOM',         name: 'OrbComm ST 6100',           vendor: 'OrbComm',          description: 'C2 link — receives mine coordinates via SATCOM relay from Freedom AUV' },
   { slot: 'COMMS',          name: 'LOS Mesh Radio',            vendor: 'Persistent Systems', description: 'Direct LOS data link to Freedom AUV at surface — mine contact handoff and coordination' },
@@ -70,9 +69,8 @@ const FREEDOM_AUV_MOUNTS = [
 
 const VESSEL_ROSTER = [
   { name: 'FREEDOM AUV', roleDescriptor: '(Mine Hunter)', image: imgFreedomAUV, hullName: 'Freedom AUV', capabilities: ['Micro-SAS Sonar (SAMDIS)', 'Acoustic Indicator Buoy', 'EvoLogics Acoustic Modem', 'LOS Mesh Radio'], roleKey: 'MCM_FREEDOM_AUV' },
-  { name: 'HORUS-1 SSS', roleDescriptor: '(Scout 1)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_1' },
-  { name: 'HORUS-2 SSS', roleDescriptor: '(Scout 2)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Echodyne EchoGuard CR', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_2' },
-  { name: 'USS Puller ESB-3', image: imgArleighBurke, hullName: 'Lewis B. Puller Class ESB', capabilities: ['MCM C2 Node', 'AUV Launch & Recovery', 'SATCOM Relay', 'Logistics Support'] },
+  { name: 'HORUS-1 SSS', roleDescriptor: '(Scout 1)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_1' },
+  { name: 'HORUS-2 SSS', roleDescriptor: '(Scout 2)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['Acoustic Marker Receiver', 'M30 Supercavitating Round', 'OrbComm ST 6100', 'LOS Mesh Radio'], roleKey: 'MCM_HORUS_2' },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────

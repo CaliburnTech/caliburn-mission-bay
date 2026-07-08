@@ -26,16 +26,23 @@ const NM_TO_M = 1852;
 const MAP_CENTER = [25.85, 55.10];
 const MAP_ZOOM   = 10;
 
+// The M48 transits onto a screened loiter station SOUTHWEST of Abu Musa Island,
+// then HOLDS STATION there through the detection + engagement (the tight middle
+// cluster of waypoints = slow on-station loiter, not a transit). Abu Musa stays
+// on the line between the hull and the threat to the NE, so the surface sensors
+// never get direct LOS — only the elevated DPI Vulture sees over the island. The
+// M48 keeps watch at standoff (it is unarmed) and cues USS Laboon; it resumes the
+// patrol leg only after the threat is neutralized.
 const M48_TRACK = [
-  [25.65, 54.85],
-  [25.80, 55.00],
-  [25.92, 55.18],
-  [25.78, 55.30],
-  [25.60, 55.15],
-  [25.65, 54.85],
+  [25.62, 54.80],    // start — SW of Abu Musa
+  [25.80, 54.99],    // transit onto screened loiter station
+  [25.81, 55.00],    // ┐
+  [25.78, 54.98],    // ├ on-station loiter — hold watch while the Vulture tracks the threat
+  [25.80, 54.99],    // │
+  [25.77, 54.985],   // ┘
+  [25.62, 54.80],    // threat down — resume patrol leg back to start
 ];
 
-const ABU_MUSA       = [25.875, 55.033];
 const THREAT_ORIGIN  = [25.92, 55.05];
 const NAVCENT_POS    = [26.22, 50.58];
 const USS_LABOON_POS = [25.60, 54.80];
@@ -62,7 +69,7 @@ const HIDDENLEVEL_NM   = 25;
 // ─── Tick milestones ──────────────────────────────────────────────────────────
 const T_PATROL_START    = 5;
 const T_LANTERN_DEPLOY  = 12;  // drone leaves deck — ring starts growing
-const T_LANTERN_FULL    = 27;  // drone at 200ft — ring fully expanded, pulse begins
+const T_LANTERN_FULL    = 27;  // drone at 500ft — ring fully expanded, pulse begins
 const T_ON_STATION      = 20;
 const T_RF_DETECT       = 30;
 const T_RADAR_TRACK     = 38;
@@ -129,7 +136,7 @@ const getThreatPos = (tick) => {
 const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'm48_patrol':          return { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                  label: '→ M48-ALPHA Autonomous Patrol' };
-    case 'lantern_deployed':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '↑ DPI Vulture Ascending — 200ft' };
+    case 'lantern_deployed':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '↑ DPI Vulture Ascending — 500ft' };
     case 'rf_detect':           return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ HiddenLevel RF Anomaly' };
     case 'radar_track':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ DPI Vulture Radar Track Initiated' };
     case 'scion_classify':      return { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse', label: '◈ Scion — Multi-Sensor Fusion' };
@@ -146,9 +153,9 @@ const getPhaseBadge = (phase) => {
 const PHASE_NARRATIVE = {
   idle:                   null,
   m48_patrol:             { title: 'M48-ALPHA Autonomous Patrol', body: 'M48-ALPHA executing DriveAI waypoint loop in Abu Musa approaches. HiddenLevel passive RF sensor monitoring zero-emissions posture. DPI Vulture tethered UAS pre-deployed on deck.' },
-  lantern_deployed:       { title: 'DPI Vulture Ascending', body: 'DPI Vulture deployed — ascending to 200ft tether limit. Radar horizon expanding as altitude increases. Trillium HD40 EO/IR camera slewing to full 360° surveillance coverage.' },
-  rf_detect:              { title: 'HiddenLevel RF Anomaly', body: 'HiddenLevel passive sensor detects unscheduled RF emission at 25.90°N 55.03°E — bearing 005. Emission profile cross-correlated against Shahed-class drone RF library. Cueing DPI Vulture radar.' },
-  radar_track:            { title: 'DPI Vulture Radar Track', body: 'DPI Vulture radar initiates track — air contact bearing 005, range 14nm, altitude 300ft. EO/IR slewing to contact for visual acquisition. Scion autonomy stack receiving multi-sensor feeds.' },
+  lantern_deployed:       { title: 'DPI Vulture Ascending', body: 'DPI Vulture deployed — ascending to 500ft tether limit. Radar horizon expanding as altitude increases. Trillium HD40 EO/IR camera slewing to full 360° surveillance coverage.' },
+  rf_detect:              { title: 'HiddenLevel RF Anomaly', body: 'HiddenLevel passive sensor detects unscheduled RF emission at 25.90°N 55.03°E — bearing 005, behind Abu Musa Island. The M48 hull has no direct line of sight — the threat is masked by terrain. Cueing the elevated DPI Vulture radar.' },
+  radar_track:            { title: 'DPI Vulture Radar Track', body: 'From 500ft the DPI Vulture sees over Abu Musa Island — initiating track on an air contact the surface radar cannot see. Bearing 005, range 14nm, altitude 300ft. EO/IR slewing for visual. This is the tethered drone earning its keep: elevated LOS the hull simply does not have.' },
   scion_classify:         { title: 'Scion Multi-Sensor Fusion', body: 'Scion fusing RF signature, radar track, and EO/IR visual. Three independent sensor modalities corroborating single threat hypothesis. Classification confidence building — track quality rising to fire-control grade.' },
   threat_confirmed:       { title: 'Threat Confirmed — Shahed-136', body: 'Scion classification complete: Shahed-136 class loitering munition — 94% confidence. Projected course intercepts VLCC shipping lane in 8 minutes. RazorChassis fire control track generated.' },
   razorchassis_cueing:    { title: 'RazorChassis FC Track Transmitted', body: 'RazorChassis pushes fire-control-quality track to NAVCENT MOC network. Track includes lat/lon, heading, speed, altitude. Cueing USS Laboon AN/SPY-1 fire control radar for ESSM intercept solution.' },
@@ -342,7 +349,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
         addEvtRef.current(`${v0}: DriveAI online — waypoint ALPHA set`, 'info');
       }
       if (tick === T_LANTERN_DEPLOY) {
-        addEvtRef.current(`${v0}: DPI Vulture deployed — ascending to 200ft`, 'info');
+        addEvtRef.current(`${v0}: DPI Vulture deployed — ascending to 500ft`, 'info');
       }
       if (tick === T_ON_STATION) {
         addEvtRef.current(`NAVCENT: ${v0} on station — Task Force 59 sector GULF-7`, 'info');
@@ -481,12 +488,6 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
     ? (lanternPulse ? lanternBaseR + 200 : lanternBaseR - 200)
     : lanternBaseR;
   const lanternRising = currentTick >= T_LANTERN_DEPLOY && !lanternDeployed;
-
-  // HiddenLevel → M48 comms dot: travels from threat origin to M48 during rf_detect
-  const rfDotT   = phase === 'rf_detect'
-    ? Math.min((currentTick - T_RF_DETECT) / (T_RADAR_TRACK - T_RF_DETECT), 1)
-    : null;
-  const rfDotPos = rfDotT !== null ? lerp2(THREAT_ORIGIN, m48Pos, rfDotT) : null;
 
   // Scion classification pulse ring around M48
   const showScionRing = phase === 'scion_classify';
@@ -627,15 +628,6 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 </>
               )}
 
-              {/* RF signal comms dot: HiddenLevel → M48 */}
-              {rfDotPos && (
-                <CircleMarker
-                  center={rfDotPos}
-                  radius={4}
-                  pathOptions={{ color: '#f97316', fillColor: '#fbbf24', fillOpacity: 1, weight: 1 }}
-                />
-              )}
-
               {/* RF anomaly bearing line */}
               {phase === 'rf_detect' && (
                 <Polyline
@@ -644,8 +636,8 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* Radar bearing line M48 → contact */}
-              {['radar_track', 'scion_classify', 'threat_confirmed'].includes(phase) && threatPos && (
+              {/* Radar bearing line M48 → contact — Vulture holds the track from detection through the kill */}
+              {['radar_track', 'scion_classify', 'threat_confirmed', 'razorchassis_cueing', 'fire_control_alerted'].includes(phase) && threatPos && (
                 <Polyline
                   positions={[m48Pos, threatPos]}
                   pathOptions={{ color: '#f97316', opacity: 0.65, weight: 1.5, dashArray: '4 4' }}
@@ -768,17 +760,6 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 </CircleMarker>
               )}
 
-              {/* Abu Musa Island */}
-              <CircleMarker
-                center={ABU_MUSA}
-                radius={5}
-                pathOptions={{ color: '#ef4444', fillColor: '#7f1d1d', fillOpacity: 0.80, weight: 1.5 }}
-              >
-                <Tooltip direction="right" offset={[8, 0]}>
-                  <span style={{ fontSize: 10, color: '#fca5a5' }}>Abu Musa Island (IR)</span>
-                </Tooltip>
-              </CircleMarker>
-
               {/* NAVCENT — NSA Bahrain */}
               <CircleMarker
                 center={NAVCENT_POS}
@@ -799,7 +780,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                 >
                   <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: lanternDeployed ? '#22d3ee' : lanternRising ? '#67e8f9' : '#93c5fd' }}>
-                      {lanternDeployed ? `${effectiveRoster[0]?.name ?? 'M48'} · DPI Vulture ↑ 200ft` : lanternRising ? `${effectiveRoster[0]?.name ?? 'M48'} · LANTERN ↑ ascending…` : (effectiveRoster[0]?.name ?? 'M48')}
+                      {lanternDeployed ? `${effectiveRoster[0]?.name ?? 'M48'} · DPI Vulture ↑ 500ft` : lanternRising ? `${effectiveRoster[0]?.name ?? 'M48'} · LANTERN ↑ ascending…` : (effectiveRoster[0]?.name ?? 'M48')}
                     </span>
                   </Tooltip>
                 </CircleMarker>
@@ -908,7 +889,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                     </text>
                     {lanternRiseProgress >= 1 && (
                       <text x={8} y={26} fill="#67e8f9" fontSize={8} fontFamily="monospace">
-                        200ft · scanning
+                        500ft · scanning
                       </text>
                     )}
                     {lanternRiseProgress > 0 && lanternRiseProgress < 1 && (

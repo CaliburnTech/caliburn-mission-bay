@@ -20,8 +20,8 @@ export const MISSION_ROLES = {
 
   // ─── ASW — Philippine Sea ─────────────────────────────────────────────────────
   // MISSION_SET_KEY = 'ASW'
-  // MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR',
-  //                     'MFTA Towed Array', 'Hanwha Naval Missile System']
+  // MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast',
+  //                     'MFTA Towed Array', 'EvoLogics Acoustic Modem']
   //
   // VESSEL_ROSTER order: [M48-ALPHA, M48-BRAVO, M48-CHARLIE, USS Virginia SSN-774]
   // roles[] must match that order so effectiveRoster positional mapping is correct.
@@ -37,6 +37,7 @@ export const MISSION_ROLES = {
           'CAPTAS-4 Variable Depth Sonar',
           'USW-DSS (AN/UYQ-100)',
           'HiveLink SDR',
+          'Link 16 Track Broadcast',
         ],
         // CAPTAS-4 is a large tow system — only medium-large surface vessels
         allowedPlatformTypes: ['USV'],
@@ -49,39 +50,39 @@ export const MISSION_ROLES = {
       },
       {
         roleKey: 'ASW_BRAVO',
-        roleLabel: 'MFTA Receiver / Shooter (BRAVO)',
-        description: 'Passive MFTA towed array in bistatic geometry SE of ALPHA. Receives echo returns, computes cross-fix, prosecutes on USW-DSS cue.',
+        roleLabel: 'MFTA Receiver (BRAVO)',
+        description: 'Passive MFTA towed array in bistatic geometry SE of ALPHA. Receives echo returns, computes cross-fix, and relays the fire-control track to USS Virginia for prosecution — no organic weapon.',
         capabilities: [
           'MFTA Towed Array',
-          'Hanwha Naval Missile System',
           'USW-DSS (AN/UYQ-100)',
           'Link 16 Track Broadcast',
+          'EvoLogics Acoustic Modem',
           'Bistatic Cross-Fix Node',
         ],
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
         suggestedHullNames: ['M48', 'AEGIR-H', 'ZeroUSV Oceanus17'],
         requirements: {
-          categories: ['SENSORS', 'COMMS', 'WEAPONS', 'C2'],
+          categories: ['SENSORS', 'COMMS', 'C2'],
           subTypes: ['SONAR_TOWED'],
         },
       },
       {
         roleKey: 'ASW_CHARLIE',
-        roleLabel: 'MFTA Receiver / Shooter (CHARLIE)',
-        description: 'Passive MFTA towed array in bistatic geometry NE of ALPHA. Completes cross-fix triangle, provides independent prosecution vector.',
+        roleLabel: 'MFTA Receiver (CHARLIE)',
+        description: 'Passive MFTA towed array in bistatic geometry NE of ALPHA. Completes the cross-fix triangle and provides an independent track to USS Virginia — no organic weapon.',
         capabilities: [
           'MFTA Towed Array',
-          'Hanwha Naval Missile System',
           'USW-DSS (AN/UYQ-100)',
           'Link 16 Track Broadcast',
+          'EvoLogics Acoustic Modem',
           'Bistatic Cross-Fix Node',
         ],
         allowedPlatformTypes: ['USV'],
         defaultHullName: 'M48',
         suggestedHullNames: ['M48', 'AEGIR-H', 'ZeroUSV Oceanus17'],
         requirements: {
-          categories: ['SENSORS', 'COMMS', 'WEAPONS', 'C2'],
+          categories: ['SENSORS', 'COMMS', 'C2'],
           subTypes: ['SONAR_TOWED'],
         },
       },
@@ -316,31 +317,28 @@ export const MISSION_ROLES = {
     ],
   },
 
-  // ─── Counter-C5ISR — Strait of Hormuz (ISR Tethered Drone) ──────────────────
+  // ─── Counter-C5ISR — EW Decoy Cost Imposition ───────────────────────────────
   // MISSION_SET_KEY = 'COUNTER_C5ISR'
-  // MISSION_SET_CAPS = ['DPI Vulture Tethered UAS', 'HiddenLevel Passive RF Sensor',
-  //                     'Project Scion (Northrop Grumman)', 'RazorChassis FC Integration']
+  // MISSION_SET_CAPS = ['EW Decoy Payload', 'LOS Mesh Radio']
   COUNTER_C5ISR: {
-    missionLabel: 'Counter-C5ISR — Strait of Hormuz',
+    missionLabel: 'Counter-C5ISR — EW Decoy Cost Imposition',
     minVessels: 1,
     roles: [
       {
-        roleKey: 'CC5ISR_M48',
-        roleLabel: 'Tethered ISR Patrol (M48 + DPI Vulture)',
-        description: 'M48 on shipping lane patrol with DPI Vulture tethered UAS at 200 ft. HiddenLevel passive RF detects threat emissions; Scion autonomy classifies; RazorChassis cueing pushes fire-control track to USS Laboon.',
+        roleKey: 'CC5ISR_HORUS',
+        roleLabel: 'EW Decoy Lure (SubSeaSail Horus)',
+        description: 'Low-cost SubSeaSail Horus running an EW decoy payload. It emits a false electronic signature so the hull appears as a large combatant — baiting adversary ISR into committing high-value assets to investigate a disposable platform. Proves we can impose cost faster than the enemy.',
         capabilities: [
-          'DPI Vulture Tethered UAS',
-          'HiddenLevel Passive RF Sensor',
-          'Project Scion (Northrop Grumman)',
-          'RazorChassis FC Integration',
+          'EW Decoy Payload',
+          'LOS Mesh Radio',
         ],
-        // Tethered UAS host + ISR — surface vessels only (needs deck space for tether)
-        allowedPlatformTypes: ['USV'],
-        defaultHullName: 'M48',
-        suggestedHullNames: ['M48', 'AEGIR-H'],
+        // Disposable micro-sail USV — decoy lure
+        allowedPlatformTypes: ['USV', 'USV/UUV'],
+        allowedHullNames: ['SubSeaSail Horus', 'Triton'],
+        defaultHullName: 'SubSeaSail Horus',
         requirements: {
-          categories: ['SENSORS', 'COMMS'],
-          subTypes: ['TETHERED_UAS'],
+          categories: ['COMMS'],
+          subTypes: ['EW_DECOY'],
         },
       },
     ],
@@ -449,9 +447,9 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MCM_HORUS_1',
         roleLabel: 'Mine Neutralizer (HORUS-1)',
-        description: 'EchoGuard CR radar locates mine markers; fires M30 supercavitating round for kinetic mine neutralization. SATCOM link to MOC Bahrain. Mesh radio sync with Freedom AUV for terminal guidance.',
+        description: 'Acoustic marker receiver homes on the 37.5 kHz acoustic indicator buoy deployed by the Freedom AUV; fires M30 supercavitating round for kinetic mine neutralization. SATCOM link to MOC Bahrain. Mesh radio sync with Freedom AUV for terminal guidance.',
         capabilities: [
-          'Echodyne EchoGuard CR',
+          'Acoustic Marker Receiver',
           'M30 Supercavitating Round',
           'OrbComm ST 6100',
           'LOS Mesh Radio',
@@ -468,9 +466,9 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MCM_HORUS_2',
         roleLabel: 'Mine Neutralizer (HORUS-2)',
-        description: 'Second neutralization vessel. EchoGuard CR radar on independent mine localization while HORUS-1 handles MINE-ALPHA — parallel prosecution.',
+        description: 'Second neutralization vessel. Acoustic marker receiver homes on the acoustic indicator buoy for independent mine localization while HORUS-1 handles MINE-ALPHA — parallel prosecution.',
         capabilities: [
-          'Echodyne EchoGuard CR',
+          'Acoustic Marker Receiver',
           'M30 Supercavitating Round',
           'OrbComm ST 6100',
           'LOS Mesh Radio',

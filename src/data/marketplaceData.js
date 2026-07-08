@@ -3487,6 +3487,40 @@ export const individualCapabilities = [
     missionTags: ["PORT_SECURITY", "CONTESTED_LOGISTICS", "MCM"]
   },
   {
+    name: "EW Decoy Payload",
+    provider: "GFE",
+    type: "Active RF Decoy",
+    description: "Active radio-frequency decoy payload. Emits a false electronic signature so a small, low-cost hull appears on adversary sensors as a large surface combatant. Used as a persistent lure so a disposable USV paints as a warship and baits adversary ISR into committing high-value assets to investigate it.",
+    capabilities: [
+      "False-target signature generation",
+      "Large-combatant radar-return synthesis",
+      "Programmable ship-class signature",
+      "Reactive to illuminating radar",
+      "Cost-imposition deception baiting"
+    ],
+    trl: "TRL 8",
+    icon: Radio,
+    category: "ELECTRONIC ATTACK",
+    subType: 'EW_DECOY',
+    swap: { weight: 12, power: 0.2, size: "small" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 0, stealth: -8 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: {
+      technique: "Active RF decoy / false-target generation",
+      platform: "SubSeaSail Horus / micro-USV mast mount",
+      emissions: "False large-ship radar signature",
+      signature: "Large surface combatant",
+      trigger: "Reactive — on adversary radar illumination"
+    },
+    keyFeatures: [
+      "Makes a small hull appear as a large warship on enemy sensors",
+      "Turns a disposable USV into a warship-sized sensor lure",
+      "Imposes cost asymmetry — baits expensive ISR to chase a cheap hull"
+    ],
+    missionTags: ["COUNTER_C5ISR", "NON_KINETIC_EW"]
+  },
+  {
     name: "Tomahawk Block V 8-cell VLS",
     provider: "Raytheon",
     type: "Land-Attack Cruise Missile VLS",
@@ -4843,7 +4877,7 @@ export const missionFlowTemplates = {
     subType: null,
     nodes: [
       { id: 'on_station',   type: 'trigger',          label: 'M48 On Station\n(DriveAI Patrol)',       position: { x: 50,   y: 150 } },
-      { id: 'lantern_up',   type: 'action',           label: 'Deploy LANTERN\n(200ft Tethered)',       position: { x: 220,  y: 150 } },
+      { id: 'lantern_up',   type: 'action',           label: 'Deploy LANTERN\n(500ft Tethered)',       position: { x: 220,  y: 150 } },
       { id: 'sensor_fuse',  type: 'sense',            label: 'Multi-Sensor Sweep\n(RF+Radar+EO/IR)',   position: { x: 410,  y: 150 } },
       { id: 'contact',      type: 'decision',         label: 'Contact?',                               position: { x: 590,  y: 150 } },
       { id: 'scion_class',  type: 'orient',           label: 'Scion AI\nClassification',               position: { x: 760,  y: 80  } },

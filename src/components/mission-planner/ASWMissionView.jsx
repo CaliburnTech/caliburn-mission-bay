@@ -17,7 +17,7 @@ import { HULL_IMAGES } from '../../utils/hullImages';
 import imgM48 from '../../assets/images/M48.png';
 
 const MISSION_SET_KEY = 'ASW';
-const MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'MFTA Towed Array', 'Hanwha Naval Missile System'];
+const MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'MFTA Towed Array', 'EvoLogics Acoustic Modem'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
@@ -53,7 +53,7 @@ const T_CONTACT_EST       = 65;   // contact established — enemy locked
 const T_ENEMY_FIRES       = 76;   // SIERRA-7 fires torpedo at M48-ALPHA
 const T_ALPHA_HIT         = 90;   // M48-ALPHA destroyed
 const T_VIRGINIA_CUED     = 100;
-const T_ENGAGEMENT        = 112;  // Virginia + Hanwha fire
+const T_ENGAGEMENT        = 112;  // Virginia fires
 const T_CONTACT_LOST      = 128;
 const TOTAL_TICKS         = 144;
 
@@ -64,17 +64,18 @@ const M48_CAPTAS_MOUNTS = [
   { slot: 'ACTIVE SONAR',    name: 'CAPTAS-4 Variable Depth Sonar', vendor: 'Thales',   description: '150km detection range — 2nd convergence zone — 300m depth — active + passive combined' },
   { slot: 'C2 / PROCESSING', name: 'USW-DSS (AN/UYQ-100)',          vendor: 'Leidos',   description: 'Network-centric ASW decision support — fuses all platform data — Link 16 broadcast' },
   { slot: 'COMMS',           name: 'HiveLink SDR',                  vendor: 'HiveLink', description: 'Multi-waveform radio — WaveformX, WaveformY, Link 16 — tactical data link node' },
+  { slot: 'DATA LINK',       name: 'Link 16 Track Broadcast',       vendor: 'MIDS-LVT', description: 'Dedicated MIDS-LVT Link 16 terminal — broadcasts CAPTAS/USW-DSS common ASW picture in J-series to BRAVO/CHARLIE and manned combatants' },
 ];
 const M48_MFTA_MOUNTS = [
   { slot: 'PASSIVE SONAR',   name: 'MFTA Towed Array',              vendor: 'Lockheed Martin',     description: 'Passive receiver — listens for CAPTAS echo returns — bistatic geometry triangulation' },
-  { slot: 'WEAPONS',         name: 'Hanwha Naval Missile System',   vendor: 'Hanwha Defense USA',  description: 'Surface prosecution capability — demo barge tested summer 2026 — fires on USW-DSS cue' },
   { slot: 'C2 / PROCESSING', name: 'USW-DSS (AN/UYQ-100)',          vendor: 'Leidos',              description: 'Receives common ASW picture from lead M48 via Link 16' },
+  { slot: 'ACOUSTIC COMMS',  name: 'EvoLogics Acoustic Modem',      vendor: 'EvoLogics',           description: 'S2C underwater acoustic modem — JANUS (STANAG 4748) capable — two-way ACOMMS with submerged USS Virginia without breaking the sub’s depth/EMCON' },
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'M48 ALPHA', roleDescriptor: '(CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR'] },
-  { name: 'M48 BRAVO', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
-  { name: 'M48 CHARLIE', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'Hanwha Naval Missile System', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48 ALPHA', roleDescriptor: '(CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast'] },
+  { name: 'M48 BRAVO', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'EvoLogics Acoustic Modem', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48 CHARLIE', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'USW-DSS (AN/UYQ-100)', 'Link 16 Track Broadcast', 'EvoLogics Acoustic Modem', 'Bistatic Cross-Fix Node'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ const PHASE_NARRATIVE = {
   enemy_fires:      { title: '⚠ Torpedo Inbound — M48-ALPHA', body: 'SIERRA-7 fires on the CAPTAS pinger. M48-ALPHA is crewless by design — this is expected. M48-BRAVO and M48-CHARLIE already hold the track via Link 16.' },
   alpha_hit:        { title: 'M48-ALPHA Destroyed', body: 'M48-ALPHA hit — CAPTAS hull sinking. Zero crew casualties. USW-DSS track data preserved in M48-BRAVO and M48-CHARLIE. Contact maintained.' },
   virginia_cued:    { title: 'Virginia Class Cued', body: 'USW-DSS compresses SIERRA-7 datum, confidence score, and intercept vector into a short ACOMMS burst — transmitted to USS Virginia via acoustic modem. Virginia receives without surfacing or reducing speed. Mk 48 fire control solution confirmed against pre-positioned track.' },
-  engagement:       { title: 'Dual Prosecution Underway', body: 'USS Virginia: Mk 48 ADCAP torpedo away — active homing. M48-CHARLIE: Hanwha missile away — surface prosecution. SIERRA-7 in weapons engagement zone.' },
+  engagement:       { title: 'Torpedo Prosecution Underway', body: 'USS Virginia: Mk 48 ADCAP torpedo away — active homing on the M48-derived track. The M48s remain silent sensor nodes — no organic weapon needed; the SSN carries the shot. SIERRA-7 in weapons engagement zone.' },
   contact_lost:     { title: 'SIERRA-7 Prosecuted', body: 'Acoustic transient consistent with pressure hull failure. SIERRA-7 contact lost — debris field confirmed on HORUS passive arrays. Sector BRAVO-7 cleared.' },
 };
 
@@ -771,7 +772,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                 <div className="flex flex-col gap-1">
                   {[
                     { color: '#67e8f9', label: `${effectiveRoster[0]?.name ?? 'M48 (CAPTAS)'} — CAPTAS Pinger` },
-                    { color: '#fbbf24', label: `${effectiveRoster[1]?.name ?? 'M48 (MFTA)'} / ${effectiveRoster[2]?.name ?? 'M48 (MFTA)'} — MFTA + Hanwha` },
+                    { color: '#fbbf24', label: `${effectiveRoster[1]?.name ?? 'M48 (MFTA)'} / ${effectiveRoster[2]?.name ?? 'M48 (MFTA)'} — MFTA Passive` },
                     { color: '#ef4444', label: 'SIERRA-7 — PLAN Type-093' },
                     { color: '#1d4ed8', label: 'USS Virginia (SSN-774)' },
                   ].map(({ color, label }) => (
