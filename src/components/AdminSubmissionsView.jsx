@@ -13,8 +13,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, ClipboardList } from 'lucide-react';
 import { supabase } from '../auth/supabaseClient';
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { apiUrl } from '../services/apiBase';
 
 const AdminSubmissionsView = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -34,7 +33,7 @@ const AdminSubmissionsView = () => {
       const token = session?.access_token;
       if (!token) throw new Error('Sign in with a Caliburn admin account to view submissions');
 
-      const res = await fetch(`${API_BASE}/api/admin/submissions`, {
+      const res = await fetch(apiUrl('/admin/submissions'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {

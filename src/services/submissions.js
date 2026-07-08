@@ -7,7 +7,7 @@
  * (demo/production) — submissions always reach the backend.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+import { apiUrl } from './apiBase';
 
 /**
  * Submit an anonymous configuration to the backend.
@@ -19,7 +19,8 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
  */
 export async function submitPublicConfig({ name, configData, submittedBy } = {}) {
   if (!configData) return null;
-  const res = await fetch(`${API_BASE}/api/submissions`, {
+  const url = apiUrl('/submissions');
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -29,6 +30,8 @@ export async function submitPublicConfig({ name, configData, submittedBy } = {})
     }),
   });
   if (!res.ok) {
+    // Surface the failure in the console so silent save issues are debuggable.
+    console.warn(`[submissions] POST ${url} failed: ${res.status} ${res.statusText}`);
     throw new Error(`Submission failed: ${res.status} ${res.statusText}`);
   }
   return res.json();
