@@ -1221,21 +1221,34 @@ export const CustomPlatformHull = ({ size = 200, className = "" }) => (
 );
 
 // SubSeaSail UUV - Image
-import subSeaSailImg from '../assets/images/SubSeaSail.png';
+import horusBlueprintImg from '../assets/images/HorusBlueprint.png';
+import vatnImg from '../assets/images/VATN_New.png';
 
 export const SubSeaSailHull = ({ size = 200, className = "" }) => {
-  const isSmall = size < 100;
-  const mask = isSmall
-    ? 'radial-gradient(ellipse 70% 70% at center, black 40%, transparent 90%)'
-    : 'radial-gradient(ellipse 85% 85% at center, black 60%, transparent 100%)';
+  // The Horus blueprint is a tall profile — render it a bit smaller than the shared
+  // hull size so the card's name/count still fit within the box.
+  const s = size * 0.78;
   return (
     <img
-      src={subSeaSailImg}
-      alt="SubSeaSail UUV"
-      width={size}
-      height={size * 0.6}
+      src={horusBlueprintImg}
+      alt="SubSeaSail Horus"
+      width={s}
+      height={s}
       className={className}
-      style={{ objectFit: 'contain', mixBlendMode: 'lighten', transform: 'scale(0.77)', filter: 'brightness(1.5)', clipPath: 'inset(5% 10% 10% 5% round 12px)', WebkitMaskImage: mask, maskImage: mask }}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
+    />
+  );
+};
+
+export const VATNHull = ({ size = 200, className = "" }) => {
+  return (
+    <img
+      src={vatnImg}
+      alt="VATN S6 UUV"
+      width={size}
+      height={size}
+      className={className}
+      style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
     />
   );
 };

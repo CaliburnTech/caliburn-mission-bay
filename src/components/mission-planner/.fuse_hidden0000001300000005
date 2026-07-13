@@ -1,0 +1,703 @@
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import {
+  MapContainer, TileLayer, CircleMarker, Circle, Polyline, Tooltip, ZoomControl, useMap
+} from 'react-leaflet';
+import { Play, Pause, RotateCcw, ChevronLeft, Check, Rocket, Settings, ArrowLeftRight } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgM48 from '../../assets/images/M48.png';
+import imgAEGIRW from '../../assets/images/AEGIR-W.png';
+import imgVATN from '../../assets/images/VATN_New.png';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
+
+const MISSION_SET_KEY = 'LAUNCHED_EFFECTS';
+const MISSION_SET_CAPS = ['Air-Launched Effects / Loitering Munition Tubes', 'Lattice Mesh Network', 'SeaFIND Inertial Navigation', 'EMCON Transit Capable', 'Passive ESM/SIGINT Collection Module', 'Advanced EO/IR Camera System', 'One-Way Attack Package'];
+
+// ─── Geography — Taiwan Strait western approach (INDOPACOM) ────────────────────
+const NM_TO_M = 1852;
+const MAP_CENTER       = [24.5, 119.5];
+const MAP_ZOOM         = 8;
+
+const MOTHER_START     = [23.85, 118.30];  // EMCON ingress origin (west)
+const LAUNCH_BASKET    = [24.55, 119.55];  // dispense point
+const MOTHER_EGRESS    = [23.90, 118.10];  // withdraw axis (SW)
+
+// Adversary surface-picket track (E→W drift along the strait)
+const PICKET_START     = [24.95, 120.55];
+const PICKET_END       = [24.80, 120.20];
+
+// Daughter fan-out termination points (against picket from an unexpected axis)
+const USV1_VECTOR      = [24.78, 120.15];
+const USV2_VECTOR      = [24.90, 120.30];
+const USV3_VECTOR      = [24.66, 120.05];
+const UUV_VECTOR       = [24.85, 120.10];  // sub-surface run
+const ALE_ORBIT        = [24.82, 120.25];  // loitering-munition terminal ISR orbit
+
+// ─── Tick milestones ──────────────────────────────────────────────────────────
+const T_INGRESS       =  6;
+const T_BASKET        = 34;
+const T_RELEASE_GATE  = 42;   // HITL #1 — release authorization
+const T_RELEASE_AUTH  = 52;   // gate clears
+const T_LAUNCH_USV    = 58;
+const T_LAUNCH_UUV    = 66;
+const T_LAUNCH_ALE    = 74;
+const T_SWARM         = 82;
+const T_TERMINAL_ISR  = 96;
+const T_ENGAGE_GATE   = 104;  // HITL #2 — engage authorization
+const T_ENGAGE_AUTH   = 114;  // gate clears — weapons free
+const T_IMPACT        = 118;
+const T_BDA           = 130;
+const T_EGRESS        = 138;
+const TOTAL_TICKS     = 168;
+const TICK_MS         = 180;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+const getPhase = (tick) => {
+  if (tick < T_INGRESS)      return 'idle';
+  if (tick < T_BASKET)       return 'emcon_ingress';
+  if (tick < T_RELEASE_GATE) return 'launch_basket_reached';
+  if (tick < T_RELEASE_AUTH) return 'hitl_release_gate';
+  if (tick < T_LAUNCH_UUV)   return 'launch_daughter_usvs';
+  if (tick < T_LAUNCH_ALE)   return 'launch_uuv';
+  if (tick < T_SWARM)        return 'launch_ale';
+  if (tick < T_TERMINAL_ISR) return 'swarm_vector';
+  if (tick < T_ENGAGE_GATE)  return 'terminal_ISR';
+  if (tick < T_IMPACT)       return 'engage';
+  if (tick < T_BDA)          return 'bda_confirm';
+  return 'mothership_egress';
+};
+
+// Mothership: ingress → basket → hold → egress
+const getMotherPos = (tick) => {
+  if (tick < T_INGRESS)  return MOTHER_START;
+  if (tick < T_BASKET) {
+    const t = clamp((tick - T_INGRESS) / (T_BASKET - T_INGRESS), 0, 1);
+    return lerp2(MOTHER_START, LAUNCH_BASKET, t);
+  }
+  if (tick < T_EGRESS)   return LAUNCH_BASKET;
+  const t = clamp((tick - T_EGRESS) / (TOTAL_TICKS - T_EGRESS), 0, 1);
+  return lerp2(LAUNCH_BASKET, MOTHER_EGRESS, t);
+};
+
+// Adversary picket drifts west along the strait once the scenario is running
+const getPicketPos = (tick) => {
+  const t = clamp(tick / TOTAL_TICKS, 0, 1);
+  return lerp2(PICKET_START, PICKET_END, t);
+};
+
+// Daughter vehicle: appears at launch tick, vectors from basket toward target
+const getDaughterPos = (tick, launchTick, target) => {
+  if (tick < launchTick) return null;
+  const t = clamp((tick - launchTick) / (T_ENGAGE_AUTH - launchTick), 0, 1);
+  return lerp2(LAUNCH_BASKET, target, t);
+};
+
+const getBoomRadius  = (tick) => tick < T_IMPACT || tick >= T_IMPACT + 16 ? 0 : clamp((tick - T_IMPACT) / 16, 0, 1) * 22 * NM_TO_M;
+const getBoomOpacity = (tick) => tick < T_IMPACT || tick >= T_IMPACT + 16 ? 0 : Math.max(0, 0.85 - (tick - T_IMPACT) * 0.06);
+
+// ─── Phase narrative ──────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:                  { title: 'Awaiting scenario start', body: 'Press Run to begin Operation TIDAL SPEAR — launched-effects mothership, Taiwan Strait western approach.' },
+  emcon_ingress:         { title: 'M48 mothership transiting under EMCON', body: 'Low-signature "maritime missile truck" ingressing to the launch basket. RF emitters secured; GPS-denied navigation on SeaFIND INS. Precedent: Ukraine Magura V7 Sidewinder kills, 2 May 2025 — first aircraft killed by a USV.' },
+  launch_basket_reached: { title: 'Launch basket reached', body: 'Mothership holding at the launch basket, EMCON White. Mesh + Iridium link to 7th Fleet MOC. Mixed daughter salvo staged: 3× attack USV, 1× VATN S6 UUV, ALE tubes. No dispense without authorization.' },
+  hitl_release_gate:     { title: '⚡ HITL gate — release authorization', body: 'DODD 3000.09: human-in-the-loop required before any effect is dispensed. Positive control of multiple autonomous effects. Chain: Intel ✓ → LEGAD ✓ → CO ✓ → CCDR reviewing release…' },
+  launch_daughter_usvs:  { title: 'Launching attack daughter USVs', body: 'CCDR authorized. Mothership dispenses 3× AEGIR-W attack USVs, vectoring toward the adversary surface picket from an unexpected axis over the Lattice mesh.' },
+  launch_uuv:            { title: 'Launching VATN S6', body: 'Man-portable VATN S6 daughter UUV slips beneath the surface carrying a One-Way Attack Package for a subsurface/hull target, navigating GPS-denied on its INStinct INS — attritable, one of many cheap effects, not a single expensive asset.' },
+  launch_ale:            { title: 'Launching air effects — ALE / loitering munitions', body: 'Air-launched effects / loitering-munition tubes dispense for terminal ISR and top-attack. Mixed salvo now airborne, subsurface, and surface — saturating the picket.' },
+  swarm_vector:          { title: 'Swarm vector — cooperative sensing', body: 'Daughter vehicles execute collaborative/swarming behaviors, sharing a common tactical picture over the mesh. Detect-to-engage timeline compressing.' },
+  terminal_ISR:          { title: 'Terminal ISR — ALE overwatch', body: 'ALE loitering munitions provide EO/IR terminal ISR while the mothership passive ESM refines the target picture. Picket forced to react to many cheap threats at once. Awaiting engagement authorization.' },
+  engage:                { title: '⚡ HITL gate — engage authorization', body: 'DODD 3000.09: second human-in-the-loop gate — no autonomous weapons release. CCDR reviewing engagement geometry + ROE. Effects hold until WEAPONS FREE.' },
+  bda_confirm:           { title: '✓ Effects on target — BDA in progress', body: 'Engagement authorized; effects strike the picket. ALE EO/IR + mothership ESM confirm hits. Battle-damage assessment relayed to 7th Fleet MOC.' },
+  mothership_egress:     { title: 'Mothership egressing under EMCON', body: 'Now-empty M48 withdraws under EMCON. BDA complete — picket neutralized. Mission SBOM filed to INDOPACOM.' },
+};
+
+const BADGE_CLS = {
+  emcon_ingress:         'bg-slate-700/80 text-slate-300 border-slate-500/40',
+  launch_basket_reached: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',
+  hitl_release_gate:     'bg-orange-900/80 text-orange-200 border-orange-400/60 animate-pulse',
+  launch_daughter_usvs:  'bg-blue-900/80 text-blue-300 border-blue-500/40',
+  launch_uuv:            'bg-teal-900/80 text-teal-300 border-teal-500/40',
+  launch_ale:            'bg-violet-900/80 text-violet-300 border-violet-500/40',
+  swarm_vector:          'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',
+  terminal_ISR:          'bg-amber-900/80 text-amber-300 border-amber-500/40',
+  engage:                'bg-orange-900/80 text-orange-200 border-orange-400/60 animate-pulse',
+  bda_confirm:           'bg-red-900/80 text-red-200 border-red-400/60',
+  mothership_egress:     'bg-emerald-900/80 text-emerald-200 border-emerald-400/40',
+};
+
+// ─── Loadouts ─────────────────────────────────────────────────────────────────
+const VESSEL_ROSTER = [
+  { name: 'M48 (Mothership)', roleDescriptor: '(Mothership)', image: imgM48, hullName: 'M48', capabilities: ['Air-Launched Effects / Loitering Munition Tubes', 'Lattice Mesh Network', 'SeaFIND Inertial Navigation', 'EMCON Transit Capable', 'Passive ESM/SIGINT Collection Module'], roleKey: 'LE_MOTHERSHIP' },
+  { name: 'AEGIR-W (Attack USV)', roleDescriptor: '(Attack USV)', image: imgAEGIRW, hullName: 'AEGIR-W', capabilities: ['Advanced EO/IR Camera System', 'Lattice Mesh Network'], roleKey: 'LE_DAUGHTER_USV' },
+  { name: 'VATN S6 (UUV)', roleDescriptor: '(UUV)', image: imgVATN, hullName: 'VATN S6', capabilities: ['SeaFIND Inertial Navigation', 'Lattice Mesh Network', 'One-Way Attack Package'], roleKey: 'LE_DAUGHTER_UUV' },
+];
+
+// ─── Map helpers ──────────────────────────────────────────────────────────────
+const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
+
+const MapInvalidateSize = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timers = [100, 300, 600].map(d => setTimeout(() => map.invalidateSize(), d));
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(map.getContainer());
+    return () => { timers.forEach(clearTimeout); ro.disconnect(); };
+  }, [map]);
+  return null;
+};
+
+const EVENT_COLORS = {
+  warn:    'text-amber-400',
+  alert:   'text-red-400',
+  info:    'text-cyan-400',
+  success: 'text-emerald-400',
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+const LaunchedEffectsMissionView = ({ mission, onBack }) => {
+  const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
+  const [showLog, setShowLog] = useState(false);
+
+  // Map center — use zoneConfig center when present, else the Taiwan Strait default
+  const mapCenter = mission?.zoneConfig?.center
+    ? [mission.zoneConfig.center.lat, mission.zoneConfig.center.lng]
+    : MAP_CENTER;
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
+    return {
+      ...vessel,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
+      hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
+    };
+  });
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
+  const [missionName, setMissionName] = useState(mission?.name || '');
+  const [tick,     setTick]    = useState(0);
+  const [events,   setEvents]  = useState([]);
+  const [running,  setRunning] = useState(false);
+  const [paused,        setPaused]        = useState(false);
+  const [complete, setComplete] = useState(false);
+  const [saved,    setSaved]   = useState(false);
+
+  const tickRef    = useRef(0);
+  const tickCallbackRef = useRef(null);
+  const mainTimer  = useRef(null);
+  const resetTimer = useRef(null);
+  const addEvtRef  = useRef(null);
+  const vesselLabelsRef = useRef([]);
+  const runScenRef = useRef(null);
+
+  const phase      = getPhase(tick);
+  const motherPos  = getMotherPos(tick);
+  const picketPos  = getPicketPos(tick);
+  const usv1Pos    = getDaughterPos(tick, T_LAUNCH_USV, USV1_VECTOR);
+  const usv2Pos    = getDaughterPos(tick, T_LAUNCH_USV, USV2_VECTOR);
+  const usv3Pos    = getDaughterPos(tick, T_LAUNCH_USV, USV3_VECTOR);
+  const uuvPos     = getDaughterPos(tick, T_LAUNCH_UUV, UUV_VECTOR);
+  const alePos     = getDaughterPos(tick, T_LAUNCH_ALE, ALE_ORBIT);
+  const boomR      = getBoomRadius(tick);
+  const boomO      = getBoomOpacity(tick);
+  const narrative  = PHASE_NARRATIVE[phase];
+  const badgeCls   = BADGE_CLS[phase];
+
+  const showBasket    = tick >= T_INGRESS;
+  const showPicket    = tick >= T_INGRESS;
+  const picketDead    = tick >= T_IMPACT;
+  const releaseGate   = tick >= T_RELEASE_GATE && tick < T_RELEASE_AUTH;
+  const engageGate    = tick >= T_ENGAGE_GATE && tick < T_ENGAGE_AUTH;
+  const gateActive    = releaseGate || engageGate;
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName) {
+      startNewConfiguration(vessel.hullName);
+    }
+
+    setPendingMissionSetCaps(vessel.capabilities);
+
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
+    setSelectedView('outfitter');
+  };
+
+  const _addEvent = (msg, type = 'info') => {
+    const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 12)}` }, ...prev].slice(0, 25));
+  };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    clearTimeout(resetTimer.current);
+    resetTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, TICK_MS);
+  }, []);
+
+
+  useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
+
+  const stopAll = useCallback(() => {
+    clearInterval(mainTimer.current);
+    clearTimeout(resetTimer.current);
+  }, []);
+
+  const reset = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setPaused(false);
+    setTick(0); setEvents([]); setRunning(false); setComplete(false);
+  }, [stopAll]);
+
+  const runScenario = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setTick(0); setEvents([]); setRunning(true); setComplete(false);
+
+    const cb = () => {
+      const t = ++tickRef.current;
+      setTick(t);
+      const v0 = vesselLabelsRef.current[0] ?? 'M48';
+
+      if (t === T_INGRESS)      { addEvtRef.current('7th Fleet MOC: launched-effects tasking issued — TIDAL SPEAR', 'info'); addEvtRef.current(`${v0}: EMCON ingress — RF secured — SeaFIND INS active`, 'info'); }
+      if (t === T_BASKET)       { addEvtRef.current(`${v0}: launch basket reached — holding EMCON White`, 'info'); addEvtRef.current('Mixed daughter salvo staged: 3× USV · 1× UUV · ALE tubes', 'info'); }
+      if (t === T_RELEASE_GATE) { addEvtRef.current('HITL GATE: DODD 3000.09 — dispense authorization requested', 'warn'); addEvtRef.current('Positive control check — Intel ✓ · LEGAD ✓ · CO ✓ — CCDR reviewing', 'warn'); }
+      if (t === T_RELEASE_AUTH) { addEvtRef.current('CCDR: RELEASE AUTHORIZED — mixed salvo dispense unlocked', 'alert'); }
+      if (t === T_LAUNCH_USV)   { addEvtRef.current('Mothership: 3× AEGIR-W attack USVs AWAY — vectoring picket', 'alert'); }
+      if (t === T_LAUNCH_UUV)   { addEvtRef.current('Mothership: VATN S6 UUV launched — one-way attack run', 'alert'); }
+      if (t === T_LAUNCH_ALE)   { addEvtRef.current('Mothership: ALE / loitering munitions AWAY — terminal ISR + top-attack', 'alert'); }
+      if (t === T_SWARM)        { addEvtRef.current('Daughter vehicles: cooperative swarm vector over Lattice mesh', 'info'); addEvtRef.current('Detect-to-engage timeline compressing — picket saturated', 'info'); }
+      if (t === T_TERMINAL_ISR) { addEvtRef.current('ALE: terminal ISR — target picture refined', 'info'); addEvtRef.current('Adversary picket designated — pending engage authorization', 'warn'); }
+      if (t === T_ENGAGE_GATE)  { addEvtRef.current('HITL GATE: DODD 3000.09 — engage authorization required', 'warn'); addEvtRef.current('CCDR reviewing engagement geometry + ROE — effects holding', 'warn'); }
+      if (t === T_ENGAGE_AUTH)  { addEvtRef.current('CCDR: WEAPONS FREE — engage AUTHORIZED', 'alert'); }
+      if (t === T_IMPACT)       { addEvtRef.current('IMPACT: effects on target — ALE EO/IR confirms hits', 'alert'); addEvtRef.current('Passive ESM: picket radar signature lost', 'success'); }
+      if (t === T_BDA)          { addEvtRef.current('BDA: adversary surface picket neutralized', 'success'); addEvtRef.current('BDA relayed to 7th Fleet MOC / INDOPACOM', 'info'); }
+      if (t === T_EGRESS)       { addEvtRef.current(`${v0}: empty mothership egressing under EMCON`, 'info'); addEvtRef.current('Mission SBOM filed — TIDAL SPEAR complete', 'info'); }
+
+      if (t >= TOTAL_TICKS) {
+        clearInterval(mainTimer.current);
+        setRunning(false); setComplete(true);
+        resetTimer.current = setTimeout(() => { if (runScenRef.current) runScenRef.current(); }, 6000);
+      }
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, TICK_MS);
+  }, [stopAll]);
+
+  useLayoutEffect(() => { runScenRef.current = runScenario; });
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleSave = () => {
+    const name = missionName.trim() || `LAUNCHED-FX-${new Date().toISOString().slice(5, 10)}`;
+    const data = { name, template: 'LAUNCHED_EFFECTS', domain: 'MARITIME', status: 'draft', duration: '48h', jmnAlignment: 'SPEAR', missionProfile: { type: 'LAUNCHED_EFFECTS', subMode: 'MOTHERSHIP', hitlCompliant: true, dodd300009: true } };
+    if (mission?.id) updateMission(mission.id, data); else saveMission(data);
+    setSaved(true); setTimeout(() => setSaved(false), 2400);
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col bg-darkest">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
+          <ChevronLeft size={13} /> Back to Library
+        </button>
+        <div className="w-px h-4 bg-gray-700/60" />
+        <Rocket size={13} className="text-orange-400" />
+        <span className="text-orange-400 text-[0.8rem] font-semibold tracking-wide">Operation TIDAL SPEAR</span>
+        <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Taiwan Strait · Launched-Effects Mothership · INDOPACOM</span>
+        <div className="flex-1" />
+        <span className="px-2 py-0.5 rounded-full bg-orange-900/50 text-orange-400 text-[0.65rem] font-bold uppercase tracking-wider border border-orange-500/30">DODD 3000.09 · 2× HITL GATE</span>
+        <input
+          value={missionName}
+          onChange={e => setMissionName(e.target.value)}
+          placeholder="Mission designator…"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-colors"
+        />
+        <button
+          onClick={handleSave}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors flex items-center gap-1.5 ${saved ? 'bg-emerald-700 text-white' : missionName.trim() && isDeployable ? 'bg-orange-700 hover:bg-orange-600 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+        >
+          {saved ? <><Check size={11} /> Saved</> : 'Save Draft'}
+        </button>
+      </div>
+
+      {/* ── Scrollable body ── */}
+      <div>
+
+        {/* ── Animation row ── */}
+        <div className="flex h-[40vh] md:h-[460px]">
+
+          {/* ── Map ── */}
+          <div className="flex-1 relative overflow-hidden">
+            <MapContainer
+              center={mapCenter}
+              zoom={MAP_ZOOM}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={false}
+              scrollWheelZoom={false}
+              attributionControl={false}
+            >
+              <ZoomControl position="topright" />
+              <TileLayer url={TILE_BASE} />
+              <TileLayer url={TILE_SEAMARK} opacity={0.3} />
+              <MapInvalidateSize />
+
+              {/* Launch basket ring */}
+              {showBasket && (
+                <Circle center={LAUNCH_BASKET} radius={6 * NM_TO_M} pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.05, weight: 1.5, opacity: 0.5, dashArray: '6 5' }}>
+                  <Tooltip direction="top" offset={[0, -6]} opacity={0.9}>Launch Basket</Tooltip>
+                </Circle>
+              )}
+
+              {/* Mothership ingress/egress track */}
+              <Polyline positions={[MOTHER_START, LAUNCH_BASKET]} pathOptions={{ color: '#94a3b8', weight: 1, dashArray: '3 7', opacity: 0.35 }} />
+
+              {/* Mothership */}
+              <CircleMarker center={motherPos} radius={8} pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.95, weight: 2 }}>
+                <Tooltip direction="top" offset={[0, -6]} opacity={0.9}>M48 Mothership</Tooltip>
+              </CircleMarker>
+
+
+              {/* Adversary surface picket */}
+              {showPicket && !picketDead && (
+                <CircleMarker center={picketPos} radius={8} pathOptions={{ color: '#ef4444', fillColor: '#1a0000', fillOpacity: 0.95, weight: 2.5, dashArray: '5 3' }}>
+                  <Tooltip direction="top" offset={[0, -6]} opacity={0.9}>Adversary Surface Picket (HOSTILE)</Tooltip>
+                </CircleMarker>
+              )}
+              {picketDead && boomO < 0.1 && (
+                <CircleMarker center={picketPos} radius={8} pathOptions={{ color: '#6b7280', fillColor: '#111', fillOpacity: 0.9, weight: 2 }} />
+              )}
+
+              {/* Daughter USVs — surface fan-out */}
+              {[
+                { pos: usv1Pos, target: USV1_VECTOR, color: '#3b82f6' },
+                { pos: usv2Pos, target: USV2_VECTOR, color: '#60a5fa' },
+                { pos: usv3Pos, target: USV3_VECTOR, color: '#93c5fd' },
+              ].filter(d => d.pos).map(({ pos, color }, i) => (
+                <React.Fragment key={`usv${i}`}>
+                  <Polyline positions={[LAUNCH_BASKET, pos]} pathOptions={{ color, weight: 1, dashArray: '4 5', opacity: 0.4 }} />
+                  <CircleMarker center={pos} radius={5} pathOptions={{ color, fillColor: color, fillOpacity: 0.95, weight: 1.5 }} />
+                </React.Fragment>
+              ))}
+
+              {/* Daughter UUV — sub-surface (teal) */}
+              {uuvPos && (
+                <>
+                  <Polyline positions={[LAUNCH_BASKET, uuvPos]} pathOptions={{ color: '#14b8a6', weight: 1, dashArray: '2 6', opacity: 0.4 }} />
+                  <CircleMarker center={uuvPos} radius={4.5} pathOptions={{ color: '#14b8a6', fillColor: '#0f766e', fillOpacity: 0.9, weight: 1.5 }} />
+                </>
+              )}
+
+              {/* ALE / loitering munition — air effect (violet) */}
+              {alePos && (
+                <>
+                  <Polyline positions={[LAUNCH_BASKET, alePos]} pathOptions={{ color: '#a78bfa', weight: 1, dashArray: '6 4', opacity: 0.5 }} />
+                  <CircleMarker center={alePos} radius={4} pathOptions={{ color: '#a78bfa', fillColor: '#a78bfa', fillOpacity: 1, weight: 1 }} />
+                </>
+              )}
+
+              {/* HITL gate marker — orange pulse at the basket while a gate is holding */}
+              {gateActive && (
+                <>
+                  <Circle center={LAUNCH_BASKET} radius={3 * NM_TO_M} pathOptions={{ color: '#fb923c', fillColor: '#fb923c', fillOpacity: 0.18, weight: 2, opacity: 0.9 }} />
+                  <CircleMarker center={LAUNCH_BASKET} radius={11} pathOptions={{ color: '#fb923c', fillOpacity: 0, weight: 2, opacity: 0.9, dashArray: '4 3' }}>
+                    <Tooltip direction="top" offset={[0, -8]} opacity={0.95} permanent>
+                      {releaseGate ? 'HITL — RELEASE GATE' : 'HITL — ENGAGE GATE'}
+                    </Tooltip>
+                  </CircleMarker>
+                </>
+              )}
+
+              {/* Explosion */}
+              {boomO > 0 && <Circle center={picketPos} radius={boomR} pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: boomO * 0.35, weight: 2, opacity: boomO }} />}
+
+            </MapContainer>
+
+            {/* ── Phase badge ── */}
+            {badgeCls && narrative && (
+              <div className={`absolute top-3 left-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badgeCls}`}>
+                {narrative.title}
+              </div>
+            )}
+
+            {/* ── Legend ── */}
+            {tick >= T_INGRESS && (
+              <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+                <div className="flex flex-col gap-1">
+                  {[
+                    { color: '#f97316', label: `${effectiveRoster[0]?.name ?? 'M48 (Mothership)'} — EMCON host`, dashed: false },
+                    { color: '#3b82f6', label: `${effectiveRoster[1]?.name ?? 'AEGIR-W'} — attack USVs (×3)`, dashed: false },
+                    { color: '#14b8a6', label: `${effectiveRoster[2]?.name ?? 'VATN S6'} — undersea UUV`, dashed: false },
+                    { color: '#a78bfa', label: 'ALE / loitering munition — air effect + terminal ISR', dashed: false },
+                    { color: '#ef4444', label: 'Adversary surface picket (HOSTILE)', dashed: true },
+                  ].map(({ color, label, dashed }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div style={{
+                        width: 8, height: 8, borderRadius: '50%',
+                        background: dashed ? 'transparent' : color,
+                        border: dashed ? `2px dashed ${color}` : 'none',
+                        flexShrink: 0,
+                      }}
+                      />
+                      <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mobile: Show Log button */}
+            <button
+              onClick={() => setShowLog(true)}
+              className="md:hidden absolute bottom-3 right-3 z-[500] px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/60 text-gray-300 text-xs font-semibold backdrop-blur-sm"
+            >
+              Show Log
+            </button>
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className={`
+            flex-col border-l border-gray-700/50 overflow-hidden bg-darkest
+            ${showLog
+              ? 'fixed inset-0 z-[600] flex w-full'
+              : 'hidden md:flex md:w-[300px] md:flex-shrink-0'}
+          `}
+          >
+
+            {/* Mobile close button */}
+            <div className="md:hidden flex justify-end p-2 border-b border-gray-700/50">
+              <button
+                onClick={() => setShowLog(false)}
+                className="px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Controls */}
+            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-orange-700 hover:bg-orange-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-orange-700 hover:bg-orange-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
+                <button
+                  onClick={reset}
+                  className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
+
+              {/* Phase narrative */}
+              {narrative ? (
+                <div className={`rounded-lg border px-3 py-2.5 ${gateActive ? 'bg-orange-950/40 border-orange-500/40' : 'bg-gray-800/50 border-gray-700/40'}`}>
+                  <div className={`text-[0.68rem] font-bold uppercase tracking-wider mb-1 ${gateActive ? 'text-orange-300' : 'text-orange-400'}`}>
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">
+                  M48 mothership · 3× AEGIR-W · VATN S6 UUV
+                </p>
+              )}
+            </div>
+
+            {/* Event log */}
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
+                Event Log
+              </p>
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
+                {events.length === 0 ? (
+                  <p className="text-gray-600 text-[0.7rem] px-1 pt-1">Run the scenario to see live events.</p>
+                ) : (
+                  events.map(e => (
+                    <div key={e.id} className="flex gap-2 text-[0.7rem] leading-snug">
+                      <span className="text-gray-600 tabular-nums flex-shrink-0 pt-px">{e.ts}</span>
+                      <span className={EVENT_COLORS[e.type] ?? 'text-gray-300'}>{e.msg}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>{/* /animation row */}
+
+        {/* Mobile: play controls */}
+        <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-gray-700/30 bg-gray-900/30">
+          {running ? (
+            <button
+              onClick={pause}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-orange-700 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Pause size={15} />
+              Pause
+            </button>
+          ) : (
+            <button
+              onClick={paused ? resume : runScenario}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-orange-700 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Play size={15} />
+              {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="p-2.5 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+            title="Reset"
+          >
+            <RotateCcw size={15} />
+          </button>
+        </div>
+
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
+              </div>
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center mb-0.5">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
+                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        // Prefer the in-flight active config — it reflects the latest unsaved changes.
+                        // Only fall back to savedConfigurations if activeConfig is for a different hull.
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        if (ac && ac.hullName === assignment.hullName) return ac;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        return saved ?? null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>{/* /scrollable body */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
+    </div>
+  );
+};
+
+export default LaunchedEffectsMissionView;

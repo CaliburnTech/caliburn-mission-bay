@@ -1240,4 +1240,159 @@ export const initialMissions = [
       { action: "launched", timestamp: "2026-06-18T10:00:00Z" },
     ]
   },
+
+  // ─── JMN — Joint Maritime Next (Shield & Spear) ───────────────────────────────
+  {
+    id: "mission-seabed-baltic-001",
+    name: "Baltic-CUI-Survey",
+    template: "SEABED_MONITORING",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    jmnAlignment: "SHIELD",
+    missionProfile: {
+      type: "SEABED_MONITORING",
+      packageName: "CUI Survey Package",
+      platforms: [
+        { name: "Ocean Aero Triton", role: "Survey Mothership + Close-Look — multibeam/SAS baseline + anomaly diff, dives on cued segments itself", count: 1 }
+      ],
+      context: "Nord Stream (2022) and Balticconnector (2023) proved critical undersea infrastructure has no active defense. Under NATO Baltic Sentry (Jan 2025; TFX-Baltic tested ~70 drones Mar–Oct 2025), a persistent Ocean Aero Triton diffs each survey pass against a baseline route model; AP Sensing DAS fiber cues the vehicle, which dives on the segment itself for the close-look — no separate dive asset required. Detect-and-characterize only.",
+      dasIntegration: "AP Sensing fiber — real-time third-party interference alerts",
+      realWorldBasis: "NATO Baltic Sentry / NMCSCUI @ MARCOM; Nord Stream & Balticconnector attacks",
+      jmnCapability: "Cap #3 — Seabed Asset Monitoring / LOE 2"
+    },
+    zoneConfig: {
+      name: "Gotland Basin CUI Corridor — Survey Lane",
+      center: { lat: 57.0, lng: 19.0 },
+      radius: 40,
+      assetName: "CUI Survey Package"
+    },
+    stateHierarchies: {
+      default:        ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      anomaly_detect: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      das_alert:      ["Mission", "Comms", "Payload", "Navigation", "Vehicle"],
+      investigation:  ["Payload", "Mission", "Comms", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-07-10T08:00:00Z",
+    updatedAt: "2026-07-10T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-07-10T08:00:00Z", details: "JMN Shield — Seabed & Undersea Infrastructure Survey (Baltic Sentry)" }
+    ]
+  },
+  {
+    id: "mission-threatchar-epac-001",
+    name: "EPAC-Sleeper-Watch",
+    template: "THREAT_CHARACTERIZATION",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    jmnAlignment: "SHIELD",
+    missionProfile: {
+      type: "THREAT_CHARACTERIZATION",
+      packageName: "Threat Characterization Package",
+      platforms: [
+        { name: "Ocean Aero Triton", role: "Characterization Picket — passive tripwire + material-ID", count: 1 }
+      ],
+      context: "Traffickers have gone unmanned — Colombian Navy captured the first Starlink-equipped unmanned narco-sub (Jul 2025) and USCG Cutter Forward interdicted a semi-submersible with ~17,600 lb of cocaine in the Eastern Pacific (24 Feb 2026). The same low-freeboard 'sleeper' profile could pre-stage explosive/chemical payloads. A Triton picket detects the contact, closes covertly, and brings gamma/neutron + trace chemical sniffer payloads to bear to characterize explosive/chemical/narcotic/inert material.",
+      realWorldBasis: "Unmanned narco-sub seizures 2025–2026; JIATF-South / SOUTHCOM",
+      jmnCapability: "Cap #4 — Threat Detection Characterization / LOE 2"
+    },
+    zoneConfig: {
+      name: "Eastern Pacific Transit Corridor — Characterization Barrier",
+      center: { lat: 8.0, lng: -90.0 },
+      radius: 30,
+      assetName: "Threat Characterization Package"
+    },
+    stateHierarchies: {
+      default:         ["Navigation", "Payload", "Comms", "Mission", "Vehicle"],
+      passive_contact: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      material_scan:   ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      characterized:   ["Mission", "Comms", "Payload", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-07-10T08:00:00Z",
+    updatedAt: "2026-07-10T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-07-10T08:00:00Z", details: "JMN Shield — Threat Detection & Characterization (CBRNE/contraband)" }
+    ]
+  },
+  {
+    id: "mission-launchedfx-taiwan-001",
+    name: "TaiwanStrait-MissileTruck-Alpha",
+    template: "LAUNCHED_EFFECTS",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    jmnAlignment: "SPEAR",
+    missionProfile: {
+      type: "LAUNCHED_EFFECTS",
+      packageName: "Launched-Effects Package",
+      platforms: [
+        { name: "M48", role: "Launched-Effects Mothership (EMCON)", count: 1 },
+        { name: "AEGIR-W", role: "Attack Daughter USV", count: 3 },
+        { name: "VATN S6", role: "Undersea Kinetic Daughter (UUV)", count: 1 }
+      ],
+      context: "A low-cost USV 'maritime missile truck' transits EMCON to a launch basket and dispenses a mixed daughter salvo — small attack USVs, a UUV, and air-launched effects/loitering munitions — to saturate an adversary picket from an unexpected axis and compress detect-to-engage. Grounded in the Magura V7 precedent (2 May 2025: first aircraft killed by a USV). Strict human-in-the-loop release and engage gates.",
+      realWorldBasis: "Ukraine Magura V7 Sidewinder kills (May 2025); Mk 70 PDS",
+      jmnCapability: "Cap #7 — Tactical Insertion and Strike / LOE 3"
+    },
+    zoneConfig: {
+      name: "Taiwan Strait Western Approach — Launch Basket",
+      center: { lat: 24.5, lng: 119.5 },
+      radius: 25,
+      assetName: "Launched-Effects Package"
+    },
+    stateHierarchies: {
+      default:      ["Navigation", "Vehicle", "Payload", "Mission", "Comms"],
+      ingress:      ["Navigation", "Vehicle", "Comms", "Mission", "Payload"],
+      release_gate: ["Mission", "Payload", "Comms", "Navigation", "Vehicle"],
+      swarm_inbound:["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      engaged:      ["Mission", "Payload", "Navigation", "Comms", "Vehicle"]
+    },
+    createdAt: "2026-07-10T08:00:00Z",
+    updatedAt: "2026-07-10T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-07-10T08:00:00Z", details: "JMN Spear — Tactical Insertion & Strike (launched-effects mothership)" }
+    ]
+  },
+  {
+    id: "mission-sof-hormuz-001",
+    name: "Hormuz-Clandestine-Disablement",
+    template: "SOF_STRIKE_SUPPORT",
+    status: "draft",
+    assignedSquadrons: [],
+    domain: "MARITIME",
+    jmnAlignment: "SPEAR",
+    missionProfile: {
+      type: "SOF_STRIKE_SUPPORT",
+      packageName: "SOF Strike Support Package",
+      platforms: [
+        { name: "Ocean Aero Triton", role: "Covert SOF Host (EMCON, sub-surface evade)", count: 1 },
+        { name: "VATN S6", role: "Clandestine Disablement UUV", count: 1 }
+      ],
+      context: "An unmanned low-profile surface host transits covertly to a release point, releases a VATN S6 UUV that navigates GPS-denied on its INStinct INS to the target hull and executes a disablement effect (limpet attach / lightweight torpedo) below the propeller/rudder — a mobility kill, not area destruction — then makes the SOF delivery run itself, carrying the SOF element to a littoral objective and back. HiddenLevel RF screen + EW decoy (dropped on the inbound transit lane) masks the approach. Strict operator authorization gate; unclassified stand-in for a classified CONOPS.",
+      realWorldBasis: "Emerging maritime-SOF UUV doctrine; Navy SEAL CCM-launched loitering munition (2025); Hormuz asymmetry",
+      jmnCapability: "Cap #10 — Clandestine disablement & SOF/CCMD strike support / LOE 3"
+    },
+    zoneConfig: {
+      name: "Strait of Hormuz Littoral — Covert Approach Lane",
+      center: { lat: 26.6, lng: 56.5 },
+      radius: 20,
+      assetName: "SOF Strike Support Package"
+    },
+    stateHierarchies: {
+      default:        ["Navigation", "Vehicle", "Payload", "Mission", "Comms"],
+      covert_transit: ["Navigation", "Vehicle", "Comms", "Mission", "Payload"],
+      uuv_transit:    ["Navigation", "Payload", "Mission", "Comms", "Vehicle"],
+      hitl_authorize: ["Mission", "Payload", "Comms", "Navigation", "Vehicle"]
+    },
+    createdAt: "2026-07-10T08:00:00Z",
+    updatedAt: "2026-07-10T08:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-07-10T08:00:00Z", details: "JMN Spear — Clandestine Disablement & SOF Strike Support" }
+    ]
+  },
 ];

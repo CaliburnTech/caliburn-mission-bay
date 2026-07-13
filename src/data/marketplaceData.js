@@ -1170,7 +1170,7 @@ export const individualCapabilities = [
         range: 0,
         stealth: 12
       },
-      vesselCompatibility: ["Saildrone Voyager", "CUSV", "MASC Baseline"],
+      vesselCompatibility: ["Saildrone Voyager", "CUSV", "MASC Baseline", "M48"],
       nemesisRole: "passive_collection",
       emconNote: "Fully passive — no RF emissions — optimal EMCON during transit and active phase",
       missionTags: ["NON_KINETIC_EW", "RECONNAISSANCE", "ISR"]
@@ -4117,7 +4117,157 @@ export const individualCapabilities = [
     securityLevel: [],
     securityIcons: [],
     missionTags: ["SEA_JEEP_LOGISTICS"]
+  },
+  // ─── JMN — Joint Maritime Next (Shield & Spear) new payloads ───
+  {
+    name: "Gamma/Neutron Radiological Detector",
+    provider: "Kromek",
+    type: "CBRNE Sensor",
+    description: "Compact gamma spectrometer + neutron detector for at-sea radiological/nuclear material characterization of low-freeboard 'sleeper' contacts. Discriminates threat material from benign cargo without a boarding team.",
+    capabilities: ["Gamma Spectroscopy", "Neutron Detection", "Isotope ID", "Material Characterization"],
+    trl: "TRL 7",
+    icon: Radio,
+    category: "SENSORS & DETECTION",
+    subType: "CBRNE",
+    swap: { weight: 4.5, power: 0.02, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: -1, range: 0, stealth: 0 },
+    missionTags: ["THREAT_CHARACTERIZATION"]
+  },
+  {
+    name: "Trace Chemical/Explosive Sniffer",
+    provider: "908 Devices",
+    type: "CBRNE Sensor",
+    description: "Onboard mass-spec / IMS trace detector that samples for explosive, chemical, and narcotic signatures. Provides the 'what is it carrying?' characterization step with a stated confidence and false-alarm caveat.",
+    capabilities: ["Trace Explosive Detection", "Chemical Agent ID", "Narcotic Signature ID", "Onboard Analytics"],
+    trl: "TRL 7",
+    icon: Eye,
+    category: "SENSORS & DETECTION",
+    subType: "CBRNE",
+    swap: { weight: 3.2, power: 0.03, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: -1, range: 0, stealth: 0 },
+    missionTags: ["THREAT_CHARACTERIZATION"]
+  },
+  {
+    name: "Air-Launched Effects / Loitering Munition Tubes",
+    provider: "AeroVironment",
+    type: "Launched-Effects Payload",
+    description: "Containerized launch tubes for air-launched effects (ALE) and loitering munitions dispensed from a USV mothership. Enables terminal ISR + top-attack from an unexpected axis. Human-in-the-loop release required.",
+    capabilities: ["ALE Launch", "Loitering Munition", "Terminal ISR", "Cooperative Swarm"],
+    trl: "TRL 6",
+    icon: Target,
+    category: "WEAPONS",
+    subType: "EFFECTS",
+    swap: { weight: 180, power: 0.5, size: "large" },
+    statImpacts: { speed: -1, power: -2, weight: -3, range: 0, stealth: -1 },
+    missionTags: ["LAUNCHED_EFFECTS"]
+  },
+  {
+    name: "SOF Insertion Pod",
+    provider: "Caliburn",
+    type: "Clandestine Delivery Payload",
+    description: "Low-profile sealed pod for clandestine delivery of a SOF element / equipment to a littoral objective from a covert USV host. Sub-surface transit, low RCS, minimal wake signature.",
+    capabilities: ["Clandestine Delivery", "Low-Signature Transit", "SOF Insertion/Extraction", "Sealed Payload Bay"],
+    trl: "TRL 6",
+    icon: Shield,
+    category: "LOGISTICS",
+    subType: "DELIVERY",
+    swap: { weight: 10, power: 0.1, size: "large" },
+    statImpacts: { speed: -1, power: 0, weight: -3, range: -1, stealth: 1 },
+    missionTags: ["SOF_STRIKE_SUPPORT"]
+  },
+  {
+    name: "UUV Disablement Kit",
+    provider: "Caliburn",
+    type: "Undersea Effects Payload",
+    description: "UUV-carried disablement effector — limpet attach or lightweight torpedo employed below the target's propeller/rudder for a mobility kill rather than area destruction. Strict operator authorization gate.",
+    capabilities: ["Limpet Attach", "Lightweight Torpedo", "Mobility Kill", "GPS-Denied Terminal Guidance"],
+    trl: "TRL 6",
+    icon: Waves,
+    category: "WEAPONS",
+    subType: "UNDERSEA",
+    swap: { weight: 2.3, power: 0.2, size: "medium" },  // 5 lb warhead package
+    statImpacts: { speed: -1, power: -1, weight: -2, range: 0, stealth: 0 },
+    missionTags: ["SOF_STRIKE_SUPPORT"]
+  },
+  {
+    name: "One-Way Attack Package",
+    provider: "Caliburn",
+    type: "Undersea Effects Payload",
+    description: "Fictional/placeholder effector for prototyping — a self-contained explosive warhead package fitted to a daughter UUV for a single-use, non-recoverable terminal strike against a hull or subsurface target. No real vendor; stand-in until a fielded system is sourced.",
+    capabilities: ["Warhead Integration", "Terminal Guidance", "Single-Use / Non-Recoverable"],
+    trl: "TRL 3",
+    icon: Target,
+    category: "WEAPONS",
+    subType: "UNDERSEA",
+    swap: { weight: 5, power: 0.1, size: "medium" },
+    statImpacts: { speed: -1, power: -1, weight: -2, range: 0, stealth: 0 },
+    missionTags: ["LAUNCHED_EFFECTS"]
+  },
+  {
+    name: "Marine Magnetics Synapse Gradiometer",
+    provider: "Marine Magnetics",
+    type: "Magnetic Anomaly Sensor",
+    description: "Lightweight, low-drag horizontal transverse gradiometer for AUV/ASV/USV integration. Detects ferrous foreign objects and buried infrastructure disturbance along a survey lane.",
+    capabilities: ["Ferrous Object Detection", "Buried Infrastructure Disturbance Detection", "Horizontal Transverse Gradiometry"],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "SENSORS & DETECTION",
+    subType: null,
+    swap: { weight: 6, power: 0.05, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: 0 },
+    missionTags: ["SEABED_MONITORING"]
+  },
+  {
+    name: "AP Sensing DAS interface",
+    provider: "AP Sensing",
+    type: "Distributed Acoustic Sensing Interrogator",
+    description: "Turns an unused fiber in a subsea cable into thousands of virtual microphones. Real-time distributed acoustic sensing (DAS) detects and localizes third-party interference — anchor drops, vessel movement, groundfishing — along the cable route, cueing a vehicle to the affected segment.",
+    capabilities: ["Distributed Acoustic Sensing", "Third-Party-Interference Detection", "Cable Segment Localization"],
+    trl: "TRL 8",
+    icon: Waves,
+    category: "SENSORS & DETECTION",
+    subType: null,
+    swap: { weight: 8, power: 0.1, size: "small" },
+    statImpacts: { speed: 0, power: -1, weight: 0, range: 0, stealth: 0 },
+    missionTags: ["SEABED_MONITORING"]
+  },
+  {
+    name: "SBG Ekinox Micro INS",
+    provider: "SBG Systems",
+    type: "Navigation System",
+    description: "Miniature MEMS tactical-grade GNSS-aided inertial navigation system. Trades some of SeaFIND's fiber-optic-gyro precision for a ~98% weight reduction — sized for small UUV/USV hulls where a full maritime FOG INS doesn't fit the payload budget. Retains short-duration dead-reckoning through GPS-denied stretches via the onboard MEMS IMU.",
+    capabilities: ["GNSS-Aided Navigation", "MEMS IMU Dead-Reckoning", "Position Data", "Compact Form Factor"],
+    trl: "TRL 9",
+    icon: Compass,
+    category: "NAVIGATION",
+    subType: 'NAV_INS',
+    swap: {
+      weight: 0.165,   // Real: 165g per SBG Systems Ekinox Micro datasheet
+      power: 0.003,    // Estimate: ~3W typical for this class of MEMS/GNSS INS (not a confirmed datasheet figure)
+      size: "small"
+    },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 0, stealth: 0 },
+    missionTags: ["SOF_STRIKE_SUPPORT"]
+  },
+  {
+    name: "KAYA Vision Iron 2518 Subsea Camera",
+    provider: "KAYA Vision",
+    type: "Deep-Sea Vision Camera",
+    description: "Miniature deep-sea-rated global-shutter camera module for ROV/AUV integration. Bare module is under 100g; figure quoted here is a conservative estimate for the pressure-housed, cabled unit actually integrated on a hull. Used here in place of a generic surveillance EO/IR turret for Triton's underwater close-look imaging role.",
+    capabilities: ["High-frame-rate underwater imaging", "Low-light performance", "Compact housing"],
+    trl: "TRL 8",
+    icon: CameraIcon,
+    category: "EO/IR SENSORS",
+    subType: null,
+    swap: {
+      weight: 0.4,     // Estimate: bare module <0.1kg per KAYA datasheet; housed/cabled integration weight not published, estimated conservatively
+      power: 0.01,
+      size: "small"
+    },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 0, stealth: 1 },
+    missionTags: ["SEABED_MONITORING"]
   }
+
   // ============ END ADDITIONAL VESSEL CAPABILITY ENTRIES ============
 
   ];

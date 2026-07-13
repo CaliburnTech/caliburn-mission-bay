@@ -1,5 +1,6 @@
 import { LayoutDashboard, Package, Building2, Settings, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import missionBayLogotype from '../assets/Mission Bay Logotype.png'
 
 type NavItem = {
   id: string
@@ -40,10 +41,8 @@ export function Layout({
       <aside className="w-52 flex-shrink-0 flex flex-col bg-[#1a2530] border-r border-gray-700/40">
         {/* Logo */}
         <div className="px-4 py-5 border-b border-gray-700/40">
-          <div className="text-[#cbfd00] font-bold text-sm tracking-widest uppercase">
-            Mission Bay
-          </div>
-          <div className="text-gray-500 text-xs mt-0.5">Maker Portal</div>
+          <img src={missionBayLogotype} alt="Mission Bay" className="h-6 w-auto" />
+          <div className="text-gray-500 text-xs mt-1">Maker Portal</div>
         </div>
 
         {/* Nav links */}

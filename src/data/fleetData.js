@@ -102,9 +102,9 @@ export const swarmSquadrons = [
   // 5
   {
     id: "sqdn_032",
-    name: "Mariner USV",
-    type: "Small USV",
-    platformType: "USV",
+    name: "VATN UUV",
+    type: "Small Modular Naval AUV (UUV)",
+    platformType: "UUV",
     totalUnits: 8,
     status: {
       missionReady: 6,
@@ -112,8 +112,8 @@ export const swarmSquadrons = [
       charging: 0,
       maintenance: 1
     },
-    icon: "Mariner",
-    description: "Maritime Robotics multi-mission USVs for patrol, survey, and autonomous operations. 12-knot sprint speed, 120nm range, modular payload bay.",
+    icon: "VATN S6",
+    description: "VATN Systems Skelmir S6 — compact, man-portable modular unmanned undersea vehicle. Swarm-native and attritable at scale; launches by hand, USV, small craft, workboat, UAV, or aircraft. Tool-less modular payloads (sensor, EW, cyber, decoy, kinetic).",
     isVariation: false,
     parentId: null,
     parentName: null,

@@ -9,7 +9,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
-import { GitCommit, Ship, Users, Clock, History, Layers, Package, X, Download, Trash2 } from 'lucide-react';
+import { GitCommit, Users, Clock, History, Layers, Package, X, Download, Trash2 } from 'lucide-react';
 import useVersionStore from '../store/versionStore';
 import useConfigurationStore from '../store/configurationStore';
 import useOutfitterStore from '../store/outfitterStore';
@@ -241,12 +241,6 @@ const VersionControlView = () => {
           className={`filter-tab ${rightPanel === 'detail' || rightPanel === 'diff' ? 'filter-tab-active' : ''}`}
         >
           <History size={14} style={{ marginRight: '4px' }} /> Version History
-        </button>
-        <button
-          onClick={() => setRightPanel('fleet')}
-          className={`filter-tab ${rightPanel === 'fleet' ? 'filter-tab-active' : ''}`}
-        >
-          <Ship size={14} style={{ marginRight: '4px' }} /> Fleet Status
         </button>
       </div>
 

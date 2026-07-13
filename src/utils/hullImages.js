@@ -23,6 +23,7 @@ import imgMQ4C       from '../assets/images/MQ4C Triton.png';
 import imgOceanAeroTriton from '../assets/images/OceanAeroTriton.png';
 import imgMQ8C       from '../assets/images/MQ8C Fire.png';
 import imgMQ25       from '../assets/images/MQ25 Stingray.png';
+import imgVATN       from '../assets/images/VATN_New.png';
 
 /** Map hull `name` (from vesselHullData) → imported PNG URL */
 export const HULL_IMAGES = {
@@ -49,4 +50,5 @@ export const HULL_IMAGES = {
   'MQ-4C Triton':       imgMQ4C,
   'MQ-8C Fire Scout':   imgMQ8C,
   'MQ-25 Stingray':     imgMQ25,
+  'VATN S6':            imgVATN,
 };

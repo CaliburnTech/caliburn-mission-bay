@@ -99,8 +99,11 @@ const useConfigurationStore = create(
       // ACTIONS: Loading Configurations
       // ============================================
 
-      // Start a new empty configuration for a hull
-      startNewConfiguration: (hullName) => {
+      // Start a new empty configuration for a hull. `missionSetKey`, when provided, is
+      // stamped onto the config so a later re-entry from a DIFFERENT mission (same hull,
+      // different role) can tell the cached config no longer applies and start fresh
+      // instead of silently reusing another mission's loadout for the same hull.
+      startNewConfiguration: (hullName, missionSetKey = null) => {
         const ds = useDataStore.getState();
         const hull = ds.isReady ? ds.getVesselByName(hullName) : vesselHullData.find(h => h.name === hullName);
         if (!hull) {
@@ -114,6 +117,7 @@ const useConfigurationStore = create(
             squadronId: null,
             name: '',
             hullName,
+            missionSetKey,
             slots: createEmptySlots(hullName),
             isDirty: false
           },

@@ -3,8 +3,7 @@ import { X, FileText, File, Download } from 'lucide-react';
 
 const CapabilityDetailsModal = ({
   selectedCapabilityDetails,
-  setSelectedCapabilityDetails,
-  addToOutfitterCart
+  setSelectedCapabilityDetails
 }) => {
   if (!selectedCapabilityDetails) return null;
 
@@ -357,15 +356,6 @@ const CapabilityDetailsModal = ({
 
             {/* Action Buttons */}
             <div className="flex gap-4 justify-end pt-6 border-t border-lime-brand/10">
-              <button
-                onClick={() => {
-                  addToOutfitterCart(selectedCapabilityDetails);
-                  setSelectedCapabilityDetails(null);
-                }}
-                className="bg-lime-brand text-black py-3.5 px-8 rounded-lg border-none text-base font-semibold cursor-pointer transition-all hover:bg-lime-hover"
-              >
-                Add to Hull
-              </button>
               <button
                 onClick={() => setSelectedCapabilityDetails(null)}
                 className="bg-transparent text-gray-400 py-3.5 px-8 rounded-lg border border-gray-400/30 text-base font-medium cursor-pointer transition-all hover:border-lime-brand/50 hover:text-lime-brand"

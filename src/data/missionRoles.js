@@ -55,6 +55,7 @@ export const MISSION_ROLES = {
         capabilities: [
           'MFTA Towed Array',
           'USW-DSS (AN/UYQ-100)',
+          'HiveLink SDR',
           'Link 16 Track Broadcast',
           'EvoLogics Acoustic Modem',
           'Bistatic Cross-Fix Node',
@@ -74,6 +75,7 @@ export const MISSION_ROLES = {
         capabilities: [
           'MFTA Towed Array',
           'USW-DSS (AN/UYQ-100)',
+          'HiveLink SDR',
           'Link 16 Track Broadcast',
           'EvoLogics Acoustic Modem',
           'Bistatic Cross-Fix Node',
@@ -659,6 +661,168 @@ export const MISSION_ROLES = {
         cargoRole: true,
         requirements: {
           categories: ['COMMS', 'NAV'],
+        },
+      },
+    ],
+  },
+
+  // ─── JMN — Joint Maritime Next (Shield & Spear) ───────────────────────────────
+
+  // SEABED_MONITORING — Baltic CUI Corridor (JMN cap #3 / LOE 2 — SHIELD)
+  // MISSION_SET_KEY = 'SEABED_MONITORING'
+  SEABED_MONITORING: {
+    missionLabel: 'Seabed & Undersea Infra — Baltic CUI',
+    minVessels: 1,
+    roles: [
+      {
+        roleKey: 'SEABED_SURVEYOR',
+        roleLabel: 'CUI Survey & Close-Look',
+        description: 'Ocean Aero Triton runs a persistent survey lane over a cable/pipeline corridor with side-scan sonar and magnetometer. Onboard analytics diff each pass against a baseline route model; AP Sensing DAS fiber alerts cue the vehicle to a segment, and Triton dives on the segment itself for the close-look — no separate dive asset required.',
+        capabilities: [
+          'EdgeTech 4125 Side-Scan Sonar',
+          'Marine Magnetics Synapse Gradiometer',
+          'KAYA Vision Iron 2518 Subsea Camera',
+          'AP Sensing DAS interface',
+          'Iridium SATCOM',
+          'Solar Wing + Li-ion Bank',
+        ],
+        // Hard-filtered to fully-submersible hulls only — a survey/close-look role that
+        // dives on cued segments can't be handed to a surface-only USV (e.g. Saildrone
+        // Surveyor, which was here before and can't submerge at all).
+        allowedHullNames: ['Triton', 'SubSeaSail Horus', 'Freedom AUV', 'Manta Ray', 'VATN S6'],
+        defaultHullName: 'Triton',
+        suggestedHullNames: ['Triton', 'Freedom AUV'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+        },
+      },
+    ],
+  },
+
+  // THREAT_CHARACTERIZATION — Eastern Pacific Sleeper Watch (JMN cap #4 / LOE 2 — SHIELD)
+  // MISSION_SET_KEY = 'THREAT_CHARACTERIZATION'
+  THREAT_CHARACTERIZATION: {
+    missionLabel: 'Threat Characterization — E. Pacific',
+    minVessels: 1,
+    roles: [
+      {
+        roleKey: 'THREATCHAR_PICKET',
+        roleLabel: 'Characterization Picket',
+        description: 'Saildrone Voyager runs a barrier across a transit chokepoint on quiet electric + wind propulsion. On a low-freeboard "sleeper" contact it closes covertly and brings material-characterization payloads to bear — gamma/neutron and trace chemical/explosive sniffer — to distinguish explosive / chemical / narcotic / inert cargo. Observe-characterize-report; no organic weapon.',
+        capabilities: [
+          'Gamma/Neutron Radiological Detector',
+          'Trace Chemical/Explosive Sniffer',
+          'Advanced EO/IR Camera System',
+          'HiddenLevel Passive RF Sensor',
+          'Iridium SATCOM',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'Saildrone Voyager',
+        suggestedHullNames: ['Saildrone Voyager', 'Saildrone Surveyor', 'Triton', 'M48'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+        },
+      },
+    ],
+  },
+
+  // LAUNCHED_EFFECTS — Launched-Effects Mothership, Taiwan Strait (JMN cap #7 / LOE 3 — SPEAR)
+  // MISSION_SET_KEY = 'LAUNCHED_EFFECTS'
+  // VESSEL_ROSTER order: [M48 mothership, AEGIR-W daughter, VATN S6 daughter]
+  // (BDA/terminal ISR is provided by the ALE seeker + mothership EO/IR — no separate overwatch hull.)
+  LAUNCHED_EFFECTS: {
+    missionLabel: 'Launched Effects — Taiwan Strait',
+    minVessels: 3,
+    roles: [
+      {
+        roleKey: 'LE_MOTHERSHIP',
+        roleLabel: 'Launched-Effects Mothership',
+        description: 'M48 "maritime missile truck" transits under EMCON to a launch basket and dispenses a mixed daughter salvo on CCDR authorization — small attack USVs, a UUV, and air-launched effects / loitering munitions. Strict human-in-the-loop release gate.',
+        capabilities: [
+          'Air-Launched Effects / Loitering Munition Tubes',
+          'Lattice Mesh Network',
+          'SeaFIND Inertial Navigation',
+          'EMCON Transit Capable',
+          'Passive ESM/SIGINT Collection Module',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-H'],
+        requirements: {
+          categories: ['WEAPONS', 'C2', 'COMMS'],
+        },
+      },
+      {
+        roleKey: 'LE_DAUGHTER_USV',
+        roleLabel: 'Attack Daughter USV',
+        description: 'AEGIR-W attack USV dispensed from the mothership; vectors toward the adversary surface picket in a cooperative-sensing/swarm behavior over mesh.',
+        capabilities: [
+          'Advanced EO/IR Camera System',
+          'Lattice Mesh Network',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'AEGIR-W',
+        suggestedHullNames: ['AEGIR-W', 'SubSeaSail Horus', 'GARC'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+        },
+      },
+      {
+        roleKey: 'LE_DAUGHTER_UUV',
+        roleLabel: 'One-Way Attack Daughter (UUV)',
+        description: 'VATN S6 slips beneath the surface carrying a One-Way Attack Package against a subsurface/hull target, navigating GPS-denied on its Ekinox Micro INS. Man-portable and attritable — one of many cheap daughter effects, not a single expensive asset.',
+        capabilities: [
+          'SBG Ekinox Micro INS',
+          'Lattice Mesh Network',
+          'One-Way Attack Package',
+        ],
+        allowedPlatformTypes: ['UUV', 'AUV'],
+        defaultHullName: 'VATN S6',
+        suggestedHullNames: ['VATN S6', 'Freedom AUV', 'Manta Ray'],
+        requirements: {
+          categories: ['NAV', 'COMMS'],
+        },
+      },
+    ],
+  },
+
+  // SOF_STRIKE_SUPPORT — Clandestine Disablement & SOF Support, Hormuz (JMN cap #10 / LOE 3 — SPEAR)
+  // MISSION_SET_KEY = 'SOF_STRIKE_SUPPORT'
+  SOF_STRIKE_SUPPORT: {
+    missionLabel: 'SOF Strike Support — Hormuz',
+    minVessels: 2,
+    roles: [
+      {
+        roleKey: 'SOF_HOST',
+        roleLabel: 'Covert SOF Host',
+        description: 'Saildrone Spectre (Stealth Strike configuration) transits EMCON (wingless low-signature hull, GPS-denied INS) to a release point, releases the disablement UUV to transit independently, then makes the SOF delivery run itself — carrying the SOF element to a shore objective and back. HiddenLevel RF screen + EW decoy masks the approach.',
+        capabilities: [
+          'SOF Insertion Pod',
+          'HiddenLevel Passive RF Sensor',
+          'SBG Ekinox Micro INS',
+          'Cryptographic Communications Module',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'Saildrone Spectre',
+        suggestedHullNames: ['Saildrone Spectre', 'Triton', 'GP-USV Sea Jeep'],
+        requirements: {
+          categories: ['NAV', 'COMMS'],
+        },
+      },
+      {
+        roleKey: 'SOF_DISABLEMENT',
+        roleLabel: 'Clandestine Disablement UUV',
+        description: 'VATN S6 navigates GPS-denied on its Ekinox Micro INS to the target hull, obtains an attach/firing solution, and executes a disablement effect (limpet attach / lightweight torpedo) below the propeller/rudder on strict operator authorization — mobility kill, not area destruction. Man-portable and SOCOM MOD payload compliant.',
+        capabilities: [
+          'UUV Disablement Kit',
+          'SBG Ekinox Micro INS',
+          'Lattice Mesh Network',
+        ],
+        allowedPlatformTypes: ['UUV', 'AUV'],
+        defaultHullName: 'VATN S6',
+        suggestedHullNames: ['VATN S6', 'Freedom AUV', 'Manta Ray'],
+        requirements: {
+          categories: ['WEAPONS', 'NAV'],
         },
       },
     ],

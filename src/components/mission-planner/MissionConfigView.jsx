@@ -33,6 +33,10 @@ import SeaJeepBaseMissionView from './SeaJeepBaseMissionView';
 import SeaJeepISRMissionView from './SeaJeepISRMissionView';
 import SeaJeepMCMMissionView from './SeaJeepMCMMissionView';
 import SeaJeepLogisticsMissionView from './SeaJeepLogisticsMissionView';
+import SeabedMonitoringMissionView from './SeabedMonitoringMissionView';
+import ThreatCharacterizationMissionView from './ThreatCharacterizationMissionView';
+import LaunchedEffectsMissionView from './LaunchedEffectsMissionView';
+import SOFStrikeSupportMissionView from './SOFStrikeSupportMissionView';
 
 // Get default zone config based on mission type's geometry
 const getDefaultZoneConfig = (missionKey) => {
@@ -126,6 +130,9 @@ const MissionConfigView = ({ mission, onBack }) => {
     { key: 'FLEET',     label: '5th & 7th Fleet', keys: ['ISR', 'COUNTER_C5ISR', 'MCM', 'ASW'] },
     { key: 'OTHER',     label: 'Other',           keys: ['PORT_SECURITY'] },
     { key: 'SEA_JEEP', label: 'Sea Jeep', keys: ['SEAJEEP_BASE', 'SEAJEEP_ISR', 'SEAJEEP_MCM', 'SEAJEEP_LOGISTICS'] },
+    // JMN — Joint Maritime Next: all 10 solicitation capability areas (existing templates + 4 new gap missions).
+    // Additive only — references existing template keys without modifying the groups above.
+    { key: 'JMN', label: 'JMN — Shield & Spear', keys: ['MDA_ISR', 'COUNTER_C5ISR', 'SEABED_MONITORING', 'THREAT_CHARACTERIZATION', 'KINETIC_EFFECTS', 'NON_KINETIC_EW', 'CONTESTED_LOGISTICS', 'LAUNCHED_EFFECTS', 'MCM', 'PORT_SECURITY', 'SOF_STRIKE_SUPPORT'] },
   ];
 
   // State-based autonomy hierarchies (keyed by node ID)
@@ -375,6 +382,23 @@ const MissionConfigView = ({ mission, onBack }) => {
     return <SeaJeepLogisticsMissionView mission={mission} onBack={onBack} />;
   }
 
+  // JMN — Joint Maritime Next (Shield & Spear) gap missions
+  if (selectedMissionTemplate === 'SEABED_MONITORING' || mission?.template === 'SEABED_MONITORING') {
+    return <SeabedMonitoringMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'THREAT_CHARACTERIZATION' || mission?.template === 'THREAT_CHARACTERIZATION') {
+    return <ThreatCharacterizationMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'LAUNCHED_EFFECTS' || mission?.template === 'LAUNCHED_EFFECTS') {
+    return <LaunchedEffectsMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'SOF_STRIKE_SUPPORT' || mission?.template === 'SOF_STRIKE_SUPPORT') {
+    return <SOFStrikeSupportMissionView mission={mission} onBack={onBack} />;
+  }
+
   return (
     <div className="flex flex-col gap-4 min-h-[600px] overflow-hidden w-full max-w-full">
       {/* Header with Back Button */}
@@ -405,14 +429,14 @@ const MissionConfigView = ({ mission, onBack }) => {
               <button
                 key={key}
                 onClick={() => handleDomainChange(key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.65rem] font-semibold transition-all ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   selectedDomain === key
                     ? 'text-white'
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
                 style={selectedDomain === key ? { backgroundColor: `${color}30`, color } : {}}
               >
-                <Icon size={12} />
+                <Icon size={18} />
                 {label}
               </button>
             ))}
@@ -439,7 +463,7 @@ const MissionConfigView = ({ mission, onBack }) => {
                 <button
                   key={key}
                   onClick={() => setNavyGroup(key)}
-                  className={`px-3 py-1 rounded-full text-[0.65rem] font-semibold transition-all border ${
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all border ${
                     navyGroup === key
                       ? 'bg-lime-brand/20 border-lime-brand text-lime-brand'
                       : 'bg-transparent border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-500'
@@ -452,8 +476,8 @@ const MissionConfigView = ({ mission, onBack }) => {
           </div>
         )}
 
-        {/* Mission Cards */}
-        <div className={`grid gap-3 grid-cols-2 ${filteredMissions.length <= 4 ? 'md:grid-cols-4' : filteredMissions.length <= 5 ? 'md:grid-cols-5' : 'md:grid-cols-6'}`}>
+        {/* Mission Cards — 4 per row; page scrolls (no inner scroll container) */}
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
           {filteredMissions.map((m) => {
             const Icon = m.icon;
             const isSelected = selectedMissionTemplate === m.key;
@@ -461,27 +485,28 @@ const MissionConfigView = ({ mission, onBack }) => {
               <button
                 key={m.key}
                 onClick={() => selectMission(m.key)}
-                className={`px-2 py-3 rounded-lg cursor-pointer transition-all text-center ${
+                className={`group px-4 py-6 rounded-xl cursor-pointer transition-all text-center flex flex-col items-center justify-center min-h-[180px] hover:-translate-y-0.5 hover:border-[color:var(--glow)] hover:[box-shadow:0_0_26px_-4px_var(--glow)] ${
                   isSelected ? 'border-2' : 'border bg-darkest border-border-subtle'
                 }`}
-                style={isSelected ? {
-                  backgroundColor: `${m.color}20`,
-                  borderColor: m.color
-                } : {}}
+                style={{
+                  '--glow': m.color,
+                  ...(isSelected ? { backgroundColor: `${m.color}20`, borderColor: m.color } : {})
+                }}
               >
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2"
+                  className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
                   style={{ backgroundColor: isSelected ? m.color : `${m.color}30` }}
                 >
-                  <Icon size={18} color={isSelected ? '#000' : m.color} />
+                  <Icon size={28} color={isSelected ? '#000' : m.color} />
                 </div>
                 <div
-                  className="text-[0.7rem] font-semibold mb-1"
+                  className="text-sm font-semibold"
                   style={{ color: isSelected ? m.color : '#f9fafb' }}
                 >
                   {m.name}
                 </div>
-                <div className="hidden md:block text-gray-500 text-[0.5rem] leading-tight">
+                {/* Description — only on hover */}
+                <div className="hidden group-hover:block text-gray-500 text-sm leading-snug mt-1.5">
                   {m.description}
                 </div>
               </button>

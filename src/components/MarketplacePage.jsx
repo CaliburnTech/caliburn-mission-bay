@@ -9,6 +9,7 @@ import useConfigurationStore from '../store/configurationStore';
 import useUIStore from '../store/uiStore';
 import useSquadronStore from '../store/squadronStore';
 import caliburnLogotype from '../assets/Caliburn Logotype Dark Mode.png';
+import missionBayLogotype from '../assets/Mission Bay Logotype.png';
 import ShipyardView from './ShipyardView';
 import MissionPlanner from './MissionPlanner';
 import MissionMatrix from './MissionMatrix';
@@ -120,9 +121,11 @@ const MarketplacePage = ({ onLogoClick }) => {
               className="h-7 md:h-12 w-auto flex-shrink-0 transition-transform group-hover:scale-105"
             />
             <div className="border-l border-gray-600/50 pl-2 md:pl-8 min-w-0">
-              <div className="text-base md:text-2xl font-bold text-lime-brand tracking-tight leading-none whitespace-nowrap">
-                Mission Bay
-              </div>
+              <img
+                src={missionBayLogotype}
+                alt="Mission Bay"
+                className="h-5 md:h-8 w-auto"
+              />
               <p className="hidden md:block text-sm text-gray-400 mt-1">
                 Pre-integrated capabilities ready for deployment on TempestOS
               </p>
@@ -338,7 +341,6 @@ const MarketplacePage = ({ onLogoClick }) => {
       <CapabilityDetailsModal
         selectedCapabilityDetails={selectedCapabilityDetails}
         setSelectedCapabilityDetails={setSelectedCapabilityDetails}
-        addToOutfitterCart={addToOutfitterCart}
       />
     </div>
   );

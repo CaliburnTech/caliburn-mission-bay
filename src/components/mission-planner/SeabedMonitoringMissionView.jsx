@@ -1,0 +1,1107 @@
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import {
+  MapContainer, TileLayer, CircleMarker, Polyline, Rectangle, Tooltip, ZoomControl, useMap
+} from 'react-leaflet';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings, ArrowLeftRight } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgOceanAeroTriton from '../../assets/images/OceanAeroTriton.png';
+
+const MISSION_SET_KEY = 'SEABED_MONITORING';
+const MISSION_SET_CAPS = [
+  'EdgeTech 4125 Side-Scan Sonar',
+  'Marine Magnetics Synapse Gradiometer',
+  'KAYA Vision Iron 2518 Subsea Camera',
+  'AP Sensing DAS interface',
+  'Iridium SATCOM',
+  'Solar Wing + Li-ion Bank',
+];
+
+// ─── Geography — Baltic Proper CUI corridor, open water EAST of Gotland ──────────
+// Corridor sits in unambiguously open sea between Gotland (~19°E) and Latvia (~21°E).
+const MAP_CENTER = [57.2, 20.2];
+const MAP_ZOOM   = 8;
+
+// Command / SATCOM reach-back node — NOT a launch point. Open water N of the corridor.
+const MOC_POS = [57.72, 20.20];        // NATO CUI Cell / NMCSCUI — SATCOM reach-back node
+
+// ~40nm survey lane running W→E over the cable/pipeline corridor (all open water)
+const SURVEY_LANE = [
+  [57.20, 19.70],
+  [57.20, 20.00],
+  [57.20, 20.30],
+  [57.20, 20.60],
+  [57.20, 20.90],
+];
+
+// Instrumented DAS fiber segment (mid-corridor)
+const DAS_SEGMENT = [
+  [57.215, 20.25],
+  [57.185, 20.45],
+];
+
+// 2–3 anomaly points along the corridor
+const ANOMALIES = [
+  { id: 'A1', pos: [57.205, 19.98], label: 'ANOMALY-1', kind: 'benign seabed change' },
+  { id: 'A2', pos: [57.205, 20.30], label: 'ANOMALY-2', kind: 'anchor-drag scar' },
+  { id: 'A3', pos: [57.20, 20.62], label: 'ANOMALY-3', kind: 'foreign object' },
+];
+
+// ─── Loadout ──────────────────────────────────────────────────────────────────
+// Single-vessel loadout — the Ocean Aero Triton runs the survey lane AND performs
+// the close-look itself (it can dive to evade detection / get proximity), so no
+// separate dive asset is required.
+const TRITON_MOUNTS = [
+  { slot: 'SONAR (survey)', name: 'EdgeTech 4125 Side-Scan Sonar',    vendor: 'EdgeTech',           checked: true, description: 'Towed side-scan sonar mapping the corridor swath — baseline bathymetry and per-pass change detection over the CUI corridor' },
+  { slot: 'MAGNETICS',      name: 'Marine Magnetics Synapse Gradiometer', vendor: 'Marine Magnetics', checked: true, description: 'Detects ferrous foreign objects and buried infrastructure disturbance along the lane' },
+  { slot: 'EO/IR',          name: 'KAYA Vision Iron 2518 Subsea Camera', vendor: 'KAYA Vision',      checked: true, description: 'Miniature deep-sea-rated camera for close-range imaging when Triton dives on a cued segment — same vehicle, no separate dive asset needed' },
+  { slot: 'FIBER MONITOR',  name: 'AP Sensing DAS interface',          vendor: 'AP Sensing',         checked: true, description: 'Distributed acoustic sensing — real-time third-party-interference alerts cue the vehicle to a fiber segment' },
+  { slot: 'COMMS',          name: 'Iridium SATCOM',                    vendor: 'Iridium',            checked: true, description: 'Iridium SATCOM to the NATO CUI cell' },
+  { slot: 'POWER',          name: 'Solar Wing + Li-ion Bank',          vendor: 'Ocean Aero',         description: 'No fuel tail — persistent, low-cost, covert corridor coverage; can dive to evade detection' },
+];
+
+const VESSEL_ROSTER = [
+  {
+    name: 'SEABED-TRITON-1',
+    roleDescriptor: '(CUI Survey & Close-Look)',
+    image: imgOceanAeroTriton,
+    hullName: 'Triton',
+    capabilities: TRITON_MOUNTS.map(m => m.name),
+    roleKey: 'SEABED_SURVEYOR',
+  },
+];
+
+// ─── Tick milestones ──────────────────────────────────────────────────────────
+const T_DEPLOY           = 5;   // deploy_survey_lane
+const T_BASELINE         = 16;  // baseline_scan
+const T_ANOMALY_FLAGGED  = 34;  // anomaly_flagged (SAS diff vs baseline)
+const T_DAS_ALERT        = 44;  // das_alert (fiber TPI alert)
+const T_CLOSE_LOOK_DIVE  = 58;  // close_look_dive (Triton itself dives on the cued segment)
+const T_CLOSE_LOOK       = 76;  // close_look_imaging
+const T_CHARACTERIZED    = 90;  // anomaly_characterized
+const T_CONTACT_REPORT   = 98;  // contact_report
+const T_RESUME           = 106; // resume_survey
+const T_SURVEY_COMPLETE  = 116; // survey_complete
+const TOTAL_TICKS        = 124;
+
+// ─── Phase state machine ──────────────────────────────────────────────────────
+const getPhase = (tick) => {
+  if (tick < T_DEPLOY)          return 'idle';
+  if (tick < T_BASELINE)        return 'deploy_survey_lane';
+  if (tick < T_ANOMALY_FLAGGED) return 'baseline_scan';
+  if (tick < T_DAS_ALERT)       return 'anomaly_flagged';
+  if (tick < T_CLOSE_LOOK_DIVE) return 'das_alert';
+  if (tick < T_CLOSE_LOOK)      return 'close_look_dive';
+  if (tick < T_CHARACTERIZED)   return 'close_look_imaging';
+  if (tick < T_CONTACT_REPORT)  return 'anomaly_characterized';
+  if (tick < T_RESUME)          return 'contact_report';
+  if (tick < T_SURVEY_COMPLETE) return 'resume_survey';
+  return 'survey_complete';
+};
+
+// The DAS-cued anomaly under investigation is A2 (mid-corridor, anchor-drag → foreign object).
+const CUE_ANOMALY = 'A2';
+
+// ─── Anomaly detection state ──────────────────────────────────────────────────
+const getAnomalyState = (id, tick) => {
+  if (id === 'A1') {
+    // Flagged during baseline diff, remains a logged benign change
+    if (tick < T_ANOMALY_FLAGGED) return 'hidden';
+    return 'flagged';
+  }
+  if (id === CUE_ANOMALY) {
+    if (tick < T_ANOMALY_FLAGGED) return 'hidden';
+    if (tick < T_DAS_ALERT)       return 'flagged';
+    if (tick < T_CLOSE_LOOK)      return 'alert';        // DAS TPI alert / Triton diving in
+    if (tick < T_CHARACTERIZED)   return 'investigating'; // close-look imaging
+    return 'characterized';
+  }
+  if (id === 'A3') {
+    // Flagged later in the pass as a magnetometer contact
+    if (tick < T_RESUME) return 'hidden';
+    return 'flagged';
+  }
+  return 'hidden';
+};
+
+// ─── Position helpers ─────────────────────────────────────────────────────────
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+const trackPos = (track, t) => {
+  const clamped = Math.min(Math.max(t, 0), 0.9999);
+  const progress = clamped * (track.length - 1);
+  const idx = Math.floor(progress);
+  return lerp2(track[idx], track[idx + 1], progress - idx);
+};
+
+// Fraction of the survey lane the Surveyor has reached at the DAS-cue anomaly (A2 = mid-lane,
+// SURVEY_LANE[2] of 5 points → 2/4 = 0.5, so the hold point sits exactly on ANOMALY-2 / DAS segment)
+const CUE_T = 0.5;
+
+// Same progress-fraction math as getSurveyorPos, exposed on its own so the corner
+// diagram can scroll seabed features under the boat without re-deriving lat/lng.
+const getSurveyorFrac = (tick) => {
+  if (tick < T_DEPLOY) return 0;
+  if (tick < T_BASELINE) {
+    const t = (tick - T_DEPLOY) / (T_BASELINE - T_DEPLOY);
+    return Math.min(t, 1) * 0.06;
+  }
+  if (tick >= T_DAS_ALERT && tick < T_RESUME) return CUE_T;
+  if (tick < T_DAS_ALERT) {
+    const t = (tick - T_BASELINE) / (T_DAS_ALERT - T_BASELINE);
+    return 0.06 + Math.min(t, 1) * (CUE_T - 0.06);
+  }
+  const t = (tick - T_RESUME) / (TOTAL_TICKS - T_RESUME);
+  return CUE_T + Math.min(t, 1) * (0.9999 - CUE_T);
+};
+
+const getSurveyorPos = (tick) => {
+  if (tick < T_DEPLOY) return null;
+  // Deploy phase — start on the open-water lane and ease a short way into it (never from MOC)
+  if (tick < T_BASELINE) {
+    const t = (tick - T_DEPLOY) / (T_BASELINE - T_DEPLOY);
+    return trackPos(SURVEY_LANE, Math.min(t, 1) * 0.06);
+  }
+  // Loiter near the cued segment — including diving for the close-look — before resuming
+  if (tick >= T_DAS_ALERT && tick < T_RESUME) {
+    return trackPos(SURVEY_LANE, CUE_T);
+  }
+  // Ramp along the lane; before the cue, advance from the deploy point up to CUE_T (the hold
+  // point on ANOMALY-2 / the DAS segment); after resume, continue to the far end
+  if (tick < T_DAS_ALERT) {
+    const t = (tick - T_BASELINE) / (T_DAS_ALERT - T_BASELINE);
+    return trackPos(SURVEY_LANE, 0.06 + Math.min(t, 1) * (CUE_T - 0.06));
+  }
+  // resume_survey → survey_complete: from CUE_T to end of lane
+  const t = (tick - T_RESUME) / (TOTAL_TICKS - T_RESUME);
+  return trackPos(SURVEY_LANE, CUE_T + Math.min(t, 1) * (0.9999 - CUE_T));
+};
+
+// Trail grows along survey lane as Surveyor advances
+const getSurveyTrail = (tick) => {
+  if (tick < T_BASELINE) return [];
+  const pos = getSurveyorPos(tick);
+  if (!pos) return [];
+  // Progress mirrors getSurveyorPos advancement fraction
+  let frac;
+  if (tick < T_DAS_ALERT) {
+    frac = 0.06 + Math.min((tick - T_BASELINE) / (T_DAS_ALERT - T_BASELINE), 1) * (CUE_T - 0.06);
+  } else if (tick < T_RESUME) {
+    frac = CUE_T;
+  } else {
+    frac = CUE_T + Math.min((tick - T_RESUME) / (TOTAL_TICKS - T_RESUME), 1) * (0.9999 - CUE_T);
+  }
+  const progress = frac * (SURVEY_LANE.length - 1);
+  const idx = Math.floor(progress);
+  const trail = [];
+  for (let i = 0; i <= Math.min(idx, SURVEY_LANE.length - 2); i++) {
+    trail.push(SURVEY_LANE[i]);
+  }
+  if (idx < SURVEY_LANE.length - 1) {
+    trail.push(lerp2(SURVEY_LANE[idx], SURVEY_LANE[idx + 1], progress - idx));
+  }
+  return trail;
+};
+
+// SAS/multibeam swath coverage — thin rectangles either side of the Surveyor
+const getSwathBounds = (tick) => {
+  if (tick < T_BASELINE) return [];
+  const pos = getSurveyorPos(tick);
+  if (!pos) return [];
+  const swathHalf = 0.05;
+  return [
+    [[pos[0] - swathHalf, pos[1] - 0.004], [pos[0], pos[1] + 0.004]],
+    [[pos[0], pos[1] - 0.004], [pos[0] + swathHalf, pos[1] + 0.004]],
+  ];
+};
+
+// ─── Anomaly marker appearance ─────────────────────────────────────────────────
+const anomalyMarkerOpts = (state, pulse) => {
+  switch (state) {
+    case 'flagged':
+      return { color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 0.55, weight: 2 };
+    case 'alert':
+      return pulse
+        ? { color: '#f87171', fillColor: '#f87171', fillOpacity: 0.95, weight: 3 }
+        : { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.6,  weight: 2 };
+    case 'investigating':
+      return { color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.75, weight: 2 };
+    case 'characterized':
+      return { color: '#34d399', fillColor: '#34d399', fillOpacity: 0.85, weight: 2 };
+    default:
+      return null;
+  }
+};
+
+// ─── Phase badge ──────────────────────────────────────────────────────────────
+const getPhaseBadge = (phase) => {
+  switch (phase) {
+    case 'deploy_survey_lane':  return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '→ Deploying to Survey Lane' };
+    case 'baseline_scan':       return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '◈ Baseline Scan — SAS Active' };
+    case 'anomaly_flagged':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Anomaly Flagged — Change Detected' };
+    case 'das_alert':           return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse', label: '● DAS ALERT — Third-Party Interference' };
+    case 'close_look_dive':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',     label: '↓ Diving — Close-Look Inbound' };
+    case 'close_look_imaging':  return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse', label: '◎ Close-Look Imaging' };
+    case 'anomaly_characterized':return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',    label: '◈ Anomaly Characterized' };
+    case 'contact_report':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Contact Report — NATO CUI Cell' };
+    case 'resume_survey':       return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '→ Resuming Survey Lane' };
+    case 'survey_complete':     return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Survey Complete — Corridor Cleared' };
+    default:                    return null;
+  }
+};
+
+// ─── Phase narrative ──────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:                  null,
+  deploy_survey_lane:    { title: 'Triton — Deploying to Corridor', body: 'Ocean Aero Triton departing under solar/wind — no fuel tail. Transiting to Gotland Basin CUI corridor survey lane. Side-scan sonar powering up. Stored baseline bathymetry/route model loaded for change detection.' },
+  baseline_scan:         { title: 'Baseline Scan — Side-Scan Active', body: 'Triton running the ~40nm survey lane over the cable/pipeline corridor. EdgeTech 4125 side-scan sonar and magnetometer active. Each pass diffed against the stored baseline route model — change detection, not just imaging.' },
+  anomaly_flagged:       { title: 'Anomaly Flagged — Change Detected', body: 'Onboard analytics flag seabed disturbance vs. baseline. ANOMALY-1 logged as a benign seabed change. A second disturbance mid-corridor near the instrumented fiber segment is being evaluated — possible drag/anchor scar.' },
+  das_alert:             { title: 'DAS ALERT — Third-Party Interference', body: 'AP Sensing distributed acoustic sensing raises a real-time third-party-interference alert on the instrumented fiber segment. This correlates with the mid-corridor anomaly. Triton holding station on the cued segment.' },
+  close_look_dive:       { title: 'Diving — Close-Look Inbound', body: 'DAS alert plus side-scan change detection confirm an anomaly worth a close look. Triton dives on the cued segment under its own power — no separate dive asset required. Subsea camera and imaging sonar arming as it closes in. Detect-and-characterize only — prosecution/EOD is a hand-off.' },
+  close_look_imaging:    { title: 'Close-Look Imaging', body: 'Triton on station, submerged over the anomaly — high-resolution close-look imaging in progress. Characterizing the seabed disturbance to distinguish benign change vs. anchor scar vs. potential device.' },
+  anomaly_characterized: { title: 'Anomaly Characterized', body: 'Close-look complete. Mid-corridor anomaly characterized as an anchor-drag scar with an exposed foreign object at its terminus — consistent with third-party interference near the fiber. Precise coordinates fixed. Triton surfacing.' },
+  contact_report:        { title: 'Contact Report — NATO CUI Cell', body: 'Contact report transmitted to the NATO CUI cell (NMCSCUI @ MARCOM) over Iridium SATCOM. Characterization, imagery, and coordinates logged. Detect-and-characterize complete — prosecution handed off.' },
+  resume_survey:         { title: 'Resuming Survey Lane', body: 'Triton surfaced and resuming the corridor survey to the far end of the lane. Magnetometer returns a ferrous contact — ANOMALY-3 — flagged for the next characterization cycle.' },
+  survey_complete:       { title: 'Corridor Survey Complete', body: 'Full ~40nm CUI corridor surveyed. Baseline updated with three anomalies logged: benign seabed change, characterized anchor-drag/foreign object, and a ferrous contact. Persistent coverage continues on the next pass.' },
+};
+
+// ─── Event colors ─────────────────────────────────────────────────────────────
+const EVENT_COLORS = {
+  warn:    'text-amber-400',
+  alert:   'text-red-400',
+  info:    'text-cyan-400',
+  success: 'text-emerald-400',
+};
+
+// ─── Tile layers ──────────────────────────────────────────────────────────────
+const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
+
+// ─── MapInvalidateSize ────────────────────────────────────────────────────────
+const MapInvalidateSize = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timers = [100, 300, 600].map(d => setTimeout(() => map.invalidateSize(), d));
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(map.getContainer());
+    return () => { timers.forEach(clearTimeout); ro.disconnect(); };
+  }, [map]);
+  return null;
+};
+
+// ─── Component ───────────────────────────────────────────────────────────────
+const SeabedMonitoringMissionView = ({ mission, onBack }) => {
+  const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
+  const [showLog, setShowLog] = useState(false);
+
+  // Map center: prefer the mission's saved zone center when present, else Baltic default
+  const zc = mission?.zoneConfig?.center;
+  const mapCenter = (zc && typeof zc.lat === 'number' && typeof zc.lng === 'number')
+    ? [zc.lat, zc.lng]
+    : MAP_CENTER;
+
+  // Build effective roster
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    // Derive displayed capabilities from actual config if available
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
+    return {
+      ...vessel,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
+      hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
+    };
+  });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
+  const [missionName, setMissionName] = useState(mission?.name || '');
+  const [currentTick,   setCurrentTick]   = useState(0);
+  const [anomalyPulse,  setAnomalyPulse]  = useState(false);
+  const [surveyorPulse, setSurveyorPulse] = useState(false);
+  const [events,        setEvents]        = useState([]);
+  const [running,       setRunning]       = useState(false);
+  const [paused,        setPaused]        = useState(false);
+  const [complete,      setComplete]      = useState(false);
+
+  const tickRef            = useRef(0);
+  const tickCallbackRef    = useRef(null);
+  const mainTimer          = useRef(null);
+  const pulseTimer         = useRef(null);
+  const surveyorPulseTimer = useRef(null);
+  const addEvtRef          = useRef(null);
+  const vesselLabelsRef    = useRef([]);
+
+  // Derived from currentTick
+  const phase        = getPhase(currentTick);
+  const surveyorPos  = getSurveyorPos(currentTick);
+  const isDiving     = phase === 'close_look_dive' || phase === 'close_look_imaging';
+  const trail        = getSurveyTrail(currentTick);
+  const swaths       = getSwathBounds(currentTick);
+  const badge        = getPhaseBadge(phase);
+  const narrative    = PHASE_NARRATIVE[phase] || null;
+
+  // Dive progress for the corner diagram — 0 = on the surface, 1 = fully submerged
+  // over the anomaly. Ramps up through close_look_dive, holds through
+  // close_look_imaging, then ramps back down as Triton surfaces (anomaly_characterized).
+  const diveProgress = currentTick < T_CLOSE_LOOK_DIVE ? 0
+    : currentTick < T_CLOSE_LOOK ? (currentTick - T_CLOSE_LOOK_DIVE) / (T_CLOSE_LOOK - T_CLOSE_LOOK_DIVE)
+    : currentTick < T_CHARACTERIZED ? 1
+    : currentTick < T_CONTACT_REPORT ? 1 - (currentTick - T_CHARACTERIZED) / (T_CONTACT_REPORT - T_CHARACTERIZED)
+    : 0;
+  const cueAnomalyState = getAnomalyState(CUE_ANOMALY, currentTick);
+  const laneFrac = getSurveyorFrac(currentTick);
+
+  const _addEvent = (msg, type = 'info') => {
+    const ts = new Date().toLocaleTimeString('en-US', {
+      hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 12)}` }, ...prev].slice(0, 30));
+  };
+
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, 180);
+  }, []);
+
+  useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
+
+  // Anomaly pulse (active during alert / investigation phases)
+  useEffect(() => {
+    clearInterval(pulseTimer.current);
+    const needsPulse = [
+      'anomaly_flagged', 'das_alert', 'close_look_dive', 'close_look_imaging',
+    ].includes(phase);
+    if (needsPulse) {
+      pulseTimer.current = setInterval(() => setAnomalyPulse(p => !p), 350);
+      return () => clearInterval(pulseTimer.current);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
+    setAnomalyPulse(false);
+  }, [phase]);
+
+  // Surveyor white pulse while holding station on the cued segment (pre-dive)
+  useEffect(() => {
+    clearInterval(surveyorPulseTimer.current);
+    const isHolding = phase === 'das_alert';
+    if (isHolding) {
+      surveyorPulseTimer.current = setInterval(() => setSurveyorPulse(p => !p), 280);
+      return () => clearInterval(surveyorPulseTimer.current);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
+    setSurveyorPulse(false);
+  }, [phase]);
+
+  const stopAll = useCallback(() => {
+    clearInterval(mainTimer.current);
+    clearInterval(pulseTimer.current);
+    clearInterval(surveyorPulseTimer.current);
+    mainTimer.current = pulseTimer.current = surveyorPulseTimer.current = null;
+  }, []);
+
+  const reset = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setPaused(false);
+    setCurrentTick(0);
+    setAnomalyPulse(false);
+    setSurveyorPulse(false);
+    setEvents([]);
+    setRunning(false);
+    setComplete(false);
+  }, [stopAll]);
+
+  const runScenario = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setCurrentTick(0);
+    setAnomalyPulse(false);
+    setSurveyorPulse(false);
+    setEvents([]);
+    setRunning(true);
+    setPaused(false);
+    setComplete(false);
+
+    const cb = () => {
+      const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'SEABED-TRITON-1';
+      setCurrentTick(tick);
+
+      if (tick === T_DEPLOY) {
+        addEvtRef.current(`${v0}: Deploying to Gotland Basin CUI corridor — solar/wind, persistent`, 'info');
+      }
+      if (tick === T_BASELINE) {
+        addEvtRef.current(`${v0}: On survey lane — multibeam + SAS active, magnetometer online`, 'info');
+        addEvtRef.current(`${v0}: Baseline route model loaded — diffing each pass`, 'info');
+        addEvtRef.current('NMCSCUI: CUI corridor survey authorized — Baltic Sentry tasking', 'info');
+      }
+      if (tick === T_ANOMALY_FLAGGED) {
+        addEvtRef.current(`${v0}: SAS change detection — ANOMALY-1 flagged (benign seabed change)`, 'warn');
+        addEvtRef.current(`${v0}: Second disturbance mid-corridor near fiber segment — evaluating`, 'warn');
+      }
+      if (tick === T_DAS_ALERT) {
+        addEvtRef.current('AP SENSING DAS: THIRD-PARTY INTERFERENCE alert on fiber segment', 'alert');
+        addEvtRef.current(`${v0}: DAS alert correlates with SAS anomaly — holding station on segment`, 'alert');
+      }
+      if (tick === T_CLOSE_LOOK_DIVE) {
+        addEvtRef.current(`${v0}: Diving on the cued segment for a close-look pass — no separate dive asset needed`, 'warn');
+        addEvtRef.current(`${v0}: SeaFIND INS localization active — imaging sonar/EO-IR arming`, 'info');
+      }
+      if (tick === T_CLOSE_LOOK) {
+        addEvtRef.current(`${v0}: On station, submerged — high-resolution close-look imaging in progress`, 'info');
+      }
+      if (tick === T_CHARACTERIZED) {
+        addEvtRef.current(`${v0}: Anomaly characterized — anchor-drag scar + exposed foreign object`, 'warn');
+        addEvtRef.current(`${v0}: Precise coordinates fixed — surfacing`, 'success');
+      }
+      if (tick === T_CONTACT_REPORT) {
+        addEvtRef.current(`${v0}: Contact report transmitted to NATO CUI cell over Iridium SATCOM`, 'success');
+        addEvtRef.current('NMCSCUI: Contact logged — detect-and-characterize complete, prosecution handed off', 'success');
+      }
+      if (tick === T_RESUME) {
+        addEvtRef.current(`${v0}: Surfaced — resuming survey lane`, 'info');
+        addEvtRef.current(`${v0}: Magnetometer ferrous contact — ANOMALY-3 flagged`, 'warn');
+      }
+      if (tick === T_SURVEY_COMPLETE) {
+        addEvtRef.current(`${v0}: Full ~40nm CUI corridor survey complete — 3 anomalies logged`, 'success');
+        addEvtRef.current('NMCSCUI: Baseline updated — persistent coverage continues next pass', 'success');
+      }
+      if (tick >= TOTAL_TICKS) {
+        clearInterval(mainTimer.current);
+        setRunning(false);
+        setComplete(true);
+      }
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, 180);
+  }, [stopAll]);
+
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+    setSelectedHull(hull);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName || currentActive.missionSetKey !== MISSION_SET_KEY) {
+      startNewConfiguration(vessel.hullName, MISSION_SET_KEY);
+    }
+    setPendingMissionSetCaps(vessel.capabilities);
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
+    setSelectedView('outfitter');
+  };
+
+  const handleSave = () => {
+    if (!missionName.trim()) return;
+    const data = {
+      name: missionName.trim(),
+      template: 'SEABED_MONITORING',
+      domain: 'MARITIME',
+      jmnAlignment: 'SHIELD',
+      status: 'draft',
+      duration: '96h',
+      zoneConfig: {
+        name: 'Baltic Sea — Gotland Basin CUI Corridor',
+        center: { lat: 57.0, lng: 19.0 },
+        geometryType: 'route',
+        coordinates: SURVEY_LANE.map(([lat, lng]) => ({ lat, lng })),
+        swarmSize: 1,
+        swarmFormation: 'single',
+      },
+      assignedSquadrons: [],
+      stateHierarchies: {
+        default:        ['Navigation', 'Payload', 'Comms', 'Mission', 'Vehicle'],
+        anomaly_detect: ['Payload', 'Mission', 'Navigation', 'Comms', 'Vehicle'],
+        das_alert:      ['Mission', 'Payload', 'Comms', 'Navigation', 'Vehicle'],
+        investigation:  ['Payload', 'Navigation', 'Mission', 'Comms', 'Vehicle'],
+      },
+      createdAt:  new Date().toISOString(),
+      updatedAt:  new Date().toISOString(),
+      launchedAt: null,
+      history: [{ action: 'created', timestamp: new Date().toISOString() }],
+    };
+    if (mission?.id) updateMission(mission.id, data);
+    else saveMission(data);
+    onBack();
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col bg-darkest">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
+        >
+          <ChevronLeft size={13} /> Back to Library
+        </button>
+        <div className="w-px h-4 bg-gray-700/60" />
+        <Anchor size={13} className="text-cyan-400" />
+        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">Seabed & Undersea Infra — Baltic CUI</span>
+        <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Persistent seabed monitoring — anomaly detection and characterization</span>
+        <div className="flex-1" />
+        {/* DETECT ONLY badge — amber, persistent */}
+        <span className="px-2 py-0.5 rounded-full bg-amber-900/60 text-amber-300 text-[0.65rem] font-bold uppercase tracking-wider border border-amber-500/40">
+          DETECT ONLY
+        </span>
+        <span className="px-2 py-0.5 rounded-full bg-blue-900/50 text-blue-300 text-[0.65rem] font-bold uppercase tracking-wider border border-blue-500/30">
+          SHIELD
+        </span>
+        <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">
+          ACTIVE
+        </span>
+        <input
+          value={missionName}
+          onChange={e => setMissionName(e.target.value)}
+          placeholder="Mission name…"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+        />
+        <button
+          onClick={handleSave}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
+            missionName.trim() && isDeployable
+              ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
+              : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
+          }`}
+        >
+          Save Draft
+        </button>
+      </div>
+
+      {/* ── Scrollable content ── */}
+      <div>
+
+        {/* ── Animation row ── */}
+        <div className="flex h-[40vh] md:h-[460px]">
+
+          {/* ── Map ── */}
+          <div className="flex-1 relative overflow-hidden">
+            <MapContainer
+              center={mapCenter}
+              zoom={MAP_ZOOM}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={false}
+              scrollWheelZoom={false}
+              attributionControl={false}
+            >
+              <ZoomControl position="topright" />
+              <TileLayer url={TILE_BASE} />
+              <TileLayer url={TILE_SEAMARK} opacity={0.55} />
+              <MapInvalidateSize />
+
+              {/* ── CUI corridor (dim baseline route) ── */}
+              <Polyline
+                positions={SURVEY_LANE}
+                pathOptions={{ color: '#64748b', weight: 1.5, opacity: 0.4, dashArray: '2 6' }}
+              />
+
+              {/* ── SAS/multibeam swath coverage ── */}
+              {swaths.map((bounds, i) => (
+                <Rectangle
+                  key={`swath-${i}`}
+                  bounds={bounds}
+                  pathOptions={{ color: '#0d9488', fillColor: '#0d9488', fillOpacity: 0.07, weight: 0.5, opacity: 0.3 }}
+                />
+              ))}
+
+              {/* ── DAS instrumented fiber segment ── */}
+              {currentTick >= T_DEPLOY && (
+                <Polyline
+                  positions={DAS_SEGMENT}
+                  pathOptions={{
+                    color: phase === 'das_alert' && anomalyPulse ? '#f87171' : '#a78bfa',
+                    weight: 4,
+                    opacity: 0.8,
+                  }}
+                >
+                  <Tooltip direction="top" offset={[0, -6]}>
+                    <span style={{ fontSize: 11, fontWeight: 700 }}>Instrumented DAS Fiber Segment</span>
+                  </Tooltip>
+                </Polyline>
+              )}
+
+              {/* ── Survey trail (cyan polyline growing behind Surveyor) ── */}
+              {trail.length >= 2 && (
+                <Polyline
+                  positions={trail}
+                  pathOptions={{ color: '#22d3ee', weight: 2, opacity: 0.55, dashArray: '5 4' }}
+                />
+              )}
+
+              {/* ── Surveyor (Ocean Aero Triton) ── */}
+              {surveyorPos && (
+                <CircleMarker
+                  center={surveyorPos}
+                  radius={7}
+                  pathOptions={{
+                    color:       surveyorPulse ? '#ffffff' : (isDiving ? '#0e7490' : '#22d3ee'),
+                    fillColor:   surveyorPulse ? '#ffffff' : (isDiving ? '#0e7490' : '#22d3ee'),
+                    fillOpacity: isDiving ? 0.6 : 0.95,
+                    weight:      surveyorPulse ? 3 : 2,
+                    dashArray:   isDiving ? '3 3' : undefined,
+                  }}
+                >
+                  <Tooltip direction="top" offset={[0, -10]}>
+                    <span style={{ fontSize: 11, fontWeight: 700 }}>
+                      SEABED-TRITON-1{isDiving ? ' — Submerged, Close-Look' : ''}
+                    </span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* ── Station-hold pulse ring on Surveyor ── */}
+              {surveyorPos && surveyorPulse && (
+                <CircleMarker
+                  center={surveyorPos}
+                  radius={14}
+                  pathOptions={{ color: '#ffffff', fillOpacity: 0, weight: 2, opacity: 0.45 }}
+                />
+              )}
+
+              {/* ── Dive ring — dashed outline while Triton is submerged for the close-look ── */}
+              {surveyorPos && isDiving && (
+                <CircleMarker
+                  center={surveyorPos}
+                  radius={13}
+                  pathOptions={{ color: '#22d3ee', fillOpacity: 0, weight: 1.5, opacity: anomalyPulse ? 0.6 : 0.3, dashArray: '2 4' }}
+                />
+              )}
+
+              {/* ── SATCOM reach-back link — Surveyor → NATO CUI Cell (dashed) ── */}
+              {surveyorPos && (
+                <Polyline
+                  positions={[surveyorPos, MOC_POS]}
+                  pathOptions={{ color: '#94a3b8', weight: 1, opacity: 0.35, dashArray: '2 7' }}
+                >
+                  <Tooltip direction="center">
+                    <span style={{ fontSize: 10, fontWeight: 700 }}>Iridium SATCOM Reach-Back</span>
+                  </Tooltip>
+                </Polyline>
+              )}
+
+              {/* ── NATO CUI Cell / NMCSCUI — SATCOM reach-back node (open water, not a port) ── */}
+              <CircleMarker
+                center={MOC_POS}
+                radius={5}
+                pathOptions={{ color: '#94a3b8', fillColor: '#475569', fillOpacity: 0.9, weight: 2 }}
+              >
+                <Tooltip direction="right" offset={[8, 0]}>
+                  <span style={{ fontSize: 11, fontWeight: 700 }}>NATO CUI Cell / NMCSCUI — SATCOM Reach-Back Node</span>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* ── Anomaly contacts ── */}
+              {ANOMALIES.map(anom => {
+                const state = getAnomalyState(anom.id, currentTick);
+                if (state === 'hidden') return null;
+                const opts = anomalyMarkerOpts(state, anomalyPulse);
+                if (!opts) return null;
+                return (
+                  <React.Fragment key={anom.id}>
+                    <CircleMarker
+                      center={anom.pos}
+                      radius={8}
+                      pathOptions={opts}
+                    >
+                      <Tooltip direction="top" offset={[0, -12]}>
+                        <div style={{ fontSize: 11 }}>
+                          <strong>{anom.label}</strong><br />
+                          {state === 'flagged'       && `FLAGGED — ${anom.kind}`}
+                          {state === 'alert'         && 'DAS ALERT — investigating'}
+                          {state === 'investigating' && 'CLOSE-LOOK — imaging'}
+                          {state === 'characterized' && `CHARACTERIZED — ${anom.kind}`}
+                        </div>
+                      </Tooltip>
+                    </CircleMarker>
+
+                    {/* Pulse ring on active alert */}
+                    {state === 'alert' && anomalyPulse && (
+                      <CircleMarker
+                        center={anom.pos}
+                        radius={15}
+                        pathOptions={{ color: '#f87171', fillOpacity: 0, weight: 2, opacity: 0.45 }}
+                      />
+                    )}
+
+                    {/* Emerald outline ring when characterized */}
+                    {state === 'characterized' && (
+                      <CircleMarker
+                        center={anom.pos}
+                        radius={12}
+                        pathOptions={{ color: '#34d399', fillOpacity: 0, weight: 1.5, opacity: 0.55 }}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+
+            </MapContainer>
+
+            {/* ── Corner dive view — Triton on the surface, descending to close-look, resurfacing ── */}
+            {(() => {
+              const W = 192, H = 148;
+              const waterY = 42;
+              const seabedY = H - 16;
+              const hullW = 92, hullH = 28;
+              const hullX = (W - hullW) / 2;
+              const hullCenterX = W / 2;
+              const surfaceTop = waterY - hullH * 0.55;  // rides mostly at the waterline — surfaced
+              const divedTop   = seabedY - hullH - 8;    // hovering just above the seabed — fully submerged
+              const hullTop = surfaceTop + diveProgress * (divedTop - surfaceTop);
+
+              const diveLabel = diveProgress <= 0.03 ? null
+                : diveProgress >= 0.97 ? 'submerged'
+                : currentTick < T_CHARACTERIZED ? 'diving…'
+                : 'surfacing…';
+
+              // Seabed features scroll right→left as the survey lane progresses. The cued
+              // anomaly's fraction exactly equals the boat's hold fraction (CUE_T), so it
+              // naturally comes to rest centered under the boat while holding/diving and
+              // scrolls again once the survey resumes.
+              const SCALE = 420; // px per unit of lane progress
+              const SEABED_FEATURES = [
+                { id: 'A1', frac: 0.233 },
+                { id: 'A2', frac: CUE_T },
+                { id: 'A3', frac: 0.767 },
+              ];
+
+              return (
+                <div
+                  className="absolute bottom-3 right-3 z-[500] pointer-events-none"
+                  style={{ width: W, height: H, borderRadius: 12, overflow: 'hidden',
+                    background: 'rgba(5,10,18,0.82)', border: '1px solid rgba(100,120,150,0.25)',
+                    backdropFilter: 'blur(4px)' }}
+                >
+                  {/* Background: seabed + water column (painted first, boat sits on top of this) */}
+                  <svg width={W} height={H} style={{ position: 'absolute', inset: 0 }}>
+                    <rect x={0} y={seabedY} width={W} height={H - seabedY} fill="#1c1508" opacity={0.9} />
+                    <line x1={0} y1={seabedY} x2={W} y2={seabedY} stroke="#3f2f12" strokeWidth={1} opacity={0.8} />
+                    <rect x={0} y={waterY} width={W} height={seabedY - waterY} fill="#0c2233" opacity={0.55} />
+                    <line x1={0} y1={waterY} x2={W} y2={waterY} stroke="#164e63" strokeWidth={1.5} />
+
+                    {/* Seabed feature dots — scroll past as the boat travels the lane */}
+                    {SEABED_FEATURES.map(f => {
+                      const state = f.id === 'A2' ? cueAnomalyState : getAnomalyState(f.id, currentTick);
+                      const opts = anomalyMarkerOpts(state, anomalyPulse);
+                      const x = hullCenterX + (f.frac - laneFrac) * SCALE;
+                      if (x < -12 || x > W + 12) return null;
+                      return (
+                        <circle
+                          key={f.id}
+                          cx={x}
+                          cy={seabedY - 5}
+                          r={state === 'hidden' ? 3 : (opts && anomalyPulse ? 5 : 4)}
+                          fill={opts?.fillColor ?? '#334155'}
+                          opacity={state === 'hidden' ? 0.45 : (opts?.fillOpacity ?? 0.85)}
+                        />
+                      );
+                    })}
+                  </svg>
+
+                  {/* Vessel image — on top of the background, updates when hull is swapped.
+                      Flipped so it faces the direction of travel (features scroll past
+                      right→left, so the boat should face right, not look like it's
+                      backing up). Brightened with a tight edge-glow that follows the
+                      vessel's own silhouette instead of a big shape stamped behind it. */}
+                  <img
+                    src={effectiveRoster[0]?.image ?? imgOceanAeroTriton}
+                    alt={effectiveRoster[0]?.name ?? 'Ocean Aero Triton'}
+                    style={{ position: 'absolute', left: hullX, top: hullTop,
+                      width: hullW, height: hullH, objectFit: 'contain',
+                      transform: 'scaleX(-1)',
+                      filter: 'brightness(1.8) contrast(1.25) saturate(1.1) drop-shadow(0 0 2px rgba(255,255,255,0.85)) drop-shadow(0 0 1px rgba(255,255,255,0.9))' }}
+                  />
+
+                  {/* Label — foreground, always legible */}
+                  <div style={{ position: 'absolute', left: 8, top: 6, fontFamily: 'monospace', letterSpacing: 1 }}>
+                    <div style={{ fontSize: 9, color: '#94a3b8' }}>OCEAN AERO TRITON</div>
+                    {diveLabel && (
+                      <div style={{ fontSize: 8, color: diveProgress >= 0.97 ? '#22d3ee' : '#cbd5e1', marginTop: 2 }}>
+                        {diveLabel}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── Phase badge ── */}
+            {badge && (
+              <div className={`absolute top-3 left-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+                {badge.label}
+              </div>
+            )}
+
+            {/* ── Legend ── */}
+            {currentTick >= T_DEPLOY && (
+              <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+                <div className="flex flex-col gap-1">
+                  {[
+                    { color: '#22d3ee', label: 'SEABED-TRITON-1 — Ocean Aero Triton' },
+                    { color: '#a78bfa', label: 'DAS Instrumented Fiber Segment' },
+                    { color: '#fbbf24', label: 'Anomaly — Flagged' },
+                    { color: '#ef4444', label: 'Anomaly — DAS Alert' },
+                    { color: '#34d399', label: 'Anomaly — Characterized' },
+                    { color: '#0d9488', label: 'SAS / Multibeam Swath' },
+                    { color: '#94a3b8', label: 'NATO CUI Cell — SATCOM Reach-Back' },
+                  ].map(({ color, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mobile: Show Log button */}
+            <button
+              onClick={() => setShowLog(true)}
+              className="md:hidden absolute bottom-3 right-3 z-[500] px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/60 text-gray-300 text-xs font-semibold backdrop-blur-sm"
+            >
+              Show Log
+            </button>
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className={`
+            flex-col border-l border-gray-700/50 overflow-hidden bg-darkest
+            ${showLog
+              ? 'fixed inset-0 z-[600] flex w-full'
+              : 'hidden md:flex md:w-[300px] md:flex-shrink-0'}
+          `}
+          >
+
+            {/* Mobile close button */}
+            <div className="md:hidden flex justify-end p-2 border-b border-gray-700/50">
+              <button
+                onClick={() => setShowLog(false)}
+                className="px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Controls */}
+            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
+                <button
+                  onClick={reset}
+                  className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
+
+              {/* Phase narrative */}
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-cyan-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">
+                  Ocean Aero Triton — CUI Survey (Side-Scan + DAS) · dives itself for the close-look
+                </p>
+              )}
+            </div>
+
+            {/* Event log */}
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
+                Event Log
+              </p>
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
+                {events.length === 0 ? (
+                  <p className="text-gray-600 text-[0.7rem] px-1 pt-1">Run the scenario to see live events.</p>
+                ) : (
+                  events.map(e => (
+                    <div key={e.id} className="flex gap-2 text-[0.7rem] leading-snug">
+                      <span className="text-gray-600 tabular-nums flex-shrink-0 pt-px">{e.ts}</span>
+                      <span className={EVENT_COLORS[e.type] ?? 'text-gray-300'}>{e.msg}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>{/* /animation row */}
+
+        {/* Mobile: play controls */}
+        <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-gray-700/30 bg-gray-900/30">
+          {running ? (
+            <button
+              onClick={pause}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Pause size={15} />
+              Pause
+            </button>
+          ) : (
+            <button
+              onClick={paused ? resume : runScenario}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Play size={15} />
+              {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="p-2.5 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+            title="Reset"
+          >
+            <RotateCcw size={15} />
+          </button>
+        </div>
+
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 border-t border-gray-700/50 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
+              </div>
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider mb-0.5">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
+                </div>
+                {vessel.capabilities.slice(0, 4).map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
+                {vessel.capabilities.length > 4 && (
+                  <div className="text-[0.6rem] text-gray-600 px-1">
+                    +{vessel.capabilities.length - 4} more
+                  </div>
+                )}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        // Prefer the in-flight active config — it reflects the latest unsaved changes.
+                        // Only fall back to savedConfigurations if activeConfig is for a different hull.
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        if (ac && ac.hullName === assignment.hullName) return ac;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        return saved ?? null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>{/* /scrollable content */}
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
+    </div>
+  );
+};
+
+export default SeabedMonitoringMissionView;

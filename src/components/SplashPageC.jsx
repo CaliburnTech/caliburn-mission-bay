@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, Cpu, Layers, Ship, Target, Shield, Plane, Waves, Zap, Plus } from 'lucide-react';
+import missionBayLogotype from '../assets/Mission Bay Logotype.png';
+import missionBayMark from '../assets/Mission Bay Mark.png';
 
 /**
  * Splash Page C: Mission Control
@@ -183,8 +185,8 @@ const SplashPageC = ({ onEnter }) => {
       {/* Left side - Messaging */}
       <div className={`w-full lg:w-[28%] flex flex-col justify-center px-6 md:px-8 transition-all duration-1000 ${showContent ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-lime-brand rounded-lg flex items-center justify-center">
-            <Ship size={22} className="text-black" />
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5">
+            <img src={missionBayMark} alt="Mission Bay" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="text-white font-bold text-lg">CALIBURN</div>
@@ -352,7 +354,7 @@ const SplashPageC = ({ onEnter }) => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <Zap size={18} className="text-lime-brand" />
-              <span className="text-lime-brand text-lg font-bold tracking-wider">MISSION BAY</span>
+              <img src={missionBayLogotype} alt="Mission Bay" className="h-5 w-auto" />
               <span className="text-gray-500 text-sm font-mono ml-2">STAGING AREA</span>
             </div>
             <span className="text-gray-400 text-sm font-mono font-bold">

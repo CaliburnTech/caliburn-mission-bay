@@ -29,7 +29,12 @@ export const KEY_MARITIME_MISSIONS = [
   { key: 'SEAJEEP_BASE', name: 'Sea Jeep — Base MDA', icon: Ship, color: '#14b8a6', description: 'Gray zone maritime domain awareness — AIS-dark contact photography & reporting', domain: 'MARITIME' },
   { key: 'SEAJEEP_ISR', name: 'Sea Jeep — ISR', icon: Eye, color: '#0ea5e9', description: 'Extended-mast ISR station — elevated EO/IR for drone-watch and threat cueing', domain: 'MARITIME' },
   { key: 'SEAJEEP_MCM', name: 'Sea Jeep — MCM Survey', icon: Target, color: '#f59e0b', description: 'Forward-look sonar + towed side-scan mine detection and mapping (detect only)', domain: 'MARITIME' },
-  { key: 'SEAJEEP_LOGISTICS', name: 'Sea Jeep — Logistics', icon: Anchor, color: '#8b5cf6', description: 'Autonomous island-chain resupply — cargo pod delivery to forward posts', domain: 'MARITIME' }
+  { key: 'SEAJEEP_LOGISTICS', name: 'Sea Jeep — Logistics', icon: Anchor, color: '#8b5cf6', description: 'Autonomous island-chain resupply — cargo pod delivery to forward posts', domain: 'MARITIME' },
+  // JMN — Joint Maritime Next (Shield & Spear) — new capability-gap missions
+  { key: 'SEABED_MONITORING', name: 'Seabed & Undersea Infra', icon: Waves, color: '#0891b2', description: 'CUI survey — baseline bathymetry + anomaly/change detection & DAS cueing (JMN Shield)', domain: 'MARITIME' },
+  { key: 'THREAT_CHARACTERIZATION', name: 'Threat Characterization', icon: Radar, color: '#eab308', description: 'Detect + material-ID (CBRNE/contraband) of sleeper craft & hazards (JMN Shield)', domain: 'MARITIME' },
+  { key: 'LAUNCHED_EFFECTS', name: 'Launched Effects', icon: Crosshair, color: '#dc2626', description: 'Maritime missile truck — mothership launching USVs/UUVs/ALE (JMN Spear)', domain: 'MARITIME' },
+  { key: 'SOF_STRIKE_SUPPORT', name: 'SOF Strike Support', icon: Lock, color: '#7c3aed', description: 'Clandestine disablement + SOF insertion/strike support (JMN Spear)', domain: 'MARITIME' }
 ];
 
 // Define the 5 key AERIAL missions
@@ -46,18 +51,32 @@ export const KEY_COMBINED_MISSIONS = [
   { key: 'COMBINED_ISR_DENIAL', name: 'ISR + Sea Denial', icon: Users, color: '#ef4444', description: 'Aerial overwatch with surface denial', domain: 'COMBINED' },
   { key: 'COMBINED_ASW', name: 'Combined ASW', icon: Radar, color: '#06b6d4', description: 'Aerial & surface anti-submarine warfare', domain: 'COMBINED' },
   { key: 'COMBINED_ESCORT', name: 'Combined Escort', icon: Shield, color: '#eab308', description: 'Aerial surveillance with surface protection', domain: 'COMBINED' },
-  { key: 'COMBINED_STRIKE', name: 'Strike Package', icon: Crosshair, color: '#ef4444', description: 'Coordinated aerial targeting & surface attack', domain: 'COMBINED' }
+  { key: 'COMBINED_STRIKE', name: 'Strike Package', icon: Crosshair, color: '#ef4444', description: 'Coordinated aerial targeting & surface attack', domain: 'COMBINED' },
+  // Maritime missions that standardly roster a UAV asset (MQ-4C Triton) alongside
+  // surface/subsurface roles — surfaced here too, in addition to the Maritime tab.
+  // Reuses the same mission objects defined above so name/description/color stay in sync.
+  ...KEY_MARITIME_MISSIONS.filter(m => ['MDA_ISR', 'KINETIC_EFFECTS'].includes(m.key))
 ];
 
 // Legacy export for backwards compatibility
 export const KEY_MISSIONS = KEY_MARITIME_MISSIONS;
 
-// All missions combined for filtering
-export const ALL_MISSIONS = [
-  ...KEY_MARITIME_MISSIONS,
-  ...KEY_AERIAL_MISSIONS,
-  ...KEY_COMBINED_MISSIONS
-];
+// All missions combined for filtering — de-duplicated by key. A couple of maritime
+// missions (MDA_ISR, KINETIC_EFFECTS) are intentionally listed in both
+// KEY_MARITIME_MISSIONS and KEY_COMBINED_MISSIONS (see above), but should only
+// appear once here so lookups/dropdowns elsewhere don't render them twice.
+export const ALL_MISSIONS = (() => {
+  const seenKeys = new Set();
+  return [
+    ...KEY_MARITIME_MISSIONS,
+    ...KEY_AERIAL_MISSIONS,
+    ...KEY_COMBINED_MISSIONS
+  ].filter(m => {
+    if (seenKeys.has(m.key)) return false;
+    seenKeys.add(m.key);
+    return true;
+  });
+})();
 
 // Node type configuration - primary nodes are bigger, decision nodes smaller
 export const nodeTypes = {
@@ -109,6 +128,12 @@ export const zoneTypes = {
   SEAJEEP_ISR: { label: 'ISR Station', color: '#0ea5e9', fillOpacity: 0.12, geometryType: 'station', description: 'ISR loiter station — extended mast EO/IR coverage', domain: 'MARITIME' },
   SEAJEEP_MCM: { label: 'MCM Survey Lane', color: '#f59e0b', fillOpacity: 0.2, geometryType: 'route', description: 'Survey corridor for forward-look sonar + towed side-scan mine detection', domain: 'MARITIME' },
   SEAJEEP_LOGISTICS: { label: 'Resupply Route', color: '#8b5cf6', fillOpacity: 0.15, geometryType: 'route', description: 'Autonomous resupply transit route to forward island post', domain: 'MARITIME' },
+
+  // JMN — Joint Maritime Next (Shield & Spear)
+  SEABED_MONITORING: { label: 'CUI Survey Corridor', color: '#0891b2', fillOpacity: 0.15, geometryType: 'route', description: 'Survey lane over cable/pipeline corridor — baseline + anomaly detection', domain: 'MARITIME' },
+  THREAT_CHARACTERIZATION: { label: 'Characterization Barrier', color: '#eab308', fillOpacity: 0.15, geometryType: 'zone', description: 'Chokepoint picket for detect + material-ID of sleeper craft', domain: 'MARITIME' },
+  LAUNCHED_EFFECTS: { label: 'Launch Basket', color: '#dc2626', fillOpacity: 0.25, geometryType: 'target', description: 'Mothership launch basket + daughter-vehicle vectors', domain: 'MARITIME' },
+  SOF_STRIKE_SUPPORT: { label: 'Covert Approach Lane', color: '#7c3aed', fillOpacity: 0.15, geometryType: 'route', description: 'Clandestine transit + release point + objective', domain: 'MARITIME' },
 
   // Aerial missions
   AERIAL_ISR: { label: 'ISR Orbit', color: '#06b6d4', fillOpacity: 0.2, geometryType: 'orbit', description: 'Define orbit track for surveillance', domain: 'AERIAL' },

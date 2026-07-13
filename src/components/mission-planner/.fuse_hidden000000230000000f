@@ -1,0 +1,757 @@
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import {
+  MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
+} from 'react-leaflet';
+import { Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings, ArrowLeftRight } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
+import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
+
+const MISSION_SET_KEY = 'COUNTER_C5ISR';
+const MISSION_SET_CAPS = ['EW Decoy Payload', 'LOS Mesh Radio'];
+
+// ─── Geography ────────────────────────────────────────────────────────────────
+const NM_TO_M = 1852;
+
+const MAP_CENTER = [24.70, 121.30];
+const MAP_ZOOM   = 8;
+
+// The disposable Horus loiters on station in open water, projecting a false signature.
+const HORUS_STATION  = [24.05, 122.30];
+
+// Adversary maritime-ISR airbase on the coast — a long transit away (the whole point).
+const ADVERSARY_BASE = [26.45, 120.25];
+
+// High-value ISR UAV inbound leg: base → the decoy contact.
+const UAV_INBOUND = [
+  [26.45, 120.25],
+  [25.70, 120.95],
+  [24.85, 121.60],
+  [24.20, 122.15],   // arrives over the decoy
+];
+const UAV_RETURN = [
+  [24.20, 122.15],
+  [24.85, 121.60],
+  [25.70, 120.95],
+  [26.45, 120.25],
+];
+
+const DECOY_RCS_NM = 9;   // apparent frigate-class contact radius on adversary sensors
+
+// ─── Tick milestones ──────────────────────────────────────────────────────────
+const T_START            =   5;
+const T_DECOY_ACTIVE     =  16;   // emitter projects a frigate-class signature
+const T_ADVERSARY_DETECT =  30;   // enemy coastal radar paints the phantom contact
+const T_UAV_LAUNCH       =  40;   // enemy tasks + launches a high-value ISR UAV
+const T_UAV_ARRIVE       =  84;   // UAV reaches the decoy (long, costly transit)
+const T_UAV_INVESTIGATE  =  94;   // UAV loiters / photographs
+const T_UAV_RTB          = 106;   // nothing of value — UAV turns for home
+const T_WASTE_TALLY      = 116;   // cost-imposition payoff
+const TOTAL_TICKS        = 128;
+
+const TICK_MS = 280;
+
+// ─── Tile layers ──────────────────────────────────────────────────────────────
+const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+const trackPos = (track, t) => {
+  const clamped = Math.min(Math.max(t, 0), 0.9999);
+  const progress = clamped * (track.length - 1);
+  const idx = Math.floor(progress);
+  return lerp2(track[idx], track[idx + 1], progress - idx);
+};
+
+const EVENT_COLORS = {
+  warn:    'text-amber-400',
+  alert:   'text-red-400',
+  info:    'text-cyan-400',
+  success: 'text-emerald-400',
+};
+
+// ─── Phase narratives ─────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:             null,
+  onstation:        { title: 'Decoy On Station', body: 'A single low-cost SubSeaSail Horus loiters in open water. EW decoy payload warming up. The hull itself has a near-zero signature — a sailing drone the size of a surfboard.' },
+  decoy_active:     { title: 'False Signature Projecting', body: 'The EW decoy arms. When adversary radar illuminates it, the decoy re-transmits a false, amplified echo — so the Horus returns the radar signature of a large combatant. The bait is set.' },
+  adversary_detect: { title: 'Adversary Takes the Bait', body: 'Enemy coastal surface-search radar and AIS both report a large combatant where there should be none. Threat cell can not ignore it — they task a high-value maritime ISR UAV to identify the contact.' },
+  uav_inbound:      { title: 'High-Value ISR UAV Inbound', body: 'The adversary launches an expensive ISR drone and commits it to a long transit toward the phantom contact. Every minute in the air is fuel, flight hours, and an ISR asset that is now NOT watching anything else.' },
+  uav_investigate:  { title: 'UAV Investigating — Finds a Sailboat', body: 'The UAV arrives and orbits, sensors straining. There is no frigate — only a tiny sailing drone. To confirm the negative, it burns still more loiter time and radiates, exposing its own ISR profile and tasking pattern to our collectors.' },
+  uav_rtb:          { title: 'UAV RTB — Nothing Gained', body: 'The drone breaks off and turns for home, its long return leg ahead of it. The adversary has spent a full high-value ISR sortie and learned nothing of value.' },
+  resource_waste:   { title: 'Cost Imposed — We Win the Exchange', body: 'One disposable ~six-figure Horus baited a multi-million-dollar ISR aircraft into a multi-hour sortie — and exposed its ISR pattern. We spent pennies to make them spend dollars. Scale this across a fleet of cheap decoys and the adversary bleeds resources faster than we do.' },
+};
+
+// ─── Phase derivation ────────────────────────────────────────────────────────
+const getPhase = (tick) => {
+  if (tick < T_START)            return 'idle';
+  if (tick < T_DECOY_ACTIVE)     return 'onstation';
+  if (tick < T_ADVERSARY_DETECT) return 'decoy_active';
+  if (tick < T_UAV_LAUNCH)       return 'adversary_detect';
+  if (tick < T_UAV_ARRIVE)       return 'uav_inbound';
+  if (tick < T_UAV_RTB)          return 'uav_investigate';
+  if (tick < T_WASTE_TALLY)      return 'uav_rtb';
+  return 'resource_waste';
+};
+
+const getUavPos = (tick) => {
+  if (tick < T_UAV_LAUNCH) return null;
+  if (tick < T_UAV_ARRIVE) {
+    const t = (tick - T_UAV_LAUNCH) / (T_UAV_ARRIVE - T_UAV_LAUNCH);
+    return trackPos(UAV_INBOUND, t);
+  }
+  if (tick < T_UAV_RTB) {
+    // Loiter orbit around the decoy
+    const a = (tick - T_UAV_ARRIVE) * 0.5;
+    const r = 0.05;
+    return [HORUS_STATION[0] + r * Math.cos(a), HORUS_STATION[1] + r * Math.sin(a)];
+  }
+  if (tick < TOTAL_TICKS) {
+    const t = (tick - T_UAV_RTB) / (TOTAL_TICKS - T_UAV_RTB);
+    return trackPos(UAV_RETURN, t);
+  }
+  return null;
+};
+
+const getPhaseBadge = (phase) => {
+  switch (phase) {
+    case 'onstation':        return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                       label: '→ Horus Decoy On Station' };
+    case 'decoy_active':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',      label: '◈ Projecting Frigate Signature' };
+    case 'adversary_detect': return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',           label: '⚠ Adversary Paints Phantom Contact' };
+    case 'uav_inbound':      return { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '→ High-Value ISR UAV Inbound' };
+    case 'uav_investigate':  return { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '◎ UAV Investigating — Finds a Sailboat' };
+    case 'uav_rtb':          return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                    label: '← UAV RTB — Nothing Gained' };
+    case 'resource_waste':   return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Adversary Resources Wasted' };
+    default: return null;
+  }
+};
+
+// ─── Loadout (reference) ───────────────────────────────────────────────────────
+const VESSEL_ROSTER = [
+  { name: 'HORUS DECOY', roleDescriptor: '(EW Decoy)', image: imgSubSeaSail, hullName: 'SubSeaSail Horus', capabilities: ['EW Decoy Payload', 'LOS Mesh Radio'], roleKey: 'CC5ISR_HORUS' },
+];
+
+// ─── MapInvalidateSize ────────────────────────────────────────────────────────
+const MapInvalidateSize = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timers = [100, 300, 600].map(d => setTimeout(() => map.invalidateSize(), d));
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(map.getContainer());
+    return () => { timers.forEach(clearTimeout); ro.disconnect(); };
+  }, [map]);
+  return null;
+};
+
+// ─── Component ───────────────────────────────────────────────────────────────
+const TaiwanISRMissionView = ({ mission, onBack }) => {
+  const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull } = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingRoleKey, setPendingVesselLabel, setPendingMissionSetCaps, activeConfig } = useConfigurationStore();
+  const { setSelectedView } = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null);
+  const [showLog, setShowLog] = useState(false);
+
+  // Build effective roster — override default slots with assigned vessels
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
+    return {
+      ...vessel,
+      name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName),
+      hullName: assignment.hullName,
+      capabilities,
+      image: HULL_IMAGES[assignment.hullName] || vessel.image,
+    };
+  });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
+  const [missionName, setMissionName] = useState(mission?.name || '');
+  const [currentTick, setCurrentTick] = useState(0);
+  const [pulseTick,   setPulseTick]   = useState(false);
+  const [events,      setEvents]      = useState([]);
+  const [running,     setRunning]     = useState(false);
+  const [paused,      setPaused]      = useState(false);
+  const [complete,    setComplete]    = useState(false);
+
+  const tickRef         = useRef(0);
+  const tickCallbackRef = useRef(null);
+  const mainTimer       = useRef(null);
+  const pulseTimer      = useRef(null);
+  const loopTimer       = useRef(null);
+  const addEvtRef       = useRef(null);
+  const runScenarioRef  = useRef(null);
+
+  const phase   = getPhase(currentTick);
+  const uavPos  = getUavPos(currentTick);
+  const decoyOn = currentTick >= T_DECOY_ACTIVE;
+
+  const _addEvent = (msg, type = 'info') => {
+    const ts = new Date().toLocaleTimeString('en-US', {
+      hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 10)}` }, ...prev].slice(0, 30));
+  };
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    clearTimeout(loopTimer.current);
+    loopTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, TICK_MS);
+  }, []);
+
+  useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+
+  useEffect(() => {
+    clearInterval(pulseTimer.current);
+    const needsPulse = ['decoy_active', 'adversary_detect', 'uav_inbound', 'uav_investigate'].includes(phase);
+    if (needsPulse) {
+      pulseTimer.current = setInterval(() => setPulseTick(p => !p), 350);
+      return () => clearInterval(pulseTimer.current);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited
+    setPulseTick(false);
+  }, [phase]);
+
+  const stopAll = useCallback(() => {
+    clearInterval(mainTimer.current);
+    clearInterval(pulseTimer.current);
+    clearTimeout(loopTimer.current);
+    mainTimer.current = pulseTimer.current = loopTimer.current = null;
+  }, []);
+
+  const reset = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setPaused(false);
+    setCurrentTick(0);
+    setPulseTick(false);
+    setEvents([]);
+    setRunning(false);
+    setComplete(false);
+  }, [stopAll]);
+
+  const runScenario = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setCurrentTick(0);
+    setPulseTick(false);
+    setEvents([]);
+    setRunning(true);
+    setPaused(false);
+    setComplete(false);
+
+    const cb = () => {
+      const tick = ++tickRef.current;
+      setCurrentTick(tick);
+
+      if (tick === T_START) {
+        addEvtRef.current('HORUS-DECOY: On station — open water — hull signature near zero', 'info');
+        addEvtRef.current('CTF: Counter-C5ISR cost-imposition patrol active — 1 disposable USV', 'info');
+      }
+      if (tick === T_DECOY_ACTIVE) {
+        addEvtRef.current('HORUS-DECOY: EW decoy payload ARMED — standing by to spoof', 'warn');
+        addEvtRef.current('HORUS-DECOY: On illumination, returning frigate-class radar echo', 'warn');
+      }
+      if (tick === T_ADVERSARY_DETECT) {
+        addEvtRef.current('ADVERSARY RADAR: Large surface contact detected — frigate-class — bearing to open water', 'alert');
+        addEvtRef.current('ADVERSARY RADAR: Return strength and profile consistent with a frigate-class hull', 'alert');
+        addEvtRef.current('ADVERSARY C2: Unidentified combatant in sector — tasking maritime ISR UAV to identify', 'alert');
+      }
+      if (tick === T_UAV_LAUNCH) {
+        addEvtRef.current('ADVERSARY: High-value ISR UAV launched — long transit to contact', 'warn');
+        addEvtRef.current('COLLECTIONS: Enemy ISR sortie committed — logging tail number, sensors, tasking', 'info');
+      }
+      if (tick === T_UAV_ARRIVE) {
+        addEvtRef.current('ADVERSARY UAV: On top of contact — commencing identification orbit', 'warn');
+      }
+      if (tick === T_UAV_INVESTIGATE) {
+        addEvtRef.current('ADVERSARY UAV: Sensor return does not match — no frigate present', 'info');
+        addEvtRef.current('ADVERSARY UAV: Prolonging loiter to resolve — burning fuel + radiating', 'info');
+        addEvtRef.current('COLLECTIONS: UAV EO/IR + radar profile captured — ISR pattern exposed', 'success');
+      }
+      if (tick === T_UAV_RTB) {
+        addEvtRef.current('ADVERSARY UAV: Contact assessed — low-value sailing drone — breaking off, RTB', 'info');
+        addEvtRef.current('HORUS-DECOY: Intact — decoy survivable, reusable — no cost to us', 'success');
+      }
+      if (tick === T_WASTE_TALLY) {
+        addEvtRef.current('CTF: Exchange tally — 1 disposable Horus decoy vs 1 high-value ISR sortie', 'success');
+        addEvtRef.current('CTF: Adversary burned flight hours + exposed ISR tasking — learned nothing', 'success');
+        addEvtRef.current('CTF: Cost imposed — we spend pennies to make them spend dollars', 'success');
+      }
+      if (tick >= TOTAL_TICKS) {
+        clearInterval(mainTimer.current);
+        mainTimer.current = null;
+        setRunning(false);
+        setComplete(true);
+        // Auto-loop: brief pause then restart
+        loopTimer.current = setTimeout(() => {
+          if (loopTimer.current !== null) runScenarioRef.current?.();
+        }, 5000);
+      }
+    };
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, TICK_MS);
+  }, [stopAll]);
+
+  useLayoutEffect(() => { runScenarioRef.current = runScenario; });
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+
+    setSelectedHull(hull);
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName || currentActive.missionSetKey !== MISSION_SET_KEY) {
+      startNewConfiguration(vessel.hullName, MISSION_SET_KEY);
+    }
+
+    setPendingMissionSetCaps(vessel.capabilities);
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    setPendingVesselLabel(vessel.name);
+    setSelectedView('outfitter');
+  };
+
+  const handleSave = () => {
+    if (!missionName.trim()) return;
+    const data = {
+      name: missionName.trim(),
+      template: 'COUNTER_C5ISR',
+      domain: 'MARITIME',
+      status: 'active',
+      duration: 'continuous',
+      zoneConfig: {
+        name: 'Counter-C5ISR — EW Decoy Cost-Imposition Patrol',
+        coordinates: [
+          { lat: 23.60, lng: 121.20 },
+          { lat: 25.60, lng: 121.20 },
+          { lat: 25.60, lng: 122.80 },
+          { lat: 23.60, lng: 122.80 },
+        ],
+        swarmSize: 1,
+        swarmFormation: 'loiter',
+      },
+      assignedSquadrons: ['sqdn_016'],
+      missionProfile: {
+        type: 'COUNTER_C5ISR',
+        lane: 'COUNTER_C5ISR',
+      },
+      stateHierarchies: {
+        default:          ['Navigation', 'Payload', 'Comms', 'Mission', 'Vehicle'],
+        decoy_active:     ['Payload', 'Comms', 'Mission', 'Navigation', 'Vehicle'],
+        contact_inbound:  ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
+        comms_degraded:   ['Navigation', 'Mission', 'Vehicle', 'Comms', 'Payload'],
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      launchedAt: new Date().toISOString(),
+      history: [{ action: 'created', timestamp: new Date().toISOString() }],
+    };
+    if (mission?.id) updateMission(mission.id, data);
+    else saveMission(data);
+    onBack();
+  };
+
+  // ── Derived visual state ──────────────────────────────────────────────────
+  const narrative = PHASE_NARRATIVE[phase] || null;
+  const badge = getPhaseBadge(phase);
+  const showAdversary = currentTick >= T_ADVERSARY_DETECT;
+  const showLedger = ['uav_investigate', 'uav_rtb', 'resource_waste'].includes(phase);
+  const decoyRingR = decoyOn
+    ? (pulseTick ? DECOY_RCS_NM * NM_TO_M + 400 : DECOY_RCS_NM * NM_TO_M - 400)
+    : 0;
+
+  return (
+    <div className="flex flex-col bg-darkest relative">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
+        >
+          <ChevronLeft size={13} /> Back to Library
+        </button>
+        <div className="w-px h-4 bg-gray-700/60" />
+        <Anchor size={13} className="text-amber-400" />
+        <span className="text-amber-400 text-[0.8rem] font-semibold tracking-wide">Counter-C5ISR — EW Decoy Cost Imposition</span>
+        <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">SubSeaSail Horus decoy baits adversary ISR — make the enemy waste resources</span>
+        <div className="flex-1" />
+        <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">
+          ACTIVE
+        </span>
+        <input
+          value={missionName}
+          onChange={e => setMissionName(e.target.value)}
+          placeholder="Mission name…"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-amber-500/50 transition-colors"
+        />
+        <button
+          onClick={handleSave}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
+            missionName.trim() && isDeployable
+              ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
+              : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
+          }`}
+        >
+          Save Draft
+        </button>
+      </div>
+
+      {/* ── Scrollable content ── */}
+      <div>
+        <div className="flex h-[40vh] md:h-[460px]">
+
+          {/* ── Map ── */}
+          <div className="flex-1 relative overflow-hidden">
+            <MapContainer
+              center={MAP_CENTER}
+              zoom={MAP_ZOOM}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={false}
+              scrollWheelZoom={false}
+              attributionControl={false}
+            >
+              <ZoomControl position="topright" />
+              <TileLayer url={TILE_BASE} />
+              <TileLayer url={TILE_SEAMARK} opacity={0.55} />
+              <MapInvalidateSize />
+
+              {/* Adversary ISR base */}
+              {showAdversary && (
+                <CircleMarker center={ADVERSARY_BASE} radius={6}
+                  pathOptions={{ color: '#ef4444', fillColor: '#7f1d1d', fillOpacity: 0.9, weight: 2 }}
+                >
+                  <Tooltip direction="left" offset={[-8, 0]}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#fca5a5' }}>Adversary ISR Base</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* Enemy radar "paint" line — base senses the phantom contact */}
+              {showAdversary && currentTick < T_UAV_LAUNCH && (
+                <Polyline
+                  positions={[ADVERSARY_BASE, HORUS_STATION]}
+                  pathOptions={{ color: '#ef4444', opacity: pulseTick ? 0.55 : 0.2, weight: 1.5, dashArray: '3 8' }}
+                />
+              )}
+
+              {/* Decoy phantom contact — amplified "frigate-class" signature ring */}
+              {decoyOn && (
+                <Circle
+                  center={HORUS_STATION}
+                  radius={decoyRingR}
+                  pathOptions={{ color: '#fbbf24', weight: 2, dashArray: '6 5', fillColor: '#fbbf24', fillOpacity: 0.10 }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -12]}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#fbbf24' }}>PHANTOM CONTACT — “FRIGATE” (decoy)</span>
+                  </Tooltip>
+                </Circle>
+              )}
+
+              {/* Enemy ISR UAV + its (costly) flight path */}
+              {uavPos && (
+                <>
+                  <Polyline
+                    positions={currentTick < T_UAV_RTB ? [ADVERSARY_BASE, uavPos] : [uavPos, ADVERSARY_BASE]}
+                    pathOptions={{ color: '#f97316', opacity: 0.5, weight: 1.5, dashArray: '5 6' }}
+                  />
+                  <CircleMarker
+                    center={uavPos}
+                    radius={pulseTick && phase === 'uav_inbound' ? 8 : 6}
+                    pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.9, weight: 2 }}
+                  >
+                    <Tooltip direction="top" offset={[0, -10]}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>Adversary ISR UAV (high-value)</span>
+                    </Tooltip>
+                  </CircleMarker>
+                </>
+              )}
+
+              {/* Horus decoy — the real (tiny) platform */}
+              {currentTick >= T_START && (
+                <CircleMarker
+                  center={HORUS_STATION}
+                  radius={5}
+                  pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.95, weight: 2 }}
+                >
+                  <Tooltip direction="bottom" offset={[0, 10]}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#67e8f9' }}>
+                      {decoyOn ? 'HORUS-DECOY · emitter active' : 'HORUS-DECOY'}
+                    </span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+            </MapContainer>
+
+            {badge && (
+              <div className={`absolute top-3 right-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+                {badge.label}
+              </div>
+            )}
+
+            {/* ── Legend ── */}
+            {currentTick >= T_START && (
+              <div className="hidden md:block absolute top-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+                <div className="flex flex-col gap-1">
+                  {[
+                    { color: '#22d3ee', label: 'HORUS Decoy — disposable USV' },
+                    { color: '#fbbf24', label: 'Phantom “Frigate” Contact — decoy signature' },
+                    { color: '#ef4444', label: 'Adversary ISR Base' },
+                    { color: '#f97316', label: 'Adversary ISR UAV — high-value' },
+                  ].map(({ color, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Cost ledger ── */}
+            {showLedger && (
+              <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-emerald-500/30 backdrop-blur-sm">
+                <div className="text-[0.6rem] font-bold uppercase tracking-widest text-emerald-400 mb-1">Cost Exchange</div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22d3ee' }} />
+                  <span style={{ fontSize: 10, color: '#9ca3af' }}>Us: 1× disposable Horus decoy (reusable)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f97316' }} />
+                  <span style={{ fontSize: 10, color: '#9ca3af' }}>Them: 1× ISR sortie + flight hours + exposed pattern</span>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile: Show Log button */}
+            <button
+              onClick={() => setShowLog(true)}
+              className="md:hidden absolute bottom-3 right-3 z-[500] px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/60 text-gray-300 text-xs font-semibold backdrop-blur-sm"
+            >
+              Show Log
+            </button>
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className={`
+            flex-col border-l border-gray-700/50 overflow-hidden bg-darkest
+            ${showLog
+              ? 'fixed inset-0 z-[600] flex w-full'
+              : 'hidden md:flex md:w-[300px] md:flex-shrink-0'}
+          `}
+          >
+
+            {/* Mobile close button */}
+            <div className="md:hidden flex justify-end p-2 border-b border-gray-700/50">
+              <button
+                onClick={() => setShowLog(false)}
+                className="px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-amber-700 hover:bg-amber-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-amber-700 hover:bg-amber-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
+                <button
+                  onClick={reset}
+                  className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
+
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-amber-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">SubSeaSail Horus · EW Decoy Payload · Cost Imposition</p>
+              )}
+            </div>
+
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">Event Log</p>
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
+                {events.length === 0 ? (
+                  <p className="text-gray-600 text-[0.7rem] px-1 pt-1">Run the scenario to see live events.</p>
+                ) : (
+                  events.map(e => (
+                    <div key={e.id} className="flex gap-2 text-[0.7rem] leading-snug">
+                      <span className="text-gray-600 tabular-nums flex-shrink-0 pt-px">{e.ts}</span>
+                      <span className={EVENT_COLORS[e.type] ?? 'text-gray-300'}>{e.msg}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>{/* /animation row */}
+
+        {/* Mobile: play controls */}
+        <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-gray-700/30 bg-gray-900/30">
+          {running ? (
+            <button
+              onClick={pause}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Pause size={15} />
+              Pause
+            </button>
+          ) : (
+            <button
+              onClick={paused ? resume : runScenario}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Play size={15} />
+              {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="p-2.5 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+            title="Reset"
+          >
+            <RotateCcw size={15} />
+          </button>
+        </div>
+
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
+              </div>
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center mb-0.5">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
+                </div>
+                {vessel.capabilities.map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        if (ac && ac.hullName === assignment.hullName) return ac;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        return saved ?? null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>{/* /scrollable content */}
+
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
+    </div>
+  );
+};
+
+export default TaiwanISRMissionView;

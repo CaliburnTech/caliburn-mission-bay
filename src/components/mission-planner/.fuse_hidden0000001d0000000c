@@ -1,0 +1,916 @@
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import {
+  MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
+} from 'react-leaflet';
+import {
+  Play, Pause, RotateCcw, Anchor, ChevronLeft, Settings, ArrowLeftRight
+} from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import useMissionStore from '../../store/missionStore';
+import useOutfitterStore from '../../store/outfitterStore';
+import useConfigurationStore from '../../store/configurationStore';
+import useNavigationStore from '../../store/navigationStore';
+import SwapVesselModal from './SwapVesselModal';
+import ReadinessChecklist from './ReadinessChecklist';
+import { getMissionReadiness } from '../../utils/missionReadiness';
+import { HULL_IMAGES } from '../../utils/hullImages';
+import { vesselHullData } from '../../data/vesselData';
+import { MISSION_ROLES } from '../../data/missionRoles';
+import imgSeaJeep from '../../assets/images/SeaJeep.png';
+
+const MISSION_SET_KEY = 'SEAJEEP_ISR';
+const MISSION_SET_CAPS = [
+  'Trillium HD25e Gimbal (Mast-Mounted)',
+  'Extended ISR Mast + Counterweight Keel',
+  'Iridium SATCOM',
+  '900 MHz Radio Mesh',
+  'GPS/INS',
+];
+
+// ─── Geography ───────────────────────────────────────────────────────────────
+const MAP_CENTER        = [12.5, 43.8];
+const MAP_ZOOM          = 9;
+const SEA_JEEP_STATION  = [12.55, 44.05];
+const LAUNCH_SITE       = [12.78, 44.35];     // Yemeni coast
+const DDG_POS           = [11.90, 43.70];     // Arleigh Burke DDG
+const MERCHANT_POS      = [12.45, 43.60];     // commercial vessel in shipping lane
+const INTERCEPT_POINT   = [12.50, 43.95];     // where SM-2 hits drone
+
+const DRONE_TRACK = [
+  [12.78, 44.35],
+  [12.65, 44.15],
+  [12.50, 43.95],
+];
+
+const SM2_TRACK = [
+  [11.90, 43.70],
+  [12.50, 43.95],
+];
+
+// ─── Phase state machine order (for >= comparisons) ──────────────────────────
+const PHASES = [
+  'idle',
+  'transit',
+  'on_station',
+  'mast_deployed',
+  'loitering',
+  'launch_flash',
+  'drone_tracked',
+  'relay_to_ddg',
+  'ddg_intercept',
+  'threat_neutralized',
+  'resume_watch',
+];
+
+const phaseIndex = (p) => PHASES.indexOf(p);
+
+// ─── Tick milestones ──────────────────────────────────────────────────────────
+const T_TRANSIT          = 5;
+const T_ON_STATION       = 15;
+const T_LOITERING        = 25;
+const T_LAUNCH_FLASH     = 38;
+const T_DRONE_TRACKED    = 45;
+const T_RELAY_TO_DDG     = 52;
+const T_DDG_INTERCEPT    = 60;
+const T_THREAT_NEUT      = 72;
+const T_RESUME_WATCH     = 82;
+const TOTAL_TICKS        = 100;
+
+// ─── Tile layers ─────────────────────────────────────────────────────────────
+const TILE_BASE    = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+const trackPos = (track, t) => {
+  const clamped = Math.min(Math.max(t, 0), 0.9999);
+  const progress = clamped * (track.length - 1);
+  const idx = Math.floor(progress);
+  return lerp2(track[idx], track[idx + 1], progress - idx);
+};
+
+const EVENT_COLORS = {
+  warn:    'text-amber-400',
+  alert:   'text-red-400',
+  info:    'text-cyan-400',
+  success: 'text-emerald-400',
+};
+
+// ─── Phase narratives ─────────────────────────────────────────────────────────
+const PHASE_NARRATIVE = {
+  idle:              null,
+  transit:           { title: 'Transit to Station', body: 'GP-USV Sea Jeep ISR-1 transiting to Bab-el-Mandeb station. ISR mast stowed for transit. Solar/wind propulsion — 5 knots. NAVCENT AOR entry in progress.' },
+  on_station:        { title: 'On Station — Mast Deployed', body: 'Sea Jeep arrived on station. Extended ISR mast raised — Trillium HD25e EO/IR gimbal elevated to ~3m. Counterweight keel deployed — platform stabilized in Sea State 3.' },
+  mast_deployed:     { title: 'Mast Stabilized', body: 'Counterweight keel confirmed deployed. EO/IR sensor horizon extended 3nm over surface level. NSA Bahrain MOC notified — DDG on station and standing by.' },
+  loitering:         { title: 'Scanning Yemeni Coastline', body: 'Sea Jeep holding position, scanning Yemeni coast on bearing 045. No contacts. Iridium SATCOM link to DDG and NSA Bahrain MOC confirmed active.' },
+  launch_flash:      { title: 'LAUNCH FLASH', body: 'EO/IR has detected a launch signature on Yemeni coast, bearing 045. UAS suspected. Initiating track — relaying bearing data to MOC NSA Bahrain and DDG.' },
+  drone_tracked:     { title: 'UAS Track Confirmed', body: 'Bearing 045, closure rate ~130 knots. Target elevation 500ft AGL, heading 225 — merchant vessel in shipping lane is likely target. Relaying track to DDG via Iridium SATCOM.' },
+  relay_to_ddg:      { title: 'Track Relay to DDG', body: 'MOC NSA Bahrain received track data. Cueing DDG for intercept solution. Sea Jeep relay providing real-time UAS position — SM-2 solution computed by DDG fire control.' },
+  ddg_intercept:     { title: 'DDG Intercept — Missile Away', body: 'DDG fire control radar locked. SM-2 Standard Missile launched — intercept in 45 seconds. Sea Jeep continuing track relay throughout engagement.' },
+  threat_neutralized:{ title: 'UAS Destroyed — Merchant Safe', body: 'SM-2 intercept confirmed — UAS destroyed 8nm northwest of merchant vessel. No damage to commercial shipping. Sea Jeep ISR relay provided decisive targeting advantage.' },
+  resume_watch:      { title: 'Resuming Watch', body: 'Threat eliminated. Sea Jeep resuming scan of Bab-el-Mandeb. MARAD notified — lane BRAVO-2 remains open. Persistent autonomous watch posture maintained with zero crew exposure.' },
+};
+
+// ─── Loadout ─────────────────────────────────────────────────────────────────
+const SEA_JEEP_ISR_MOUNTS = [
+  { slot: 'EO/IR',             name: 'Trillium HD25e Gimbal (Mast-Mounted)',   vendor: 'Trillium',  checked: true, description: 'Elevated to ~3m by extended ISR mast — adds 3nm optical horizon for coastal launch detection' },
+  { slot: 'MAST',              name: 'Extended ISR Mast + Counterweight Keel', vendor: 'GP-USV',    checked: true, description: 'Raises sensor payload; counterweight keel stabilizes mast in Sea State 3-4' },
+  { slot: 'COMMS (primary)',   name: 'Iridium SATCOM',                         vendor: 'Iridium',   checked: true, description: 'Relays UAS bearing/elevation to DDG and NSA Bahrain MOC' },
+  { slot: 'COMMS (secondary)', name: '900 MHz Radio Mesh',                     vendor: '—',         checked: true, description: 'Short-range backup link to DDG' },
+  { slot: 'NAV',               name: 'GPS/INS',                                vendor: '—',         checked: true, description: 'Station-keeping navigation' },
+];
+
+const VESSEL_ROSTER = [
+  {
+    name: 'SEA-JEEP-ISR-1',
+    roleDescriptor: '(ISR)',
+    image: imgSeaJeep,
+    hullName: 'GP-USV Sea Jeep',
+    roleKey: 'SEA_JEEP_ISR_1',
+    capabilities: SEA_JEEP_ISR_MOUNTS.map(m => m.name),
+  },
+];
+
+// ─── MapInvalidateSize ────────────────────────────────────────────────────────
+const MapInvalidateSize = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timers = [100, 300, 600].map(d => setTimeout(() => map.invalidateSize(), d));
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(map.getContainer());
+    return () => { timers.forEach(clearTimeout); ro.disconnect(); };
+  }, [map]);
+  return null;
+};
+
+// ─── Component ───────────────────────────────────────────────────────────────
+const SeaJeepISRMissionView = ({ mission, onBack }) => {
+  const { saveMission, updateMission } = useMissionStore();
+  const { setSelectedHull }            = useOutfitterStore();
+  const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
+  const { setSelectedView }            = useNavigationStore();
+  const roleAssignments = useMissionStore(s => s.roleAssignments);
+  const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
+  const [swapModal, setSwapModal] = useState(null); // { roleKey: string } | null
+  const [showLog, setShowLog] = useState(false);
+
+  // Build effective roster
+  const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
+  const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
+    const roleDef   = missionRoleDefs[idx];
+    if (!roleDef) return vessel;
+    const assignment = roleAssignments?.[MISSION_SET_KEY]?.[roleDef.roleKey];
+    if (!assignment) return { ...vessel, name: vessel.roleDescriptor ? `${vessel.hullName} ${vessel.roleDescriptor}` : vessel.name };
+    let capabilities = roleDef.capabilities?.length ? roleDef.capabilities : vessel.capabilities;
+    if (activeConfig && activeConfig.hullName === assignment.hullName) {
+      const caps = Object.values(activeConfig.slots).flat().filter(Boolean);
+      if (caps.length) capabilities = caps;
+    } else if (savedConfigurations) {
+      const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+      if (saved) {
+        const caps = Object.values(saved.slots).flat().filter(Boolean);
+        if (caps.length) capabilities = caps;
+      }
+    }
+    return { ...vessel, name: vessel.roleDescriptor ? `${assignment.hullName} ${vessel.roleDescriptor}` : (assignment.vesselLabel || assignment.hullName), hullName: assignment.hullName, capabilities, image: HULL_IMAGES[assignment.hullName] || vessel.image };
+  });
+
+  const readiness = getMissionReadiness(MISSION_SET_KEY, roleAssignments, savedConfigurations);
+  const isDeployable = readiness.deployable;
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [missionName,  setMissionName]  = useState(mission?.name || '');
+  const [phase,        setPhase]        = useState('idle');
+  const [_currentTick, setCurrentTick]  = useState(0);
+
+  // Drone animation
+  const [dronePos,     setDronePos]     = useState(null);
+  const [droneVisible, setDroneVisible] = useState(false);
+
+  // SM-2 animation
+  const [sm2Pos,       setSm2Pos]       = useState(null);
+
+  // Flash pulses
+  const [launchPulse,  setLaunchPulse]  = useState(false);
+  const [interceptFlash, setInterceptFlash] = useState(false);
+  const [mastPulse,    setMastPulse]    = useState(false);
+
+  const [events,   setEvents]   = useState([]);
+  const [running,  setRunning]  = useState(false);
+  const [paused,   setPaused]   = useState(false);
+  const [complete, setComplete] = useState(false);
+
+  const tickRef         = useRef(0);
+  const tickCallbackRef = useRef(null);
+  const mainTimer       = useRef(null);
+  const launchTimer     = useRef(null);
+  const mastTimer       = useRef(null);
+  const addEvtRef       = useRef(null);
+  const vesselLabelsRef = useRef([]);
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const _addEvent = (msg, type = 'info') => {
+    const ts = new Date().toLocaleTimeString('en-US', {
+      hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    setEvents(prev => [{ ts, msg, type, id: `${ts}-${msg.slice(0, 12)}` }, ...prev].slice(0, 30));
+  };
+
+  useLayoutEffect(() => { addEvtRef.current = _addEvent; });
+  useLayoutEffect(() => { vesselLabelsRef.current = effectiveRoster.map(v => v.name); });
+
+  // Mast stability pulse when on_station or later
+  useEffect(() => {
+    clearInterval(mastTimer.current);
+    if (['on_station','mast_deployed','loitering','launch_flash','drone_tracked','relay_to_ddg','ddg_intercept','threat_neutralized','resume_watch'].includes(phase)) {
+      mastTimer.current = setInterval(() => setMastPulse(p => !p), 1800);
+      return () => clearInterval(mastTimer.current);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
+    setMastPulse(false);
+  }, [phase]);
+
+  // Launch flash pulse
+  useEffect(() => {
+    clearInterval(launchTimer.current);
+    if (phase === 'launch_flash') {
+      launchTimer.current = setInterval(() => setLaunchPulse(p => !p), 300);
+      return () => clearInterval(launchTimer.current);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset of timer-driven pulse state when the animated phase set is exited; cannot be derived during render
+    setLaunchPulse(false);
+  }, [phase]);
+
+  const stopAll = useCallback(() => {
+    clearInterval(mainTimer.current);
+    clearInterval(launchTimer.current);
+    clearInterval(mastTimer.current);
+    mainTimer.current = launchTimer.current = mastTimer.current = null;
+  }, []);
+
+  const pause = useCallback(() => {
+    clearInterval(mainTimer.current);
+    mainTimer.current = null;
+    setRunning(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!tickCallbackRef.current) return;
+    setRunning(true);
+    setPaused(false);
+    mainTimer.current = setInterval(tickCallbackRef.current, 280);
+  }, []);
+
+  const reset = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setPaused(false);
+    setPhase('idle');
+    setCurrentTick(0);
+    setDronePos(null);
+    setDroneVisible(false);
+    setSm2Pos(null);
+    setLaunchPulse(false);
+    setInterceptFlash(false);
+    setMastPulse(false);
+    setEvents([]);
+    setRunning(false);
+    setComplete(false);
+  }, [stopAll]);
+
+  const runScenario = useCallback(() => {
+    stopAll();
+    tickRef.current = 0;
+    setPaused(false);
+    setPhase('idle');
+    setCurrentTick(0);
+    setDronePos(null);
+    setDroneVisible(false);
+    setSm2Pos(null);
+    setLaunchPulse(false);
+    setInterceptFlash(false);
+    setMastPulse(false);
+    setEvents([]);
+    setRunning(true);
+    setComplete(false);
+
+    const cb = () => {
+      const tick = ++tickRef.current;
+      const v0 = vesselLabelsRef.current[0] ?? 'SEA-JEEP-ISR-1';
+      setCurrentTick(tick);
+
+      // ── Drone position — appears at T_DRONE_TRACKED, advances toward intercept ──
+      if (tick >= T_DRONE_TRACKED && tick < T_THREAT_NEUT) {
+        const t = (tick - T_DRONE_TRACKED) / (T_THREAT_NEUT - T_DRONE_TRACKED);
+        setDronePos(trackPos(DRONE_TRACK, t));
+        setDroneVisible(true);
+      }
+
+      // ── SM-2 position — fast travel T_DDG_INTERCEPT → T_THREAT_NEUT ──
+      if (tick >= T_DDG_INTERCEPT && tick < T_THREAT_NEUT) {
+        const t = (tick - T_DDG_INTERCEPT) / (T_THREAT_NEUT - T_DDG_INTERCEPT);
+        setSm2Pos(trackPos(SM2_TRACK, t));
+      }
+
+      // ── Phase transitions + events ──
+      if (tick === T_TRANSIT) {
+        setPhase('transit');
+        addEvtRef.current(`${v0}: Transit to Bab-el-Mandeb station — mast stowed`, 'info');
+      }
+      if (tick === T_ON_STATION) {
+        setPhase('on_station');
+        addEvtRef.current(`${v0}: On station — ISR mast deployed, EO/IR active`, 'info');
+        addEvtRef.current(`${v0}: Keel counterweight deployed — mast stabilized Sea State 3`, 'info');
+      }
+      if (tick === T_ON_STATION + 3) {
+        setPhase('mast_deployed');
+      }
+      if (tick === T_LOITERING) {
+        setPhase('loitering');
+        addEvtRef.current(`${v0}: Scanning Yemeni coastline — no contacts`, 'info');
+        addEvtRef.current('MOC NSA BAHRAIN: Sea Jeep ISR-1 on station — DDG alerted, standing by', 'info');
+      }
+      if (tick === T_LAUNCH_FLASH) {
+        setPhase('launch_flash');
+        addEvtRef.current(`${v0}: LAUNCH FLASH — Yemeni coast, bearing 045 — UAS suspected`, 'warn');
+      }
+      if (tick === T_DRONE_TRACKED) {
+        setPhase('drone_tracked');
+        addEvtRef.current(`${v0}: UAS track confirmed — bearing 045, closure rate ~130 knots`, 'warn');
+        addEvtRef.current(`${v0}: Target elevation 500ft AGL, heading 225 — relaying to DDG`, 'warn');
+      }
+      if (tick === T_RELAY_TO_DDG) {
+        setPhase('relay_to_ddg');
+        addEvtRef.current('MOC NSA BAHRAIN: Track data received — cueing DDG for intercept', 'info');
+        addEvtRef.current('DDG ON STATION: Track acquired via Sea Jeep relay — SM-2 solution computed', 'alert');
+      }
+      if (tick === T_DDG_INTERCEPT) {
+        setPhase('ddg_intercept');
+        addEvtRef.current('DDG ON STATION: Missile away — intercept in 45 seconds', 'alert');
+      }
+      if (tick === T_THREAT_NEUT) {
+        setPhase('threat_neutralized');
+        setDroneVisible(false);
+        setDronePos(null);
+        setSm2Pos(null);
+        setInterceptFlash(true);
+        addEvtRef.current('DDG ON STATION: INTERCEPT — UAS destroyed, 8nm northwest of merchant', 'success');
+        addEvtRef.current('MOC NSA BAHRAIN: Threat neutralized — merchant vessel safe, no damage', 'success');
+        setTimeout(() => setInterceptFlash(false), 2500);
+      }
+      if (tick === T_RESUME_WATCH) {
+        setPhase('resume_watch');
+        addEvtRef.current(`${v0}: Threat eliminated — resuming scan, mast stable`, 'info');
+        addEvtRef.current('MOC NSA BAHRAIN: MARAD notified — lane BRAVO-2 remains open', 'info');
+      }
+      if (tick >= TOTAL_TICKS) {
+        clearInterval(mainTimer.current);
+        mainTimer.current = null;
+        setRunning(false);
+        setComplete(true);
+        // Reset for loop
+        tickRef.current = 0;
+        setTimeout(() => {}, 0);
+      }
+    };
+
+    tickCallbackRef.current = cb;
+    mainTimer.current = setInterval(cb, 280);
+  }, [stopAll]);
+
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  // ── Derived visual state ───────────────────────────────────────────────────
+  const pIdx       = phaseIndex(phase);
+  const onStation  = pIdx >= phaseIndex('on_station');
+  const showDDG    = pIdx >= phaseIndex('on_station');
+  const showRelay  = phase === 'relay_to_ddg';
+  const narrative  = PHASE_NARRATIVE[phase] || null;
+
+  // Phase badge
+  const getPhaseBadge = () => {
+    switch (phase) {
+      case 'transit':           return { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                    label: '→ Transit to Station' };
+      case 'on_station':        return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                    label: '↑ Mast Deployed — EO/IR Active' };
+      case 'mast_deployed':     return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                    label: '↑ Mast Stable — Scanning' };
+      case 'loitering':         return { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/50',                    label: '◉ Loitering — Sector Clear' };
+      case 'launch_flash':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ LAUNCH FLASH — Bearing 045' };
+      case 'drone_tracked':     return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '⚠ UAS Track — Relaying to DDG' };
+      case 'relay_to_ddg':      return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '⚡ Track Relay — DDG Computing Solution' };
+      case 'ddg_intercept':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                 label: '→ SM-2 Away — Intercept Inbound' };
+      case 'threat_neutralized':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ UAS Destroyed — Merchant Safe' };
+      case 'resume_watch':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ Lane BRAVO-2 Open — Watch Resumed' };
+      default: return null;
+    }
+  };
+  const badge = getPhaseBadge();
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleConfigureVessel = (vessel) => {
+    if (!vessel.hullName) return;
+    const hull = vesselHullData.find(h => h.name === vessel.hullName);
+    if (!hull) return;
+    setSelectedHull(hull);
+    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    const currentActive = useConfigurationStore.getState().activeConfig;
+    if (!currentActive || currentActive.hullName !== vessel.hullName || currentActive.missionSetKey !== MISSION_SET_KEY) {
+      startNewConfiguration(vessel.hullName, MISSION_SET_KEY);
+    }
+    setPendingMissionSetCaps(vessel.capabilities);
+    setPendingMissionSetKey(MISSION_SET_KEY);
+    if (vessel.roleKey) setPendingRoleKey(vessel.roleKey);
+    else setPendingRoleKey(null);
+    setPendingVesselLabel(vessel.name);
+    setSelectedView('outfitter');
+  };
+
+  const handleSave = () => {
+    if (!missionName.trim()) return;
+    const data = {
+      name: missionName.trim(),
+      template: 'SEAJEEP_ISR',
+      domain: 'MARITIME',
+      status: 'active',
+      duration: 'continuous',
+      zoneConfig: {
+        name: 'Bab-el-Mandeb — Red Sea ISR Station',
+        coordinates: [
+          { lat: 12.0, lng: 43.2 },
+          { lat: 13.2, lng: 43.2 },
+          { lat: 13.2, lng: 44.7 },
+          { lat: 12.0, lng: 44.7 },
+        ],
+        swarmSize: 1,
+        swarmFormation: 'station-hold',
+      },
+      assignedSquadrons: [],
+      loadout: { capabilities: SEA_JEEP_ISR_MOUNTS.map(m => m.name) },
+      stateHierarchies: {
+        default:         ['Navigation', 'Payload', 'Comms', 'Mission', 'Vehicle'],
+        launch_detected: ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
+        track_active:    ['Mission', 'Payload', 'Comms', 'Navigation', 'Vehicle'],
+        comms_degraded:  ['Navigation', 'Mission', 'Vehicle', 'Comms', 'Payload'],
+      },
+      createdAt:  new Date().toISOString(),
+      updatedAt:  new Date().toISOString(),
+      launchedAt: new Date().toISOString(),
+      history: [{ action: 'created', timestamp: new Date().toISOString() }],
+    };
+    if (mission?.id) updateMission(mission.id, data);
+    else saveMission(data);
+    onBack();
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col bg-darkest">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
+        >
+          <ChevronLeft size={13} /> Back to Library
+        </button>
+        <div className="w-px h-4 bg-gray-700/60" />
+        <Anchor size={13} className="text-cyan-400" />
+        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">Bab-el-Mandeb ISR — Red Sea</span>
+        <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Autonomous drone-watch station — Houthi UAS threat, NAVCENT AOR</span>
+        <div className="flex-1" />
+        <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">
+          ACTIVE
+        </span>
+        <input
+          value={missionName}
+          onChange={e => setMissionName(e.target.value)}
+          placeholder="Mission name…"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+        />
+        <button
+          onClick={handleSave}
+          disabled={!missionName.trim() || !isDeployable}
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
+            missionName.trim() && isDeployable
+              ? 'bg-cyan-700 hover:bg-cyan-600 text-white'
+              : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'
+          }`}
+        >
+          Save Draft
+        </button>
+      </div>
+
+      {/* ── Scrollable content ── */}
+      <div>
+        <div className="flex h-[40vh] md:h-[460px]">
+
+          {/* ── Map ── */}
+          <div className="flex-1 relative overflow-hidden">
+            <MapContainer
+              center={MAP_CENTER}
+              zoom={MAP_ZOOM}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={false}
+              scrollWheelZoom={false}
+              attributionControl={false}
+            >
+              <ZoomControl position="topright" />
+              <TileLayer url={TILE_BASE} />
+              <TileLayer url={TILE_SEAMARK} opacity={0.55} />
+              <MapInvalidateSize />
+
+              {/* ── Sea Jeep — static holding position ── */}
+              <CircleMarker
+                center={SEA_JEEP_STATION}
+                radius={7}
+                pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.9, weight: 2 }}
+              >
+                <Tooltip direction="top" offset={[0, -12]}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#22d3ee' }}>
+                    SEA-JEEP-ISR-1
+                  </span>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* ── Mast indicator — small white dot above Sea Jeep when on station ── */}
+              {onStation && (
+                <CircleMarker
+                  center={[SEA_JEEP_STATION[0] + 0.018, SEA_JEEP_STATION[1]]}
+                  radius={mastPulse ? 4 : 3}
+                  pathOptions={{
+                    color:       '#ffffff',
+                    fillColor:   '#ffffff',
+                    fillOpacity: mastPulse ? 0.95 : 0.65,
+                    weight:      1,
+                  }}
+                >
+                  <Tooltip direction="top" offset={[0, -8]}>
+                    <span style={{ fontSize: 10 }}>ISR Mast + EO/IR</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* ── Mast vertical line ── */}
+              {onStation && (
+                <Polyline
+                  positions={[SEA_JEEP_STATION, [SEA_JEEP_STATION[0] + 0.018, SEA_JEEP_STATION[1]]]}
+                  pathOptions={{ color: '#ffffff', weight: 1.5, opacity: 0.55 }}
+                />
+              )}
+
+              {/* ── Merchant vessel — always visible ── */}
+              <CircleMarker
+                center={MERCHANT_POS}
+                radius={5}
+                pathOptions={{ color: '#e5e7eb', fillColor: '#e5e7eb', fillOpacity: 0.85, weight: 1.5 }}
+              >
+                <Tooltip direction="left" offset={[-10, 0]}>
+                  <span style={{ fontSize: 10 }}>Commercial Vessel — Lane BRAVO-2</span>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* ── DDG — visible once on station ── */}
+              {showDDG && (
+                <CircleMarker
+                  center={DDG_POS}
+                  radius={7}
+                  pathOptions={{ color: 'var(--caliburn-text-secondary)', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
+                >
+                  <Tooltip permanent direction="left" offset={[-10, 0]}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--caliburn-text-secondary)' }}>DDG ON STATION</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* ── Launch flash — orange pulse at LAUNCH_SITE ── */}
+              {phase === 'launch_flash' && (
+                <CircleMarker
+                  center={LAUNCH_SITE}
+                  radius={launchPulse ? 10 : 6}
+                  pathOptions={{
+                    color:       '#f97316',
+                    fillColor:   '#fbbf24',
+                    fillOpacity: launchPulse ? 0.85 : 0.40,
+                    weight:      2,
+                  }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -12]}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#f97316' }}>⚠ LAUNCH FLASH</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* ── Drone track polyline — dashed red ── */}
+              {(phase === 'drone_tracked' || phase === 'relay_to_ddg' || phase === 'ddg_intercept') && droneVisible && (
+                <Polyline
+                  positions={DRONE_TRACK}
+                  pathOptions={{ color: '#ef4444', weight: 1.5, opacity: 0.70, dashArray: '5 4' }}
+                />
+              )}
+
+              {/* ── Drone marker — red, animated along DRONE_TRACK ── */}
+              {droneVisible && dronePos && (
+                <CircleMarker
+                  center={dronePos}
+                  radius={5}
+                  pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.95, weight: 2 }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -10]}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444' }}>⚠ HOSTILE UAS</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* ── Relay line — dashed cyan Sea Jeep → DDG ── */}
+              {showRelay && (
+                <Polyline
+                  positions={[SEA_JEEP_STATION, DDG_POS]}
+                  pathOptions={{ color: '#22d3ee', weight: 1.5, opacity: 0.75, dashArray: '4 5' }}
+                />
+              )}
+
+              {/* ── SM-2 trail + marker ── */}
+              {sm2Pos && (
+                <>
+                  <Polyline
+                    positions={[DDG_POS, sm2Pos]}
+                    pathOptions={{ color: '#fde68a', weight: 1.5, opacity: 0.55, dashArray: '3 5' }}
+                  />
+                  <CircleMarker
+                    center={sm2Pos}
+                    radius={4}
+                    pathOptions={{ color: '#fde68a', fillColor: '#ffffff', fillOpacity: 1, weight: 1.5 }}
+                  >
+                    <Tooltip direction="top" offset={[0, -8]}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fde68a' }}>SM-2</span>
+                    </Tooltip>
+                  </CircleMarker>
+                </>
+              )}
+
+              {/* ── Intercept flash — orange/yellow burst at INTERCEPT_POINT ── */}
+              {interceptFlash && (
+                <CircleMarker
+                  center={INTERCEPT_POINT}
+                  radius={13}
+                  pathOptions={{
+                    color:       '#f59e0b',
+                    fillColor:   '#fbbf24',
+                    fillOpacity: 0.80,
+                    weight:      3,
+                  }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -16]}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b' }}>✓ UAS DESTROYED</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+              {/* ── Post-intercept destroyed marker ── */}
+              {(phase === 'threat_neutralized' || phase === 'resume_watch') && !interceptFlash && (
+                <CircleMarker
+                  center={INTERCEPT_POINT}
+                  radius={7}
+                  pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.65, weight: 2 }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -10]}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#10b981' }}>✓ DESTROYED</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
+            </MapContainer>
+
+            {/* ── Phase status badge ── */}
+            {badge && (
+              <div className={`absolute top-3 left-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+                {badge.label}
+              </div>
+            )}
+
+            {/* ── Map legend ── */}
+            <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
+              <div className="flex flex-col gap-1">
+                {[
+                  { color: '#22d3ee', label: 'SEA-JEEP-ISR-1 — GP-USV on station' },
+                  { color: 'var(--caliburn-text-secondary)', label: 'DDG — Arleigh Burke destroyer' },
+                  { color: '#e5e7eb', label: 'Merchant — Lane BRAVO-2' },
+                  { color: '#ef4444', label: 'Hostile UAS — Houthi drone' },
+                  { color: '#fde68a', label: 'SM-2 — Standard Missile' },
+                ].map(({ color, label }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: '#9ca3af' }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile: Show Log button */}
+            <button
+              onClick={() => setShowLog(true)}
+              className="md:hidden absolute bottom-3 right-3 z-[500] px-3 py-1.5 rounded-lg bg-gray-900/90 border border-gray-700/60 text-gray-300 text-xs font-semibold backdrop-blur-sm"
+            >
+              Show Log
+            </button>
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className={`
+            flex-col border-l border-gray-700/50 overflow-hidden bg-darkest
+            ${showLog
+              ? 'fixed inset-0 z-[600] flex w-full'
+              : 'hidden md:flex md:w-[300px] md:flex-shrink-0'}
+          `}
+          >
+
+            {/* Mobile close button */}
+            <div className="md:hidden flex justify-end p-2 border-b border-gray-700/50">
+              <button
+                onClick={() => setShowLog(false)}
+                className="px-3 py-1.5 rounded-lg bg-gray-700/60 text-gray-300 text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Controls */}
+            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
+              <div className="flex gap-2 mb-3">
+                {running ? (
+                  <button
+                    onClick={pause}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={paused ? resume : runScenario}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-cyan-700 hover:bg-cyan-600 text-white"
+                  >
+                    <Play size={13} />
+                    {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+                  </button>
+                )}
+                <button
+                  onClick={reset}
+                  className="p-2 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
+
+              {/* Phase narrative */}
+              {narrative ? (
+                <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
+                  <div className="text-[0.68rem] font-bold text-cyan-300 uppercase tracking-wider mb-1">
+                    {narrative.title}
+                  </div>
+                  <div className="text-[0.67rem] text-gray-400 leading-relaxed">
+                    {narrative.body}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-[0.68rem]">GP-USV Sea Jeep · Extended ISR Mast · NAVCENT Bab-el-Mandeb</p>
+              )}
+            </div>
+
+            {/* Event log */}
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+              <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
+                Event Log
+              </p>
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
+                {events.length === 0 ? (
+                  <p className="text-gray-600 text-[0.7rem] px-1 pt-1">Run the scenario to see live events.</p>
+                ) : (
+                  events.map(e => (
+                    <div key={e.id} className="flex gap-2 text-[0.7rem] leading-snug">
+                      <span className="text-gray-600 tabular-nums flex-shrink-0 pt-px">{e.ts}</span>
+                      <span className={EVENT_COLORS[e.type] ?? 'text-gray-300'}>{e.msg}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>{/* /animation row */}
+
+        {/* Mobile: play controls */}
+        <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-gray-700/30 bg-gray-900/30">
+          {running ? (
+            <button
+              onClick={pause}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Pause size={15} />
+              Pause
+            </button>
+          ) : (
+            <button
+              onClick={paused ? resume : runScenario}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-semibold transition-colors"
+            >
+              <Play size={15} />
+              {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="p-2.5 rounded-lg bg-gray-700/40 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+            title="Reset"
+          >
+            <RotateCcw size={15} />
+          </button>
+        </div>
+
+        {/* ── Vessel Roster ── */}
+        <div className="p-4 border-t border-gray-700/50 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {effectiveRoster.map((vessel, idx) => (
+            <div key={`${vessel.roleKey || vessel.name}-${vessel.hullName}`} className="flex border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40">
+              <div className="w-32 flex-shrink-0 bg-gray-950/60 flex items-center justify-center p-2">
+                <img src={vessel.image} alt={vessel.name} className="w-full h-full object-contain max-h-24" />
+              </div>
+              <div className="flex-1 flex flex-col justify-center p-2 gap-1.5">
+                <div className="flex items-center mb-0.5">
+                  <div className="text-[0.65rem] font-bold text-gray-300 uppercase tracking-wider">{vessel.name}</div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
+                    disabled={!vessel.hullName}
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-cyan-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Configure loadout"
+                  >
+                    <Settings size={13} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSwapModal({ roleKey: missionRoleDefs[idx]?.roleKey }); }}
+                    disabled={!missionRoleDefs[idx]}
+                    className="ml-1 p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Swap vessel"
+                  >
+                    <ArrowLeftRight size={13} />
+                  </button>
+                </div>
+                {vessel.capabilities.slice(0, 4).map((cap, i) => (
+                  <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
+                    {cap}
+                  </div>
+                ))}
+                {missionRoleDefs[idx] && (
+                  <ReadinessChecklist
+                    config={
+                      (() => {
+                        const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
+                        if (!assignment) return null;
+                        // Prefer the in-flight active config — it reflects the latest unsaved changes.
+                        // Only fall back to savedConfigurations if activeConfig is for a different hull.
+                        const ac = useConfigurationStore.getState().activeConfig;
+                        if (ac && ac.hullName === assignment.hullName) return ac;
+                        const saved = Object.values(savedConfigurations).find(c => c.hullName === assignment.hullName);
+                        return saved ?? null;
+                      })()
+                    }
+                    role={missionRoleDefs[idx]}
+                    isDefault={!roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey]}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Mission Description ── */}
+        <div className="px-4 pb-5 border-t border-gray-700/50">
+          <div className="mt-3 px-4 py-3 rounded-xl bg-gray-800/60 border border-gray-700/40">
+            <div className="text-[0.65rem] font-bold text-sky-400 uppercase tracking-widest mb-1.5">Mission Brief</div>
+            <p className="text-[0.75rem] text-gray-300 leading-relaxed">
+              Houthis resumed drone attacks on commercial shipping in 2026. The Sea Jeep holds station in the Bab-el-Mandeb with its mast extended, adding 3nm of optical horizon to watch for launch flashes and low-flying drones off the Yemeni coast. When it detects a threat it relays bearing and track to a DDG standing by for intercept. Crewless and expendable: if it takes a hit it costs a fraction of a missile and nobody gets hurt.
+            </p>
+          </div>
+        </div>
+
+      </div>{/* /scrollable content */}
+      {swapModal && (
+        <SwapVesselModal
+          isOpen={!!swapModal}
+          onClose={() => setSwapModal(null)}
+          missionKey={MISSION_SET_KEY}
+          roleKey={swapModal.roleKey}
+          currentHullName={
+            effectiveRoster.find(v => v.roleKey === swapModal.roleKey)?.hullName
+          }
+        />
+      )}
+    </div>
+  );
+};
+
+export default SeaJeepISRMissionView;

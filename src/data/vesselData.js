@@ -32,7 +32,8 @@ import {
   H38Hull,
   MarinerHull,
   OtterXHull,
-  SeaJeepHull
+  SeaJeepHull,
+  VATNHull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
@@ -205,7 +206,7 @@ export const vesselHullData = [
       rcs: 0.1          // m² (can submerge, stealth design)
     },
     capacity: {
-      totalWeight: 23,
+      totalWeight: 34,  // ~75 lb payload capacity
       totalPower: 10
     },
     detailedSpecs: {
@@ -766,6 +767,60 @@ export const vesselHullData = [
       specSheet: "https://oceaneering.com/rov-services/next-generation-subsea-systems/freedom-autonomous-underwater-vehicle"
     }
   },
+  {
+    name: "VATN S6",
+    type: "Small Modular Naval AUV (UUV)",
+    platformType: "UUV",
+    displacement: "< 50 lb (man-portable)",
+    description: "VATN Systems Skelmir S6 — compact, man-portable modular unmanned undersea vehicle. Swarm-native and attritable at scale; launches by hand, USV, small craft, workboat, UAV, or aircraft. Tool-less modular payloads (sensor, EW, cyber, decoy, kinetic).",
+    icon: "VATN S6",
+    manufacturer: "VATN Systems",
+    specs: {
+      speed: 15,        // knots — S6E max, no payload (S6F ≥20 kts)
+      range: 30,        // nm — S6E operational range
+      rcs: 0.005        // m² — 5.8in-diameter subsurface, minimal signature
+    },
+    capacity: {
+      totalWeight: 9,   // kg (~20 lb payload capacity, S6E)
+      totalPower: 1     // kW (est. — small battery-electric UUV)
+    },
+    detailedSpecs: {
+      diameter: "5.8 in (147 mm)",
+      length: "72 in (1.83 m)",
+      maxSpeed: "S6E ≥15 kts (no payload) / S6F ≥20 kts",
+      cruiseSpeed: "5 knots",
+      range: "S6E ≥30 nm / S6F ≥20 nm at cruise (in development)",
+      payloadCapacity: "≤20 lb (S6E)",
+      baseWeight: "S6E <50 lb / S6F <60 lb",
+      maxDepth: "≤100 m",
+      runTime: "~6 hrs at cruise (dual surface & subsurface run)",
+      navigation: "VATN INStinct INS + DVL — GPS-denied (jam/spoof) capable",
+      launchRecovery: "Man-portable — hand, USV, small craft, workboat, UAV, or aircraft",
+      c2: "CivTAK / ATAK plugin or custom mission planner; SOCOM MOD payload compliant",
+      variants: "S6E (Endurance) / S6F (Fast)",
+      status: "Fielded — variants in development/testing (2026)"
+    },
+    features: [
+      "Man-portable — one-person carry & deploy in minutes",
+      "Swarm-native autonomy — one operator manages hundreds of units",
+      "Tool-less modular payloads: sensor, EW, cyber, decoy, kinetic",
+      "INStinct INS — navigates in jammed/spoofed/denied GPS environments + DVL",
+      "Shock resistant; SOCOM MOD payload compliant",
+      "Attritable — designed for high-volume manufacturing",
+      "Dual surface & subsurface run"
+    ],
+    applications: [
+      "Port & infrastructure security — hull, pier, pipeline, cable patrol",
+      "ISR in contested waters",
+      "Electronic warfare — distributed, attritable disruption",
+      "A2AD infiltration — kinetic/non-kinetic payload delivery",
+      "SOF operations — small-craft or air launch",
+      "Search & recovery — swarm grid with automatic target ID"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.vatn.com/skelmir-s6-small-auv-drone"
+    }
+  },
   // ============ UAV CATEGORY ============
   {
     name: "MQ-25 Stingray",
@@ -1146,6 +1201,8 @@ export const vesselHullComponents = {
   // Large/XLUUV category
   "Manta Ray": MantaRayHull,
   "Freedom AUV": UUVHull,
+  // Small/man-portable UUV category
+  "VATN S6": VATNHull,
   // Magnet Defense
   "M48": M48Hull,
   "HSMUSV": HSMUSVHull,
@@ -1283,10 +1340,12 @@ export const VESSEL_SLOT_CAPACITY = {
   // Medium USVs
   "ZeroUSV Oceanus17": { SENSORS: 4, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 2, AI: 2, UTILITY: 3, OTHER: 0 },
   // AUSV
-  "Triton": { SENSORS: 3, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
+  "Triton": { SENSORS: 4, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   // Large UUV
   "Manta Ray": { SENSORS: 5, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   "Freedom AUV": { SENSORS: 4, COMMS: 2, WEAPONS: 1, C2: 2, NAV: 2, AI: 2, UTILITY: 2, OTHER: 0 },
+  // Small/man-portable modular UUV — ~20lb payload budget, tool-less modular bays
+  "VATN S6": { SENSORS: 2, COMMS: 1, WEAPONS: 1, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
   // Magnet Defense
   "M48": { SENSORS: 6, COMMS: 3, WEAPONS: 4, C2: 2, NAV: 2, AI: 3, UTILITY: 4, OTHER: 0 },
   "HSMUSV": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },

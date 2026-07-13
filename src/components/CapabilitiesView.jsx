@@ -90,18 +90,6 @@ const CapabilitiesView = ({
           <Package size={16} />
           All Items
         </button>
-        <button
-          onClick={() => setViewMode('stacks')}
-          className={`toggle-btn ${viewMode === 'stacks' ? 'toggle-btn-active' : ''}`}
-        >
-          <Layers size={16} />
-          Saved Stacks
-          {engineeringStacks.length > 0 && (
-            <span className={`text-xs px-1.5 py-0.5 rounded ${viewMode === 'stacks' ? 'bg-black/20' : 'bg-lime-brand/20 text-lime-brand'}`}>
-              {engineeringStacks.length}
-            </span>
-          )}
-        </button>
       </div>
 
       {/* "Will it fit?" Mode */}
@@ -232,7 +220,6 @@ const CapabilitiesView = ({
             {filteredCapabilities.map((capability) => {
               // Vendor (DB) products have no icon component; fall back to Package.
               const IconComponent = capability.icon || Package;
-              const isInCart = outfitterCart.some(item => item.name === capability.name);
               const isSelectedForFit = selectedForFit.includes(capability.name);
               const fitStatus = fitCheckVessel ? checkFit(capability) : null;
               const hasSWaP = capability.swap && (capability.swap.weight > 0 || capability.swap.power > 0);
@@ -341,18 +328,6 @@ const CapabilitiesView = ({
                     >
                       <Eye size={16} />
                       View Details
-                    </button>
-                    <button
-                      onClick={() => addToCart(capability)}
-                      disabled={isInCart}
-                      className={`flex-1 ${
-                        isInCart
-                          ? 'btn-ghost'
-                          : 'btn-primary'
-                      }`}
-                    >
-                      <ShoppingCart size={16} />
-                      {isInCart ? 'Added to Hull' : 'Add to Hull'}
                     </button>
                   </div>
                 </div>

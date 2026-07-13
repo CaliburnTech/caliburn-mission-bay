@@ -28,10 +28,8 @@ import { individualCapabilities, engineeringStacks } from '../data/marketplaceDa
 import { CATEGORY_COLORS, BRAND_COLORS } from '../constants/colors';
 import {
   CapabilityBrowser,
-  DeploymentFlowModal,
   CategorySlotCard,
-  LoadoutStatsDisplay,
-  DeploymentStatus
+  LoadoutStatsDisplay
 } from './loadout';
 
 // Category definitions with icons, colors, and compatible equipment types
@@ -92,7 +90,7 @@ const LOADOUT_CATEGORIES = {
     icon: Shield,
     color: CATEGORY_COLORS.UTILITY.hex,
     types: [
-      'LOGISTICS', 'LOGISTICS & SUPPORT', 'MAINTENANCE', 'SUPPLY CHAIN',
+      'UTILITY', 'LOGISTICS', 'LOGISTICS & SUPPORT', 'MAINTENANCE', 'SUPPLY CHAIN',
       'DATA PROCESSING', 'CYBER DEFENSE', 'DEFENSE', 'ESCORT',
     ],
     description: 'Support & utility systems'
@@ -284,9 +282,6 @@ const LoadoutBuilder = () => {
   // Configure for Mission dropdown state
   const [configMissionOpen, setConfigMissionOpen] = useState(false);
 
-  // Deployment modal state
-  const [deploymentModalOpen, setDeploymentModalOpen] = useState(false);
-
   // Get base slot capacity for current vessel
   const baseSlotCapacity = VESSEL_SLOT_CAPACITY[selectedHull?.name] || DEFAULT_SLOT_CAPACITY;
 
@@ -401,17 +396,6 @@ const LoadoutBuilder = () => {
     };
   }, [loadout, selectedHull]);
 
-  // Handle deploy action - opens deployment modal
-  const handleDeploy = () => {
-    if (deploymentStatus.isReady) {
-      setDeploymentModalOpen(true);
-    }
-  };
-
-  // Navigate to mission planner
-  const handleNavigateToMissionPlanner = () => {
-    setSelectedView('squadron');
-  };
 
   // Apply a stack's capabilities to the loadout
   const handleApplyStack = (stack) => {
@@ -1202,15 +1186,6 @@ const LoadoutBuilder = () => {
               />
             </div>
 
-            {/* Deployment Status */}
-            <div className="w-full">
-              <DeploymentStatus
-                isReady={deploymentStatus.isReady}
-                issues={deploymentStatus.issues}
-                equippedCount={deploymentStatus.equippedCount}
-                onDeploy={handleDeploy}
-              />
-            </div>
           </div>
 
           {/* Right Column - C2, Nav, AI, Utility */}
@@ -1574,15 +1549,6 @@ const LoadoutBuilder = () => {
                 );
               })}
 
-              {/* Deploy button pinned at bottom of slots */}
-              <div className="pt-2">
-                <DeploymentStatus
-                  isReady={deploymentStatus.isReady}
-                  issues={deploymentStatus.issues}
-                  equippedCount={deploymentStatus.equippedCount}
-                  onDeploy={handleDeploy}
-                />
-              </div>
             </div>
           )}
 
@@ -1830,15 +1796,6 @@ const LoadoutBuilder = () => {
         equippedIds={equippedIds}
         isGlobalSearch={isGlobalSearchMode}
         initialSearchTerm={isGlobalSearchMode ? globalSearchTerm : ''}
-      />
-
-      {/* Deployment Flow Modal */}
-      <DeploymentFlowModal
-        isOpen={deploymentModalOpen}
-        onClose={() => setDeploymentModalOpen(false)}
-        hull={selectedHull}
-        loadout={loadout}
-        onNavigateToMissionPlanner={handleNavigateToMissionPlanner}
       />
 
       {/* SBOM Modal */}
