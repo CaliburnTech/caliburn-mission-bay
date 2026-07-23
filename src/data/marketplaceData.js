@@ -4266,6 +4266,153 @@ export const individualCapabilities = [
     },
     statImpacts: { speed: 0, power: 0, weight: 1, range: 0, stealth: 1 },
     missionTags: ["SEABED_MONITORING"]
+  },
+  {
+    name: "Doodle Labs Mini-OEM Mesh Rider Radio",
+    provider: "Doodle Labs",
+    type: "MANET Mesh Radio",
+    description: "DoD-derived MANET mesh radio (RM-2450, 2.4 GHz) with the patented Mesh Rider waveform. Self-forming, self-healing mesh field-tested past 100 km with up to 100 Mbps throughput, an Ultra-Reliable Low-Latency (URLLC) channel for command and control, and a separate optimized channel for 4K video. In the SV-2 Equipment/Radios layer it provides the resilient inter-platform data link alongside Peplink cellular and Starlink SATCOM backhaul.",
+    capabilities: ["MANET Self-Healing Mesh", "URLLC Command & Control", "Optimized Video Streaming", "FIPS 140-3 AES-256 Encryption", "Anti-Jam COFDM Waveform"],
+    trl: "TRL 9",
+    icon: Radio,
+    category: "RF COMMUNICATIONS",
+    subType: null,
+    swap: {
+      weight: 0.04,     // Real: 25-40g depending on mounting config, per Doodle Labs Mini-OEM Mesh Rider RM-2450 datasheet
+      power: 0.005,     // Real: 5W average (50% Tx/Rx duty), 8W peak Tx, 2W Rx per datasheet
+      size: "small"
+    },
+    statImpacts: {
+      speed: 0,
+      power: -1,
+      weight: 0,
+      range: 12,        // Mesh relay extends C2/data range across the fleet
+      stealth: -2       // RF mesh emissions detectable
+    },
+    securityLevel: ["FIPS 140-3", "AES-256 Encryption", "MIL-STD-810H"],
+    securityIcons: ["encrypted"],
+    specs: {
+      frequency: "2400-2482 MHz (Mesh Rider platform spans 600 MHz - 6 GHz)",
+      throughput: "Up to 100 Mbps (80 Mbps @ 20 MHz channel)",
+      range: "Field tested >100 km",
+      channels: "3, 5, 10, 20 MHz software-selectable",
+      c2Channel: "Ultra-Reliable Low-Latency Channel, 1.5-10 ms latency",
+      encryption: "128-bit AES full-throughput / 256-bit AES; optional FIPS 140-3",
+      modes: "Mesh, WDS AP/Client, Bridge, Internet Gateway",
+      interfaces: "Ethernet (100 Base-T), USB, UART (3.3V)",
+      environment: "MIL-STD-810H shock/vibration, -40C to +85C operating",
+      dimensions: "Baseband 47x28x5 mm; RF board 46x51x6.5 mm"
+    },
+    integrationNotes: "The Mini-OEM board integrates into the platform compute stack over Ethernet/USB and joins the fleet MANET automatically. It carries the low-latency C2 channel and a parallel video channel, feeding TempestOS and the OverKey mesh VPN. Only USB and a power supply are required for integration."
+  },
+  {
+    name: "ANELLO Maritime INS",
+    provider: "ANELLO Photonics",
+    type: "Navigation System",
+    description: "GPS-denied inertial navigation system built on three Silicon Photonics Optical Gyroscopes (SiPhOG). Delivers reference-grade 100 Hz position, velocity and attitude with under 0.5 deg/hr unaided heading drift, an AI sensor-fusion engine with GNSS spoofing detection, and dual triple-frequency GNSS receivers. IP68-rated for the maritime environment and sized for ASV/AUV hulls at roughly a tenth the mass of a maritime FOG INS.",
+    capabilities: ["GPS-Denied Navigation", "Silicon Photonics Optical Gyro", "GNSS Spoofing Detection", "AI Sensor Fusion", "Position Data"],
+    trl: "TRL 9",
+    icon: Compass,
+    category: "NAVIGATION",
+    subType: 'NAV_INS',
+    swap: {
+      weight: 0.454,    // Real: 1 lb per ANELLO Maritime INS datasheet
+      power: 0.006,     // Real: <6W typical per datasheet
+      size: "small"
+    },
+    statImpacts: {
+      speed: 1,
+      power: -1,
+      weight: 1,
+      range: 3,         // Accurate nav improves transit efficiency
+      stealth: 4        // GPS-denied, passive, spoofing-resistant
+    },
+    specs: {
+      technology: "3-axis SiPhOG optical gyro + 6-axis MEMS IMU",
+      headingDrift: "<0.5 deg/hr unaided (bias instability)",
+      headingAccuracy: "0.2 deg rms",
+      positionAccuracy: "1.2 m rms SPS / 0.01 m rms RTK",
+      gnss: "Dual triple-frequency receivers (GPS, GLONASS, Galileo, BeiDou, QZSS, NavIC, SBAS, L-band)",
+      fusion: "ANELLO AI EKF sensor fusion with GNSS spoofing detection",
+      environment: "IP68, -10 to +50C (+70C optional), 40g shock survival",
+      electrical: "5-30 VDC input",
+      interfaces: "Ethernet, RS-232 (2 ports), CAN",
+      dimensions: "4.4 x 3.4 x 1.9 in"
+    },
+    integrationNotes: "Delivers 100 Hz PVA over Ethernet/RS-232/CAN to TempestOS and the autonomy stack. As a compact, low-power IP68 unit it fits small USV/UUV hulls where a full maritime FOG INS does not, providing resilient dead-reckoning and spoofing-resistant navigation through GPS-denied stretches."
+  },
+  {
+    name: "FarSounder Argos 500",
+    provider: "FarSounder",
+    type: "3D Forward-Looking Navigation Sonar",
+    description: "3D forward-looking navigation sonar that images the water column and shallows out to 500 m ahead of the vessel in real time, at speeds up to 20 knots. Provides below-water obstacle and hazard perception with True Target Motion tracking and Local History Mapping bathymetry. Hull-mounted stainless-steel transducer module with a diver-serviceable wet-mateable connector.",
+    capabilities: ["3D Forward-Looking Imaging to 500m", "Below-Water Obstacle Detection", "Local History Mapping Bathymetry", "True Target Motion Tracking", "Chart Overlay (S57/S63)"],
+    trl: "TRL 9",
+    icon: Waves,
+    category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_FLS',
+    swap: {
+      weight: 14,       // Estimate: hull-mounted stainless-steel transducer module weight not published by FarSounder; conservative estimate for the Argos 500 TM class
+      power: 0.1,       // Real: ~100W input (110/220 Vac, 50/60 Hz) per FarSounder Argos 500 spec page; <1500 Wrms acoustic output
+      size: "medium"
+    },
+    statImpacts: {
+      speed: -1,
+      power: -2,
+      weight: 3,
+      range: 0,
+      stealth: -1       // Active sonar is acoustically detectable
+    },
+    securityLevel: [],
+    securityIcons: [],
+    specs: {
+      range: "100 / 200 / 500 m settings",
+      fieldOfView: "120 deg to 200m, 90 deg to 500m",
+      operatingFrequency: "61 kHz",
+      maxOutputPower: "<1500 Wrms",
+      inputPower: "110/220 Vac, 50/60 Hz @ ~100 W",
+      angularAccuracy: "~1.6 deg",
+      refreshRate: "~3 Hz to ~0.75 Hz depending on range",
+      stabilization: "Roll/pitch +/- 20 deg, multi-ping target stabilization",
+      operationalSpeed: "Up to 20 knots",
+      integration: "Wartsila NACOS Platinum, Team Italia I-Bridge, QPS Qinsy; SDK available"
+    },
+    integrationNotes: "The transducer module mounts to a hull fairing and streams 3D forward-looking returns to the navigation stack via the FarSounder SDK, giving TempestOS and the autonomy layer below-water obstacle and bathymetric awareness ahead of the vessel for collision and grounding avoidance.",
+    missionTags: ["SEABED_MONITORING"]
+  },
+  {
+    name: "Marine AI Guardian Vision CVP",
+    provider: "Marine AI",
+    type: "Computer Vision Processor",
+    description: "Edge computer-vision processor that ingests live electro-optical and infrared camera streams and applies AI-based object identification and hazard analysis for autonomous surface vessels. Detects and classifies contacts (boats, navigation markers, unknown obstacles) and drives PTZ Lookout cameras with operator-defined scanning arcs. Built on IBM and NVIDIA deep-learning and edge-compute technology; processing on-board reduces the satellite bandwidth needed for remote operation.",
+    capabilities: ["EO/IR Object Detection & Classification", "Maritime Hazard Analysis", "PTZ Lookout Camera Control", "Sensor Fusion for Vessel Control", "Edge AI Inference"],
+    trl: "TRL 8",
+    icon: Brain,
+    category: "EO/IR SENSORS",
+    subType: null,
+    swap: {
+      weight: 2,        // Estimate: Marine AI does not publish enclosure SWaP; estimated for a ruggedized NVIDIA edge-compute box hosting Guardian Vision
+      power: 0.06,      // Estimate: ~50-60W typical for NVIDIA Jetson-class edge inference platform (not a published figure)
+      size: "small"
+    },
+    statImpacts: {
+      speed: 0,
+      power: -2,
+      weight: 1,
+      range: 0,
+      stealth: 0        // Passive EO/IR vision, no active emissions
+    },
+    securityLevel: ["GPU-Accelerated Edge Compute"],
+    securityIcons: [],
+    specs: {
+      inputs: "Conventional (EO) and infrared (IR) camera streams",
+      processing: "IBM + NVIDIA deep-learning edge inference",
+      detection: "Boats, navigation markers, and unknown obstacles",
+      lookout: "PTZ camera control with operator-defined scanning arcs and contact tracking",
+      deployment: "On-board edge compute (reduces SATCOM bandwidth for remote ops)",
+      note: "Enclosure SWaP not published by Marine AI; values shown are estimates for the host edge-compute platform"
+    },
+    integrationNotes: "Guardian Vision runs on GPU-accelerated edge compute and feeds classified contacts and hazard tracks to the autonomy and C2 stack, complementing radar and AIS with camera-based perception. On-board inference keeps decision-making local, minimizing the video that must be backhauled over constrained satellite links."
   }
 
   // ============ END ADDITIONAL VESSEL CAPABILITY ENTRIES ============
