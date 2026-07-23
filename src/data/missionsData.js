@@ -423,7 +423,7 @@ export const initialMissions = [
     missionProfile: {
       type: "ASW",
       lane: "SUBMARINE_BARRIER",
-      collectionTypes: ["ACTIVE_SONAR", "PASSIVE_SONAR", "ACOUSTIC_COMMS", "LINK16"],
+      collectionTypes: ["PASSIVE_SONAR", "ACTIVE_SONAR", "ACOUSTIC_COMMS", "LINK16"],
       commsArchitecture: {
         primary: "HiveLink SDR / Link 16",
         secondary: "OrbComm SATCOM (HORUS status)",
@@ -431,22 +431,22 @@ export const initialMissions = [
         homeBase: "USS Gerald R. Ford (CVN-78) CSG"
       },
       objectives: {
-        primary: "Detect, localize, and prosecute PLAN Type-093 submarines transiting Philippine Sea Sector BRAVO-7 using Magnet M48 CAPTAS/MFTA multistatic sonar geometry and SubSeaSail HORUS persistent passive acoustic mesh — zero crew exposure in the submarine threat envelope",
-        secondary: "Demonstrate sensor-to-shooter compression via USW-DSS network: multistatic triangulation → Virginia class ACOMMS cue → Mk 48 ADCAP and Hanwha surface missile dual prosecution within 12 minutes of first contact"
+        primary: "Detect, localize, and prosecute PLAN Type-093 submarines transiting Philippine Sea Sector BRAVO-7 using three Magnet M48 passive towed-array receivers in multistatic geometry, backed by the SubSeaSail HORUS persistent passive acoustic mesh — the fleet stays silent so the submarine never learns it has been found",
+        secondary: "Prosecute on a single active cue: once the passive cross-fix holds a fire-control track, the lead M48 emits one confirmation ping and an MQ-8C Fire Scout delivers a Mk 54 lightweight torpedo onto the datum — zero crew exposure and no emitting bait platform"
       },
       squadronComposition: {
-        captasVessel: "Magnet Defense M48 (CAPTAS) — 1× — lead/bait",
-        mftaVessels: "Magnet Defense M48 (MFTA + Hanwha) — 2× — passive receivers + prosecution",
+        leadVessel: "Magnet Defense M48 (lead passive array + single-ping confirm) — 1×",
+        mftaVessels: "Magnet Defense M48 (passive MFTA towed array) — 2× — silent bistatic receivers",
         sonobuoyMesh: "SubSeaSail HORUS (PAMELA acoustic array + HiveLink) — 6× — persistent listening field",
-        subsurface: "USS Virginia (SSN-774) — on station — prosecution asset"
+        airborneProsecutor: "MQ-8C Fire Scout (Mk 54 lightweight torpedo) — 1× — airborne prosecution asset"
       },
-      threat: "PLAN Type-093 Shang-class nuclear attack submarines; potential PLAN UUVs; torpedo threat to lead CAPTAS M48 (crewless by design)",
-      whyThisConfig: "CAPTAS-4 on USV extends the multistatic sonar field without crew risk in the torpedo engagement zone. HORUS persistent sonobuoy field solves the battery endurance problem — submarines can't outlast wind-and-solar acoustic sensors. USW-DSS unifies the common ASW picture across all platforms. Hanwha missile adds surface prosecution arm to an otherwise sensor-only autonomous fleet.",
+      threat: "PLAN Type-093 Shang-class nuclear attack submarines; potential PLAN UUVs. Passive-first operations keep all three M48s below the submarine's counter-detection threshold, so the fleet is not localized or targeted during the search phase.",
+      whyThisConfig: "Real-world ASW is won passively — active sonar reveals the hunter before the hunted. Three M48s run silent towed arrays in a multistatic geometry, letting USW-DSS cross-fix a submarine on tonals alone with no emissions. HORUS extends that passive field with an endurance no submarine battery can outlast. Only after the track is fire-control grade does the lead M48 emit a single confirmation ping, and the kill is handed to an MQ-8C Fire Scout dropping a Mk 54 — decoupling the shooter from the sensors so no platform has to act as emitting bait.",
       escalationTriggers: [
-        "CAPTAS echo return — SNR > threshold → USW-DSS triangulation tasked",
-        "3-bearing intersection confidence > 85% → contact established, Link 16 broadcast",
-        "Contact classified PLAN SSN → Virginia class cued via ACOMMS",
-        "Virginia firing solution confirmed → Hanwha missile armed as backup prosecution"
+        "Passive tonal on M48 towed array — SNR > threshold → USW-DSS multistatic cross-fix tasked",
+        "3-array intersection confidence > 85% → contact localized, Link 16 broadcast (still silent)",
+        "Fire-control-grade passive track → lead M48 emits one active confirmation ping",
+        "PLAN SSN confirmed + CTF-72 weapons free → MQ-8C Fire Scout drops Mk 54 on datum"
       ],
     },
     stateHierarchies: {
@@ -462,7 +462,7 @@ export const initialMissions = [
     history: [
       { action: "created", timestamp: "2026-05-10T06:00:00Z", details: "7th Fleet CTF-72 Philippine Sea ASW barrier" },
       { action: "launched", timestamp: "2026-05-10T08:00:00Z" },
-      { action: "updated", timestamp: "2026-05-20T00:00:00Z", details: "Hanwha missile integration confirmed — M48-BRAVO, M48-CHARLIE armed" },
+      { action: "updated", timestamp: "2026-07-23T00:00:00Z", details: "ASW doctrine revised to passive-first: 3× M48 silent towed arrays, single lead-M48 confirmation ping, MQ-8C Fire Scout Mk 54 prosecution. USS Virginia and emitting-bait concept removed." },
     ]
   },
   // MCM — Strait of Hormuz 5th Fleet

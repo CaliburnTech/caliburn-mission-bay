@@ -17,7 +17,7 @@ import { HULL_IMAGES } from '../../utils/hullImages';
 import imgM48 from '../../assets/images/M48.png';
 
 const MISSION_SET_KEY = 'ASW';
-const MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'MFTA Towed Array', 'EvoLogics Acoustic Modem'];
+const MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'MFTA Towed Array', 'EvoLogics Acoustic Modem', 'Mk 54 Lightweight Torpedo'];
 
 // ─── Geography ────────────────────────────────────────────────────────────────
 const NM_TO_M = 1852;
@@ -26,11 +26,11 @@ const MAP_CENTER    = [24.35, 135.05];
 const MAP_ZOOM      = 8;
 const MAP_ZOOM_IN   = 9;   // zooms in when contact established
 
-const M48_CAPTAS_POS = [24.40, 135.20];   // M48-ALPHA — CAPTAS active pinger (the bait)
+const M48_CAPTAS_POS = [24.40, 135.20];   // M48-ALPHA — lead passive array + single confirmation ping
 const M48_MFTA_1_POS = [24.05, 135.65];   // M48-BRAVO  — passive MFTA receiver SE
 const M48_MFTA_2_POS = [24.75, 135.65];   // M48-CHARLIE — passive MFTA receiver NE
 
-const SUB_ECHO_POS = [24.14, 134.96];   // where echo is detected / sub contact — midpoint Virginia ↔ M48-ALPHA
+const SUB_ECHO_POS = [24.14, 134.96];   // passive contact datum
 const SUB_TRACK    = [
   [24.28, 134.38],
   [24.24, 134.56],
@@ -38,61 +38,65 @@ const SUB_TRACK    = [
   [24.14, 134.96],
   [24.20, 135.08],
 ];
-const VIRGINIA_POS = [23.88, 134.72];
+const HELO_START = [25.05, 135.42];   // MQ-8C Fire Scout ingress from the CSG (NE)
+const HELO_DROP  = [24.29, 135.03];   // Mk 54 release point above the datum
 
 const CAPTAS_RANGE_NM = 81;
 
 // ─── Tick milestones ──────────────────────────────────────────────────────────
 const T_DEPLOYED          =  8;
-const T_CAPTAS_PING       = 18;
-const T_PING_PROP         = 30;
-const T_ECHO_DETECT       = 42;
+const T_PASSIVE_SEARCH    = 20;   // silent passive barrier established
+const T_PASSIVE_DETECT    = 40;   // lead M48 holds a passive tonal
 const T_MFTA_BRAVO        = 52;   // M48-BRAVO bearing line appears
-const T_MFTA_CHARLIE      = 57;   // M48-CHARLIE bearing line appears
-const T_CONTACT_EST       = 65;   // contact established — enemy locked
-const T_ENEMY_FIRES       = 76;   // SIERRA-7 fires torpedo at M48-ALPHA
-const T_ALPHA_HIT         = 90;   // M48-ALPHA destroyed
-const T_VIRGINIA_CUED     = 100;
-const T_ENGAGEMENT        = 112;  // Virginia fires
-const T_CONTACT_LOST      = 128;
-const TOTAL_TICKS         = 144;
+const T_MFTA_CHARLIE      = 60;   // M48-CHARLIE bearing line appears
+const T_CONTACT_EST       = 72;   // passive multistatic cross-fix — track localized
+const T_ACTIVE_CONFIRM    = 88;   // lead M48 emits one active confirmation ping
+const T_CONFIRMED         = 100;  // classified PLAN Type-093 — weapons free
+const T_HELO_INBOUND      = 108;  // MQ-8C Fire Scout vectored to datum
+const T_TORPEDO_DROP      = 122;  // Mk 54 lightweight torpedo released
+const T_CONTACT_LOST      = 138;  // SIERRA-7 prosecuted
+const TOTAL_TICKS         = 152;
 
 const TICK_MS = 280;
 
 // ─── Loadouts ─────────────────────────────────────────────────────────────────
-const M48_CAPTAS_MOUNTS = [
-  { slot: 'ACTIVE SONAR',    name: 'CAPTAS-4 Variable Depth Sonar', vendor: 'Thales',   description: '150km detection range — 2nd convergence zone — 300m depth — active + passive combined' },
+const M48_ALPHA_MOUNTS = [
+  { slot: 'PASSIVE + CONFIRM SONAR', name: 'CAPTAS-4 Variable Depth Sonar', vendor: 'Thales',   description: 'Towed passively during the search; emits a single active confirmation ping only once the passive cross-fix holds a fire-control track' },
   { slot: 'C2 / PROCESSING', name: 'USW-DSS (AN/UYQ-100)',          vendor: 'Leidos',   description: 'Network-centric ASW decision support — fuses all platform data — Link 16 broadcast' },
   { slot: 'COMMS',           name: 'HiveLink SDR',                  vendor: 'HiveLink', description: 'Multi-waveform radio — WaveformX, WaveformY, Link 16 — tactical data link node' },
-  { slot: 'DATA LINK',       name: 'Link 16 Track Broadcast',       vendor: 'MIDS-LVT', description: 'Dedicated MIDS-LVT Link 16 terminal — broadcasts CAPTAS/USW-DSS common ASW picture in J-series to BRAVO/CHARLIE and manned combatants' },
+  { slot: 'DATA LINK',       name: 'Link 16 Track Broadcast',       vendor: 'MIDS-LVT', description: 'Dedicated MIDS-LVT Link 16 terminal — broadcasts the common ASW picture in J-series to BRAVO/CHARLIE, the MQ-8C, and manned combatants' },
 ];
 const M48_MFTA_MOUNTS = [
-  { slot: 'PASSIVE SONAR',   name: 'MFTA Towed Array',              vendor: 'Lockheed Martin',     description: 'Passive receiver — listens for CAPTAS echo returns — bistatic geometry triangulation' },
+  { slot: 'PASSIVE SONAR',   name: 'MFTA Towed Array',              vendor: 'Lockheed Martin',     description: 'Silent passive receiver — holds the submarine on tonals — multistatic geometry triangulation' },
   { slot: 'C2 / PROCESSING', name: 'USW-DSS (AN/UYQ-100)',          vendor: 'Leidos',              description: 'Receives common ASW picture from lead M48 via Link 16' },
   { slot: 'COMMS',           name: 'HiveLink SDR',                  vendor: 'HiveLink',            description: 'Multi-waveform radio — WaveformX, WaveformY, Link 16 — tactical data link node' },
-  { slot: 'ACOUSTIC COMMS',  name: 'EvoLogics Acoustic Modem',      vendor: 'EvoLogics',           description: 'S2C underwater acoustic modem — JANUS (STANAG 4748) capable — two-way ACOMMS with submerged USS Virginia without breaking the sub’s depth/EMCON' },
+  { slot: 'ACOUSTIC COMMS',  name: 'EvoLogics Acoustic Modem',      vendor: 'EvoLogics',           description: 'S2C underwater acoustic modem — JANUS (STANAG 4748) capable — silent two-way ACOMMS across the passive line' },
+];
+const MQ8C_MOUNTS = [
+  { slot: 'WEAPON',          name: 'Mk 54 Lightweight Torpedo',     vendor: 'Raytheon',            description: 'Air-dropped lightweight ASW torpedo — parachute retard entry, active/passive acoustic homing on the datum' },
+  { slot: 'DATA LINK',       name: 'Link 16 Track Broadcast',       vendor: 'MIDS-LVT',            description: 'Receives the fire-control track from the M48 line and cues the release point' },
 ];
 
 const VESSEL_ROSTER = [
-  { name: 'M48 ALPHA', roleDescriptor: '(CAPTAS)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast'] },
-  { name: 'M48 BRAVO', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'EvoLogics Acoustic Modem', 'Bistatic Cross-Fix Node'] },
-  { name: 'M48 CHARLIE', roleDescriptor: '(MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'EvoLogics Acoustic Modem', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48 ALPHA', roleDescriptor: '(Lead / Passive)', image: imgM48, hullName: 'M48', roleKey: 'ASW_ALPHA', capabilities: ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast'] },
+  { name: 'M48 BRAVO', roleDescriptor: '(Passive MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_BRAVO', capabilities: ['MFTA Towed Array', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'EvoLogics Acoustic Modem', 'Bistatic Cross-Fix Node'] },
+  { name: 'M48 CHARLIE', roleDescriptor: '(Passive MFTA)', image: imgM48, hullName: 'M48', roleKey: 'ASW_CHARLIE', capabilities: ['MFTA Towed Array', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast', 'EvoLogics Acoustic Modem', 'Bistatic Cross-Fix Node'] },
+  { name: 'MQ-8C Fire Scout', roleDescriptor: '(Mk 54)', image: HULL_IMAGES['MQ-8C Fire Scout'], hullName: 'MQ-8C Fire Scout', roleKey: 'ASW_HELO', capabilities: ['Mk 54 Lightweight Torpedo', 'Link 16 Track Broadcast'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
 const PHASE_NARRATIVE = {
   idle:             null,
-  deployed:         { title: 'Assets on Station', body: 'M48-ALPHA holds station — CAPTAS-4 VDS descending to 200m. M48-BRAVO and M48-CHARLIE tow passive MFTA arrays in bistatic geometry.' },
-  captas_ping:      { title: 'CAPTAS-4 Active Ping', body: 'M48-ALPHA fires a 900–2100 Hz acoustic pulse. Sound propagates outward at 1,500 m/s. M48-ALPHA is the bait — the enemy may hear it and shoot.' },
-  ping_prop:        { title: 'Pulse Propagating', body: 'Acoustic energy bends along the SOFAR channel toward the 2nd convergence zone at 150km. M48-BRAVO and M48-CHARLIE listen silently for any echo.' },
-  echo_detect:      { title: 'Anomalous Echo Return', body: 'Return amplitude and Doppler consistent with a large submerged metal hull at bearing 285. M48-BRAVO and M48-CHARLIE begin cross-bearing.' },
-  mfta_correlate:   { title: 'Bistatic Cross-Fix', body: 'M48-BRAVO and M48-CHARLIE receive independent echoes from different angles. Two bearing lines intersect — USW-DSS computes contact position.' },
-  contact_est:      { title: 'SIERRA-7 Identified', body: 'USW-DSS cross-references acoustic signature: PLAN Type-093 Shang-class — 87% confidence. Track quality: fire control grade. Weapons free authorized.' },
-  enemy_fires:      { title: '⚠ Torpedo Inbound — M48-ALPHA', body: 'SIERRA-7 fires on the CAPTAS pinger. M48-ALPHA is crewless by design — this is expected. M48-BRAVO and M48-CHARLIE already hold the track via Link 16.' },
-  alpha_hit:        { title: 'M48-ALPHA Destroyed', body: 'M48-ALPHA hit — CAPTAS hull sinking. Zero crew casualties. USW-DSS track data preserved in M48-BRAVO and M48-CHARLIE. Contact maintained.' },
-  virginia_cued:    { title: 'Virginia Class Cued', body: 'USW-DSS compresses SIERRA-7 datum, confidence score, and intercept vector into a short ACOMMS burst — transmitted to USS Virginia via acoustic modem. Virginia receives without surfacing or reducing speed. Mk 48 fire control solution confirmed against pre-positioned track.' },
-  engagement:       { title: 'Torpedo Prosecution Underway', body: 'USS Virginia: Mk 48 ADCAP torpedo away — active homing on the M48-derived track. The M48s remain silent sensor nodes — no organic weapon needed; the SSN carries the shot. SIERRA-7 in weapons engagement zone.' },
-  contact_lost:     { title: 'SIERRA-7 Prosecuted', body: 'Acoustic transient consistent with pressure hull failure. SIERRA-7 contact lost — debris field confirmed on HORUS passive arrays. Sector BRAVO-7 cleared.' },
+  deployed:         { title: 'Assets on Station', body: 'Three M48s hold station and stream passive towed arrays in a multistatic barrier. The MQ-8C Fire Scout waits on the CSG deck at alert — no aircraft airborne, no active emissions.' },
+  passive_search:   { title: 'Silent Passive Barrier', body: 'All three M48s listen only. No pinging, no radiated energy — a transiting submarine has no way to know the barrier is there.' },
+  passive_detect:   { title: 'Passive Tonal Held', body: 'Lead M48 (ALPHA) holds a narrowband machinery tonal at bearing 285. Consistent with a large submerged hull. Cueing BRAVO and CHARLIE for a cross-fix — still fully passive.' },
+  mfta_correlate:   { title: 'Multistatic Cross-Fix', body: 'BRAVO and CHARLIE add independent passive bearings. Three bearing lines intersect — USW-DSS localizes the contact without a single active emission.' },
+  contact_est:      { title: 'SIERRA-7 Localized (Passive)', body: 'USW-DSS holds a fire-control-grade track from passive tonals alone. Signature suggests PLAN Type-093. The fleet is still silent — the submarine remains unaware it has been found.' },
+  active_confirm:   { title: 'Single Confirmation Ping', body: 'With the track already localized, the lead M48 emits exactly one active pulse to confirm range and classification. One ping — then straight back to silent.' },
+  confirmed:        { title: 'SIERRA-7 Confirmed — Weapons Free', body: 'Active return confirms PLAN Type-093 Shang-class at 87%. CTF-72 authorizes weapons free. MQ-8C Fire Scout launched from the CSG for prosecution.' },
+  helo_inbound:     { title: 'MQ-8C Fire Scout Inbound', body: 'The unmanned helicopter is vectored to the datum over Link 16, holding the M48-derived track. Mk 54 lightweight torpedo armed. The sensor line stays silent.' },
+  torpedo_drop:     { title: 'Mk 54 Away', body: 'MQ-8C releases the Mk 54 over the datum — parachute retard entry, then active/passive acoustic homing on SIERRA-7. The shooter is an aircraft; the M48s never had to act as bait.' },
+  contact_lost:     { title: 'SIERRA-7 Prosecuted', body: 'Acoustic transient consistent with pressure hull failure. SIERRA-7 contact lost — debris field confirmed on HORUS passive arrays. Sector BRAVO-7 cleared. All three M48s intact.' },
 };
 
 const EVENT_COLORS = {
@@ -109,78 +113,75 @@ const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
 const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 
 const getPhase = (tick) => {
-  if (tick < T_DEPLOYED)     return 'idle';
-  if (tick < T_CAPTAS_PING)  return 'deployed';
-  if (tick < T_PING_PROP)    return 'captas_ping';
-  if (tick < T_ECHO_DETECT)  return 'ping_prop';
-  if (tick < T_MFTA_BRAVO)   return 'echo_detect';
-  if (tick < T_CONTACT_EST)  return 'mfta_correlate';
-  if (tick < T_ENEMY_FIRES)  return 'contact_est';
-  if (tick < T_ALPHA_HIT)    return 'enemy_fires';
-  if (tick < T_VIRGINIA_CUED)return 'alpha_hit';
-  if (tick < T_ENGAGEMENT)   return 'virginia_cued';
-  if (tick < T_CONTACT_LOST) return 'engagement';
+  if (tick < T_DEPLOYED)        return 'idle';
+  if (tick < T_PASSIVE_SEARCH)  return 'deployed';
+  if (tick < T_PASSIVE_DETECT)  return 'passive_search';
+  if (tick < T_MFTA_BRAVO)      return 'passive_detect';
+  if (tick < T_CONTACT_EST)     return 'mfta_correlate';
+  if (tick < T_ACTIVE_CONFIRM)  return 'contact_est';
+  if (tick < T_CONFIRMED)       return 'active_confirm';
+  if (tick < T_HELO_INBOUND)    return 'confirmed';
+  if (tick < T_TORPEDO_DROP)    return 'helo_inbound';
+  if (tick < T_CONTACT_LOST)    return 'torpedo_drop';
   return 'contact_lost';
 };
 
 const getSubPos = (tick) => {
-  if (tick < T_ECHO_DETECT)  return null;
-  if (tick >= T_CONTACT_LOST) return null;
-  if (tick < T_CONTACT_EST)  return SUB_ECHO_POS;
+  if (tick < T_PASSIVE_DETECT) return null;
+  if (tick >= T_CONTACT_LOST)  return null;
+  if (tick < T_CONTACT_EST)    return SUB_ECHO_POS;
   const t = Math.min((tick - T_CONTACT_EST) / (T_CONTACT_LOST - T_CONTACT_EST), 1);
   return lerp2(SUB_TRACK[3], SUB_TRACK[4], t);
 };
 
-// Three staggered sonar ping waves
+// Single confirmation ping wave from the lead M48
 const getPingWaves = (tick) => {
   const waves = [];
-  const offsets = [0, 6, 12];
-  for (const off of offsets) {
-    const start = T_CAPTAS_PING + off;
-    const elapsed = tick - start;
-    if (elapsed >= 0 && elapsed <= 16) {
-      const p = elapsed / 16;
-      waves.push({ radius: p * CAPTAS_RANGE_NM * NM_TO_M, opacity: 0.70 * (1 - p) });
-    }
+  const elapsed = tick - T_ACTIVE_CONFIRM;
+  if (elapsed >= 0 && elapsed <= 16) {
+    const p = elapsed / 16;
+    waves.push({ radius: p * CAPTAS_RANGE_NM * NM_TO_M, opacity: 0.70 * (1 - p) });
   }
   return waves;
 };
 
-// Small orange ring blooming at sub position on echo return
+// Orange ring blooming at sub position when the confirmation ping returns
 const getEchoRing = (tick) => {
-  const elapsed = tick - T_ECHO_DETECT;
+  const elapsed = tick - (T_ACTIVE_CONFIRM + 8);
   if (elapsed < 0 || elapsed > 10) return null;
   const p = elapsed / 10;
   return { radius: p * 18 * NM_TO_M, opacity: 0.65 * (1 - p) };
 };
 
-// Enemy torpedo: travels from sub toward M48-ALPHA
-const getEnemyTorpedoPos = (tick) => {
-  if (tick < T_ENEMY_FIRES || tick >= T_ALPHA_HIT) return null;
-  const t = (tick - T_ENEMY_FIRES) / (T_ALPHA_HIT - T_ENEMY_FIRES);
-  return lerp2(SUB_ECHO_POS, M48_CAPTAS_POS, Math.min(t, 1));
+// MQ-8C Fire Scout: flies from the CSG toward the drop point, then loiters at release point
+const getHeloPos = (tick) => {
+  if (tick < T_HELO_INBOUND) return null;
+  if (tick < T_TORPEDO_DROP) {
+    const t = (tick - T_HELO_INBOUND) / (T_TORPEDO_DROP - T_HELO_INBOUND);
+    return lerp2(HELO_START, HELO_DROP, Math.min(t, 1));
+  }
+  return HELO_DROP;
 };
 
-// Friendly torpedo: travels from Virginia toward sub's final position
+// Mk 54 torpedo: travels from the helo drop point to the sub's final position
 const getFriendlyTorpedoPos = (tick) => {
-  if (tick < T_ENGAGEMENT || tick >= T_CONTACT_LOST) return null;
-  const t = (tick - T_ENGAGEMENT) / (T_CONTACT_LOST - T_ENGAGEMENT);
-  return lerp2(VIRGINIA_POS, SUB_TRACK[4], Math.min(t, 1));
+  if (tick < T_TORPEDO_DROP || tick >= T_CONTACT_LOST) return null;
+  const t = (tick - T_TORPEDO_DROP) / (T_CONTACT_LOST - T_TORPEDO_DROP);
+  return lerp2(HELO_DROP, SUB_TRACK[4], Math.min(t, 1));
 };
 
 
 const getPhaseBadge = (phase) => {
   const m = {
     deployed:       { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                   label: '● Sensors Deployed' },
-    captas_ping:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',     label: '⚡ CAPTAS-4 Active Ping' },
-    ping_prop:      { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40',                   label: '◈ Pulse Propagating' },
-    echo_detect:    { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',  label: '⚠ Anomalous Echo Return' },
-    mfta_correlate: { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40 animate-pulse',  label: '◈ Bistatic Cross-Fix' },
-    contact_est:    { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Identified' },
-    enemy_fires:    { cls: 'bg-red-900/80 text-red-200 border-red-400/60 animate-pulse',        label: '⚠ TORPEDO INBOUND — M48-ALPHA' },
-    alpha_hit:      { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',             label: '✕ M48-ALPHA Destroyed' },
-    virginia_cued:  { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                   label: '→ Virginia Cued via ACOMMS' },
-    engagement:     { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ TORPEDO AWAY — Mk 48 ADCAP' },
+    passive_search: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                   label: '◌ Passive Barrier — Silent' },
+    passive_detect: { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',  label: '⚠ Passive Tonal Held' },
+    mfta_correlate: { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40 animate-pulse',  label: '◈ Multistatic Cross-Fix' },
+    contact_est:    { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Localized (Passive)' },
+    active_confirm: { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40 animate-pulse',     label: '⚡ Single Confirmation Ping' },
+    confirmed:      { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Confirmed — Weapons Free' },
+    helo_inbound:   { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',     label: '→ MQ-8C Fire Scout Inbound' },
+    torpedo_drop:   { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ Mk 54 Away' },
     contact_lost:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ SIERRA-7 Prosecuted' },
   };
   return m[phase] || null;
@@ -278,27 +279,28 @@ const ASWMissionView = ({ mission, onBack }) => {
   const subPos     = getSubPos(currentTick);
   const pingWaves  = getPingWaves(currentTick);
   const echoRing   = getEchoRing(currentTick);
-  const enemyTorpedoPos    = getEnemyTorpedoPos(currentTick);
+  const heloPos            = getHeloPos(currentTick);
   const friendlyTorpedoPos = getFriendlyTorpedoPos(currentTick);
 
-  const alphaDestroyed  = currentTick >= T_ALPHA_HIT;
-  const showSubAnomaly  = currentTick >= T_ECHO_DETECT && currentTick < T_CONTACT_EST;
-  const showSubContact  = currentTick >= T_CONTACT_EST && currentTick < T_CONTACT_LOST;
+  const showSubAnomaly  = currentTick >= T_PASSIVE_DETECT && currentTick < T_CONFIRMED;
+  const showSubContact  = currentTick >= T_CONFIRMED && currentTick < T_CONTACT_LOST;
   const showExplosion   = currentTick >= T_CONTACT_LOST && currentTick < TOTAL_TICKS;
-  const showAlphaBoom   = currentTick >= T_ALPHA_HIT && currentTick < T_ALPHA_HIT + 12;
-  const alphaBoomRadius = showAlphaBoom ? (currentTick - T_ALPHA_HIT) * 6000 : 0;
-  const alphaBoomOpacity = showAlphaBoom ? Math.max(0, 0.75 - (currentTick - T_ALPHA_HIT) * 0.07) : 0;
   const subBoomRadius   = showExplosion ? (currentTick - T_CONTACT_LOST) * 8000 : 0;
   const subBoomOpacity  = showExplosion ? Math.max(0, 0.75 - (currentTick - T_CONTACT_LOST) * 0.07) : 0;
 
-  // Triangulation bearing lines: BRAVO and CHARLIE triangulate, ALPHA shown briefly
-  const showAlphaBearing   = currentTick >= T_ECHO_DETECT && currentTick < T_ALPHA_HIT;
+  // Passive listening rings around each M48 while the barrier is silent
+  const showPassiveListening = currentTick >= T_PASSIVE_SEARCH && currentTick < T_ACTIVE_CONFIRM;
+  // The lead M48 emits its single active ping during the confirm window
+  const alphaPinging = currentTick >= T_ACTIVE_CONFIRM && currentTick < T_ACTIVE_CONFIRM + 16;
+
+  // Triangulation bearing lines: ALPHA holds first, BRAVO and CHARLIE complete the cross-fix
+  const showAlphaBearing   = currentTick >= T_PASSIVE_DETECT && currentTick < T_CONTACT_LOST;
   const showBravoBearing   = currentTick >= T_MFTA_BRAVO  && currentTick < T_CONTACT_LOST;
   const showCharlieBearing = currentTick >= T_MFTA_CHARLIE && currentTick < T_CONTACT_LOST;
   // Bistatic triangle (M48-BRAVO ↔ M48-CHARLIE ↔ intersection) appears during correlate
   const showTriangle = currentTick >= T_MFTA_BRAVO && currentTick < T_CONTACT_LOST;
 
-  const showVirginia    = currentTick >= T_VIRGINIA_CUED;
+  const showHelo    = currentTick >= T_HELO_INBOUND;
 
   const narrative = PHASE_NARRATIVE[phase] || null;
   const badge     = getPhaseBadge(phase);
@@ -329,7 +331,7 @@ const ASWMissionView = ({ mission, onBack }) => {
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
-    const needsPulse = ['echo_detect', 'mfta_correlate', 'contact_est', 'enemy_fires', 'engagement'].includes(phase);
+    const needsPulse = ['passive_detect', 'mfta_correlate', 'contact_est', 'active_confirm', 'confirmed', 'torpedo_drop'].includes(phase);
     if (needsPulse) {
       pulseTimer.current = setInterval(() => setSubPulse(p => !p), 350);
       return () => clearInterval(pulseTimer.current);
@@ -368,64 +370,59 @@ const ASWMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
-      const v0 = vesselLabelsRef.current[0] ?? 'M48 (CAPTAS)';
+      const v0 = vesselLabelsRef.current[0] ?? 'M48 (Lead)';
       const v1 = vesselLabelsRef.current[1] ?? 'M48 (MFTA)';
       const v2 = vesselLabelsRef.current[2] ?? 'M48 (MFTA)';
+      const v3 = vesselLabelsRef.current[3] ?? 'MQ-8C Fire Scout';
       setCurrentTick(tick);
 
       if (tick === T_DEPLOYED) {
         addEvtRef.current('CTF-72: ASW patrol active — Philippine Sea Sector BRAVO-7', 'info');
-        addEvtRef.current(`${v0}: CAPTAS-4 VDS deployed — depth 200m — active sonar ready`, 'info');
-        addEvtRef.current(`${v1}: MFTA passive array deployed — bistatic receiver SE`, 'info');
-        addEvtRef.current(`${v2}: MFTA passive array deployed — bistatic receiver NE`, 'info');
+        addEvtRef.current(`${v0}: Passive towed array deployed — lead receiver, EMCON strict`, 'info');
+        addEvtRef.current(`${v1}: MFTA passive array deployed — receiver SE`, 'info');
+        addEvtRef.current(`${v2}: MFTA passive array deployed — receiver NE`, 'info');
+        addEvtRef.current(`${v3}: On CSG deck — alert-15 — no aircraft airborne`, 'info');
       }
-      if (tick === T_CAPTAS_PING) {
-        addEvtRef.current(`${v0}: CAPTAS PING — 900-2100Hz active pulse — 360° — position revealed`, 'warn');
-        addEvtRef.current(`${v0} is the bait — crewless hull at risk to draw out submarine`, 'info');
+      if (tick === T_PASSIVE_SEARCH) {
+        addEvtRef.current('Barrier established — all arrays passive — zero radiated energy', 'info');
       }
-      if (tick === T_PING_PROP) {
-        addEvtRef.current(`${v0}: Ping propagating — monitoring for returns at 150km envelope`, 'info');
-      }
-      if (tick === T_ECHO_DETECT) {
-        addEvtRef.current(`${v0}: ANOMALOUS RETURN — bearing 285, range 42nm — large submerged object`, 'warn');
-        addEvtRef.current(`${v0}: Doppler shift consistent with submarine hull — cueing ${v1}/${v2}`, 'warn');
+      if (tick === T_PASSIVE_DETECT) {
+        addEvtRef.current(`${v0}: PASSIVE TONAL — bearing 285 — narrowband machinery line`, 'warn');
+        addEvtRef.current(`${v0}: Signature consistent with submerged hull — cueing ${v1}/${v2}`, 'warn');
       }
       if (tick === T_MFTA_BRAVO) {
-        addEvtRef.current(`${v1}: Bistatic echo received — bearing 308 — cross-fix initiated`, 'warn');
+        addEvtRef.current(`${v1}: Passive bearing 308 — cross-fix initiated — still silent`, 'warn');
       }
       if (tick === T_MFTA_CHARLIE) {
-        addEvtRef.current(`${v2}: Bistatic echo received — bearing 261 — 2-bearing triangulation active`, 'warn');
-        addEvtRef.current('USW-DSS: Two independent bearings — intersection computing — confidence rising', 'info');
+        addEvtRef.current(`${v2}: Passive bearing 261 — 3-array triangulation active`, 'warn');
+        addEvtRef.current('USW-DSS: Independent bearings intersecting — confidence rising', 'info');
       }
       if (tick === T_CONTACT_EST) {
-        addEvtRef.current('USW-DSS: CONTACT ESTABLISHED — 24.14°N 134.96°E — depth est. 280m', 'alert');
-        addEvtRef.current('USW-DSS: PLAN Type-093 Shang-class — acoustic signature match 87%', 'alert');
+        addEvtRef.current('USW-DSS: CONTACT LOCALIZED (PASSIVE) — 24.14°N 134.96°E — depth est. 280m', 'alert');
+        addEvtRef.current('USW-DSS: Signature suggests PLAN Type-093 Shang-class — passive match', 'alert');
+        addEvtRef.current('Track fire-control grade — submarine unaware — fleet still silent', 'info');
+      }
+      if (tick === T_ACTIVE_CONFIRM) {
+        addEvtRef.current(`${v0}: SINGLE CONFIRMATION PING — 900-2100Hz — one pulse only`, 'warn');
+        addEvtRef.current(`${v0}: Ping complete — returning to passive — EMCON restored`, 'info');
+      }
+      if (tick === T_CONFIRMED) {
+        addEvtRef.current('USW-DSS: Active return confirms PLAN Type-093 — 87% classification', 'alert');
         addEvtRef.current('CTF-72: SIERRA-7 — HOSTILE — weapons free authorized', 'alert');
+        addEvtRef.current(`${v3}: Launch — vectoring to datum via Link 16 — Mk 54 armed`, 'warn');
       }
-      if (tick === T_ENEMY_FIRES) {
-        addEvtRef.current(`SIERRA-7: TORPEDO AWAY — targeting ${v0} CAPTAS pinger`, 'alert');
-        addEvtRef.current(`CTF-72: TORPEDO INBOUND ${v0} — crewless — no crew at risk`, 'warn');
-        addEvtRef.current(`USW-DSS: ${v0} track already shared to BRAVO/CHARLIE via Link 16`, 'info');
+      if (tick === T_HELO_INBOUND) {
+        addEvtRef.current(`${v3}: Inbound — holding M48-derived track — sensor line silent`, 'info');
       }
-      if (tick === T_ALPHA_HIT) {
-        addEvtRef.current(`${v0}: HIT — CAPTAS hull destroyed — sinking`, 'alert');
-        addEvtRef.current(`${v0}: Zero crew casualties — unmanned hull expended as designed`, 'warn');
-        addEvtRef.current(`${v1} ${v2}: Track maintained — hold SIERRA-7 position`, 'info');
-        addEvtRef.current('SIERRA-7 has exposed itself — contact quality: fire control grade', 'alert');
-      }
-      if (tick === T_VIRGINIA_CUED) {
-        addEvtRef.current('USW-DSS: ACOMMS burst transmitted — datum 24.14°N 134.96°E — intercept vector encoded — compressed burst', 'info');
-        addEvtRef.current('USS Virginia: ACOMMS received — Mk 48 fire control confirmed', 'warn');
-      }
-      if (tick === T_ENGAGEMENT) {
-        addEvtRef.current('USS Virginia: TORPEDO AWAY — Mk 48 ADCAP — active homing', 'alert');
+      if (tick === T_TORPEDO_DROP) {
+        addEvtRef.current(`${v3}: Mk 54 AWAY — parachute retard — active/passive homing`, 'alert');
         addEvtRef.current('SIERRA-7: Evasive maneuver — high-speed cavitation — too late', 'alert');
       }
       if (tick === T_CONTACT_LOST) {
         addEvtRef.current('USW-DSS: SIERRA-7 — contact lost — pressure hull failure acoustic', 'success');
         addEvtRef.current(`${v1}: Debris field detected — bearing 095 — engagement confirmed`, 'success');
-        addEvtRef.current('CTF-72: SIERRA-7 PROSECUTED — sector BRAVO-7 cleared', 'success');
-        addEvtRef.current(`${v1} ${v2}: Initiating second ping cycle`, 'info');
+        addEvtRef.current('CTF-72: SIERRA-7 PROSECUTED — sector BRAVO-7 cleared — all M48s intact', 'success');
+        addEvtRef.current(`${v0} ${v1} ${v2}: Resuming passive barrier patrol`, 'info');
       }
 
       if (tick >= TOTAL_TICKS) {
@@ -510,7 +507,7 @@ const ASWMissionView = ({ mission, onBack }) => {
         <Anchor size={13} className="text-cyan-400" />
         <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">Philippine Sea ASW — BRAVO-7</span>
         <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
-        <span className="hidden md:inline text-gray-500 text-[0.68rem]">CAPTAS/MFTA Multistatic Kill Chain — 7th Fleet / CTF-72</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Passive Multistatic Kill Chain — 7th Fleet / CTF-72</span>
         <div className="flex-1" />
         <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">ACTIVE</span>
         <input
@@ -550,8 +547,18 @@ const ASWMissionView = ({ mission, onBack }) => {
               <MapInvalidateSize />
               <MapController phase={phase} />
 
-              {/* ── CAPTAS max-range envelope ── */}
-              {currentTick >= T_DEPLOYED && (
+              {/* ── Passive listening rings around each M48 (silent search) ── */}
+              {showPassiveListening && [M48_CAPTAS_POS, M48_MFTA_1_POS, M48_MFTA_2_POS].map((pos, i) => (
+                <Circle
+                  key={`listen-${i}`}
+                  center={pos}
+                  radius={38 * NM_TO_M}
+                  pathOptions={{ color: '#3b82f6', weight: 1, fill: false, opacity: 0.14, dashArray: '3 8' }}
+                />
+              ))}
+
+              {/* ── CAPTAS confirmation-ping range envelope (only while pinging) ── */}
+              {alphaPinging && (
                 <Circle
                   center={M48_CAPTAS_POS}
                   radius={CAPTAS_RANGE_NM * NM_TO_M}
@@ -559,13 +566,13 @@ const ASWMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Three staggered sonar ping waves ── */}
+              {/* ── Single confirmation ping wave ── */}
               {pingWaves.map((w, i) => (
                 <Circle
                   key={`ping-${i}`}
                   center={M48_CAPTAS_POS}
                   radius={w.radius}
-                  pathOptions={{ color: '#67e8f9', weight: i === 0 ? 3 : 2, fill: false, opacity: w.opacity }}
+                  pathOptions={{ color: '#67e8f9', weight: 3, fill: false, opacity: w.opacity }}
                 />
               ))}
 
@@ -586,7 +593,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Bearing lines — ALPHA (initial detection), then BRAVO + CHARLIE triangulate ── */}
+              {/* ── Bearing lines — ALPHA (passive), then BRAVO + CHARLIE triangulate ── */}
               {showAlphaBearing && subPos && (
                 <Polyline
                   positions={[M48_CAPTAS_POS, subPos]}
@@ -614,39 +621,11 @@ const ASWMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Enemy torpedo: sub → M48-ALPHA ── */}
-              {enemyTorpedoPos && (
-                <>
-                  <Polyline
-                    positions={[SUB_ECHO_POS, enemyTorpedoPos]}
-                    pathOptions={{ color: '#ef4444', weight: 1.5, opacity: 0.45, dashArray: '3 5' }}
-                  />
-                  <CircleMarker
-                    center={enemyTorpedoPos}
-                    radius={6}
-                    pathOptions={{ color: '#ef4444', fillColor: '#fbbf24', fillOpacity: 1, weight: 2 }}
-                  >
-                    <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444' }}>⚠ TORPEDO — SIERRA-7</span>
-                    </Tooltip>
-                  </CircleMarker>
-                </>
-              )}
-
-              {/* ── M48-ALPHA explosion ── */}
-              {showAlphaBoom && alphaBoomRadius > 0 && (
-                <Circle
-                  center={M48_CAPTAS_POS}
-                  radius={alphaBoomRadius}
-                  pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: alphaBoomOpacity * 0.3, weight: 2, opacity: alphaBoomOpacity }}
-                />
-              )}
-
-              {/* ── Friendly torpedo: Virginia → sub ── */}
+              {/* ── MQ-8C Fire Scout ingress path + Mk 54 torpedo ── */}
               {friendlyTorpedoPos && (
                 <>
                   <Polyline
-                    positions={[VIRGINIA_POS, friendlyTorpedoPos]}
+                    positions={[HELO_DROP, friendlyTorpedoPos]}
                     pathOptions={{ color: '#ffffff', weight: 1.5, opacity: 0.35, dashArray: '3 5' }}
                   />
                   <CircleMarker
@@ -655,7 +634,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                     pathOptions={{ color: '#ffffff', fillColor: '#67e8f9', fillOpacity: 1, weight: 2 }}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 11, fontWeight: 700 }}>Mk 48 ADCAP</span>
+                      <span style={{ fontSize: 11, fontWeight: 700 }}>Mk 54 Torpedo</span>
                     </Tooltip>
                   </CircleMarker>
                 </>
@@ -708,22 +687,26 @@ const ASWMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Virginia class ── */}
-              {showVirginia && (
-                <CircleMarker center={VIRGINIA_POS} radius={11}
-                  pathOptions={{ color: '#1d4ed8', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
-                />
+              {/* ── MQ-8C Fire Scout ── */}
+              {showHelo && heloPos && (
+                <CircleMarker center={heloPos} radius={10}
+                  pathOptions={{ color: '#4ade80', fillColor: '#166534', fillOpacity: 0.95, weight: 2 }}
+                >
+                  <Tooltip direction="top" offset={[0, -8]}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80' }}>MQ-8C Fire Scout</span>
+                  </Tooltip>
+                </CircleMarker>
               )}
 
-              {/* ── M48-ALPHA (CAPTAS pinger) ── */}
+              {/* ── M48-ALPHA (lead passive array / single confirm ping) ── */}
               {currentTick >= T_DEPLOYED && (
                 <CircleMarker
                   center={M48_CAPTAS_POS}
-                  radius={alphaDestroyed ? 8 : (phase === 'captas_ping' || phase === 'ping_prop' ? 16 : 13)}
+                  radius={alphaPinging ? 16 : 13}
                   pathOptions={{
-                    color:       alphaDestroyed ? '#6b7280' : '#67e8f9',
-                    fillColor:   alphaDestroyed ? '#374151' : '#67e8f9',
-                    fillOpacity: alphaDestroyed ? 0.60 : 0.90,
+                    color:       '#67e8f9',
+                    fillColor:   '#67e8f9',
+                    fillOpacity: 0.90,
                     weight: 2,
                   }}
                 />
@@ -772,10 +755,10 @@ const ASWMissionView = ({ mission, onBack }) => {
               <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#67e8f9', label: `${effectiveRoster[0]?.name ?? 'M48 (CAPTAS)'} — CAPTAS Pinger` },
+                    { color: '#67e8f9', label: `${effectiveRoster[0]?.name ?? 'M48 (Lead)'} — Lead Passive / Confirm Ping` },
                     { color: '#fbbf24', label: `${effectiveRoster[1]?.name ?? 'M48 (MFTA)'} / ${effectiveRoster[2]?.name ?? 'M48 (MFTA)'} — MFTA Passive` },
                     { color: '#ef4444', label: 'SIERRA-7 — PLAN Type-093' },
-                    { color: '#1d4ed8', label: 'USS Virginia (SSN-774)' },
+                    { color: '#4ade80', label: `${effectiveRoster[3]?.name ?? 'MQ-8C Fire Scout'} — Mk 54 Prosecutor` },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -856,7 +839,7 @@ const ASWMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  3× Magnet M48 · Virginia SSN-774
+                  3× Magnet M48 · MQ-8C Fire Scout
                 </p>
               )}
             </div>

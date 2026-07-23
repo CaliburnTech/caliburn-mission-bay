@@ -21,9 +21,9 @@ export const MISSION_ROLES = {
   // ─── ASW — Philippine Sea ─────────────────────────────────────────────────────
   // MISSION_SET_KEY = 'ASW'
   // MISSION_SET_CAPS = ['CAPTAS-4 Variable Depth Sonar', 'USW-DSS (AN/UYQ-100)', 'HiveLink SDR', 'Link 16 Track Broadcast',
-  //                     'MFTA Towed Array', 'EvoLogics Acoustic Modem']
+  //                     'MFTA Towed Array', 'EvoLogics Acoustic Modem', 'Mk 54 Lightweight Torpedo']
   //
-  // VESSEL_ROSTER order: [M48-ALPHA, M48-BRAVO, M48-CHARLIE, USS Virginia SSN-774]
+  // VESSEL_ROSTER order: [M48-ALPHA (lead), M48-BRAVO, M48-CHARLIE, MQ-8C Fire Scout]
   // roles[] must match that order so effectiveRoster positional mapping is correct.
   ASW: {
     missionLabel: 'ASW — Philippine Sea',
@@ -31,8 +31,8 @@ export const MISSION_ROLES = {
     roles: [
       {
         roleKey: 'ASW_ALPHA',
-        roleLabel: 'CAPTAS Hunter (ALPHA)',
-        description: 'Active sonar pinger and C2 hub. Deploys CAPTAS-4 VDS to 200m, broadcasts ASW common picture via Link 16.',
+        roleLabel: 'Lead Passive Array (ALPHA)',
+        description: 'Silent lead hunter and C2 hub. Tows the CAPTAS-4 array in passive mode during the search, then emits a single active confirmation ping only after the multistatic cross-fix holds a fire-control track. Broadcasts the common ASW picture via Link 16.',
         capabilities: [
           'CAPTAS-4 Variable Depth Sonar',
           'USW-DSS (AN/UYQ-100)',
@@ -50,8 +50,8 @@ export const MISSION_ROLES = {
       },
       {
         roleKey: 'ASW_BRAVO',
-        roleLabel: 'MFTA Receiver (BRAVO)',
-        description: 'Passive MFTA towed array in bistatic geometry SE of ALPHA. Receives echo returns, computes cross-fix, and relays the fire-control track to USS Virginia for prosecution — no organic weapon.',
+        roleLabel: 'Passive Receiver (BRAVO)',
+        description: 'Silent passive MFTA towed array in multistatic geometry SE of ALPHA. Holds the submarine on tonals, computes the cross-fix, and relays the fire-control track over Link 16 for airborne prosecution — no active emissions, no organic weapon.',
         capabilities: [
           'MFTA Towed Array',
           'USW-DSS (AN/UYQ-100)',
@@ -70,8 +70,8 @@ export const MISSION_ROLES = {
       },
       {
         roleKey: 'ASW_CHARLIE',
-        roleLabel: 'MFTA Receiver (CHARLIE)',
-        description: 'Passive MFTA towed array in bistatic geometry NE of ALPHA. Completes the cross-fix triangle and provides an independent track to USS Virginia — no organic weapon.',
+        roleLabel: 'Passive Receiver (CHARLIE)',
+        description: 'Silent passive MFTA towed array in multistatic geometry NE of ALPHA. Completes the cross-fix triangle and provides an independent passive track to the airborne prosecutor — no active emissions, no organic weapon.',
         capabilities: [
           'MFTA Towed Array',
           'USW-DSS (AN/UYQ-100)',
@@ -86,6 +86,22 @@ export const MISSION_ROLES = {
         requirements: {
           categories: ['SENSORS', 'COMMS', 'C2'],
           subTypes: ['SONAR_TOWED'],
+        },
+      },
+      {
+        roleKey: 'ASW_HELO',
+        roleLabel: 'Airborne Prosecutor (MQ-8C)',
+        description: 'MQ-8C Fire Scout unmanned helicopter held on the CSG deck until the passive track is confirmed and CTF-72 authorizes weapons free. Vectored to the datum via Link 16, it delivers a Mk 54 lightweight torpedo onto the submarine — the shooter is decoupled from the silent sensor line.',
+        capabilities: [
+          'Mk 54 Lightweight Torpedo',
+          'Link 16 Track Broadcast',
+        ],
+        allowedPlatformTypes: ['UAV'],
+        defaultHullName: 'MQ-8C Fire Scout',
+        suggestedHullNames: ['MQ-8C Fire Scout'],
+        requirements: {
+          categories: ['KINETIC WEAPONS', 'COMMS'],
+          subTypes: ['STRIKE_WEAPON'],
         },
       },
     ],

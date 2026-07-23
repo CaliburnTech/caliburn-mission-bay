@@ -3793,6 +3793,35 @@ export const individualCapabilities = [
     missionTags: ["ASW"]
   },
   {
+    name: "Mk 54 Lightweight Torpedo",
+    provider: "Raytheon",
+    type: "Lightweight Torpedo",
+    description: "Mk 54 MAKO lightweight anti-submarine torpedo — the standard air-dropped and ship-launched ASW weapon. Air-delivered from rotary- and fixed-wing platforms, it enters the water under parachute retard and prosecutes a submarine track with active/passive acoustic homing. Range 10+ km, sized for helicopter hardpoints. Requires DODD 3000.09 human authorization for release.",
+    capabilities: ["Air-dropped lightweight torpedo", "Active/passive acoustic homing", "Shallow and deep water ASW", "Helicopter hardpoint compatible"],
+    trl: "TRL 9",
+    icon: "Target",
+    category: "KINETIC WEAPONS",
+    subType: 'STRIKE_WEAPON',
+    swap: {
+      weight: 276,      // Real: 276 kg (608 lb) per US Navy Mk 54 fact file
+      power: 0,         // Passive weapon store — no host power draw until release
+      size: "medium"
+    },
+    statImpacts: { speed: 0, power: 0, weight: 3, range: 0, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant"],
+    securityIcons: ["milstd"],
+    specs: {
+      weight: "276 kg (608 lb)",
+      length: "2.72 m (107 in)",
+      diameter: "324 mm (12.75 in)",
+      range: "10+ km",
+      guidance: "Active/passive acoustic homing (CBASS)",
+      delivery: "Air-drop (parachute retard), ship tube, or VLA rocket",
+      authorization: "Human operator required"
+    },
+    missionTags: ["ASW"]
+  },
+  {
     name: "Fire Control System",
     provider: "Raytheon / L3Harris",
     type: "Submarine Fire Control System",
@@ -5239,37 +5268,35 @@ export const missionFlowTemplates = {
     loopBack: { from: 'profile_adj', to: 'esm_monitor', label: 'Continuous Monitoring' }
   },
   ASW: {
-    name: "ASW — CAPTAS/MFTA Multistatic + HORUS Mesh",
+    name: "ASW — Passive Multistatic + Airborne Torpedo Prosecution",
     category: "ASW",
     subType: null,
     nodes: [
-      { id: 'deploy',      type: 'trigger',          label: 'Deploy M48 + HORUS\n(CTF-72 Tasking)',        position: { x: 50,   y: 150 } },
-      { id: 'captas_ping', type: 'action',            label: 'CAPTAS-4 Active Ping\n(900-2100Hz / 150km)', position: { x: 220,  y: 150 } },
-      { id: 'echo_return', type: 'sense',             label: 'Echo Return +\nHORUS Passive',               position: { x: 410,  y: 150 } },
-      { id: 'contact',     type: 'decision',          label: 'Contact?',                                   position: { x: 590,  y: 150 } },
-      { id: 'usw_dss',     type: 'orient',            label: 'USW-DSS\nTriangulation',                     position: { x: 760,  y: 80  } },
-      { id: 'log_clear',   type: 'action',            label: 'Log — No Contact\nContinue Ping',            position: { x: 590,  y: 300 } },
-      { id: 'classify',    type: 'decision',          label: 'PLAN SSN\nConfirmed?',                       position: { x: 930,  y: 80  } },
-      { id: 'acomms_cue',  type: 'action',            label: 'ACOMMS →\nVirginia SSN-774',                 position: { x: 1100, y: 80  } },
-      { id: 'human_auth',  type: 'human_checkpoint',  label: 'CTF-72\nWeapons Free',                       position: { x: 1270, y: 80  } },
-      { id: 'engage',      type: 'action',            label: 'Mk 48 ADCAP +\nHanwha Missile',             position: { x: 1440, y: 80  } },
-      { id: 'sector_clear', type: 'end',              label: 'SIERRA-7 Prosecuted\n— Sector Clear',        position: { x: 1610, y: 150 } }
+      { id: 'deploy',       type: 'trigger',          label: 'Deploy 3× M48 + HORUS\n(CTF-72 Tasking)',       position: { x: 50,   y: 150 } },
+      { id: 'passive_search', type: 'sense',          label: 'Passive Search\n(3× M48 Arrays — Silent)',     position: { x: 230,  y: 150 } },
+      { id: 'contact',      type: 'decision',          label: 'Passive Contact?',                             position: { x: 430,  y: 150 } },
+      { id: 'usw_dss',      type: 'orient',            label: 'USW-DSS Multistatic\nCross-Fix',               position: { x: 620,  y: 80  } },
+      { id: 'log_clear',    type: 'action',            label: 'Log — No Contact\nContinue Listening',         position: { x: 430,  y: 300 } },
+      { id: 'active_confirm', type: 'action',          label: 'Lead M48 —\nSingle Active Ping',               position: { x: 820,  y: 80  } },
+      { id: 'classify',     type: 'decision',          label: 'PLAN SSN\nConfirmed?',                         position: { x: 1010, y: 80  } },
+      { id: 'human_auth',   type: 'human_checkpoint',  label: 'CTF-72\nWeapons Free',                         position: { x: 1190, y: 80  } },
+      { id: 'helo_prosecute', type: 'action',          label: 'MQ-8C Fire Scout —\nMk 54 Torpedo Drop',       position: { x: 1370, y: 80  } },
+      { id: 'sector_clear', type: 'end',               label: 'SIERRA-7 Prosecuted\n— Sector Clear',          position: { x: 1550, y: 150 } }
     ],
     connections: [
-      { from: 'deploy',      to: 'captas_ping' },
-      { from: 'captas_ping', to: 'echo_return' },
-      { from: 'echo_return', to: 'contact' },
-      { from: 'contact',     to: 'usw_dss',      label: 'Return Detected' },
-      { from: 'contact',     to: 'log_clear',    label: 'No Return' },
-      { from: 'usw_dss',     to: 'classify' },
-      { from: 'classify',    to: 'acomms_cue',   label: '>85% Confidence' },
-      { from: 'classify',    to: 'echo_return',  label: 'Inconclusive' },
-      { from: 'acomms_cue',  to: 'human_auth' },
-      { from: 'human_auth',  to: 'engage',       label: 'Authorized' },
-      { from: 'human_auth',  to: 'acomms_cue',   label: 'Hold — Continue Track' },
-      { from: 'engage',      to: 'sector_clear' }
+      { from: 'deploy',         to: 'passive_search' },
+      { from: 'passive_search', to: 'contact' },
+      { from: 'contact',        to: 'usw_dss',        label: 'Tonal Detected' },
+      { from: 'contact',        to: 'log_clear',      label: 'No Contact' },
+      { from: 'usw_dss',        to: 'active_confirm', label: 'Track Localized' },
+      { from: 'active_confirm', to: 'classify' },
+      { from: 'classify',       to: 'human_auth',     label: '>85% Confidence' },
+      { from: 'classify',       to: 'passive_search', label: 'Inconclusive' },
+      { from: 'human_auth',     to: 'helo_prosecute', label: 'Authorized' },
+      { from: 'human_auth',     to: 'usw_dss',        label: 'Hold — Continue Track' },
+      { from: 'helo_prosecute', to: 'sector_clear' }
     ],
-    loopBack: { from: 'log_clear', to: 'captas_ping', label: 'Continue Barrier Patrol' }
+    loopBack: { from: 'log_clear', to: 'passive_search', label: 'Continue Barrier Patrol' }
   }
 };
 
