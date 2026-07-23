@@ -5297,6 +5297,34 @@ export const missionFlowTemplates = {
       { from: 'helo_prosecute', to: 'sector_clear' }
     ],
     loopBack: { from: 'log_clear', to: 'passive_search', label: 'Continue Barrier Patrol' }
+  },
+  MDA_MOTHERSHIP: {
+    name: "MDA Mothership — Multi-Domain Launch, Recover & Fuse",
+    category: "ISR",
+    subType: null,
+    nodes: [
+      { id: 'position',   type: 'trigger',          label: 'LCS On Station\n(Launch/Recovery Node)',   position: { x: 50,   y: 150 } },
+      { id: 'launch',     type: 'action',            label: 'Launch Air / Surface /\nSubsurface Layers', position: { x: 240,  y: 150 } },
+      { id: 'sense',      type: 'sense',             label: 'Sense — SIGINT / Radar /\nEO-IR / Acoustic', position: { x: 450,  y: 150 } },
+      { id: 'contact',    type: 'decision',          label: 'New Contact?',                             position: { x: 650,  y: 150 } },
+      { id: 'fuse',       type: 'orient',            label: 'TempestOS Fuse\nCommon Op Picture',         position: { x: 850,  y: 80  } },
+      { id: 'hold',       type: 'action',            label: 'Hold Coverage\nContinue Sensing',           position: { x: 650,  y: 300 } },
+      { id: 'share',      type: 'action',            label: 'Push Fused COP\nto Joint Force',            position: { x: 1060, y: 80  } },
+      { id: 'recover',    type: 'action',            label: 'Recover / Cycle Assets\n(LARS, Sea State 4)', position: { x: 1270, y: 80  } },
+      { id: 'persistent', type: 'end',               label: 'Persistent Fused\nAwareness Maintained',    position: { x: 1270, y: 220 } }
+    ],
+    connections: [
+      { from: 'position', to: 'launch' },
+      { from: 'launch',   to: 'sense' },
+      { from: 'sense',    to: 'contact' },
+      { from: 'contact',  to: 'fuse',    label: 'Track Detected' },
+      { from: 'contact',  to: 'hold',    label: 'No Contact' },
+      { from: 'fuse',     to: 'share' },
+      { from: 'share',    to: 'recover', label: 'On-Station Time Elapsed' },
+      { from: 'share',    to: 'sense',   label: 'Continue Coverage' },
+      { from: 'recover',  to: 'persistent' }
+    ],
+    loopBack: { from: 'hold', to: 'sense', label: 'Persistent Coverage' }
   }
 };
 

@@ -107,6 +107,87 @@ export const MISSION_ROLES = {
     ],
   },
 
+  // ─── MDA MOTHERSHIP — First Island Chain ──────────────────────────────────────
+  // MISSION_SET_KEY = 'MDA_MOTHERSHIP'
+  // VESSEL_ROSTER order: [LCS (mothership), MQ-8C (air), M48 (surface), Freedom AUV (subsurface)]
+  MDA_MOTHERSHIP: {
+    missionLabel: 'MDA Mothership — First Island Chain',
+    minVessels: 4,
+    roles: [
+      {
+        roleKey: 'MDAM_LCS',
+        roleLabel: 'LCS Mothership',
+        description: 'Freedom-class LCS as the launch, recovery, and fusion node. Runs TempestOS to fuse every layer into one common operating picture and pushes it to the joint force over Link 16 and BLOS SATCOM.',
+        capabilities: [
+          'TempestOS Core Platform',
+          'MILSATCOM Terminal',
+          'Link 16 Track Broadcast',
+          'HiveLink SDR',
+          'NSYTE AI Maintenance System',
+        ],
+        allowedPlatformTypes: ['Ship'],
+        defaultHullName: 'Freedom-class LCS',
+        suggestedHullNames: ['Freedom-class LCS'],
+        requirements: {
+          categories: ['C2', 'COMMS'],
+          subTypes: [],
+        },
+      },
+      {
+        roleKey: 'MDAM_AIR',
+        roleLabel: 'Air Layer (MQ-8C)',
+        description: 'MQ-8C Fire Scout flying over-the-horizon ISR from the LCS flight deck. Surface-search radar and EO/IR extend the air picture; tracks feed the mothership over Link 16.',
+        capabilities: [
+          'Maritime Surface/Air Search Radar',
+          'Teledyne FLIR EO/IR Turret',
+          'Link 16 Track Broadcast',
+        ],
+        allowedPlatformTypes: ['UAV'],
+        defaultHullName: 'MQ-8C Fire Scout',
+        suggestedHullNames: ['MQ-8C Fire Scout'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
+      },
+      {
+        roleKey: 'MDAM_SURFACE',
+        roleLabel: 'Surface Layer (M48)',
+        description: 'M48 USV launched and recovered by the LCS to widen the surface net. Radar and EO/IR build the surface track picture; MarineAI perception classifies contacts.',
+        capabilities: [
+          'Maritime Surface/Air Search Radar',
+          'Teledyne FLIR EO/IR Turret',
+          'Marine AI Guardian Vision CVP',
+          'SeaFIND Inertial Navigation',
+          'HiveLink SDR',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'AEGIR-W', 'ZeroUSV Oceanus17'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
+      },
+      {
+        roleKey: 'MDAM_SUB',
+        roleLabel: 'Subsurface Layer (UUV)',
+        description: 'Freedom AUV extending awareness into the water below. Passive acoustic sensing detects subsurface contacts and relays tracks to the LCS on surfacing/comms windows.',
+        capabilities: [
+          'Passive Sonar Track Relay',
+          'Passive ESM/SIGINT Collection Module',
+        ],
+        allowedPlatformTypes: ['UUV'],
+        defaultHullName: 'Freedom AUV',
+        suggestedHullNames: ['Freedom AUV', 'VATN S6'],
+        requirements: {
+          categories: ['SENSORS'],
+          subTypes: [],
+        },
+      },
+    ],
+  },
+
   // ─── MDA ISR — South China Sea ────────────────────────────────────────────────
   // MISSION_SET_KEY = 'MDA_ISR'
   // MISSION_SET_CAPS = ['Passive ESM/SIGINT Collection Module']

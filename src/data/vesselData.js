@@ -1098,6 +1098,38 @@ export const vesselHullData = [
     }
   },
   {
+    name: "Freedom-class LCS",
+    type: "Littoral Combat Ship (LCS-1)",
+    platformType: "Ship",
+    displacement: "3,500 tons",
+    description: "Freedom-class Littoral Combat Ship (LCS-1) configured as an unmanned-systems mothership. High-speed steel monohull with a large reconfigurable mission bay, stern launch-and-recovery ramp, and flight deck / hangar for a rotary UAV — the launch, recovery, and TempestOS fusion node for a multi-domain unmanned force.",
+    icon: "Freedom-class LCS",
+    manufacturer: "Fincantieri Marinette Marine",
+    specs: {
+      speed: 40,        // knots max sprint
+      range: 3500,      // nm at 18 knots
+      rcs: 400          // m² (reduced-signature monohull)
+    },
+    capacity: {
+      totalWeight: 210000, // kg usable mission-bay + deck payload
+      totalPower: 3000     // kW available to mission systems
+    },
+    detailedSpecs: {
+      length: "118 m (387 ft)",
+      beam: "17.5 m (57 ft)",
+      crew: "50 core + mission crew",
+      missionBay: "Reconfigurable mission bay w/ stern LARS ramp",
+      aviation: "Flight deck + hangar (rotary UAV / MH-60)",
+      launchRecovery: "Stern ramp + side davit — USV/UUV launch and recovery underway"
+    },
+    applications: [
+      "Unmanned-systems mothership",
+      "Multi-domain ISR orchestration",
+      "USV/UUV launch and recovery",
+      "TempestOS common operating picture node"
+    ]
+  },
+  {
     name: "Virginia Class",
     type: "Nuclear Attack Submarine",
     platformType: "Submarine",
@@ -1223,6 +1255,7 @@ export const vesselHullComponents = {
   "Arleigh Burke": ArleighBurkeHull,
   "Virginia Class": SubmarineHull,
   "Lewis B. Puller Class ESB": ArleighBurkeHull, // placeholder — same silhouette family
+  "Freedom-class LCS": FreedomLCSHull,
   // Legacy/fallback mappings
   "Small USV": SmallUSVHull,
   "Medium USV": MediumUSVHull,

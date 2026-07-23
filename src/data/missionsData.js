@@ -1395,4 +1395,66 @@ export const initialMissions = [
       { action: "created", timestamp: "2026-07-10T08:00:00Z", details: "JMN Spear — Clandestine Disablement & SOF Strike Support" }
     ]
   },
+  // MDA MOTHERSHIP — Mission 05 — First Island Chain (LCS drone mothership)
+  {
+    id: "mission-mdamothership-001",
+    name: "FirstIslandChain-MDA-MOTHERSHIP-Alpha",
+    template: "MDA_MOTHERSHIP",
+    status: "draft",
+    assignedSquadrons: ["sqdn_004"],
+    domain: "MARITIME",
+    zoneConfig: {
+      name: "First Island Chain — MDA Mothership Operating Area",
+      coordinates: [
+        { lat: 19.8, lng: 120.8 },
+        { lat: 21.8, lng: 120.8 },
+        { lat: 21.8, lng: 123.2 },
+        { lat: 19.8, lng: 123.2 },
+      ],
+      swarmSize: 4,
+      swarmFormation: "multi-domain-star",
+    },
+    duration: "continuous",
+    missionProfile: {
+      type: "MDA_MOTHERSHIP",
+      lane: "PERSISTENT_MDA",
+      collectionTypes: ["SURFACE_RADAR", "AIR_RADAR", "EO_IR", "SIGINT_ESM", "PASSIVE_ACOUSTIC"],
+      commsArchitecture: {
+        primary: "Link 16 (MIDS-JTRS)",
+        secondary: "Viasat BLOS SATCOM",
+        tertiary: "HiveLink SDR mesh",
+        groundStation: "7th Fleet MOC, Yokosuka",
+        homeBase: "Freedom-class LCS (on-station mothership)"
+      },
+      objectives: {
+        primary: "Hold a persistent, fused maritime picture across a contested first-island-chain sector the fleet cannot otherwise watch, from a single LCS that launches, recovers, and fuses an unmanned force across air, surface, and subsurface layers",
+        secondary: "Demonstrate that one LCS mothership fields the same MDA coverage as a carrier group at a fraction of the cost — persistence over presence, every layer in one common operating picture"
+      },
+      squadronComposition: {
+        mothership: "Freedom-class LCS — 1× — launch/recovery + TempestOS fusion node",
+        airLayer: "MQ-8C Fire Scout — 1× — over-the-horizon radar + EO/IR from the deck",
+        surfaceLayer: "Magnet Defense M48 — 1× — launched/recovered USV, radar + EO/IR surface net",
+        subsurfaceLayer: "Freedom AUV — 1× — passive acoustic subsurface awareness"
+      },
+      threat: "PLAN/PLAAF surface, air, and subsurface incursions across the first island chain; AIS-dark maritime militia; contested EMCON environment",
+      whyThisConfig: "Persistent MDA over vast contested water exceeds crewed-fleet capacity, and the Navy's own path to full autonomy is roughly fifteen years out — the Hedge Strategy needs the capability now. One LCS carries and orchestrates a tailored unmanned force across every layer, launches and recovers it underway (AutoHook-class LARS through Sea State 4), and fuses the feeds in TempestOS into a single common operating picture pushed to the joint force.",
+      escalationTriggers: [
+        "LCS on station → air/surface/subsurface layers launched to cover every domain",
+        "Layer sensor detects a contact → track opened, cued to TempestOS",
+        "Multi-source correlation → fused COP track, pushed to joint force over Link 16 / BLOS",
+        "On-station time elapsed → assets recovered/cycled to the LCS, coverage maintained"
+      ],
+    },
+    stateHierarchies: {
+      default:       ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      contact_track: ["Payload", "Mission", "Comms", "Navigation", "Vehicle"],
+      recovery:      ["Navigation", "Vehicle", "Comms", "Mission", "Payload"],
+    },
+    createdAt: "2026-07-23T09:00:00Z",
+    updatedAt: "2026-07-23T09:00:00Z",
+    launchedAt: null,
+    history: [
+      { action: "created", timestamp: "2026-07-23T09:00:00Z", details: "Mission 05 — MDA Mothership — LCS drone-mothership multi-domain MDA (from pitch deck)" }
+    ]
+  },
 ];
