@@ -182,6 +182,39 @@ const collectBaselineComponents = (equipped) => {
 // Layout
 // ──────────────────────────────────────────
 
+// Horizontal and vertical gap between Mission Bay subgroups.
+const SUBGROUP_GAP = 20;
+
+// Pack subgroups into rows that fit the diagram width. Without this, subgroups
+// run off the right edge of their layer band and the renderer routes edges
+// around the overflow, which reads as crossed lines.
+const packSubgroupRows = (mbSubgroups, sgLayouts) => {
+  const { diagramWidth, layerPaddingX } = LAYOUT;
+  const usableWidth = diagramWidth - layerPaddingX * 2;
+  const rows = [];
+  let currentRow = [];
+  let currentWidth = 0;
+
+  mbSubgroups.forEach(sg => {
+    const width = sgLayouts[sg.id]?.width || 0;
+    const projected = currentRow.length === 0 ? width : currentWidth + SUBGROUP_GAP + width;
+
+    // Keep at least one subgroup per row even if it alone exceeds the width.
+    if (currentRow.length > 0 && projected > usableWidth) {
+      rows.push(currentRow);
+      currentRow = [sg];
+      currentWidth = width;
+      return;
+    }
+
+    currentRow.push(sg);
+    currentWidth = projected;
+  });
+
+  if (currentRow.length > 0) rows.push(currentRow);
+  return rows;
+};
+
 const computeLayout = (activeLayers, mbSubgroups, equipped, baselineComps, computeTemplate) => {
   const { diagramWidth: _diagramWidth, layerGap, layerPaddingX, layerPaddingY,
     componentWidth, componentHeight, componentGapX, componentGapY, componentsPerRow,
@@ -207,11 +240,14 @@ const computeLayout = (activeLayers, mbSubgroups, equipped, baselineComps, compu
     let height = layer.minHeight;
 
     if (layer.id === 'layer-missionbay') {
-      // Size to fit subgroups
-      const sgMaxHeight = mbSubgroups.length > 0
-        ? Math.max(...mbSubgroups.map(sg => sgLayouts[sg.id]?.height || 80))
+      // Size to fit subgroups across however many rows they wrap onto
+      const rowHeights = packSubgroupRows(mbSubgroups, sgLayouts).map(row =>
+        Math.max(...row.map(sg => sgLayouts[sg.id]?.height || 80))
+      );
+      const stackedHeight = rowHeights.length > 0
+        ? rowHeights.reduce((sum, h) => sum + h, 0) + (rowHeights.length - 1) * SUBGROUP_GAP
         : 60;
-      height = Math.max(sgMaxHeight + layerPaddingY * 2 + 10, layer.minHeight);
+      height = Math.max(stackedHeight + layerPaddingY * 2 + 10, layer.minHeight);
     } else if (layer.id === 'layer-compute' && computeTemplate) {
       const count = computeTemplate.components.length;
       const rows = Math.ceil(count / componentsPerRow);
@@ -240,36 +276,44 @@ const computeLayout = (activeLayers, mbSubgroups, equipped, baselineComps, compu
   });
 
   // ── Place Mission Bay subgroups and their capability children ──
-  let sgX = layerPaddingX;
-  mbSubgroups.forEach(sg => {
-    const layout = sgLayouts[sg.id];
-    allSubgroups.push({
-      id: sg.id,
-      layerId: 'layer-missionbay',
-      label: sg.label,
-      x: sgX,
-      y: layerPaddingY,
-      width: layout.width,
-      height: layout.height,
-      color: sg.color
-    });
+  // Subgroups wrap onto additional rows once they exceed the diagram width.
+  let sgY = layerPaddingY;
+  packSubgroupRows(mbSubgroups, sgLayouts).forEach(rowSubgroups => {
+    let sgX = layerPaddingX;
+    const rowHeight = Math.max(...rowSubgroups.map(sg => sgLayouts[sg.id]?.height || 80));
 
-    sg.caps.forEach((cap, idx) => {
-      const row = Math.floor(idx / componentsPerRow);
-      const col = idx % componentsPerRow;
-      allComponents.push({
-        id: `cap-${cap.slotCategory}-${cap.slotIndex}`,
-        label: cap.capName,
-        subgroupId: sg.id,
-        x: subgroupPaddingX + col * (componentWidth + componentGapX),
-        y: subgroupPaddingY + row * (componentHeight + componentGapY),
-        width: componentWidth,
-        height: componentHeight,
-        _slotCategory: cap.slotCategory
+    rowSubgroups.forEach(sg => {
+      const layout = sgLayouts[sg.id];
+      allSubgroups.push({
+        id: sg.id,
+        layerId: 'layer-missionbay',
+        label: sg.label,
+        x: sgX,
+        y: sgY,
+        width: layout.width,
+        height: layout.height,
+        color: sg.color
       });
+
+      sg.caps.forEach((cap, idx) => {
+        const row = Math.floor(idx / componentsPerRow);
+        const col = idx % componentsPerRow;
+        allComponents.push({
+          id: `cap-${cap.slotCategory}-${cap.slotIndex}`,
+          label: cap.capName,
+          subgroupId: sg.id,
+          x: subgroupPaddingX + col * (componentWidth + componentGapX),
+          y: subgroupPaddingY + row * (componentHeight + componentGapY),
+          width: componentWidth,
+          height: componentHeight,
+          _slotCategory: cap.slotCategory
+        });
+      });
+
+      sgX += layout.width + SUBGROUP_GAP;
     });
 
-    sgX += layout.width + 20;
+    sgY += rowHeight + SUBGROUP_GAP;
   });
 
   // ── Place baseline components in their layers ──
@@ -345,6 +389,31 @@ const computeLayout = (activeLayers, mbSubgroups, equipped, baselineComps, compu
 // Edge generation
 // ──────────────────────────────────────────
 
+// Components that aggregate capability traffic before it reaches TMS.
+// A capability wired to one of these must NOT also be wired straight to TMS.
+// That duplicate path is what draws two crossing lines for one logical flow.
+const TMS_AGGREGATORS = ['sensor-pub'];
+
+// Walk the edge list to decide whether `sourceId` already reaches `targetId`
+// through intermediate hops. The architecture is layered and shallow, and a
+// visited set guards against cycles regardless.
+const hasPathTo = (edges, sourceId, targetId) => {
+  const visited = new Set([sourceId]);
+  const queue = [sourceId];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    for (const edge of edges) {
+      if (edge.source !== current || visited.has(edge.target)) continue;
+      if (edge.target === targetId) return true;
+      visited.add(edge.target);
+      queue.push(edge.target);
+    }
+  }
+
+  return false;
+};
+
 const generateEdges = (equipped, baselineComps, computeTemplate) => {
   const edges = [];
   const allIds = new Set([
@@ -386,25 +455,42 @@ const generateEdges = (equipped, baselineComps, computeTemplate) => {
     });
   }
 
-  // Connect Mission Bay capabilities to TMS (everything goes through the pub/sub bus)
+  // Connect Mission Bay capabilities to TMS (the pub/sub bus).
+  // Only capabilities with no intermediate hop get a direct edge. Anything that
+  // already reaches TMS through an aggregator (sensors via sensor-pub) keeps that
+  // path instead, so one logical flow stays one line across the layer stack.
   if (allIds.has('tms')) {
     equipped.forEach(e => {
       const capId = `cap-${e.slotCategory}-${e.slotIndex}`;
+
+      const feedsAggregator = edges.some(ed =>
+        ed.source === capId && TMS_AGGREGATORS.includes(ed.target) && allIds.has(ed.target)
+      );
+      if (feedsAggregator) return;
+
+      // Covers indirect routes beyond the known aggregators.
+      if (hasPathTo(edges, capId, 'tms')) return;
+
       const catalogEntry = getCatalogEntry(e.capName);
       const protocol = catalogEntry?.protocols?.[0] || 'TMS Channel';
-      // Only add if no edge already exists to TMS for this cap
-      if (!edges.some(ed => ed.source === capId && ed.target === 'tms')) {
-        edges.push({ source: capId, target: 'tms', label: protocol });
-      }
+      edges.push({ source: capId, target: 'tms', label: protocol });
     });
   }
 
-  // Deduplicate
+  // Deduplicate. Collapse an exact repeat of the same directed edge, and collapse
+  // a reciprocal pair (A to B plus B to A) into the single edge declared first,
+  // since the renderer draws the return leg as a second overlapping line.
   const seen = new Set();
+  const connected = new Set();
   return edges.filter(e => {
-    const key = `${e.source}->${e.target}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
+    const directed = `${e.source}->${e.target}`;
+    if (seen.has(directed)) return false;
+
+    const undirected = [e.source, e.target].sort().join('<->');
+    if (connected.has(undirected)) return false;
+
+    seen.add(directed);
+    connected.add(undirected);
     return true;
   });
 };

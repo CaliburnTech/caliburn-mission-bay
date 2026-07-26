@@ -14,6 +14,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { toSvg } from 'html-to-image';
 import { resolveSV2 } from '../../utils/sv2AutoGenerator';
+import { LAYOUT } from '../../data/sv2LayerMap';
 import useSV2Store from '../../store/sv2Store';
 
 // Inject styles for group node labels (React Flow renders them as inner divs)
@@ -32,7 +33,8 @@ const SV2Styles = () => (
   </style>
 );
 
-const DIAGRAM_WIDTH = 900;
+// Single source of truth, shared with the layout engine that wraps subgroups.
+const DIAGRAM_WIDTH = LAYOUT.diagramWidth;
 
 // Component node style
 const componentStyle = (width = 150, height = 45) => ({
