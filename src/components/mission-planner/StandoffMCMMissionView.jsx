@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import {
-  MapContainer, TileLayer, Circle, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
+  MapContainer, TileLayer, Polygon, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Ship, ChevronLeft, Settings, ArrowLeftRight } from 'lucide-react';
+import { Play, Pause, RotateCcw, Target, ChevronLeft, Settings, ArrowLeftRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -14,50 +14,54 @@ import SwapVesselModal from './SwapVesselModal';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
+import { ORCHESTRATION_LAYER, SUCCESS_CRITERIA } from './autonomySeriesShared';
 
-const MISSION_SET_KEY = 'MDA_MOTHERSHIP';
-const MISSION_SET_CAPS = ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'FMD AutoHook', 'Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'Passive Sonar Track Relay', 'NSYTE AI Maintenance System'];
+const MISSION_SET_KEY = 'STANDOFF_MCM';
 
-// ─── Geography — First Island Chain / Luzon Strait ─────────────────────────────
-const NM_TO_M = 1852;
+// ─── Geography — Bashi Channel ────────────────────────────────────────────────
+const MAP_CENTER  = [21.55, 121.55];
+const MAP_ZOOM    = 8;
+const MAP_ZOOM_IN = 9;
 
-const MAP_CENTER  = [20.8, 121.9];
-const MAP_ZOOM    = 7;
-const MAP_ZOOM_IN = 8;
-
-const LCS_POS      = [20.8, 121.9];   // Freedom-class LCS mothership — launch/recovery node
-const AIR_STATION  = [21.85, 121.70]; // MQ-8C over-the-horizon ISR (N)
-const SURF_STATION = [20.90, 123.15]; // M48 surface net (E)
-const SUB_STATION  = [19.85, 121.60]; // Freedom AUV subsurface (S)
-
-const OP_AREA_NM = 70; // mothership operating-area radius
+const LCS_POS    = [21.05, 120.85];  // command node — outside the minefield boundary. This matters.
+const MINEFIELD  = [[21.25, 121.20], [21.90, 121.20], [21.90, 122.00], [21.25, 122.00]];
+const LANE_START = [21.30, 121.30];
+const LANE_END   = [21.85, 121.90];
+const MINE_POSITIONS = [
+  [21.42, 121.44], [21.55, 121.58], [21.63, 121.71], [21.74, 121.82],
+];
+// Mine 1 (index) is the sensitive/uncertain contact cleared by the UISS sweep;
+// the other three are confirmed and neutralized by Barracuda.
+const SENSITIVE_MINE = 1;
 
 // ─── Tick milestones ──────────────────────────────────────────────────────────
-const T_DEPLOYED  =  8;   // LCS on station
-const T_LAUNCH    = 22;   // air/surface/subsurface layers launched (lowered into water)
-const T_ONSTATION = 48;   // layers reach their stations
-const T_RECOVER   = 66;   // assets recovered / hoisted back to the LCS
-const T_COMPLETE  = 86;   // all assets aboard — data collected
-const TOTAL_TICKS = 86;
+const T_STANDOFF   =  8;   // lane corridor drawn
+const T_HUNT       = 20;   // MCM USV enters the field along the lane
+const T_CLASSIFY   = 40;   // Knifefish descends beneath each contact
+const T_SWEEP      = 56;   // UISS trail; the sensitive mine triggers safely
+const T_NEUTRALIZE = 66;   // Barracuda runs to each confirmed mine
+const T_COMPLETE   = 84;   // lane renders CLEARED
+const TOTAL_TICKS  = 84;
 
 const TICK_MS = 280;
 
-// ─── Roster ─────────────────────────────────────────────────────────────────
+// ─── Roster — order matches MISSION_ROLES[STANDOFF_MCM].roles ────────────────
 const VESSEL_ROSTER = [
-  { name: 'LCS Mothership', roleDescriptor: '(Mothership)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'MDAM_LCS', capabilities: ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'FMD AutoHook', 'NSYTE AI Maintenance System'] },
-  { name: 'MQ-8C Fire Scout', roleDescriptor: '(Air ISR)', image: HULL_IMAGES['MQ-8C Fire Scout'], hullName: 'MQ-8C Fire Scout', roleKey: 'MDAM_AIR', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Link 16 Track Broadcast'] },
-  { name: 'M48', roleDescriptor: '(Surface ISR)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MDAM_SURFACE', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR'] },
-  { name: 'Freedom AUV', roleDescriptor: '(Subsurface ISR)', image: HULL_IMAGES['Freedom AUV'], hullName: 'Freedom AUV', roleKey: 'MDAM_SUB', capabilities: ['Passive Sonar Track Relay', 'Passive ESM/SIGINT Collection Module'] },
+  { name: 'LCS Command Node', roleDescriptor: '(Command Node)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'SMCM_LCS', capabilities: ['TempestOS Core Platform', 'Link 16 Track Broadcast', 'MILSATCOM Terminal', 'HiveLink SDR', 'NSYTE AI Maintenance System'] },
+  { name: 'MCM USV', roleDescriptor: '(Hunter)', image: HULL_IMAGES['MCM USV'], hullName: 'MCM USV', roleKey: 'SMCM_HUNTER', capabilities: ['AN/AQS-20C Towed Minehunting Sonar', 'Unmanned Influence Sweep System (UISS)', 'AN/DVS-1 COBRA Coastal Recon', 'HiveLink SDR', 'SeaFIND Inertial Navigation', 'Marine AI Guardian Vision CVP'] },
+  { name: 'Knifefish', roleDescriptor: '(Classifier)', image: HULL_IMAGES['Knifefish'], hullName: 'Knifefish', roleKey: 'SMCM_CLASSIFIER', capabilities: ['Knifefish LFBB Mine ID Sonar', 'EvoLogics Acoustic Modem', 'SeaFIND Inertial Navigation'] },
+  { name: 'Knifefish', roleDescriptor: '(Neutralizer)', image: HULL_IMAGES['Knifefish'], hullName: 'Knifefish', roleKey: 'SMCM_NEUTRALIZER', capabilities: ['Barracuda Mine Neutralizer', 'EvoLogics Acoustic Modem', 'SeaFIND Inertial Navigation'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
 const PHASE_NARRATIVE = {
-  idle:       null,
-  deployed:   { title: 'LCS On Station', body: 'The Freedom-class LCS moves into the first-island-chain operating area as the launch, recovery, and comms node. TempestOS is up; the unmanned force is stowed on deck and ready.' },
-  launching:  { title: 'Launching Every Layer', body: 'The LCS puts the force out: the MQ-8C off the deck for the air layer, and the M48 and Freedom AUV lowered into the water for the surface and subsurface layers.' },
-  collecting: { title: 'Streaming Sensor Data', body: 'Air, surface, and subsurface assets are on station and streaming their sensor feeds back to the LCS over Link 16 and HiveLink. TempestOS fuses every layer into one picture — one hull covering more water than a carrier group.' },
-  recovering: { title: 'Recover & Cycle', body: 'On-station time complete: the MQ-8C recovers to the deck and the M48 and Freedom AUV are hoisted back aboard (AutoHook-class LARS, through Sea State 4). The force comes home.' },
-  complete:   { title: 'Assets Aboard — Picture Delivered', body: 'The unmanned force is recovered and the fused picture has been delivered. Swap the payload, not the platform — one squadron, one picture.' },
+  idle:         null,
+  standoff:     { title: 'LCS On Station — Outside the Field', body: 'The Freedom-class LCS holds station outside the minefield boundary with no crew at risk. TempestOS is up, and the lane to be opened is laid across the suspected field. Every hull that enters the field from here is unmanned.' },
+  hunting:      { title: 'Hunt at Standoff', body: 'The MCM USV enters the field towing the AN/AQS-20C minehunting sonar. Contacts log as unknowns behind the swath — hunted from the surface, cued from standoff, with the mothership still outside the boundary.' },
+  classifying:  { title: 'Classify Below', body: 'Knifefish works beneath each contact with low-frequency broadband sonar, identifying mines buried or moored — the classification step that turns a sonar contact into a confirmed target. Sea acceptance testing completed June 2026.' },
+  sweeping:     { title: 'Sweep the Sensitive Ones', body: 'The UISS influence sweep mimics a ship\'s magnetic and acoustic signature behind the MCM USV. The mine that cannot be safely approached is triggered instead — it detonates against a signature, not a crew.' },
+  neutralizing: { title: 'Neutralize — No Diver in the Water', body: 'Barracuda one-shot neutralizers run to each confirmed mine and destroy it on the datum. The legacy alternative puts an EOD diver on every one of these; here the water stays empty of people.' },
+  complete:     { title: 'Lane Opened — Nobody Entered the Field', body: 'The cleared lane is open. Hunt, classify, sweep, and neutralize ran as one tasked chain under TempestOS rather than four systems with four operator workflows. Crewed hulls in the field: 0. Divers in the water: 0.' },
 };
 
 const EVENT_COLORS = {
@@ -74,30 +78,57 @@ const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
 const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 
 const getPhase = (tick) => {
-  if (tick < T_DEPLOYED)  return 'idle';
-  if (tick < T_LAUNCH)    return 'deployed';
-  if (tick < T_ONSTATION) return 'launching';
-  if (tick < T_RECOVER)   return 'collecting';
-  if (tick < T_COMPLETE)  return 'recovering';
+  if (tick < T_STANDOFF)   return 'idle';
+  if (tick < T_HUNT)       return 'standoff';
+  if (tick < T_CLASSIFY)   return 'hunting';
+  if (tick < T_SWEEP)      return 'classifying';
+  if (tick < T_NEUTRALIZE) return 'sweeping';
+  if (tick < T_COMPLETE)   return 'neutralizing';
   return 'complete';
 };
 
-// Asset position: on the LCS, out to station, then recovered back
-const getAssetPos = (station, tick) => {
-  if (tick < T_LAUNCH)    return LCS_POS;
-  if (tick < T_ONSTATION) return lerp2(LCS_POS, station, (tick - T_LAUNCH) / (T_ONSTATION - T_LAUNCH));
-  if (tick < T_RECOVER)   return station;
-  if (tick < T_COMPLETE)  return lerp2(station, LCS_POS, (tick - T_RECOVER) / (T_COMPLETE - T_RECOVER));
+// MCM USV: waits with the LCS, hunts down the lane, sweeps back up it, then exits
+const getHunterPos = (tick) => {
+  if (tick < T_HUNT) return LCS_POS;
+  if (tick < T_CLASSIFY) return lerp2(LANE_START, LANE_END, (tick - T_HUNT) / (T_CLASSIFY - T_HUNT));
+  if (tick < T_SWEEP) return LANE_END;
+  if (tick < T_NEUTRALIZE) return lerp2(LANE_END, LANE_START, (tick - T_SWEEP) / (T_NEUTRALIZE - T_SWEEP));
+  if (tick < T_COMPLETE) return lerp2(LANE_START, LCS_POS, (tick - T_NEUTRALIZE) / (T_COMPLETE - T_NEUTRALIZE));
   return LCS_POS;
+};
+
+// Per-mine state machine, derived from the tick
+// 'hidden' → 'unknown' (swath passes) → 'confirmed' | 'sensitive' → 'cleared'
+const getMineState = (idx, tick) => {
+  const revealAt   = T_HUNT + 3 + idx * 4;
+  const classifyAt = T_CLASSIFY + 2 + idx * 3;
+  const sweepAt    = T_SWEEP + 5;                    // sensitive mine triggers mid-sweep
+  const neutAt     = T_NEUTRALIZE + 3 + idx * 4;     // Barracuda runs, one per confirmed mine
+  if (tick < revealAt) return 'hidden';
+  if (tick < classifyAt) return 'unknown';
+  if (idx === SENSITIVE_MINE) {
+    if (tick < sweepAt) return 'sensitive';
+    return 'cleared';
+  }
+  if (tick < neutAt) return 'confirmed';
+  return 'cleared';
+};
+
+const MINE_STYLE = {
+  unknown:   { color: '#facc15', fill: '#a16207', label: '? Unknown Contact' },
+  sensitive: { color: '#fb923c', fill: '#9a3412', label: '⚠ Sensitive — Sweep' },
+  confirmed: { color: '#ef4444', fill: '#7f1d1d', label: '● Mine Confirmed' },
+  cleared:   { color: '#4ade80', fill: '#14532d', label: '✓ Cleared' },
 };
 
 const getPhaseBadge = (phase) => {
   const m = {
-    deployed:   { cls: 'bg-sky-900/80 text-sky-300 border-sky-500/40',                     label: '● LCS On Station' },
-    launching:  { cls: 'bg-sky-900/80 text-sky-200 border-sky-400/40 animate-pulse',        label: '↓ Launching Layers' },
-    collecting: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',     label: '⇠ Streaming Sensor Data' },
-    recovering: { cls: 'bg-sky-900/80 text-sky-300 border-sky-500/40',                      label: '↑ Recover & Cycle' },
-    complete:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ Assets Aboard — Picture Delivered' },
+    standoff:     { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',                 label: '● LCS Outside the Field' },
+    hunting:      { cls: 'bg-orange-900/80 text-orange-200 border-orange-400/40 animate-pulse',   label: '⌖ Hunting — AN/AQS-20C' },
+    classifying:  { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',      label: '◎ Knifefish Classifying' },
+    sweeping:     { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '≋ UISS Influence Sweep' },
+    neutralizing: { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',            label: '✸ Barracuda Neutralizing' },
+    complete:     { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Lane Cleared — No Diver in the Water' },
   };
   return m[phase] || null;
 };
@@ -109,9 +140,9 @@ const MapController = ({ phase }) => {
   useEffect(() => {
     if (prev.current === phase) return;
     prev.current = phase;
-    if (phase === 'collecting') {
+    if (phase === 'classifying') {
       map.flyTo(MAP_CENTER, MAP_ZOOM_IN, { duration: 1.5 });
-    } else if (phase === 'deployed' || phase === 'idle') {
+    } else if (phase === 'standoff' || phase === 'idle') {
       map.flyTo(MAP_CENTER, MAP_ZOOM, { duration: 1.2 });
     }
   }, [phase, map]);
@@ -131,7 +162,7 @@ const MapInvalidateSize = () => {
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
-const MDAMothershipMissionView = ({ mission, onBack }) => {
+const StandoffMCMMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
   const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
@@ -178,9 +209,6 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   const [paused,       setPaused]       = useState(false);
   const [complete,     setComplete]     = useState(false);
 
-
-
-
   const tickRef    = useRef(0);
   const tickCallbackRef = useRef(null);
   const mainTimer  = useRef(null);
@@ -190,28 +218,18 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   const vesselLabelsRef = useRef([]);
   const runScenRef = useRef(null);
 
-  const phase   = getPhase(currentTick);
-  const airPos  = getAssetPos(AIR_STATION, currentTick);
-  const surfPos = getAssetPos(SURF_STATION, currentTick);
-  const subPos  = getAssetPos(SUB_STATION, currentTick);
+  const phase     = getPhase(currentTick);
+  const hunterPos = getHunterPos(currentTick);
 
-  const showAssets  = currentTick >= T_LAUNCH;
-  const streaming   = currentTick >= T_ONSTATION && currentTick < T_RECOVER;
-  const recovering  = currentTick >= T_RECOVER && currentTick < T_COMPLETE;
+  const showHunter   = currentTick >= T_HUNT && currentTick < T_COMPLETE;
+  const sweeping     = phase === 'sweeping';
+  const classifying  = phase === 'classifying';
+  const neutralizing = phase === 'neutralizing';
+  const laneCleared  = currentTick >= T_COMPLETE;
+  const mineStates   = MINE_POSITIONS.map((_, i) => getMineState(i, currentTick));
 
   const narrative = PHASE_NARRATIVE[phase] || null;
   const badge     = getPhaseBadge(phase);
-
-  // Sensor-data packets streaming from an asset back to the LCS
-  const dataDots = (from) => {
-    if (!streaming) return [];
-    const out = [];
-    for (const off of [0, 0.34, 0.68]) {
-      const f = (((currentTick / 7) + off) % 1);
-      out.push(lerp2(from, LCS_POS, f));
-    }
-    return out;
-  };
 
   const _addEvent = (msg, type = 'info') => {
     const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -238,7 +256,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
-    if (phase === 'collecting') {
+    if (phase === 'hunting' || phase === 'sweeping' || phase === 'neutralizing') {
       pulseTimer.current = setInterval(() => setPulse(p => !p), 350);
       return () => clearInterval(pulseTimer.current);
     }
@@ -276,33 +294,43 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
-      const v0 = vesselLabelsRef.current[0] ?? 'LCS Mothership';
-      const v1 = vesselLabelsRef.current[1] ?? 'MQ-8C Fire Scout';
-      const v2 = vesselLabelsRef.current[2] ?? 'M48';
-      const v3 = vesselLabelsRef.current[3] ?? 'Freedom AUV';
+      const v0 = vesselLabelsRef.current[0] ?? 'LCS Command Node';
+      const v1 = vesselLabelsRef.current[1] ?? 'MCM USV';
+      const v2 = vesselLabelsRef.current[2] ?? 'Knifefish';
       setCurrentTick(tick);
 
-      if (tick === T_DEPLOYED) {
-        addEvtRef.current(`${v0}: On station — first island chain — TempestOS online`, 'info');
-        addEvtRef.current(`${v0}: Launch/recovery node set — unmanned force ready`, 'info');
+      if (tick === T_STANDOFF) {
+        addEvtRef.current(`${v0}: On station outside the minefield — TempestOS sequencing the chain`, 'info');
+        addEvtRef.current('Lane Alpha corridor laid across the suspected field', 'info');
       }
-      if (tick === T_LAUNCH) {
-        addEvtRef.current(`${v1}: Off the deck — air layer over-the-horizon`, 'info');
-        addEvtRef.current(`${v2}: Lowered into the water — surface net`, 'info');
-        addEvtRef.current(`${v3}: Lowered into the water — subsurface layer`, 'info');
+      if (tick === T_HUNT) {
+        addEvtRef.current(`${v1}: Entering the field — AN/AQS-20C streaming at standoff`, 'info');
+        addEvtRef.current('No crewed hull inside the boundary', 'success');
       }
-      if (tick === T_ONSTATION) {
-        addEvtRef.current('All layers on station — streaming sensor data to the LCS', 'info');
-        addEvtRef.current(`${v0}: TempestOS fusing air/surface/subsurface feeds into one picture`, 'success');
+      if (tick === T_HUNT + 7) {
+        addEvtRef.current(`${v1}: Sonar contacts logged — cueing classification`, 'warn');
       }
-      if (tick === T_RECOVER) {
-        addEvtRef.current(`${v0}: On-station time complete — recovering the force (LARS)`, 'info');
-        addEvtRef.current(`${v2} ${v3}: Hoisted back aboard — Sea State 4 recovery`, 'info');
-        addEvtRef.current(`${v1}: Recovering to the deck`, 'info');
+      if (tick === T_CLASSIFY) {
+        addEvtRef.current(`${v2}: Descending on each contact — LFBB sonar, buried or moored`, 'info');
+      }
+      if (tick === T_CLASSIFY + 8) {
+        addEvtRef.current('Contacts resolving: mines confirmed on the lane', 'alert');
+      }
+      if (tick === T_SWEEP) {
+        addEvtRef.current(`${v1}: UISS sweep streaming — mimicking a ship signature`, 'info');
+      }
+      if (tick === T_SWEEP + 5) {
+        addEvtRef.current('Sensitive mine triggered safely against the sweep signature', 'success');
+      }
+      if (tick === T_NEUTRALIZE) {
+        addEvtRef.current('Barracuda neutralizers tasked — one per confirmed mine', 'info');
+      }
+      if (tick === T_NEUTRALIZE + 12) {
+        addEvtRef.current('All confirmed mines destroyed on the datum — no diver in the water', 'success');
       }
       if (tick === T_COMPLETE) {
-        addEvtRef.current(`${v0}: All assets aboard — fused picture delivered`, 'success');
-        addEvtRef.current('Swap the payload, not the platform — one squadron, one picture', 'success');
+        addEvtRef.current('Lane Alpha CLEARED — crewed hulls in the field: 0 · divers in the water: 0', 'success');
+        addEvtRef.current('Detect-to-neutralize ran as one tasked chain under TempestOS', 'success');
       }
 
       if (tick >= TOTAL_TICKS) {
@@ -342,24 +370,26 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     if (!missionName.trim()) return;
     const data = {
       name: missionName.trim(),
-      template: 'MDA_MOTHERSHIP',
+      template: 'STANDOFF_MCM',
       domain: 'MARITIME',
       status: 'draft',
-      duration: 'continuous',
+      duration: '14d',
       zoneConfig: {
-        name: 'First Island Chain — MDA Mothership Operating Area',
+        name: 'Bashi Channel — Suspected Minefield and Cleared Lane Alpha',
         coordinates: [
-          { lat: 19.8, lng: 120.8 }, { lat: 21.8, lng: 120.8 },
-          { lat: 21.8, lng: 123.2 }, { lat: 19.8, lng: 123.2 },
+          { lat: 21.20, lng: 121.10 }, { lat: 21.95, lng: 121.10 },
+          { lat: 21.95, lng: 122.05 }, { lat: 21.20, lng: 122.05 },
         ],
         swarmSize: 4,
-        swarmFormation: 'multi-domain-star',
+        swarmFormation: 'standoff-lane-clearance',
       },
-      assignedSquadrons: [],
+      assignedSquadrons: ['sqdn_034'],
       stateHierarchies: {
-        default:       ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
-        collecting:    ['Payload', 'Comms', 'Mission', 'Navigation', 'Vehicle'],
-        recovery:      ['Navigation', 'Vehicle', 'Comms', 'Mission', 'Payload'],
+        default:      ['Payload', 'Navigation', 'Comms', 'Mission', 'Vehicle'],
+        hunt:         ['Payload', 'Mission', 'Navigation', 'Comms', 'Vehicle'],
+        classify:     ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
+        neutralize:   ['Mission', 'Payload', 'Comms', 'Navigation', 'Vehicle'],
+        lane_transit: ['Navigation', 'Vehicle', 'Payload', 'Mission', 'Comms'],
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -371,11 +401,22 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     onBack();
   };
 
-  const LAYERS = [
-    { pos: airPos,  color: '#a78bfa', label: 'Air' },
-    { pos: surfPos, color: '#67e8f9', label: 'Surface' },
-    { pos: subPos,  color: '#4ade80', label: 'Subsurface' },
-  ];
+  // Knifefish classifier position: steps from mine to mine during the classify phase
+  const classifierPos = (() => {
+    if (!classifying) return null;
+    const seg = (currentTick - T_CLASSIFY) / (T_SWEEP - T_CLASSIFY);
+    const idx = Math.min(Math.floor(seg * MINE_POSITIONS.length), MINE_POSITIONS.length - 1);
+    return MINE_POSITIONS[idx];
+  })();
+
+  // Barracuda run lines during neutralize: from lane start toward each confirmed mine
+  const barracudaRuns = (() => {
+    if (!neutralizing) return [];
+    return MINE_POSITIONS
+      .map((pos, i) => ({ pos, i }))
+      .filter(({ i }) => i !== SENSITIVE_MINE && mineStates[i] === 'confirmed')
+      .map(({ pos }) => [LANE_START, pos]);
+  })();
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -387,22 +428,22 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
           <ChevronLeft size={13} /> Back to Library
         </button>
         <div className="w-px h-4 bg-gray-700/60" />
-        <Ship size={13} className="text-sky-400" />
-        <span className="text-sky-400 text-[0.8rem] font-semibold tracking-wide">MDA Mothership — Mission 05</span>
+        <Target size={13} className="text-orange-400" />
+        <span className="text-orange-400 text-[0.8rem] font-semibold tracking-wide">Standoff MCM — Mission 04</span>
         <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
-        <span className="hidden md:inline text-gray-500 text-[0.68rem]">One LCS · Launch, Collect &amp; Recover a Multi-Domain Sensor Force</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Hunt · Classify · Sweep · Neutralize — Open the Water Without a Diver in It</span>
         <div className="flex-1" />
-        <span className="px-2 py-0.5 rounded-full bg-sky-900/50 text-sky-400 text-[0.65rem] font-bold uppercase tracking-wider border border-sky-500/30">DRAFT</span>
+        <span className="px-2 py-0.5 rounded-full bg-orange-900/50 text-orange-400 text-[0.65rem] font-bold uppercase tracking-wider border border-orange-500/30">DRAFT</span>
         <input
           value={missionName}
           onChange={e => setMissionName(e.target.value)}
           placeholder="Mission name…"
-          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-sky-500/50 transition-colors"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-orange-500/50 transition-colors"
         />
         <button
           onClick={handleSave}
           disabled={!missionName.trim() || !isDeployable}
-          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-sky-600 hover:bg-sky-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-orange-600 hover:bg-orange-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
         >
           Save Draft
         </button>
@@ -430,129 +471,120 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
               <MapInvalidateSize />
               <MapController phase={phase} />
 
-              {/* ── Mothership operating area ── */}
-              {currentTick >= T_DEPLOYED && (
-                <Circle
-                  center={LCS_POS}
-                  radius={OP_AREA_NM * NM_TO_M}
-                  pathOptions={{ color: '#0ea5e9', weight: 1, fill: false, opacity: 0.08, dashArray: '8 10' }}
+              {/* ── Suspected minefield ── */}
+              <Polygon
+                positions={MINEFIELD}
+                pathOptions={{ color: '#fb923c', weight: 2, dashArray: '6 8', fillColor: '#fb923c', fillOpacity: 0.08 }}
+              >
+                <Tooltip direction="top" sticky>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>Suspected Minefield</span>
+                </Tooltip>
+              </Polygon>
+
+              {/* ── Lane corridor ── */}
+              {currentTick >= T_STANDOFF && (
+                <Polyline
+                  positions={[LANE_START, LANE_END]}
+                  pathOptions={laneCleared
+                    ? { color: '#4ade80', weight: 6, opacity: 0.85 }
+                    : { color: '#fdba74', weight: 3, opacity: 0.5, dashArray: '8 10' }}
+                >
+                  <Tooltip direction="top" sticky>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: laneCleared ? '#4ade80' : '#fdba74' }}>
+                      {laneCleared ? 'Lane Alpha — CLEARED' : 'Lane Alpha — to be opened'}
+                    </span>
+                  </Tooltip>
+                </Polyline>
+              )}
+
+              {/* ── UISS sweep trail behind the hunter ── */}
+              {sweeping && (
+                <Polyline
+                  positions={[LANE_END, hunterPos]}
+                  pathOptions={{ color: '#fbbf24', weight: 5, opacity: pulse ? 0.7 : 0.35, dashArray: '2 6' }}
                 />
               )}
 
-              {/* ── Per-layer: launch/recovery tether, sensor-data stream, asset marker ── */}
-              {showAssets && LAYERS.map((L, i) => (
-                <React.Fragment key={`layer-${i}`}>
-                  {/* tether / transit line LCS ↔ asset */}
-                  <Polyline
-                    positions={[LCS_POS, L.pos]}
-                    pathOptions={{ color: L.color, weight: 1.2, opacity: recovering ? 0.55 : (streaming ? 0.35 : 0.25), dashArray: '3 7' }}
-                  />
-                  {/* sensor-data packets streaming asset → LCS */}
-                  {dataDots(L.pos).map((d, j) => (
-                    <CircleMarker
-                      key={`dot-${i}-${j}`}
-                      center={d}
-                      radius={3}
-                      pathOptions={{ color: L.color, fillColor: L.color, fillOpacity: 0.95, weight: 0 }}
-                    />
-                  ))}
-                  {/* asset marker */}
-                  <CircleMarker
-                    center={L.pos}
-                    radius={11}
-                    pathOptions={{ color: L.color, fillColor: L.color, fillOpacity: 0.9, weight: 2 }}
-                  >
-                    <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: L.color }}>{`${L.label} layer`}</span>
-                    </Tooltip>
-                  </CircleMarker>
-                </React.Fragment>
+              {/* ── Barracuda run lines ── */}
+              {barracudaRuns.map((run, i) => (
+                <Polyline
+                  key={`barracuda-${i}`}
+                  positions={run}
+                  pathOptions={{ color: '#ef4444', weight: 1.5, opacity: 0.7, dashArray: '4 5' }}
+                />
               ))}
 
-              {/* ── LCS mothership (glows while receiving data) ── */}
-              {currentTick >= T_DEPLOYED && (
+              {/* ── Mines ── */}
+              {MINE_POSITIONS.map((pos, i) => {
+                const st = mineStates[i];
+                if (st === 'hidden') return null;
+                const s = MINE_STYLE[st];
+                return (
+                  <CircleMarker
+                    key={`mine-${i}`}
+                    center={pos}
+                    radius={st === 'cleared' ? 6 : 8}
+                    pathOptions={{ color: s.color, fillColor: s.fill, fillOpacity: 0.9, weight: 2 }}
+                  >
+                    <Tooltip direction="top" offset={[0, -8]}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: s.color }}>{s.label}</span>
+                    </Tooltip>
+                  </CircleMarker>
+                );
+              })}
+
+              {/* ── Knifefish classifier ── */}
+              {classifierPos && (
                 <CircleMarker
-                  center={LCS_POS}
-                  radius={streaming && pulse ? 17 : 14}
-                  pathOptions={{ color: '#0ea5e9', fillColor: '#0369a1', fillOpacity: 0.95, weight: 3 }}
+                  center={classifierPos}
+                  radius={7}
+                  pathOptions={{ color: '#4ade80', fillColor: '#166534', fillOpacity: 0.9, weight: 2, dashArray: '2 3' }}
                 >
-                  <Tooltip direction="top" offset={[0, -10]}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#38bdf8' }}>LCS Mothership</span>
+                  <Tooltip direction="bottom" offset={[0, 8]}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80' }}>{`${effectiveRoster[2]?.hullName ?? 'Knifefish'} — classifying below`}</span>
                   </Tooltip>
                 </CircleMarker>
               )}
 
+              {/* ── MCM USV hunter with sonar swath ── */}
+              {showHunter && (
+                <>
+                  <CircleMarker
+                    center={hunterPos}
+                    radius={pulse && (phase === 'hunting' || sweeping) ? 24 : 20}
+                    pathOptions={{ color: '#fdba74', fill: false, weight: 1, opacity: 0.35 }}
+                  />
+                  <CircleMarker
+                    center={hunterPos}
+                    radius={10}
+                    pathOptions={{ color: '#fb923c', fillColor: '#9a3412', fillOpacity: 0.95, weight: 2 }}
+                  >
+                    <Tooltip direction="top" offset={[0, -8]}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>{`${effectiveRoster[1]?.hullName ?? 'MCM USV'} — ${sweeping ? 'UISS sweep' : 'AN/AQS-20C tow'}`}</span>
+                    </Tooltip>
+                  </CircleMarker>
+                </>
+              )}
+
+              {/* ── LCS command node — outside the field, never moves ── */}
+              <CircleMarker
+                center={LCS_POS}
+                radius={14}
+                pathOptions={{ color: '#fb923c', fillColor: '#7c2d12', fillOpacity: 0.95, weight: 3 }}
+              >
+                <Tooltip direction="top" offset={[0, -10]} permanent={currentTick >= T_STANDOFF}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#fdba74' }}>LCS — No Crew at Risk</span>
+                </Tooltip>
+              </CircleMarker>
+
             </MapContainer>
 
-            {/* ── Corner feed: launch & recovery (LARS) ── */}
-            {(() => {
-              const W = 240, H = 160;
-              const waterY = 128;
-              const lcsImg = effectiveRoster[0]?.image;
-
-              // USV animation: complete lowering very fast (by T_LAUNCH + 8 ticks), then drive away during collecting, return during recovery
-              const usvLowerCompleteAt = T_LAUNCH + 4;
-              const usvLowerProgress = currentTick < T_LAUNCH
-                ? 0
-                : currentTick < usvLowerCompleteAt
-                  ? Math.min((currentTick - T_LAUNCH) / (usvLowerCompleteAt - T_LAUNCH), 1)
-                  : 1;
-              // Drive off immediately after lowering completes (30x speed), return during recovery (3x speed = 30x / 10)
-              let usvDriveProgress = 0;
-              let usvRaiseProgress = 0;
-              if (currentTick > usvLowerCompleteAt) {
-                if (phase === 'recovering') {
-                  // Delay raising by 2 ticks, then raise over 12 ticks (showcase the davit tech)
-                  const raiseDelay = 2;
-                  const raiseDuration = 12;
-                  usvRaiseProgress = currentTick < T_RECOVER + raiseDelay
-                    ? 0
-                    : Math.min(((currentTick - T_RECOVER - raiseDelay) / raiseDuration), 1);
-                  usvDriveProgress = Math.max(1 - (usvRaiseProgress * 3), 0);
-                } else {
-                  usvDriveProgress = Math.min(((currentTick - usvLowerCompleteAt) / (T_RECOVER - usvLowerCompleteAt)) * 30, 1);
-                }
-              }
-              const usvY = 95 + usvLowerProgress * (waterY - 95) - usvRaiseProgress * (waterY - 95);
-              const usvX = 135 - usvDriveProgress * 150; // drives off to the right, returns from off-screen during recovery
-
-              return (
-                <div
-                  className="absolute bottom-3 right-3 z-[500] pointer-events-none"
-                  style={{ width: W, height: H, borderRadius: 12, overflow: 'hidden',
-                    background: 'rgba(5,10,18,0.85)', border: '1px solid rgba(100,120,150,0.3)',
-                    backdropFilter: 'blur(4px)' }}
-                >
-                  {/* LCS image filling the frame, cropped at edges */}
-                  {lcsImg && (
-                    <img
-                      src={lcsImg} alt="LCS"
-                      style={{ position: 'absolute', left: -1, top: -40,
-                        width: 440, height: 240, objectFit: 'cover', opacity: 0.95 }}
-                    />
-                  )}
-
-                  <svg width={W} height={H} style={{ position: 'absolute', inset: 0 }}>
-                    {/* Water line and below */}
-                    <line x1={0} y1={waterY} x2={W} y2={waterY} stroke="#164e63" strokeWidth={2} />
-                    <rect x={0} y={waterY} width={W} height={H - waterY} fill="#0c2233" opacity={0.65} />
-
-                    {/* USV (show throughout) */}
-                    {(
-                      <g transform={`translate(${usvX},${usvY})`}>
-                        <path d="M -10 -3 L 10 -3 L 8 6 L -8 6 Z" fill="#67e8f9" opacity={0.96} />
-                        <rect x={-4} y={-8} width={8} height={5} rx={1} fill="#67e8f9" opacity={0.96} />
-                      </g>
-                    )}
-
-                    {/* Ripple where USV enters water */}
-                    {usvY > waterY - 5 && usvY < waterY + 5 && (
-                      <ellipse cx={usvX + 8} cy={waterY} rx={14} ry={3} fill="none" stroke="#38bdf8" strokeWidth={1} opacity={0.6} />
-                    )}
-                  </svg>
-                </div>
-              );
-            })()}
+            {/* ── The whole mission in two numbers — on screen from tick 0 ── */}
+            <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-orange-500/30 backdrop-blur-sm">
+              <div className="text-[0.6rem] uppercase tracking-widest text-orange-400/80 font-bold mb-0.5">Inside the Minefield</div>
+              <div className="text-[0.72rem] text-gray-200 tabular-nums">Crewed hulls: <span className="font-bold text-emerald-400">0</span></div>
+              <div className="text-[0.72rem] text-gray-200 tabular-nums">Divers in the water: <span className="font-bold text-emerald-400">0</span></div>
+            </div>
 
             {/* ── Phase badge ── */}
             {badge && (
@@ -562,14 +594,14 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
             )}
 
             {/* ── Legend ── */}
-            {currentTick >= T_DEPLOYED && (
+            {currentTick >= T_STANDOFF && (
               <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#0ea5e9', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Mothership` },
-                    { color: '#a78bfa', label: `${effectiveRoster[1]?.name ?? 'MQ-8C'} — Air Layer` },
-                    { color: '#67e8f9', label: `${effectiveRoster[2]?.name ?? 'M48'} — Surface Layer` },
-                    { color: '#4ade80', label: `${effectiveRoster[3]?.name ?? 'Freedom AUV'} — Subsurface Layer` },
+                    { color: '#fb923c', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Outside the Field` },
+                    { color: '#fdba74', label: `${effectiveRoster[1]?.name ?? 'MCM USV'} — Hunter / Sweep` },
+                    { color: '#4ade80', label: `${effectiveRoster[2]?.name ?? 'Knifefish'} — Classifier` },
+                    { color: '#ef4444', label: 'Barracuda — Neutralizer' },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -615,7 +647,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 {running ? (
                   <button
                     onClick={pause}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-orange-700 hover:bg-orange-600 text-white"
                   >
                     <Pause size={13} />
                     Pause
@@ -623,7 +655,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 ) : (
                   <button
                     onClick={paused ? resume : runScenario}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-orange-700 hover:bg-orange-600 text-white"
                   >
                     <Play size={13} />
                     {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
@@ -641,7 +673,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
               {/* Phase narrative */}
               {narrative ? (
                 <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
-                  <div className="text-[0.68rem] font-bold text-sky-300 uppercase tracking-wider mb-1">
+                  <div className="text-[0.68rem] font-bold text-orange-300 uppercase tracking-wider mb-1">
                     {narrative.title}
                   </div>
                   <div className="text-[0.67rem] text-gray-400 leading-relaxed">
@@ -650,9 +682,21 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  1× LCS · MQ-8C · M48 · Freedom AUV
+                  1× LCS · MCM USV · 2× Knifefish
                 </p>
               )}
+
+              {/* Shared series panels — the deck's ASK and orchestration slides (plan §8.3) */}
+              <div className="mt-3 rounded-lg bg-gray-800/30 border border-gray-700/40 px-3 py-2.5">
+                <div className="text-[0.62rem] font-bold text-gray-400 uppercase tracking-wider mb-1">How This Mission Is Judged</div>
+                {SUCCESS_CRITERIA[MISSION_SET_KEY].map(c => (
+                  <div key={c} className="text-[0.65rem] text-gray-500 leading-relaxed">· {c}</div>
+                ))}
+                <div className="text-[0.62rem] font-bold text-gray-400 uppercase tracking-wider mt-2 mb-1">{ORCHESTRATION_LAYER.title}</div>
+                {ORCHESTRATION_LAYER.points.map(p => (
+                  <div key={p} className="text-[0.65rem] text-gray-500 leading-relaxed">· {p}</div>
+                ))}
+              </div>
             </div>
 
             {/* Event log */}
@@ -682,7 +726,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
           {running ? (
             <button
               onClick={pause}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-sm font-semibold transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-orange-700 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
             >
               <Pause size={15} />
               Pause
@@ -690,7 +734,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
           ) : (
             <button
               onClick={paused ? resume : runScenario}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-sm font-semibold transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-orange-700 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
             >
               <Play size={15} />
               {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
@@ -718,7 +762,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                   <button
                     onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
                     disabled={!vessel.hullName}
-                    className="ml-auto p-1 rounded text-gray-400 hover:text-sky-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-orange-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Configure loadout"
                   >
                     <Settings size={13} />
@@ -775,4 +819,4 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   );
 };
 
-export default MDAMothershipMissionView;
+export default StandoffMCMMissionView;

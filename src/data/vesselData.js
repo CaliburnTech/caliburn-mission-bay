@@ -33,11 +33,15 @@ import {
   MarinerHull,
   OtterXHull,
   SeaJeepHull,
-  VATNHull
+  VATNHull,
+  MCMUSVHull,
+  KnifefishHull,
+  MH60RSeahawkHull
 } from '../components/VesselHulls';
 
 // Platform type classification helpers
-export const isAerialPlatform = (platformType) => platformType?.includes('UAV');
+export const isAerialPlatform = (platformType) =>
+  platformType?.includes('UAV') || platformType === 'Helicopter';
 export const isMaritimePlatform = (platformType) =>
   platformType?.includes('USV') || platformType?.includes('UUV') || platformType === 'Ship' || platformType === 'Submarine';
 
@@ -190,6 +194,42 @@ export const vesselHullData = [
     externalLinks: {
       manufacturer: "https://www.magnetdefense.com"
     }
+  },
+  {
+    name: "MCM USV",
+    type: "Medium USV — Mine Countermeasures",
+    platformType: "USV",
+    displacement: "~34 tons (est.)",
+    description: "Bollinger/Textron unmanned surface vessel for standoff mine countermeasures. Tows the AN/AQS-20C minehunting sonar and the Unmanned Influence Sweep System (UISS) across the field while the mothership holds outside it. IOC May 2023, first deployed March 2025.",
+    icon: "MCM USV",
+    manufacturer: "Bollinger / Textron Systems",
+    specs: {
+      speed: 40,        // knots max sprint
+      range: 1200,      // nm (est. at cruise)
+      rcs: 8            // m² — low-profile 12 m hull
+    },
+    capacity: {
+      totalWeight: 6000,
+      totalPower: 80
+    },
+    detailedSpecs: {
+      length: "~12 m (39 ft)",
+      hull: "Aluminum monohull, diesel waterjet",
+      towedBodies: "AN/AQS-20C minehunting sonar; UISS influence sweep",
+      autonomy: "Remote and semi-autonomous sortie execution",
+      status: "IOC May 2023 — first deployment March 2025"
+    },
+    features: [
+      "Standoff minehunting — no crew in the field",
+      "Tows AN/AQS-20C and UISS mission packages",
+      "LCS mission-bay launch and recovery",
+      "40-knot sprint for lane transit"
+    ],
+    applications: [
+      "Mine countermeasures hunt and sweep",
+      "Cleared-lane survey",
+      "Littoral reconnaissance support"
+    ]
   },
   // ============ AUSV (Autonomous Underwater/Surface Vehicle) ============
   {
@@ -821,6 +861,43 @@ export const vesselHullData = [
       manufacturer: "https://www.vatn.com/skelmir-s6-small-auv-drone"
     }
   },
+  {
+    name: "Knifefish",
+    type: "Heavyweight Minehunting UUV",
+    platformType: "UUV",
+    displacement: "~1,700 lbs",
+    description: "General Dynamics Mission Systems Knifefish — heavyweight Bluefin-21-derived unmanned undersea vehicle for surface mine countermeasures. Low-frequency broadband sonar localizes and identifies mines, buried or moored, beneath the surface where towed sonars cannot classify. Sea acceptance testing completed June 2026.",
+    icon: "Knifefish",
+    manufacturer: "General Dynamics Mission Systems",
+    specs: {
+      speed: 4,         // knots survey
+      range: 300,       // nm (est. multi-sortie endurance)
+      rcs: 0.01         // m² — subsurface
+    },
+    capacity: {
+      totalWeight: 1200,
+      totalPower: 20
+    },
+    detailedSpecs: {
+      diameter: "~21 in (533 mm)",
+      length: "~5.8 m (19 ft)",
+      sonar: "Low-frequency broadband (LFBB) synthetic aperture",
+      targets: "Buried, moored, and bottom mines in high-clutter environments",
+      launchRecovery: "LCS mission bay or vessel of opportunity",
+      status: "Sea acceptance testing completed June 2026"
+    },
+    features: [
+      "Low-frequency broadband sonar — buried mine detection and ID",
+      "Bluefin-21 heavyweight pedigree",
+      "Operates below the surface duct where towed sonars cannot classify",
+      "Vessel-of-opportunity deployable"
+    ],
+    applications: [
+      "Mine localization and classification",
+      "Cleared-lane verification",
+      "Bottom survey in high-clutter littorals"
+    ]
+  },
   // ============ UAV CATEGORY ============
   {
     name: "MQ-25 Stingray",
@@ -1023,6 +1100,58 @@ export const vesselHullData = [
     ],
     externalLinks: {
       manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/fire-scout"
+    }
+  },
+  // ============ HELICOPTER CATEGORY ============
+  {
+    name: "MH-60R Seahawk",
+    type: "Crewed ASW/ASuW Helicopter",
+    platformType: "Helicopter",
+    displacement: "~23,000 lbs MTOW",
+    description: "Sikorsky/Lockheed Martin MH-60R Seahawk — the fleet's crewed anti-submarine and anti-surface warfare helicopter. AN/AQS-22 ALFS dipping sonar, sonobuoys, and Mk 54 lightweight torpedoes, launched from an LCS flight deck. In the Autonomy Mission Series it is the prosecutor: the only crewed asset exposed, after the contact is found and for the kill rather than the search.",
+    icon: "MH-60R Seahawk",
+    manufacturer: "Sikorsky / Lockheed Martin",
+    specs: {
+      speed: 146,       // knots max
+      range: 245,       // nm mission radius
+      rcs: 3.0          // m² — rotary-wing profile
+    },
+    capacity: {
+      totalWeight: 2700,  // kg useful mission payload
+      totalPower: 60      // kW available to mission systems
+    },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 3.5,     // hours typical ASW sortie
+      missionRadius: 245, // nm
+      ceiling: 12000,     // ft
+      datalinkTier: 3,    // Advanced (Link 16, ship integration)
+      burnRateType: 'VTOL'
+    },
+    detailedSpecs: {
+      length: "64.8 ft (19.8 m)",
+      rotorDiameter: "53.7 ft (16.4 m)",
+      engines: "2× GE T700-GE-401C turboshaft",
+      crew: "3–4 (pilot, ATO, sensor operators)",
+      endurance: "~3.5 hours",
+      hardpoints: "4 weapon stations",
+      sonar: "AN/AQS-22 ALFS dipping sonar + sonobuoy launcher"
+    },
+    features: [
+      "AN/AQS-22 ALFS low-frequency dipping sonar",
+      "DIFAR/DICASS sonobuoy employment",
+      "Mk 54 lightweight torpedo carriage",
+      "Link 16 and Hawklink ship integration",
+      "LCS flight deck and hangar compatible"
+    ],
+    applications: [
+      "Anti-submarine warfare prosecution",
+      "Anti-surface warfare",
+      "Search and rescue",
+      "Over-the-horizon targeting"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.lockheedmartin.com/en-us/products/sikorsky-mh-60-helicopter.html"
     }
   },
   {
@@ -1251,6 +1380,10 @@ export const vesselHullComponents = {
   "RQ-21A Blackjack": RQ21BlackjackHull,
   "Black Widow": BlackWidowHull,
   "Switchblade": SwitchbladeHull,
+  // Autonomy Mission Series (Missions 01–04)
+  "MCM USV": MCMUSVHull,
+  "Knifefish": KnifefishHull,
+  "MH-60R Seahawk": MH60RSeahawkHull,
   // Crewed vessels
   "Arleigh Burke": ArleighBurkeHull,
   "Virginia Class": SubmarineHull,
@@ -1270,6 +1403,31 @@ export const vesselHullComponents = {
 
 // Vessel Mount Points Configuration
 export const vesselMountPoints = {
+  "MCM USV": {
+    "Stern Tow Gantry": { type: "MCM SYSTEMS", x: 72, y: 45, category: "Towed Systems" },
+    "Sweep Cable Reel": { type: "MCM SYSTEMS", x: 62, y: 55, category: "Towed Systems" },
+    "Sensor Mast": { type: "EO/IR SENSORS", x: 38, y: 25, category: "Sensors" },
+    "Surface Radar": { type: "RADAR/RF", x: 42, y: 30, category: "Sensors" },
+    "Communications": { type: "RF COMMUNICATIONS", x: 48, y: 35, category: "Communications" },
+    "Navigation": { type: "NAVIGATION", x: 35, y: 45, category: "Navigation Systems" },
+    "Autonomy Suite": { type: "UNMANNED SYSTEMS", x: 55, y: 50, category: "Autonomous Systems" }
+  },
+  "Knifefish": {
+    "Nose Sonar Section": { type: "ACOUSTIC/SONAR", x: 20, y: 50, category: "Sonar Systems" },
+    "Midbody Payload Bay": { type: "UTILITY", x: 45, y: 50, category: "Payload" },
+    "Acoustic Modem": { type: "UNDERWATER COMMS", x: 60, y: 45, category: "Communications" },
+    "Navigation": { type: "NAVIGATION", x: 55, y: 55, category: "Navigation Systems" },
+    "Autonomy Core": { type: "UNMANNED SYSTEMS", x: 70, y: 50, category: "Autonomous Systems" }
+  },
+  "MH-60R Seahawk": {
+    "ALFS Sonar Well": { type: "ACOUSTIC/SONAR", x: 48, y: 70, category: "Sonar Systems" },
+    "Sonobuoy Launcher": { type: "ACOUSTIC SENSORS", x: 62, y: 55, category: "Sensors" },
+    "Weapon Station 1": { type: "KINETIC WEAPONS", x: 35, y: 60, category: "Weapons" },
+    "Weapon Station 2": { type: "KINETIC WEAPONS", x: 55, y: 60, category: "Weapons" },
+    "Nose EO/IR Turret": { type: "EO/IR SENSORS", x: 18, y: 45, category: "Sensors" },
+    "Datalink Suite": { type: "RF COMMUNICATIONS", x: 45, y: 35, category: "Communications" },
+    "Mission Computer": { type: "COMMAND & CONTROL", x: 50, y: 45, category: "Control Systems" }
+  },
   "HSMUSV": {
     "Forward Payload Bay": { type: "UTILITY", x: 28, y: 45, category: "Payload" },
     "Aft Payload Bay": { type: "UTILITY", x: 68, y: 45, category: "Payload" },
@@ -1394,6 +1552,10 @@ export const VESSEL_SLOT_CAPACITY = {
   "MQ-4C Triton": { SENSORS: 7, COMMS: 3, WEAPONS: 0, C2: 2, NAV: 2, AI: 3, UTILITY: 1, OTHER: 0 },
   "MQ-8C Fire Scout": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "RQ-21A Blackjack": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
+  // Autonomy Mission Series (Missions 01–04)
+  "MCM USV": { SENSORS: 4, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "Knifefish": { SENSORS: 2, COMMS: 1, WEAPONS: 1, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
+  "MH-60R Seahawk": { SENSORS: 3, COMMS: 2, WEAPONS: 2, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
   // Crewed vessels
   "Arleigh Burke": { SENSORS: 8, COMMS: 4, WEAPONS: 6, C2: 3, NAV: 2, AI: 4, UTILITY: 3, OTHER: 0 },
   "Virginia Class": { SENSORS: 6, COMMS: 3, WEAPONS: 4, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },

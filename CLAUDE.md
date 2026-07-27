@@ -3,6 +3,15 @@
 ## What
 Defense marketplace SPA for configuring autonomous maritime/aerial platforms with capabilities, loadouts, and mission planning.
 
+## Active work: Autonomous Strike Group missions 01–04
+There is an implementation-ready spec at **`docs/AUTONOMOUS_STRIKE_GROUP_MISSION_PLAN.md`**. Read it before doing any work on missions, mission roles, the capability catalog, or vessel hulls.
+
+It specifies four new missions — Magazine Depth (`MAGAZINE_DEPTH`), Contested Logistics (`CONTESTED_LOGISTICS_MOTHERSHIP`), Theater ASW (`THEATER_ASW`), Standoff MCM (`STANDOFF_MCM`) — built to match the five Caliburn pitch decks in the user's `LCS Planning` folder. `MDA_MOTHERSHIP` is the already-built fifth mission and the reference implementation for the pattern. All five are filterable together via a new `Autonomous Strike Group` entry in `NAVY_GROUPS`.
+
+The spec contains: the seven-file anatomy of a mission in this codebase, launch-gate and SWaP mechanics, paste-ready mission records / role rosters / flow templates, the `Helicopter` platform-type plumbing, a build sequence, and a verification checklist. It also records eight bugs found while verifying it (section 12) — read that section before trusting any capability or hull name you have not grepped yourself.
+
+Two standing notes from that work: **`MissionMatrix.jsx` is dead code** (render site commented out in `MarketplacePage.jsx`, retained on request) so do not add `missionTags` or `platformTypes` for it; and **`missionCategories` in `marketplaceData.js` is unused** — grouping is done via `NAVY_GROUPS` in `MissionConfigView.jsx`.
+
 ## Stack
 React 19 (JSX) | Vite 7 | Tailwind CSS 4 | Zustand 5 | Leaflet | Lucide React | jsPDF
 TypeScript strict checking enabled on JS source files (tsconfig strict: true, source is .jsx/.js)
@@ -28,7 +37,7 @@ src/
 │   ├── ShipyardView.jsx      # Vessel hull browser + fleet management
 │   ├── OutfitterView.jsx     # Mount-point configuration (drag-drop)
 │   ├── MissionPlanner.jsx    # Mission table ↔ config views
-│   ├── MissionMatrix.jsx     # Capability × mission compatibility grid
+│   ├── MissionMatrix.jsx     # DEAD CODE — render site commented out in MarketplacePage.jsx
 │   ├── LoadoutBuilder.jsx    # Capability browser + slot equipping
 │   ├── mission-planner/      # Mission planner sub-components
 │   ├── loadout/              # Loadout sub-components
@@ -97,6 +106,8 @@ Beyond `src/` (the buyer SPA above), the repo contains:
 - Design tokens: `src/constants/colors.js`
 
 ## When Stuck
+- For mission work of any kind, start with `docs/AUTONOMOUS_STRIKE_GROUP_MISSION_PLAN.md` — section 2 documents every file a mission touches
+- For a reference mission implementation, look at `src/components/mission-planner/MDAMothershipMissionView.jsx` plus its entries in `constants.js`, `missionsData.js`, `missionRoles.js`, and `marketplaceData.js`
 - For component patterns, look at `src/components/MissionPlanner.jsx` (clean view-switching)
 - For store patterns, look at `src/store/navigationStore.js` (Zustand + localStorage)
 - For data shape, look at `src/data/marketplaceData.js` (capability/stack schema)

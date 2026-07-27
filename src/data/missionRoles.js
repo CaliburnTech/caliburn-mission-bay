@@ -123,13 +123,14 @@ export const MISSION_ROLES = {
           'MILSATCOM Terminal',
           'Link 16 Track Broadcast',
           'HiveLink SDR',
+          'FMD AutoHook',
           'NSYTE AI Maintenance System',
         ],
         allowedPlatformTypes: ['Ship'],
         defaultHullName: 'Freedom-class LCS',
         suggestedHullNames: ['Freedom-class LCS'],
         requirements: {
-          categories: ['C2', 'COMMS'],
+          categories: ['COMMS'],
           subTypes: [],
         },
       },
@@ -183,6 +184,388 @@ export const MISSION_ROLES = {
         requirements: {
           categories: ['SENSORS'],
           subTypes: [],
+        },
+      },
+    ],
+  },
+
+  // ─── MAGAZINE DEPTH — Mission 01 — Luzon Strait (Autonomy Mission Series) ─────
+  // MISSION_SET_KEY = 'MAGAZINE_DEPTH'
+  // VESSEL_ROSTER order: [LCS (command node), M48 (shooter Alpha), M48 (shooter Bravo), MQ-4C (sensor)]
+  // NB: CEC (900 kg) stays OFF the aircraft — MQ-8C capacity is 318 kg. The air node
+  // contributes tracks over Link 16; CEC terminals live on the LCS and the shooters.
+  MAGAZINE_DEPTH: {
+    missionLabel: 'Magazine Depth — Distributed Fires',
+    minVessels: 4,
+    roles: [
+      {
+        roleKey: 'MAGDEP_LCS',
+        roleLabel: 'LCS Command Node',
+        description: 'Freedom-class LCS on station as the command node. Holds its own Mk 41 cells and holds launch authority: CEC feeds fire-control-quality tracks to the watch team, which authorizes every engagement before a forward M48 fires.',
+        capabilities: [
+          'TempestOS Core Platform',
+          'Cooperative Engagement Capability (AN/USG-2)',
+          'Aegis Remote Fire Control',
+          'Link 16 Track Broadcast',
+          'MILSATCOM Terminal',
+          'Nulka Active Missile Decoy',
+          'NSYTE AI Maintenance System',
+        ],
+        allowedPlatformTypes: ['Ship'],
+        defaultHullName: 'Freedom-class LCS',
+        suggestedHullNames: ['Freedom-class LCS'],
+        requirements: {
+          categories: ['C2', 'COMMS'],
+          subTypes: ['FIRE_CONTROL_NET'],
+        },
+      },
+      {
+        roleKey: 'MAGDEP_SHOOTER_1',
+        roleLabel: 'Forward Shooter (M48 — Alpha)',
+        description: 'M48 stationed forward of the command node carrying a Mk 70 PDS: four Mk 41 strike-length cells, Mk 41-compatible including Tomahawk. Fires on the LCS commander\'s authorization, never on its own.',
+        capabilities: [
+          'Mk 70 Payload Delivery System',
+          'SM-6 Missile System',
+          'Tomahawk Block V 8-cell VLS',
+          'Cooperative Engagement Capability (AN/USG-2)',
+          'Maritime Surface/Air Search Radar',
+          'HiveLink SDR',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48'],
+        requirements: {
+          categories: ['WEAPONS', 'COMMS'],
+          subTypes: ['STRIKE_WEAPON'],
+        },
+      },
+      {
+        roleKey: 'MAGDEP_SHOOTER_2',
+        roleLabel: 'Forward Shooter (M48 — Bravo)',
+        description: 'Second forward M48 with an identical Mk 70 loadout. Depth is added by adding hulls: two shooters double the forward cell count without moving the command node.',
+        capabilities: [
+          'Mk 70 Payload Delivery System',
+          'SM-6 Missile System',
+          'Tomahawk Block V 8-cell VLS',
+          'Cooperative Engagement Capability (AN/USG-2)',
+          'Maritime Surface/Air Search Radar',
+          'HiveLink SDR',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48'],
+        requirements: {
+          categories: ['WEAPONS', 'COMMS'],
+          subTypes: ['STRIKE_WEAPON'],
+        },
+      },
+      {
+        roleKey: 'MAGDEP_SENSOR',
+        roleLabel: 'Airborne Sensor (MQ-4C Triton)',
+        description: 'MQ-4C Triton extending the radar and EO/IR horizon and feeding the fire-control picture over Link 16, so the engagement can be authorized against a track no single hull could hold.',
+        capabilities: [
+          'Maritime Surface/Air Search Radar',
+          'Teledyne FLIR EO/IR Turret',
+          'Link 16 Track Broadcast',
+        ],
+        allowedPlatformTypes: ['UAV'],
+        defaultHullName: 'MQ-4C Triton',
+        suggestedHullNames: ['MQ-4C Triton', 'MQ-8C Fire Scout'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: [],
+        },
+      },
+    ],
+  },
+
+  // ─── CONTESTED LOGISTICS — Mission 02 — Luzon Strait (Autonomy Mission Series) ─
+  // MISSION_SET_KEY = 'CONTESTED_LOGISTICS_MOTHERSHIP'
+  // VESSEL_ROSTER order: [LCS (logistics node), M48 (fuel), M48 (cargo), M48 (magazine)]
+  // Three deliberately separate cargo roles — "swap the payload, not the platform"
+  // made visible in the roster. Fuel and cargo share the existing CARGO_MODULE
+  // subType and differ by the module in role.capabilities; only the magazine run
+  // carries the new CARGO_MAGAZINE subType.
+  CONTESTED_LOGISTICS_MOTHERSHIP: {
+    missionLabel: 'Contested Logistics — LCS Sustainment Node',
+    minVessels: 4,
+    roles: [
+      {
+        roleKey: 'CLM_LCS',
+        roleLabel: 'LCS Logistics Node',
+        description: 'Freedom-class LCS held behind the manned stand-off line. Loads the modules, assigns each M48 a run by mission order, and resolves load, position, and health from every hull into one picture.',
+        capabilities: [
+          'TempestOS Core Platform',
+          'MILSATCOM Terminal',
+          'Link 16 Track Broadcast',
+          'HiveLink SDR',
+          'Autonomous Cargo Handling System',
+          'NSYTE AI Maintenance System',
+        ],
+        allowedPlatformTypes: ['Ship'],
+        defaultHullName: 'Freedom-class LCS',
+        suggestedHullNames: ['Freedom-class LCS', 'Lewis B. Puller Class ESB'],
+        requirements: {
+          categories: ['C2', 'COMMS', 'UTILITY'],
+          subTypes: [],
+        },
+      },
+      {
+        roleKey: 'CLM_FUEL',
+        roleLabel: 'Fuel Run (M48)',
+        description: 'M48 carrying ISO fuel modules forward to a combatant on station or a Remote Operating Site. Bladders and ISO tanks; the container is not the hard part, the autonomous transfer is.',
+        capabilities: [
+          '20-ft TEU Fuel Bladder Module',
+          'Autonomous Cargo Handling System',
+          'Maritime Surface/Air Search Radar',
+          'Teledyne FLIR EO/IR Turret',
+          'Marine AI Guardian Vision CVP',
+          'SeaFIND Inertial Navigation',
+          'HiveLink SDR',
+          'Nulka Active Missile Decoy',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48'],
+        requirements: {
+          categories: ['UTILITY', 'COMMS', 'NAV'],
+          subTypes: ['CARGO_MODULE'],
+        },
+      },
+      {
+        roleKey: 'CLM_CARGO',
+        roleLabel: 'Cargo Run (M48)',
+        description: 'M48 carrying palletized stores, spare parts, and dry cargo in 20-foot ISO modules. Up to four standard containers or 100 tons per hull.',
+        capabilities: [
+          '20-ft TEU Dry Cargo Module',
+          'Autonomous Cargo Handling System',
+          'Maritime Surface/Air Search Radar',
+          'Teledyne FLIR EO/IR Turret',
+          'Marine AI Guardian Vision CVP',
+          'SeaFIND Inertial Navigation',
+          'HiveLink SDR',
+          'Nulka Active Missile Decoy',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48'],
+        requirements: {
+          categories: ['UTILITY', 'COMMS', 'NAV'],
+          subTypes: ['CARGO_MODULE'],
+        },
+      },
+      {
+        roleKey: 'CLM_MAGAZINE',
+        roleLabel: 'Magazine Run (M48)',
+        description: 'M48 carrying a Mk 70 PDS reload module forward to a Mission 01 shooter, so an empty M48 regenerates its magazine without transiting all the way back to a rear node.',
+        capabilities: [
+          'Mk 70 PDS Reload Module',
+          'Autonomous Cargo Handling System',
+          'Maritime Surface/Air Search Radar',
+          'Teledyne FLIR EO/IR Turret',
+          'Marine AI Guardian Vision CVP',
+          'SeaFIND Inertial Navigation',
+          'HiveLink SDR',
+          'Nulka Active Missile Decoy',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48'],
+        requirements: {
+          categories: ['UTILITY', 'COMMS', 'NAV'],
+          subTypes: ['CARGO_MAGAZINE'],
+        },
+      },
+    ],
+  },
+
+  // ─── THEATER ASW — Mission 03 — Luzon Strait (Autonomy Mission Series) ────────
+  // MISSION_SET_KEY = 'THEATER_ASW'
+  // VESSEL_ROSTER order: [LCS (command node), M48 (lead array), M48 (Bravo), M48 (Charlie), MH-60R (prosecutor)]
+  // NB: Bistatic Cross-Fix Node carries subType null and CANNOT satisfy SONAR_TOWED —
+  // only MFTA Towed Array can. Every array role must list MFTA explicitly.
+  THEATER_ASW: {
+    missionLabel: 'Theater ASW — Distributed Passive Barrier',
+    minVessels: 5,
+    roles: [
+      {
+        roleKey: 'TASW_LCS',
+        roleLabel: 'LCS Command Node',
+        description: 'Freedom-class LCS fusing the passive picture. USW-DSS cross-fixes bearings from dispersed arrays into a single track, TempestOS classifies the acoustics, and the flight deck launches the prosecutor.',
+        capabilities: [
+          'TempestOS Core Platform',
+          'USW-DSS (AN/UYQ-100)',
+          'Link 16 Track Broadcast',
+          'MILSATCOM Terminal',
+          'HiveLink SDR',
+          'NSYTE AI Maintenance System',
+        ],
+        allowedPlatformTypes: ['Ship'],
+        defaultHullName: 'Freedom-class LCS',
+        suggestedHullNames: ['Freedom-class LCS'],
+        requirements: {
+          categories: ['C2', 'COMMS'],
+          subTypes: [],
+        },
+      },
+      {
+        roleKey: 'TASW_LEAD',
+        roleLabel: 'Lead Array (M48 — Confirm Ping)',
+        description: 'Lead M48 towing a passive MFTA and carrying CAPTAS-4 variable-depth sonar. Listens silent with the rest of the barrier, then emits exactly one active ping to nail the firing solution once the cross-fix holds.',
+        capabilities: [
+          'MFTA Towed Array',
+          'CAPTAS-4 Variable Depth Sonar',
+          'EvoLogics Acoustic Modem',
+          'HiveLink SDR',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['SONAR_TOWED'],
+        },
+      },
+      {
+        roleKey: 'TASW_ARRAY_1',
+        roleLabel: 'Passive Array (M48 — Bravo)',
+        description: 'M48 towing a passive MFTA. Emits no acoustic energy at any point in the mission; contributes bearings only. Radio-frequency links stay under emission control discipline.',
+        capabilities: [
+          'MFTA Towed Array',
+          'Bistatic Cross-Fix Node',
+          'EvoLogics Acoustic Modem',
+          'HiveLink SDR',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'Saildrone Surveyor'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['SONAR_TOWED'],
+        },
+      },
+      {
+        roleKey: 'TASW_ARRAY_2',
+        roleLabel: 'Passive Array (M48 — Charlie)',
+        description: 'Third passive array holding the southern segment. Barrier length divided by array spacing gives hull count; spacing follows classified detection range and is set jointly with the government.',
+        capabilities: [
+          'MFTA Towed Array',
+          'Bistatic Cross-Fix Node',
+          'EvoLogics Acoustic Modem',
+          'HiveLink SDR',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'M48',
+        suggestedHullNames: ['M48', 'Saildrone Surveyor'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['SONAR_TOWED'],
+        },
+      },
+      {
+        roleKey: 'TASW_PROSECUTOR',
+        roleLabel: 'Airborne Prosecutor (MH-60R)',
+        description: 'MH-60R launched from the LCS flight deck once the contact is confirmed. AN/AQS-22 ALFS dipping sonar and sonobuoys refine the datum; a Mk 54 lightweight torpedo finishes it. The only crewed asset exposed, and only for the kill.',
+        capabilities: [
+          'AN/AQS-22 ALFS Dipping Sonar',
+          'Sonobuoys (DIFAR / DICASS)',
+          'Mk 54 Lightweight Torpedo',
+          'Link 16 Track Broadcast',
+        ],
+        allowedPlatformTypes: ['Helicopter'],   // new platformType — roleUtils matches exactly
+        defaultHullName: 'MH-60R Seahawk',
+        suggestedHullNames: ['MH-60R Seahawk'],
+        requirements: {
+          categories: ['SENSORS', 'WEAPONS'],
+          subTypes: [],
+        },
+      },
+    ],
+  },
+
+  // ─── STANDOFF MCM — Mission 04 — Bashi Channel (Autonomy Mission Series) ──────
+  // MISSION_SET_KEY = 'STANDOFF_MCM'
+  // VESSEL_ROSTER order: [LCS (command node), MCM USV (hunter), Knifefish (classifier), Knifefish (neutralizer)]
+  STANDOFF_MCM: {
+    missionLabel: 'Standoff MCM — Detect to Neutralize',
+    minVessels: 4,
+    roles: [
+      {
+        roleKey: 'SMCM_LCS',
+        roleLabel: 'LCS Command Node (Outside the Field)',
+        description: 'Freedom-class LCS holding station outside the minefield boundary. TempestOS sequences hunt, classify, sweep, and neutralize as one tasked chain, and resolves every vendor\'s contact and classification feed into a single picture.',
+        capabilities: [
+          'TempestOS Core Platform',
+          'Link 16 Track Broadcast',
+          'MILSATCOM Terminal',
+          'HiveLink SDR',
+          'NSYTE AI Maintenance System',
+        ],
+        allowedPlatformTypes: ['Ship'],
+        defaultHullName: 'Freedom-class LCS',
+        suggestedHullNames: ['Freedom-class LCS'],
+        requirements: {
+          categories: ['C2', 'COMMS'],
+          subTypes: [],
+        },
+      },
+      {
+        roleKey: 'SMCM_HUNTER',
+        roleLabel: 'Hunter (MCM USV)',
+        description: 'MCM USV towing the AN/AQS-20C minehunting sonar across the field at standoff from the mothership. Also carries the UISS influence sweep to trigger sensitive mines safely, and AN/DVS-1 COBRA for the beach and surf zone.',
+        capabilities: [
+          'AN/AQS-20C Towed Minehunting Sonar',
+          'Unmanned Influence Sweep System (UISS)',
+          'AN/DVS-1 COBRA Coastal Recon',
+          'HiveLink SDR',
+          'SeaFIND Inertial Navigation',
+          'Marine AI Guardian Vision CVP',
+        ],
+        allowedPlatformTypes: ['USV'],
+        defaultHullName: 'MCM USV',
+        suggestedHullNames: ['MCM USV', 'M48', 'Mariner'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['SONAR_TOWED', 'MCM_SWEEP'],
+        },
+      },
+      {
+        roleKey: 'SMCM_CLASSIFIER',
+        roleLabel: 'Classifier (Knifefish UUV)',
+        description: 'Knifefish UUV working below the surface to localize and identify mines, buried or moored, using low-frequency broadband sonar. Sea acceptance testing completed June 2026.',
+        capabilities: [
+          'Knifefish LFBB Mine ID Sonar',
+          'EvoLogics Acoustic Modem',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['UUV'],
+        defaultHullName: 'Knifefish',
+        suggestedHullNames: ['Knifefish', 'Freedom AUV', 'Manta Ray'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['SONAR_SIDESCAN'],
+        },
+      },
+      {
+        roleKey: 'SMCM_NEUTRALIZER',
+        roleLabel: 'Neutralizer (Barracuda)',
+        description: 'Barracuda one-shot neutralizers expended against confirmed mines. No diver enters the water — the neutralizer swims to the datum and closes the chain.',
+        capabilities: [
+          'Barracuda Mine Neutralizer',
+          'EvoLogics Acoustic Modem',
+          'SeaFIND Inertial Navigation',
+        ],
+        allowedPlatformTypes: ['UUV', 'USV'],
+        defaultHullName: 'Knifefish',
+        suggestedHullNames: ['Knifefish', 'Freedom AUV'],
+        requirements: {
+          categories: ['SENSORS', 'COMMS'],
+          subTypes: ['MCM_NEUTRALIZER'],
         },
       },
     ],

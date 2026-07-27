@@ -24,6 +24,11 @@ import imgOceanAeroTriton from '../assets/images/OceanAeroTriton.png';
 import imgMQ8C       from '../assets/images/MQ8C Fire.png';
 import imgMQ25       from '../assets/images/MQ25 Stingray.png';
 import imgVATN       from '../assets/images/VATN_New.png';
+import imgLCS        from '../assets/images/LCS.png';
+// Autonomy Mission Series (Missions 01–04)
+import imgMCMUSV     from '../assets/images/MCM USV.png';
+import imgKnifefish  from '../assets/images/Knifefish.png';
+import imgMH60R      from '../assets/images/MH-60R Seahawk.png';
 
 /** Map hull `name` (from vesselHullData) → imported PNG URL */
 export const HULL_IMAGES = {
@@ -51,4 +56,9 @@ export const HULL_IMAGES = {
   'MQ-8C Fire Scout':   imgMQ8C,
   'MQ-25 Stingray':     imgMQ25,
   'VATN S6':            imgVATN,
+  'Freedom-class LCS':  imgLCS,
+  // Autonomy Mission Series (Missions 01–04)
+  'MCM USV':            imgMCMUSV,
+  'Knifefish':          imgKnifefish,
+  'MH-60R Seahawk':     imgMH60R,
 };

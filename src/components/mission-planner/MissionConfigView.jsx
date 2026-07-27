@@ -25,6 +25,7 @@ import ISRTetheredDroneMissionView from './ISRTetheredDroneMissionView';
 import ASWMissionView from './ASWMissionView';
 import TaiwanISRMissionView from './TaiwanISRMissionView';
 import MDAISRMissionView from './MDAISRMissionView';
+import MDAMothershipMissionView from './MDAMothershipMissionView';
 import ProtectionsMissionView from './ProtectionsMissionView';
 import NonKineticMissionView from './NonKineticMissionView';
 import KineticEffectsMissionView from './KineticEffectsMissionView';
@@ -37,6 +38,10 @@ import SeabedMonitoringMissionView from './SeabedMonitoringMissionView';
 import ThreatCharacterizationMissionView from './ThreatCharacterizationMissionView';
 import LaunchedEffectsMissionView from './LaunchedEffectsMissionView';
 import SOFStrikeSupportMissionView from './SOFStrikeSupportMissionView';
+import StandoffMCMMissionView from './StandoffMCMMissionView';
+import TheaterASWMissionView from './TheaterASWMissionView';
+import MagazineDepthMissionView from './MagazineDepthMissionView';
+import ContestedLogisticsMothershipMissionView from './ContestedLogisticsMothershipMissionView';
 
 // Get default zone config based on mission type's geometry
 const getDefaultZoneConfig = (missionKey) => {
@@ -133,6 +138,16 @@ const MissionConfigView = ({ mission, onBack }) => {
     // JMN — Joint Maritime Next: all 10 solicitation capability areas (existing templates + 4 new gap missions).
     // Additive only — references existing template keys without modifying the groups above.
     { key: 'JMN', label: 'JMN — Shield & Spear', keys: ['MDA_ISR', 'COUNTER_C5ISR', 'SEABED_MONITORING', 'THREAT_CHARACTERIZATION', 'KINETIC_EFFECTS', 'NON_KINETIC_EW', 'CONTESTED_LOGISTICS', 'LAUNCHED_EFFECTS', 'MCM', 'PORT_SECURITY', 'SOF_STRIKE_SUPPORT'] },
+    // ─── Autonomous Strike Group — the five-mission Autonomy Mission Series ───────
+    // Additive only. Mission numbers follow the pitch-deck series, 01 through 05.
+    { key: 'AUTONOMOUS_STRIKE_GROUP', label: 'Autonomous Strike Group',
+      keys: [
+        'MAGAZINE_DEPTH',                  // 01
+        'CONTESTED_LOGISTICS_MOTHERSHIP',  // 02
+        'THEATER_ASW',                     // 03
+        'STANDOFF_MCM',                    // 04
+        'MDA_MOTHERSHIP',                  // 05 — pre-existing
+      ] },
   ];
 
   // State-based autonomy hierarchies (keyed by node ID)
@@ -354,6 +369,10 @@ const MissionConfigView = ({ mission, onBack }) => {
     return <MDAISRMissionView mission={mission} onBack={onBack} />;
   }
 
+  if (selectedMissionTemplate === 'MDA_MOTHERSHIP' || mission?.template === 'MDA_MOTHERSHIP') {
+    return <MDAMothershipMissionView mission={mission} onBack={onBack} />;
+  }
+
   if (selectedMissionTemplate === 'PROTECTIONS' || mission?.template === 'PROTECTIONS') {
     return <ProtectionsMissionView mission={mission} onBack={onBack} />;
   }
@@ -397,6 +416,26 @@ const MissionConfigView = ({ mission, onBack }) => {
 
   if (selectedMissionTemplate === 'SOF_STRIKE_SUPPORT' || mission?.template === 'SOF_STRIKE_SUPPORT') {
     return <SOFStrikeSupportMissionView mission={mission} onBack={onBack} />;
+  }
+
+  // Autonomy Mission Series (Autonomous Strike Group) — Missions 01–04
+  // (05 MDA_MOTHERSHIP routes above with the pre-existing views.)
+  if (selectedMissionTemplate === 'MAGAZINE_DEPTH' || mission?.template === 'MAGAZINE_DEPTH') {
+    return <MagazineDepthMissionView mission={mission} onBack={onBack} />;
+  }
+
+  // NB: distinct from the plain CONTESTED_LOGISTICS branch above — both checks are
+  // exact string equality, so the two templates cannot shadow each other.
+  if (selectedMissionTemplate === 'CONTESTED_LOGISTICS_MOTHERSHIP' || mission?.template === 'CONTESTED_LOGISTICS_MOTHERSHIP') {
+    return <ContestedLogisticsMothershipMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'THEATER_ASW' || mission?.template === 'THEATER_ASW') {
+    return <TheaterASWMissionView mission={mission} onBack={onBack} />;
+  }
+
+  if (selectedMissionTemplate === 'STANDOFF_MCM' || mission?.template === 'STANDOFF_MCM') {
+    return <StandoffMCMMissionView mission={mission} onBack={onBack} />;
   }
 
   return (

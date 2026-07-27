@@ -8,7 +8,7 @@ export const generateSquadronId = () => `sqdn_${++squadronIdCounter}`;
 export const getSquadronDomain = (squadron) => {
   if (!squadron) return null;
   const pt = squadron.platformType;
-  if (pt === 'UAV') return 'AERIAL';
+  if (pt === 'UAV' || pt === 'Helicopter') return 'AERIAL';
   if (pt === 'USV' || pt === 'UUV') return 'MARITIME';
   // Fallback: check type string
   const type = squadron.type?.toLowerCase() || '';
@@ -477,6 +477,28 @@ export const swarmSquadrons = [
     },
     icon: "Lewis B. Puller Class ESB",
     description: "USS Lewis B. Puller (ESB-3) afloat forward staging base. MCM C2 node, AUV/USV launch and recovery, SATCOM relay, aviation detachment capacity. Primary forward logistics hub for 5th Fleet autonomous MCM operations in the Strait of Hormuz.",
+    isVariation: false,
+    parentId: null,
+    parentName: null,
+    overrides: {}
+  },
+  // Autonomy Mission Series (Missions 01–05) — LCS command squadron.
+  // Mirrored into marketplaceData.squadrons so MissionLibrary squadron chips resolve.
+  // NB: sqdn_032 is taken by VATN UUV and sqdn_033 by Otter X — do not reuse.
+  {
+    id: "sqdn_034",
+    name: "LCS Squadron One",
+    type: "Littoral Combat Ship (LCS-1)",
+    platformType: "Ship",
+    totalUnits: 3,
+    status: {
+      missionReady: 2,
+      deployed: 1,
+      charging: 0,
+      maintenance: 0
+    },
+    icon: "Freedom-class LCS",
+    description: "Freedom-class LCS squadron — the crewed command node of the Autonomy Mission Series. 2–3 hulls hold launch authority, host TempestOS fusion, and fly the MH-60R detachment while unmanned hulls absorb the forward risk.",
     isVariation: false,
     parentId: null,
     parentName: null,

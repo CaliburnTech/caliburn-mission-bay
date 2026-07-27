@@ -14,50 +14,64 @@ import SwapVesselModal from './SwapVesselModal';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
+import { ORCHESTRATION_LAYER, SUCCESS_CRITERIA } from './autonomySeriesShared';
 
-const MISSION_SET_KEY = 'MDA_MOTHERSHIP';
-const MISSION_SET_CAPS = ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'FMD AutoHook', 'Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'Passive Sonar Track Relay', 'NSYTE AI Maintenance System'];
+const MISSION_SET_KEY = 'CONTESTED_LOGISTICS_MOTHERSHIP';
 
-// ─── Geography — First Island Chain / Luzon Strait ─────────────────────────────
+// ─── Geography — Luzon Strait sustainment network ─────────────────────────────
 const NM_TO_M = 1852;
 
-const MAP_CENTER  = [20.8, 121.9];
+const MAP_CENTER  = [20.55, 121.60];
 const MAP_ZOOM    = 7;
 const MAP_ZOOM_IN = 8;
 
-const LCS_POS      = [20.8, 121.9];   // Freedom-class LCS mothership — launch/recovery node
-const AIR_STATION  = [21.85, 121.70]; // MQ-8C over-the-horizon ISR (N)
-const SURF_STATION = [20.90, 123.15]; // M48 surface net (E)
-const SUB_STATION  = [19.85, 121.60]; // Freedom AUV subsurface (S)
+const LCS_NODE     = [19.60, 120.40];  // rear logistics node, behind the stand-off line. Never moves.
+const ROS_POS      = [20.10, 121.10];  // Remote Operating Site — Balintang
+const COMBATANT    = [21.30, 122.60];  // combatant on station, forward edge
+const ADJACENT_M48 = [20.95, 122.20];  // Mission 01 shooter taking the reload module
 
-const OP_AREA_NM = 70; // mothership operating-area radius
+const STANDOFF_LINE = [[19.90, 119.80], [20.30, 123.40]];  // manned stand-off line
+const WEZ_CENTER    = [21.30, 122.30];                     // DF-26 threat ring, forward side
+const WEZ_RADIUS_NM = 120;
 
 // ─── Tick milestones ──────────────────────────────────────────────────────────
-const T_DEPLOYED  =  8;   // LCS on station
-const T_LAUNCH    = 22;   // air/surface/subsurface layers launched (lowered into water)
-const T_ONSTATION = 48;   // layers reach their stations
-const T_RECOVER   = 66;   // assets recovered / hoisted back to the LCS
-const T_COMPLETE  = 86;   // all assets aboard — data collected
-const TOTAL_TICKS = 86;
+const T_DEMAND   = 8;    // combatant pulses amber — FUEL 22% / CELLS 1 of 4
+const T_LOAD     = 18;   // modules attach at the LCS node
+const T_TRANSIT  = 30;   // hulls cross the stand-off line and the WEZ boundary
+const T_DENIED   = 46;   // link drops on the fuel hull — it keeps going
+const T_TRANSFER = 60;   // alongside: combatant, adjacent M48, ROS
+const T_RTB      = 76;   // empty hulls return; combatant flips green
+const T_COMPLETE = 92;   // all hulls home — no crewed hull crossed the line
+const TOTAL_TICKS = 92;
 
 const TICK_MS = 280;
 
-// ─── Roster ─────────────────────────────────────────────────────────────────
+// ─── Roster — order matches MISSION_ROLES[CONTESTED_LOGISTICS_MOTHERSHIP].roles ─
 const VESSEL_ROSTER = [
-  { name: 'LCS Mothership', roleDescriptor: '(Mothership)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'MDAM_LCS', capabilities: ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'FMD AutoHook', 'NSYTE AI Maintenance System'] },
-  { name: 'MQ-8C Fire Scout', roleDescriptor: '(Air ISR)', image: HULL_IMAGES['MQ-8C Fire Scout'], hullName: 'MQ-8C Fire Scout', roleKey: 'MDAM_AIR', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Link 16 Track Broadcast'] },
-  { name: 'M48', roleDescriptor: '(Surface ISR)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MDAM_SURFACE', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR'] },
-  { name: 'Freedom AUV', roleDescriptor: '(Subsurface ISR)', image: HULL_IMAGES['Freedom AUV'], hullName: 'Freedom AUV', roleKey: 'MDAM_SUB', capabilities: ['Passive Sonar Track Relay', 'Passive ESM/SIGINT Collection Module'] },
+  { name: 'LCS Logistics Node', roleDescriptor: '(Logistics Node)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'CLM_LCS', capabilities: ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'Autonomous Cargo Handling System', 'NSYTE AI Maintenance System'] },
+  { name: 'M48', roleDescriptor: '(Fuel Run)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'CLM_FUEL', capabilities: ['20-ft TEU Fuel Bladder Module', 'Autonomous Cargo Handling System', 'Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR', 'Nulka Active Missile Decoy'] },
+  { name: 'M48', roleDescriptor: '(Cargo Run)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'CLM_CARGO', capabilities: ['20-ft TEU Dry Cargo Module', 'Autonomous Cargo Handling System', 'Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR', 'Nulka Active Missile Decoy'] },
+  { name: 'M48', roleDescriptor: '(Magazine Run)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'CLM_MAGAZINE', capabilities: ['Mk 70 PDS Reload Module', 'Autonomous Cargo Handling System', 'Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR', 'Nulka Active Missile Decoy'] },
 ];
+
+// Run definitions: which hull goes where, and what it carries
+const RUNS = [
+  { rosterIdx: 1, dest: COMBATANT,    color: '#fbbf24', module: 'FUEL',     destLabel: 'Combatant on Station' },
+  { rosterIdx: 2, dest: ROS_POS,      color: '#67e8f9', module: 'CARGO',    destLabel: 'ROS Balintang' },
+  { rosterIdx: 3, dest: ADJACENT_M48, color: '#f43f5e', module: 'MAGAZINE', destLabel: 'Mission 01 M48 — Cross-Load' },
+];
+const DENIED_RUN = 0;  // the fuel hull loses link mid-WEZ and keeps going
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
 const PHASE_NARRATIVE = {
-  idle:       null,
-  deployed:   { title: 'LCS On Station', body: 'The Freedom-class LCS moves into the first-island-chain operating area as the launch, recovery, and comms node. TempestOS is up; the unmanned force is stowed on deck and ready.' },
-  launching:  { title: 'Launching Every Layer', body: 'The LCS puts the force out: the MQ-8C off the deck for the air layer, and the M48 and Freedom AUV lowered into the water for the surface and subsurface layers.' },
-  collecting: { title: 'Streaming Sensor Data', body: 'Air, surface, and subsurface assets are on station and streaming their sensor feeds back to the LCS over Link 16 and HiveLink. TempestOS fuses every layer into one picture — one hull covering more water than a carrier group.' },
-  recovering: { title: 'Recover & Cycle', body: 'On-station time complete: the MQ-8C recovers to the deck and the M48 and Freedom AUV are hoisted back aboard (AutoHook-class LARS, through Sea State 4). The force comes home.' },
-  complete:   { title: 'Assets Aboard — Picture Delivered', body: 'The unmanned force is recovered and the fused picture has been delivered. Swap the payload, not the platform — one squadron, one picture.' },
+  idle:         null,
+  demand:       { title: 'The Edge Reports Its State', body: 'A combatant on station inside the weapons engagement zone reports fuel at 22% and one cell remaining. Roughly 1,400 nm separate Guam from this fight, and no port inside the WEZ can service it. The demand goes to the rear LCS node.' },
+  loading:      { title: 'Assigned by Mission Order', body: 'TempestOS assigns each M48 a run by mission order rather than fixed schedule: a fuel bladder, a dry cargo module, and a Mk 70 reload magazine. The LCS loads them behind the manned stand-off line.' },
+  transiting:   { title: 'Only Unmanned Hulls Cross the Line', body: 'Three M48s cross the stand-off line and the WEZ boundary under EMCON discipline. The LCS does not move. Every crewed oiler in the theater stays outside the threat ring; the transit risk sits entirely on hulls with nobody aboard.' },
+  denied:       { title: 'Link Drops — The Run Completes Anyway', body: 'GPS jamming and comms denial hit the forward leg. The fuel hull holds its last routing order and executes pre-authorized rules to completion, navigating on INS. A run does not need a live link to finish.' },
+  transferring: { title: 'The Last Contested Mile', body: 'The fuel hull comes alongside the combatant, the magazine hull cross-loads a fresh Mk 70 module to a Mission 01 shooter, and the cargo hull delivers at the ROS. The containers are mature; the autonomous transfer at sea is the gap this mission proves.' },
+  returning:    { title: 'Refueled and Rearmed — Without Leaving the Fight', body: 'The combatant reads FUEL 96%, CELLS 4 of 4, and it never left station. Empty hulls transit back through the WEZ toward the node. A hull lost on this leg costs no mariners and carries no strategic signature.' },
+  complete:     { title: 'No Crewed Hull Crossed the Line', body: 'All three M48s are back at the node. The forward fight is sustained, and every human stayed behind the stand-off line. Sustainment is decided at the last contested mile — and the last mile is unmanned.' },
 };
 
 const EVENT_COLORS = {
@@ -74,30 +88,34 @@ const TILE_SEAMARK = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
 const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 
 const getPhase = (tick) => {
-  if (tick < T_DEPLOYED)  return 'idle';
-  if (tick < T_LAUNCH)    return 'deployed';
-  if (tick < T_ONSTATION) return 'launching';
-  if (tick < T_RECOVER)   return 'collecting';
-  if (tick < T_COMPLETE)  return 'recovering';
+  if (tick < T_DEMAND)   return 'idle';
+  if (tick < T_LOAD)     return 'demand';
+  if (tick < T_TRANSIT)  return 'loading';
+  if (tick < T_DENIED)   return 'transiting';
+  if (tick < T_TRANSFER) return 'denied';
+  if (tick < T_RTB)      return 'transferring';
+  if (tick < T_COMPLETE) return 'returning';
   return 'complete';
 };
 
-// Asset position: on the LCS, out to station, then recovered back
-const getAssetPos = (station, tick) => {
-  if (tick < T_LAUNCH)    return LCS_POS;
-  if (tick < T_ONSTATION) return lerp2(LCS_POS, station, (tick - T_LAUNCH) / (T_ONSTATION - T_LAUNCH));
-  if (tick < T_RECOVER)   return station;
-  if (tick < T_COMPLETE)  return lerp2(station, LCS_POS, (tick - T_RECOVER) / (T_COMPLETE - T_RECOVER));
-  return LCS_POS;
+// Resupply hull position: at the node, transit out, alongside, transit back
+const getRunPos = (dest, tick) => {
+  if (tick < T_TRANSIT)  return LCS_NODE;
+  if (tick < T_TRANSFER) return lerp2(LCS_NODE, dest, (tick - T_TRANSIT) / (T_TRANSFER - T_TRANSIT));
+  if (tick < T_RTB)      return dest;
+  if (tick < T_COMPLETE) return lerp2(dest, LCS_NODE, (tick - T_RTB) / (T_COMPLETE - T_RTB));
+  return LCS_NODE;
 };
 
 const getPhaseBadge = (phase) => {
   const m = {
-    deployed:   { cls: 'bg-sky-900/80 text-sky-300 border-sky-500/40',                     label: '● LCS On Station' },
-    launching:  { cls: 'bg-sky-900/80 text-sky-200 border-sky-400/40 animate-pulse',        label: '↓ Launching Layers' },
-    collecting: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',     label: '⇠ Streaming Sensor Data' },
-    recovering: { cls: 'bg-sky-900/80 text-sky-300 border-sky-500/40',                      label: '↑ Recover & Cycle' },
-    complete:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ Assets Aboard — Picture Delivered' },
+    demand:       { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ Combatant — FUEL 22% · CELLS 1/4' },
+    loading:      { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40',              label: '⬒ Loading — Fuel · Cargo · Magazine' },
+    transiting:   { cls: 'bg-violet-900/80 text-violet-200 border-violet-400/40 animate-pulse', label: '➤ Crossing the Stand-Off Line — Unmanned Only' },
+    denied:       { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '✕ Link Denied — Run Completes Regardless' },
+    transferring: { cls: 'bg-violet-900/80 text-violet-200 border-violet-400/40 animate-pulse', label: '⇄ Autonomous Transfer Alongside' },
+    returning:    { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40',              label: '⟲ RTB — Combatant FUEL 96% · CELLS 4/4' },
+    complete:     { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ Sustained — No Crewed Hull Crossed the Line' },
   };
   return m[phase] || null;
 };
@@ -109,9 +127,9 @@ const MapController = ({ phase }) => {
   useEffect(() => {
     if (prev.current === phase) return;
     prev.current = phase;
-    if (phase === 'collecting') {
+    if (phase === 'transferring') {
       map.flyTo(MAP_CENTER, MAP_ZOOM_IN, { duration: 1.5 });
-    } else if (phase === 'deployed' || phase === 'idle') {
+    } else if (phase === 'demand' || phase === 'idle' || phase === 'returning') {
       map.flyTo(MAP_CENTER, MAP_ZOOM, { duration: 1.2 });
     }
   }, [phase, map]);
@@ -131,7 +149,7 @@ const MapInvalidateSize = () => {
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
-const MDAMothershipMissionView = ({ mission, onBack }) => {
+const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
   const { saveMission, updateMission } = useMissionStore();
   const { setSelectedHull } = useOutfitterStore();
   const { startNewConfiguration, setPendingMissionSetKey, setPendingMissionSetCaps, setPendingRoleKey, setPendingVesselLabel, activeConfig } = useConfigurationStore();
@@ -178,9 +196,6 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   const [paused,       setPaused]       = useState(false);
   const [complete,     setComplete]     = useState(false);
 
-
-
-
   const tickRef    = useRef(0);
   const tickCallbackRef = useRef(null);
   const mainTimer  = useRef(null);
@@ -190,28 +205,16 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   const vesselLabelsRef = useRef([]);
   const runScenRef = useRef(null);
 
-  const phase   = getPhase(currentTick);
-  const airPos  = getAssetPos(AIR_STATION, currentTick);
-  const surfPos = getAssetPos(SURF_STATION, currentTick);
-  const subPos  = getAssetPos(SUB_STATION, currentTick);
+  const phase = getPhase(currentTick);
+  const runPositions = RUNS.map(r => getRunPos(r.dest, currentTick));
 
-  const showAssets  = currentTick >= T_LAUNCH;
-  const streaming   = currentTick >= T_ONSTATION && currentTick < T_RECOVER;
-  const recovering  = currentTick >= T_RECOVER && currentTick < T_COMPLETE;
+  const showRuns      = currentTick >= T_TRANSIT && currentTick < T_COMPLETE;
+  const linkDenied    = currentTick >= T_DENIED && currentTick < T_TRANSFER;
+  const transferring  = phase === 'transferring';
+  const combatSatisfied = currentTick >= T_RTB;
 
   const narrative = PHASE_NARRATIVE[phase] || null;
   const badge     = getPhaseBadge(phase);
-
-  // Sensor-data packets streaming from an asset back to the LCS
-  const dataDots = (from) => {
-    if (!streaming) return [];
-    const out = [];
-    for (const off of [0, 0.34, 0.68]) {
-      const f = (((currentTick / 7) + off) % 1);
-      out.push(lerp2(from, LCS_POS, f));
-    }
-    return out;
-  };
 
   const _addEvent = (msg, type = 'info') => {
     const ts = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -238,7 +241,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
 
   useEffect(() => {
     clearInterval(pulseTimer.current);
-    if (phase === 'collecting') {
+    if (phase === 'demand' || phase === 'denied' || phase === 'transferring') {
       pulseTimer.current = setInterval(() => setPulse(p => !p), 350);
       return () => clearInterval(pulseTimer.current);
     }
@@ -276,33 +279,38 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
 
     const cb = () => {
       const tick = ++tickRef.current;
-      const v0 = vesselLabelsRef.current[0] ?? 'LCS Mothership';
-      const v1 = vesselLabelsRef.current[1] ?? 'MQ-8C Fire Scout';
-      const v2 = vesselLabelsRef.current[2] ?? 'M48';
-      const v3 = vesselLabelsRef.current[3] ?? 'Freedom AUV';
+      const v0 = vesselLabelsRef.current[0] ?? 'LCS Logistics Node';
+      const v1 = vesselLabelsRef.current[1] ?? 'M48 (Fuel)';
+      const v2 = vesselLabelsRef.current[2] ?? 'M48 (Cargo)';
+      const v3 = vesselLabelsRef.current[3] ?? 'M48 (Magazine)';
       setCurrentTick(tick);
 
-      if (tick === T_DEPLOYED) {
-        addEvtRef.current(`${v0}: On station — first island chain — TempestOS online`, 'info');
-        addEvtRef.current(`${v0}: Launch/recovery node set — unmanned force ready`, 'info');
+      if (tick === T_DEMAND) {
+        addEvtRef.current('Combatant on station: FUEL 22% · CELLS 1 of 4 — demand signaled', 'warn');
       }
-      if (tick === T_LAUNCH) {
-        addEvtRef.current(`${v1}: Off the deck — air layer over-the-horizon`, 'info');
-        addEvtRef.current(`${v2}: Lowered into the water — surface net`, 'info');
-        addEvtRef.current(`${v3}: Lowered into the water — subsurface layer`, 'info');
+      if (tick === T_LOAD) {
+        addEvtRef.current(`${v0}: TempestOS assigns three runs by mission order`, 'info');
+        addEvtRef.current(`${v1}: fuel bladder · ${v2}: dry cargo · ${v3}: Mk 70 reload`, 'info');
       }
-      if (tick === T_ONSTATION) {
-        addEvtRef.current('All layers on station — streaming sensor data to the LCS', 'info');
-        addEvtRef.current(`${v0}: TempestOS fusing air/surface/subsurface feeds into one picture`, 'success');
+      if (tick === T_TRANSIT) {
+        addEvtRef.current('Three unmanned hulls cross the stand-off line — EMCON discipline', 'info');
+        addEvtRef.current(`${v0}: Holding behind the line. No crewed hull goes forward`, 'success');
       }
-      if (tick === T_RECOVER) {
-        addEvtRef.current(`${v0}: On-station time complete — recovering the force (LARS)`, 'info');
-        addEvtRef.current(`${v2} ${v3}: Hoisted back aboard — Sea State 4 recovery`, 'info');
-        addEvtRef.current(`${v1}: Recovering to the deck`, 'info');
+      if (tick === T_DENIED) {
+        addEvtRef.current(`${v1}: LINK DENIED mid-WEZ — holding last routing order, INS-only`, 'alert');
+      }
+      if (tick === T_TRANSFER) {
+        addEvtRef.current(`${v1}: Alongside the combatant — autonomous fuel transfer`, 'info');
+        addEvtRef.current(`${v3}: Cross-loading Mk 70 module to a Mission 01 shooter`, 'info');
+        addEvtRef.current(`${v2}: Delivering dry cargo at ROS Balintang`, 'info');
+      }
+      if (tick === T_RTB) {
+        addEvtRef.current('Combatant: FUEL 96% · CELLS 4 of 4 — never left station', 'success');
+        addEvtRef.current('Empty hulls RTB through the WEZ', 'info');
       }
       if (tick === T_COMPLETE) {
-        addEvtRef.current(`${v0}: All assets aboard — fused picture delivered`, 'success');
-        addEvtRef.current('Swap the payload, not the platform — one squadron, one picture', 'success');
+        addEvtRef.current('All hulls back at the node — forward fight sustained', 'success');
+        addEvtRef.current('Crewed hulls across the stand-off line: 0', 'success');
       }
 
       if (tick >= TOTAL_TICKS) {
@@ -342,24 +350,27 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     if (!missionName.trim()) return;
     const data = {
       name: missionName.trim(),
-      template: 'MDA_MOTHERSHIP',
+      template: 'CONTESTED_LOGISTICS_MOTHERSHIP',
       domain: 'MARITIME',
       status: 'draft',
       duration: 'continuous',
       zoneConfig: {
-        name: 'First Island Chain — MDA Mothership Operating Area',
-        coordinates: [
-          { lat: 19.8, lng: 120.8 }, { lat: 21.8, lng: 120.8 },
-          { lat: 21.8, lng: 123.2 }, { lat: 19.8, lng: 123.2 },
+        name: 'Luzon Strait — Sustainment Network, Rear Node to Forward Edge',
+        waypoints: [
+          { lat: 19.60, lng: 120.40, label: 'LCS-REAR-NODE' },
+          { lat: 20.10, lng: 121.10, label: 'ROS-BALINTANG' },
+          { lat: 20.75, lng: 121.95, label: 'WEZ-ENTRY' },
+          { lat: 21.30, lng: 122.60, label: 'COMBATANT-ON-STATION' },
+          { lat: 20.95, lng: 122.20, label: 'ADJACENT-M48-CROSSLOAD' },
         ],
-        swarmSize: 4,
-        swarmFormation: 'multi-domain-star',
       },
-      assignedSquadrons: [],
+      assignedSquadrons: ['sqdn_034', 'sqdn_016'],
       stateHierarchies: {
-        default:       ['Payload', 'Mission', 'Comms', 'Navigation', 'Vehicle'],
-        collecting:    ['Payload', 'Comms', 'Mission', 'Navigation', 'Vehicle'],
-        recovery:      ['Navigation', 'Vehicle', 'Comms', 'Mission', 'Payload'],
+        default:     ['Navigation', 'Vehicle', 'Comms', 'Mission', 'Payload'],
+        wez_transit: ['Navigation', 'Comms', 'Vehicle', 'Mission', 'Payload'],
+        gps_denied:  ['Navigation', 'Vehicle', 'Mission', 'Comms', 'Payload'],
+        transfer:    ['Payload', 'Mission', 'Navigation', 'Vehicle', 'Comms'],
+        rtb:         ['Navigation', 'Vehicle', 'Comms', 'Mission', 'Payload'],
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -371,12 +382,6 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     onBack();
   };
 
-  const LAYERS = [
-    { pos: airPos,  color: '#a78bfa', label: 'Air' },
-    { pos: surfPos, color: '#67e8f9', label: 'Surface' },
-    { pos: subPos,  color: '#4ade80', label: 'Subsurface' },
-  ];
-
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col bg-darkest">
@@ -387,22 +392,22 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
           <ChevronLeft size={13} /> Back to Library
         </button>
         <div className="w-px h-4 bg-gray-700/60" />
-        <Ship size={13} className="text-sky-400" />
-        <span className="text-sky-400 text-[0.8rem] font-semibold tracking-wide">MDA Mothership — Mission 05</span>
+        <Ship size={13} className="text-violet-400" />
+        <span className="text-violet-400 text-[0.8rem] font-semibold tracking-wide">Contested Logistics — Mission 02</span>
         <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
-        <span className="hidden md:inline text-gray-500 text-[0.68rem]">One LCS · Launch, Collect &amp; Recover a Multi-Domain Sensor Force</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Unmanned Hulls Take the Risk Forward · Manned Ships Stay Out of the Threat</span>
         <div className="flex-1" />
-        <span className="px-2 py-0.5 rounded-full bg-sky-900/50 text-sky-400 text-[0.65rem] font-bold uppercase tracking-wider border border-sky-500/30">DRAFT</span>
+        <span className="px-2 py-0.5 rounded-full bg-violet-900/50 text-violet-400 text-[0.65rem] font-bold uppercase tracking-wider border border-violet-500/30">DRAFT</span>
         <input
           value={missionName}
           onChange={e => setMissionName(e.target.value)}
           placeholder="Mission name…"
-          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-sky-500/50 transition-colors"
+          className="hidden md:block bg-gray-800/60 border border-gray-700/60 rounded-md px-3 py-1.5 text-white text-[0.78rem] w-52 placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors"
         />
         <button
           onClick={handleSave}
           disabled={!missionName.trim() || !isDeployable}
-          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-sky-600 hover:bg-sky-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
+          className={`hidden md:block px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${missionName.trim() && isDeployable ? 'bg-violet-600 hover:bg-violet-500 text-white' : 'bg-gray-700/50 text-gray-600 cursor-not-allowed'}`}
         >
           Save Draft
         </button>
@@ -430,129 +435,119 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
               <MapInvalidateSize />
               <MapController phase={phase} />
 
-              {/* ── Mothership operating area ── */}
-              {currentTick >= T_DEPLOYED && (
-                <Circle
-                  center={LCS_POS}
-                  radius={OP_AREA_NM * NM_TO_M}
-                  pathOptions={{ color: '#0ea5e9', weight: 1, fill: false, opacity: 0.08, dashArray: '8 10' }}
-                />
-              )}
+              {/* ── Weapons engagement zone ── */}
+              <Circle
+                center={WEZ_CENTER}
+                radius={WEZ_RADIUS_NM * NM_TO_M}
+                pathOptions={{ color: '#ef4444', weight: 1.5, fill: true, fillColor: '#ef4444', fillOpacity: 0.05, opacity: 0.35, dashArray: '6 8' }}
+              >
+                <Tooltip direction="top" sticky>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#f87171' }}>DF-26 Weapons Engagement Zone — no safe harbor inside</span>
+                </Tooltip>
+              </Circle>
 
-              {/* ── Per-layer: launch/recovery tether, sensor-data stream, asset marker ── */}
-              {showAssets && LAYERS.map((L, i) => (
-                <React.Fragment key={`layer-${i}`}>
-                  {/* tether / transit line LCS ↔ asset */}
-                  <Polyline
-                    positions={[LCS_POS, L.pos]}
-                    pathOptions={{ color: L.color, weight: 1.2, opacity: recovering ? 0.55 : (streaming ? 0.35 : 0.25), dashArray: '3 7' }}
-                  />
-                  {/* sensor-data packets streaming asset → LCS */}
-                  {dataDots(L.pos).map((d, j) => (
-                    <CircleMarker
-                      key={`dot-${i}-${j}`}
-                      center={d}
-                      radius={3}
-                      pathOptions={{ color: L.color, fillColor: L.color, fillOpacity: 0.95, weight: 0 }}
+              {/* ── The stand-off line — the single most important visual ── */}
+              <Polyline
+                positions={STANDOFF_LINE}
+                pathOptions={{
+                  color: phase === 'complete' ? '#4ade80' : '#e2e8f0',
+                  weight: phase === 'complete' ? 4 : 2.5,
+                  opacity: phase === 'complete' ? 0.9 : 0.6,
+                  dashArray: '12 8',
+                }}
+              >
+                <Tooltip direction="top" sticky>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: phase === 'complete' ? '#4ade80' : '#e2e8f0' }}>
+                    {phase === 'complete' ? 'Manned Stand-Off Line — no crewed hull crossed this line' : 'Manned Stand-Off Line'}
+                  </span>
+                </Tooltip>
+              </Polyline>
+
+              {/* ── Remote Operating Site ── */}
+              <CircleMarker
+                center={ROS_POS}
+                radius={7}
+                pathOptions={{ color: '#94a3b8', fillColor: '#1e293b', fillOpacity: 0.9, weight: 1.5, dashArray: '2 3' }}
+              >
+                <Tooltip direction="bottom" offset={[0, 8]}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>ROS Balintang — refuel · rearm · repair, no port required</span>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* ── Adjacent Mission 01 M48 (cross-load recipient) ── */}
+              <CircleMarker
+                center={ADJACENT_M48}
+                radius={8}
+                pathOptions={{ color: '#fb7185', fillColor: '#881337', fillOpacity: 0.9, weight: 2 }}
+              >
+                <Tooltip direction="right" offset={[8, 0]}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#fb7185' }}>Mission 01 M48 — awaiting Mk 70 reload</span>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* ── Combatant on station ── */}
+              <CircleMarker
+                center={COMBATANT}
+                radius={phase === 'demand' && pulse ? 12 : 9}
+                pathOptions={{
+                  color: combatSatisfied ? '#4ade80' : (currentTick >= T_DEMAND ? '#fbbf24' : '#94a3b8'),
+                  fillColor: combatSatisfied ? '#14532d' : (currentTick >= T_DEMAND ? '#92400e' : '#1e293b'),
+                  fillOpacity: 0.95, weight: 2,
+                }}
+              >
+                <Tooltip direction="top" offset={[0, -8]} permanent={currentTick >= T_DEMAND}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: combatSatisfied ? '#4ade80' : '#fbbf24' }}>
+                    {combatSatisfied ? 'COMBATANT · FUEL 96% · CELLS 4/4' : (currentTick >= T_DEMAND ? 'COMBATANT · FUEL 22% · CELLS 1/4' : 'Combatant on Station')}
+                  </span>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* ── Resupply runs ── */}
+              {showRuns && RUNS.map((run, i) => {
+                const pos = runPositions[i];
+                const denied = i === DENIED_RUN && linkDenied;
+                return (
+                  <React.Fragment key={`run-${i}`}>
+                    <Polyline
+                      positions={[LCS_NODE, run.dest]}
+                      pathOptions={{ color: run.color, weight: 1, opacity: 0.25, dashArray: '3 7' }}
                     />
-                  ))}
-                  {/* asset marker */}
-                  <CircleMarker
-                    center={L.pos}
-                    radius={11}
-                    pathOptions={{ color: L.color, fillColor: L.color, fillOpacity: 0.9, weight: 2 }}
-                  >
-                    <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: L.color }}>{`${L.label} layer`}</span>
-                    </Tooltip>
-                  </CircleMarker>
-                </React.Fragment>
-              ))}
+                    <CircleMarker
+                      center={pos}
+                      radius={transferring ? 11 : 9}
+                      pathOptions={{ color: denied ? '#ef4444' : run.color, fillColor: '#312e81', fillOpacity: 0.95, weight: denied ? 3 : 2, dashArray: denied ? '3 3' : undefined }}
+                    >
+                      <Tooltip direction="top" offset={[0, -8]} permanent={denied}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: denied ? '#ef4444' : run.color }}>
+                          {denied
+                            ? 'LINK DENIED — Holding Last Routing Order'
+                            : `${effectiveRoster[run.rosterIdx]?.hullName ?? 'M48'} · ${run.module} → ${run.destLabel}`}
+                        </span>
+                      </Tooltip>
+                    </CircleMarker>
+                  </React.Fragment>
+                );
+              })}
 
-              {/* ── LCS mothership (glows while receiving data) ── */}
-              {currentTick >= T_DEPLOYED && (
-                <CircleMarker
-                  center={LCS_POS}
-                  radius={streaming && pulse ? 17 : 14}
-                  pathOptions={{ color: '#0ea5e9', fillColor: '#0369a1', fillOpacity: 0.95, weight: 3 }}
-                >
-                  <Tooltip direction="top" offset={[0, -10]}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#38bdf8' }}>LCS Mothership</span>
-                  </Tooltip>
-                </CircleMarker>
-              )}
+              {/* ── LCS logistics node — never moves, never crosses ── */}
+              <CircleMarker
+                center={LCS_NODE}
+                radius={14}
+                pathOptions={{ color: '#a78bfa', fillColor: '#4c1d95', fillOpacity: 0.95, weight: 3 }}
+              >
+                <Tooltip direction="bottom" offset={[0, 10]} permanent={currentTick >= T_DEMAND}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa' }}>LCS NODE — Behind the Line · Loads, Routes, Orchestrates</span>
+                </Tooltip>
+              </CircleMarker>
 
             </MapContainer>
 
-            {/* ── Corner feed: launch & recovery (LARS) ── */}
-            {(() => {
-              const W = 240, H = 160;
-              const waterY = 128;
-              const lcsImg = effectiveRoster[0]?.image;
-
-              // USV animation: complete lowering very fast (by T_LAUNCH + 8 ticks), then drive away during collecting, return during recovery
-              const usvLowerCompleteAt = T_LAUNCH + 4;
-              const usvLowerProgress = currentTick < T_LAUNCH
-                ? 0
-                : currentTick < usvLowerCompleteAt
-                  ? Math.min((currentTick - T_LAUNCH) / (usvLowerCompleteAt - T_LAUNCH), 1)
-                  : 1;
-              // Drive off immediately after lowering completes (30x speed), return during recovery (3x speed = 30x / 10)
-              let usvDriveProgress = 0;
-              let usvRaiseProgress = 0;
-              if (currentTick > usvLowerCompleteAt) {
-                if (phase === 'recovering') {
-                  // Delay raising by 2 ticks, then raise over 12 ticks (showcase the davit tech)
-                  const raiseDelay = 2;
-                  const raiseDuration = 12;
-                  usvRaiseProgress = currentTick < T_RECOVER + raiseDelay
-                    ? 0
-                    : Math.min(((currentTick - T_RECOVER - raiseDelay) / raiseDuration), 1);
-                  usvDriveProgress = Math.max(1 - (usvRaiseProgress * 3), 0);
-                } else {
-                  usvDriveProgress = Math.min(((currentTick - usvLowerCompleteAt) / (T_RECOVER - usvLowerCompleteAt)) * 30, 1);
-                }
-              }
-              const usvY = 95 + usvLowerProgress * (waterY - 95) - usvRaiseProgress * (waterY - 95);
-              const usvX = 135 - usvDriveProgress * 150; // drives off to the right, returns from off-screen during recovery
-
-              return (
-                <div
-                  className="absolute bottom-3 right-3 z-[500] pointer-events-none"
-                  style={{ width: W, height: H, borderRadius: 12, overflow: 'hidden',
-                    background: 'rgba(5,10,18,0.85)', border: '1px solid rgba(100,120,150,0.3)',
-                    backdropFilter: 'blur(4px)' }}
-                >
-                  {/* LCS image filling the frame, cropped at edges */}
-                  {lcsImg && (
-                    <img
-                      src={lcsImg} alt="LCS"
-                      style={{ position: 'absolute', left: -1, top: -40,
-                        width: 440, height: 240, objectFit: 'cover', opacity: 0.95 }}
-                    />
-                  )}
-
-                  <svg width={W} height={H} style={{ position: 'absolute', inset: 0 }}>
-                    {/* Water line and below */}
-                    <line x1={0} y1={waterY} x2={W} y2={waterY} stroke="#164e63" strokeWidth={2} />
-                    <rect x={0} y={waterY} width={W} height={H - waterY} fill="#0c2233" opacity={0.65} />
-
-                    {/* USV (show throughout) */}
-                    {(
-                      <g transform={`translate(${usvX},${usvY})`}>
-                        <path d="M -10 -3 L 10 -3 L 8 6 L -8 6 Z" fill="#67e8f9" opacity={0.96} />
-                        <rect x={-4} y={-8} width={8} height={5} rx={1} fill="#67e8f9" opacity={0.96} />
-                      </g>
-                    )}
-
-                    {/* Ripple where USV enters water */}
-                    {usvY > waterY - 5 && usvY < waterY + 5 && (
-                      <ellipse cx={usvX + 8} cy={waterY} rx={14} ry={3} fill="none" stroke="#38bdf8" strokeWidth={1} opacity={0.6} />
-                    )}
-                  </svg>
-                </div>
-              );
-            })()}
+            {/* ── The whole mission in two numbers ── */}
+            <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-violet-500/30 backdrop-blur-sm">
+              <div className="text-[0.6rem] uppercase tracking-widest text-violet-400/80 font-bold mb-0.5">Across the Stand-Off Line</div>
+              <div className="text-[0.72rem] text-gray-200 tabular-nums">Unmanned hulls: <span className="font-bold text-violet-300">{showRuns ? 3 : 0}</span></div>
+              <div className="text-[0.72rem] text-gray-200 tabular-nums">Crewed hulls: <span className="font-bold text-emerald-400">0</span></div>
+            </div>
 
             {/* ── Phase badge ── */}
             {badge && (
@@ -562,14 +557,14 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
             )}
 
             {/* ── Legend ── */}
-            {currentTick >= T_DEPLOYED && (
+            {currentTick >= T_DEMAND && (
               <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#0ea5e9', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Mothership` },
-                    { color: '#a78bfa', label: `${effectiveRoster[1]?.name ?? 'MQ-8C'} — Air Layer` },
-                    { color: '#67e8f9', label: `${effectiveRoster[2]?.name ?? 'M48'} — Surface Layer` },
-                    { color: '#4ade80', label: `${effectiveRoster[3]?.name ?? 'Freedom AUV'} — Subsurface Layer` },
+                    { color: '#a78bfa', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Rear Node` },
+                    { color: '#fbbf24', label: 'M48 — Fuel Run (22,000 kg)' },
+                    { color: '#67e8f9', label: 'M48 — Cargo Run (24,000 kg)' },
+                    { color: '#f43f5e', label: 'M48 — Magazine Run (Mk 70 reload)' },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -615,7 +610,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 {running ? (
                   <button
                     onClick={pause}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-violet-700 hover:bg-violet-600 text-white"
                   >
                     <Pause size={13} />
                     Pause
@@ -623,7 +618,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 ) : (
                   <button
                     onClick={paused ? resume : runScenario}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[0.78rem] font-semibold transition-colors bg-violet-700 hover:bg-violet-600 text-white"
                   >
                     <Play size={13} />
                     {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
@@ -641,7 +636,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
               {/* Phase narrative */}
               {narrative ? (
                 <div className="rounded-lg bg-gray-800/50 border border-gray-700/40 px-3 py-2.5">
-                  <div className="text-[0.68rem] font-bold text-sky-300 uppercase tracking-wider mb-1">
+                  <div className="text-[0.68rem] font-bold text-violet-300 uppercase tracking-wider mb-1">
                     {narrative.title}
                   </div>
                   <div className="text-[0.67rem] text-gray-400 leading-relaxed">
@@ -650,9 +645,21 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  1× LCS · MQ-8C · M48 · Freedom AUV
+                  1× LCS · 3× M48 resupply hulls
                 </p>
               )}
+
+              {/* Shared series panels — the deck's ASK and orchestration slides (plan §8.3) */}
+              <div className="mt-3 rounded-lg bg-gray-800/30 border border-gray-700/40 px-3 py-2.5">
+                <div className="text-[0.62rem] font-bold text-gray-400 uppercase tracking-wider mb-1">How This Mission Is Judged</div>
+                {SUCCESS_CRITERIA[MISSION_SET_KEY].map(c => (
+                  <div key={c} className="text-[0.65rem] text-gray-500 leading-relaxed">· {c}</div>
+                ))}
+                <div className="text-[0.62rem] font-bold text-gray-400 uppercase tracking-wider mt-2 mb-1">{ORCHESTRATION_LAYER.title}</div>
+                {ORCHESTRATION_LAYER.points.map(p => (
+                  <div key={p} className="text-[0.65rem] text-gray-500 leading-relaxed">· {p}</div>
+                ))}
+              </div>
             </div>
 
             {/* Event log */}
@@ -682,7 +689,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
           {running ? (
             <button
               onClick={pause}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-sm font-semibold transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-violet-700 hover:bg-violet-600 text-white text-sm font-semibold transition-colors"
             >
               <Pause size={15} />
               Pause
@@ -690,7 +697,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
           ) : (
             <button
               onClick={paused ? resume : runScenario}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-sm font-semibold transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-violet-700 hover:bg-violet-600 text-white text-sm font-semibold transition-colors"
             >
               <Play size={15} />
               {paused ? 'Resume' : complete ? 'Run Again' : 'Run Scenario'}
@@ -718,7 +725,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                   <button
                     onClick={(e) => { e.stopPropagation(); handleConfigureVessel(vessel); }}
                     disabled={!vessel.hullName}
-                    className="ml-auto p-1 rounded text-gray-400 hover:text-sky-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="ml-auto p-1 rounded text-gray-400 hover:text-violet-400 hover:bg-gray-700/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Configure loadout"
                   >
                     <Settings size={13} />
@@ -775,4 +782,4 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   );
 };
 
-export default MDAMothershipMissionView;
+export default ContestedLogisticsMothershipMissionView;
