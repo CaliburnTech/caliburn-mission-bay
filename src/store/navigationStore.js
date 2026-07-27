@@ -3,7 +3,7 @@ import { create } from 'zustand';
 // Whitelist of valid view names — reject any hash not in this set
 const VALID_VIEWS = new Set([
   'shipyard', 'outfitter', 'capabilities', 'stacks',
-  'matrix', 'squadron', 'loadout', 'splash', 'versions'
+  'matrix', 'squadron', 'loadout', 'splash', 'versions', 'onboarding'
 ]);
 
 const DEFAULT_VIEW = 'shipyard';

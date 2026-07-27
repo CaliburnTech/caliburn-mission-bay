@@ -25,6 +25,7 @@ import VersionControlView from './VersionControlView';
 import AdminSubmissionsView from './AdminSubmissionsView';
 import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
+import OnboardingWizard from './OnboardingWizard';
 
 const MarketplacePage = ({ onLogoClick }) => {
   const _dataStore = useDataStore();
@@ -177,6 +178,22 @@ const MarketplacePage = ({ onLogoClick }) => {
               >
                 Versions
               </button>
+
+              <button
+                onClick={() => setSelectedView('onboarding')}
+                className={`${selectedView === 'onboarding' ? 'bg-lime-brand text-black' : 'bg-transparent text-gray-200 border border-gray-600/40'} py-3 px-4 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap`}
+              >
+                Onboarding
+              </button>
+
+
+
+
+
+
+
+
+
             </div>
 
             {/* Global Search — desktop only */}
@@ -320,6 +337,10 @@ const MarketplacePage = ({ onLogoClick }) => {
             {/* Versions */}
             {selectedView === 'versions' && (
               <VersionControlView />
+            )}
+
+            {selectedView === 'onboarding' && (
+              <OnboardingWizard />
             )}
 
             {/* Admin Submissions */}
