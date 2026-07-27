@@ -633,7 +633,7 @@ bye`}
               }}
               className="px-4 py-2 rounded bg-lime-brand text-black font-semibold"
             >
-              Deploy
+              Finish
             </button>
           ) : (
             <button
