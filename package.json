@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:ci": "npm run lint && npm run typecheck && vitest run",
-    "prebuild": "npm run lint && npm run typecheck",
+    "prebuild": "prisma generate && npm run lint && npm run typecheck",
     "prepare": "husky"
   },
   "dependencies": {
