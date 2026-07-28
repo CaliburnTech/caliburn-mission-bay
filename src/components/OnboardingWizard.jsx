@@ -197,7 +197,7 @@ const OnboardingWizard = () => {
               >
                 <option value="">Select...</option>
                 <option value="arm64">arm64</option>
-                <option value="amd64">amd64</option>
+                <option value="x86">x86</option>
                 <option value="other">Other</option>
               </select>
               {store.architecture === 'other' && (
