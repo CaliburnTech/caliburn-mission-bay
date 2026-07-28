@@ -606,20 +606,20 @@ const LoadoutBuilder = () => {
           {missingRequiredCategories.size} requirement{missingRequiredCategories.size > 1 ? 's' : ''} unmet — ask why
         </p>
       )}
+      {/* Full-height right drawer (same pattern as the mission views) — the
+          rail column is too cramped for a conversation. */}
       {showLoadoutAdvisor && (
-        <div className="h-[380px]">
-          <MissionAdvisorChat
-            embedded
-            contextText={loadoutAdvisorContext}
-            title="Loadout Advisor"
-            accentColor="lime"
-            suggestedQuestions={[
-              "Why isn't this loadout ready?",
-              'What should I add to meet requirements?',
-              'How much SWaP headroom is left?',
-            ]}
-          />
-        </div>
+        <MissionAdvisorChat
+          contextText={loadoutAdvisorContext}
+          title="Loadout Advisor"
+          accentColor="lime"
+          suggestedQuestions={[
+            "Why isn't this loadout ready?",
+            'What should I add to meet requirements?',
+            'How much SWaP headroom is left?',
+          ]}
+          onClose={() => setShowLoadoutAdvisor(false)}
+        />
       )}
     </div>
   );
