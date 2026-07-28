@@ -13,6 +13,14 @@ export const MISSION_DOMAINS = {
 
 // Define the 9 key MARITIME missions (including CNO priorities)
 export const KEY_MARITIME_MISSIONS = [
+  // ─── Autonomy Mission Series (Autonomous Strike Group) — deck order 01–05 ───
+  { key: 'MAGAZINE_DEPTH', name: 'Magazine Depth', icon: Crosshair, color: '#f43f5e', description: 'LCS holds the trigger; forward M48s carry and fire Mk 70 PDS rounds to add magazine depth without moving the command node', domain: 'MARITIME' },
+  { key: 'CONTESTED_LOGISTICS_MOTHERSHIP', name: 'Contested Logistics — LCS Node', icon: Ship, color: '#a78bfa', description: 'LCS loads and routes M48 resupply hulls carrying fuel, ISO cargo, and Mk 70 reload magazines inside the weapons engagement zone; crewed oilers stay out of the threat', domain: 'MARITIME' },
+  { key: 'THEATER_ASW', name: 'Theater ASW', icon: Waves, color: '#0891b2', description: 'Passive barrier of M48 towed arrays cross-fixed at an LCS command node; one confirm ping, then an MH-60R prosecutes with Mk 54', domain: 'MARITIME' },
+  { key: 'STANDOFF_MCM', name: 'Standoff MCM', icon: Target, color: '#fb923c', description: 'LCS holds outside the field while an MCM USV hunts with AN/AQS-20C, Knifefish classifies below, UISS sweeps and Barracuda neutralizes — no diver in the water', domain: 'MARITIME' },
+  { key: 'MDA_MOTHERSHIP', name: 'MDA Mothership', icon: Ship, color: '#0ea5e9', description: 'One LCS launches, recovers & fuses a multi-domain unmanned force (UAV/USV/UUV) into a single common operating picture', domain: 'MARITIME' },
+  // ─── end Autonomy Mission Series block — contiguous placement keeps the
+  //     Autonomous Strike Group filter displaying 01–05 in deck order ─────────
   // CNO Priority Missions (Mine Warfare)
   { key: 'MCM', name: 'Mine Countermeasures', icon: Target, color: '#f97316', description: 'Detect & neutralize naval mines', domain: 'MARITIME' },
   // Other Maritime Missions
@@ -23,6 +31,7 @@ export const KEY_MARITIME_MISSIONS = [
   { key: 'COUNTER_C5ISR', name: 'Counter-C5ISR', icon: Radio, color: '#ef4444', description: 'Map adversary sensor coverage & exploit gaps', domain: 'MARITIME' },
   { key: 'NON_KINETIC_EW', name: 'Non-Kinetic Effects', icon: Zap, color: '#a855f7', description: 'EW deception, active jamming & acoustic decoy via NEMESIS', domain: 'MARITIME' },
   { key: 'MDA_ISR', name: 'MDA ISR', icon: Satellite, color: '#06b6d4', description: 'Persistent MDA — dark ship detection, PoL analysis & tipping/cueing of manned assets', domain: 'MARITIME' },
+  // MDA_MOTHERSHIP moved to the Autonomy Mission Series block at the top (mission 05)
   { key: 'KINETIC_EFFECTS', name: 'Kinetic Effects', icon: Zap, color: '#ef4444', description: 'Long-range surface strike (Mk 70 PDS) & offensive mining (Hammerhead/Orca)', domain: 'MARITIME' },
   { key: 'PROTECTIONS', name: 'Protections', icon: Lock, color: '#f59e0b', description: 'cUxS · Undersea Infrastructure · HVU Protection · Port Security — CAPT Privette confirmed', domain: 'MARITIME' },
   // Sea Jeep missions
@@ -111,6 +120,15 @@ export const hierarchyPresets = {
 
 // Zone types based on mission
 export const zoneTypes = {
+  // Autonomy Mission Series (Autonomous Strike Group)
+  MAGAZINE_DEPTH: { label: 'Fires Engagement Box', color: '#f43f5e', fillOpacity: 0.15, geometryType: 'zone', description: 'Define the engagement box — LCS command node station, forward M48 firing positions, and target area', domain: 'MARITIME' },
+  // Route geometry — the one series mission whose geography is legs and waypoints, not an area
+  CONTESTED_LOGISTICS_MOTHERSHIP: { label: 'Sustainment Network', color: '#a78bfa', fillOpacity: 0.15, geometryType: 'route', description: 'Define the sustainment network — rear LCS node, forward routes, Remote Operating Site, and the combatant on station', domain: 'MARITIME' },
+  // THEATER_ASW is a barrier, typed 'zone' as a long thin polygon — 'barrier' is not
+  // a valid geometryType and would silently fall through to polygon behavior anyway.
+  // Follows the THREAT_CHARACTERIZATION precedent.
+  THEATER_ASW: { label: 'ASW Barrier', color: '#0891b2', fillOpacity: 0.15, geometryType: 'zone', description: 'Draw the barrier line — array spacing sets hull count; spacing is set jointly with the government', domain: 'MARITIME' },
+  STANDOFF_MCM: { label: 'Minefield & Cleared Lane', color: '#fb923c', fillOpacity: 0.2, geometryType: 'zone', description: 'Draw the suspected minefield and the lane to be opened; the LCS station sits outside the boundary', domain: 'MARITIME' },
   // Maritime missions - CNO Priorities
   MCM: { label: 'MCM Area', color: '#f97316', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw mine countermeasures search area', domain: 'MARITIME' },
   ASW: { label: 'ASW Box', color: '#06b6d4', fillOpacity: 0.25, geometryType: 'zone', description: 'Draw anti-submarine search area', domain: 'MARITIME' },
@@ -121,6 +139,7 @@ export const zoneTypes = {
   COUNTER_C5ISR: { label: 'Counter-C5ISR Patrol', color: '#ef4444', fillOpacity: 0.12, geometryType: 'zone', description: 'Median line patrol — adversary sensor mapping', domain: 'MARITIME' },
   NON_KINETIC_EW: { label: 'NEMESIS Deception Box', color: '#a855f7', fillOpacity: 0.15, geometryType: 'zone', description: 'Multi-spectral false signature projection area', domain: 'MARITIME' },
   MDA_ISR: { label: 'MDA ISR Barrier', color: '#06b6d4', fillOpacity: 0.12, geometryType: 'zone', description: 'Persistent MDA patrol zone — multi-platform ISR barrier', domain: 'MARITIME' },
+  MDA_MOTHERSHIP: { label: 'Mothership Operating Area', color: '#0ea5e9', fillOpacity: 0.12, geometryType: 'zone', description: 'LCS mothership operating area — multi-domain launch/recovery and fused COP', domain: 'MARITIME' },
   KINETIC_EFFECTS: { label: 'Strike / Mining Area', color: '#ef4444', fillOpacity: 0.25, geometryType: 'target', description: 'Strike target points or mine deployment route', domain: 'MARITIME' },
   PROTECTIONS: { label: 'Protections AO', color: '#f59e0b', fillOpacity: 0.12, geometryType: 'perimeter', description: 'cUxS · Infrastructure · HVU · Port Security composite zone', domain: 'MARITIME' },
   // Sea Jeep missions

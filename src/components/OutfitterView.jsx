@@ -3,6 +3,7 @@ import { Ship, X, Target, Settings, ChevronLeft, Plus, Minus, Grid3X3, Maximize2
 import { vesselHullComponents, vesselHullData, vesselMountPoints, isAerialPlatform } from '../data/vesselData';
 import { individualCapabilities, capabilityCategories } from '../data/marketplaceData';
 import { getSecurityLevel, STATUS_COLORS, BRAND_COLORS } from '../constants/colors';
+import { HULL_IMAGES } from '../utils/hullImages';
 import useOutfitterStore from '../store/outfitterStore';
 import useMountPointDragDrop from '../hooks/useMountPointDragDrop';
 import VesselStatsDisplay from './VesselStatsDisplay';
@@ -426,11 +427,20 @@ const OutfitterView = ({ onBackToShipyard }) => {
                   }}
                 />
 
-                {/* Professional vessel hull outline */}
+                {/* Professional vessel hull outline / image */}
                 <div className="absolute inset-0 flex justify-center items-center">
-                  {vesselHullComponents[selectedHull.icon] &&
+                  {/* Show PNG image if available (e.g., Freedom-class LCS), otherwise use drawn component */}
+                  {HULL_IMAGES[selectedHull.name] ? (
+                    <img
+                      src={HULL_IMAGES[selectedHull.name]}
+                      alt={selectedHull.name}
+                      className="max-w-full max-h-full object-contain"
+                      style={{ maxHeight: '520px' }}
+                    />
+                  ) : (
+                    vesselHullComponents[selectedHull.icon] &&
                     React.createElement(vesselHullComponents[selectedHull.icon], { size: 520 })
-                  }
+                  )}
                 </div>
 
                 {/* TempestOS Core Platform - Central Hub */}

@@ -137,6 +137,11 @@ const CapabilitiesView = ({
                   <option key={v.name} value={v.name}>{v.name}</option>
                 ))}
               </optgroup>
+              <optgroup label="Helicopter">
+                {vesselHullData.filter(v => v.platformType === 'Helicopter').map(v => (
+                  <option key={v.name} value={v.name}>{v.name}</option>
+                ))}
+              </optgroup>
             </select>
           </div>
 

@@ -249,7 +249,7 @@ export function getMissionReadiness(missionKey, roleAssignments, savedConfigurat
 // ─────────────────────────────────────────────────────────────────────────────
 // Capability category → slot key mapping (mirrors LOADOUT_CATEGORIES in LoadoutBuilder)
 // ─────────────────────────────────────────────────────────────────────────────
-const CAP_CATEGORY_TO_SLOT = {
+export const CAP_CATEGORY_TO_SLOT = {
   'EO/IR SENSORS': 'SENSORS', 'RADAR/RF': 'SENSORS', 'ACOUSTIC/SONAR': 'SENSORS',
   'ELECTRONIC SUPPORT': 'SENSORS', 'ELECTRONIC PROTECTION': 'SENSORS',
   'ACOUSTIC SENSORS': 'SENSORS', 'ACOUSTIC DECOY': 'SENSORS', 'RADAR SENSORS': 'SENSORS',

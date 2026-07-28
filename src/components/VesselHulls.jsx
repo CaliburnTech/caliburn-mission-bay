@@ -23,95 +23,23 @@ export const USVPatrolHull = ({ size = 200, className = "" }) => (
 );
 
 // Freedom-class LCS - Semiplaning Monohull (NOT trimaran - that's Independence-class)
+// Freedom-class LCS - Image
+import lcsImg from '../assets/images/LCS.png';
+
 export const FreedomLCSHull = ({ size = 200, className = "" }) => (
-  <svg width={size} height={size * 0.45} viewBox="0 0 500 180" className={className}>
-    <defs>
-      <linearGradient id="freedomGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#4a5568" />
-        <stop offset="100%" stopColor="#2d3748" />
-      </linearGradient>
-    </defs>
-
-    {/* Monohull - semi-planing hull form with fine entry */}
-    <path
-      d="M 30 95
-         L 45 80
-         L 70 72
-         L 100 68
-         L 400 68
-         L 440 72
-         L 465 82
-         L 480 95
-         L 475 110
-         L 458 120
-         L 430 125
-         L 100 125
-         L 70 122
-         L 50 115
-         L 35 105
-         L 30 95 Z"
-      className="fill-[#3d4852] stroke-lime-brand stroke-2"
-    />
-
-    {/* Waterline */}
-    <path d="M 38 108 L 475 108" className="stroke-lime-brand stroke-1 opacity-50" strokeDasharray="4,2" />
-
-    {/* Angular superstructure - distinctive LCS look */}
-    <path
-      d="M 150 68 L 150 45 L 160 38 L 280 38 L 290 45 L 290 68"
-      className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]"
-    />
-    <path
-      d="M 165 38 L 165 28 L 175 22 L 265 22 L 275 28 L 275 38"
-      className="fill-[#3d4852] stroke-lime-brand stroke-1"
-    />
-
-    {/* Bridge windows */}
-    <rect x="175" y="42" width="90" height="10" className="fill-[#1a202c] stroke-lime-brand stroke-[0.5] opacity-80" />
-
-    {/* Integrated sensor mast */}
-    <line x1="220" y1="22" x2="220" y2="5" className="stroke-lime-brand stroke-2" />
-    <rect x="212" y="2" width="16" height="8" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
-    <circle cx="220" cy="0" r="4" className="fill-none stroke-lime-brand stroke-1" />
-
-    {/* 57mm Mk 110 gun forward */}
-    <rect x="75" y="55" width="30" height="18" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
-    <line x1="90" y1="55" x2="90" y2="42" className="stroke-lime-brand stroke-2" />
-    <rect x="85" y="40" width="10" height="5" className="fill-[#3d4852] stroke-lime-brand stroke-1" />
-
-    {/* SeaRAM launcher */}
-    <circle cx="130" cy="58" r="10" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
-    <line x1="120" y1="58" x2="140" y2="58" className="stroke-lime-brand stroke-1" />
-    <line x1="130" y1="48" x2="130" y2="68" className="stroke-lime-brand stroke-1" />
-
-    {/* Aft superstructure/hangar */}
-    <rect x="310" y="50" width="80" height="25" className="fill-[#4a5568] stroke-lime-brand stroke-[1.5]" />
-
-    {/* Mission bay */}
-    <rect x="320" y="78" width="70" height="35" className="fill-[#2d3748] stroke-lime-brand stroke-1" strokeDasharray="3,2" />
-
-    {/* Mission bay doors */}
-    <rect x="325" y="100" width="10" height="12" className="fill-none stroke-lime-brand stroke-[0.5]" strokeDasharray="1,1" />
-    <rect x="375" y="100" width="10" height="12" className="fill-none stroke-lime-brand stroke-[0.5]" strokeDasharray="1,1" />
-
-    {/* Flight deck */}
-    <rect x="400" y="68" width="70" height="45" className="fill-[#3d4852] stroke-lime-brand stroke-[1.5]" />
-    <circle cx="435" cy="92" r="18" className="fill-none stroke-lime-brand stroke-1" strokeDasharray="3,2" />
-    <line x1="417" y1="92" x2="453" y2="92" className="stroke-lime-brand stroke-[0.5] opacity-50" />
-    <line x1="435" y1="74" x2="435" y2="110" className="stroke-lime-brand stroke-[0.5] opacity-50" />
-
-    {/* Waterjet exhausts (4 waterjets) */}
-    <ellipse cx="468" cy="85" rx="5" ry="4" className="fill-[#1a202c] stroke-lime-brand stroke-1" />
-    <ellipse cx="468" cy="95" rx="5" ry="4" className="fill-[#1a202c] stroke-lime-brand stroke-1" />
-    <ellipse cx="468" cy="105" rx="5" ry="4" className="fill-[#1a202c] stroke-lime-brand stroke-1" />
-
-    {/* Component mounting areas */}
-    <rect x="170" y="75" width="50" height="35" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
-    <rect x="240" y="75" width="50" height="35" className="fill-none stroke-lime-brand stroke-1 opacity-40" strokeDasharray="3,2" />
-
-    {/* Bow sonar (hull-mounted) */}
-    <ellipse cx="45" cy="95" rx="10" ry="6" className="fill-none stroke-lime-brand stroke-1 opacity-50" strokeDasharray="2,2" />
-  </svg>
+  <img
+    src={lcsImg}
+    alt="Freedom-class LCS"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{
+      objectFit: 'contain',
+      mixBlendMode: 'lighten',
+      transform: 'scale(1.15)',
+      filter: 'brightness(1.1)',
+    }}
+  />
 );
 
 export const FrigateHull = FreedomLCSHull;
@@ -1401,6 +1329,45 @@ export const SeaJeepHull = ({ size = 200, className = "" }) => (
   <img
     src={seaJeepImg}
     alt="GP-USV Sea Jeep"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.1)' }}
+  />
+);
+
+// ============ AUTONOMY MISSION SERIES HULLS (Missions 01–04) ============
+// Technical line art in the house blueprint style.
+import mcmUsvImg from '../assets/images/MCM USV.png';
+import knifefishImg from '../assets/images/Knifefish.png';
+import mh60rImg from '../assets/images/MH-60R Seahawk.png';
+
+export const MCMUSVHull = ({ size = 200, className = "" }) => (
+  <img
+    src={mcmUsvImg}
+    alt="MCM USV"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.1)' }}
+  />
+);
+
+export const KnifefishHull = ({ size = 200, className = "" }) => (
+  <img
+    src={knifefishImg}
+    alt="Knifefish UUV"
+    width={size}
+    height={size * 0.6}
+    className={className}
+    style={{ objectFit: 'contain', mixBlendMode: 'lighten', filter: 'brightness(1.1)' }}
+  />
+);
+
+export const MH60RSeahawkHull = ({ size = 200, className = "" }) => (
+  <img
+    src={mh60rImg}
+    alt="MH-60R Seahawk"
     width={size}
     height={size * 0.6}
     className={className}

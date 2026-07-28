@@ -3360,6 +3360,23 @@ export const individualCapabilities = [
     missionTags: ["ASW", "PORT_SECURITY", "KINETIC_EFFECTS"]
   },
   {
+    name: "FMD AutoHook",
+    provider: "Fairbanks Morse Defense",
+    type: "Autonomous Davit System",
+    description: "Autonomous davit-based launch and recovery system (LARS) for multi-domain unmanned platforms. Enables hands-free deployment and recovery of USVs, UUVs, and aerial systems in sea states up to SS4, with AI-powered load stabilization and precision positioning.",
+    capabilities: ["Autonomous davit operation", "Sea State 4 recovery", "Multi-platform LARS", "AI load stabilization", "Precision positioning"],
+    trl: "TRL 8",
+    icon: "Anchor",
+    category: "LOGISTICS & SUPPORT",
+    subType: null,
+    swap: { weight: 2500, power: 5, size: "medium" },
+    statImpacts: { speed: -1, power: -2, weight: 2, range: 0, stealth: 0 },
+    securityLevel: [],
+    securityIcons: [],
+    specs: { system: "FMD AutoHook Autonomous Davit", seaState: "SS4 operations", platforms: "LCS, ESB, surface combatants", payload: "Multi-domain UxV launch/recovery" },
+    missionTags: ["MDA", "MULTI_DOMAIN", "AUTONOMOUS"]
+  },
+  {
     name: "20-ft TEU Dry Cargo Module",
     provider: "Caliburn",
     type: "Containerized Dry Cargo Logistics Module",
@@ -4442,6 +4459,281 @@ export const individualCapabilities = [
       note: "Enclosure SWaP not published by Marine AI; values shown are estimates for the host edge-compute platform"
     },
     integrationNotes: "Guardian Vision runs on GPU-accelerated edge compute and feeds classified contacts and hazard tracks to the autonomy and C2 stack, complementing radar and AIS with camera-based perception. On-board inference keeps decision-making local, minimizing the video that must be backhauled over constrained satellite links."
+  },
+
+  // ============ AUTONOMY MISSION SERIES CAPABILITIES (Missions 01–04) ============
+  // See docs/AUTONOMOUS_STRIKE_GROUP_MISSION_PLAN.md §3.2. Do not duplicate existing
+  // entries (Mk 70, SM-6, Tomahawk, TEU modules, MFTA, Mk 54, etc.) — lookups use
+  // .find() and a second entry with the same name becomes dead data.
+
+  // ── Mission 01 — Magazine Depth ──────────────────────────────────────────────
+  {
+    name: "Cooperative Engagement Capability (AN/USG-2)",
+    provider: "RTX",
+    type: "Fire-Control Network Terminal",
+    description: "AN/USG-2 Cooperative Engagement Capability terminal — fuses radar measurement data from every cooperating node into a single fire-control-quality track picture. The mechanism that lets an LCS watch team authorize an engagement fired from a forward unmanned hull. Ship and large-USV class hardware.",
+    capabilities: ["Composite fire-control-quality tracking", "Sensor-netting across dispersed nodes", "Engage-on-remote / launch-on-remote support"],
+    trl: "TRL 9",
+    icon: "Radio",
+    category: "COMMAND & CONTROL",
+    subType: 'FIRE_CONTROL_NET',
+    swap: { weight: 900, power: 12, size: "large" },
+    statImpacts: { speed: 0, power: -3, weight: 2, range: 4, stealth: -1 },
+    securityLevel: ["ITAR Controlled", "NSA Type 1"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: {
+      system: "AN/USG-2 CEC terminal + antenna group",
+      function: "Composite tracking and measurement fusion",
+      network: "Line-of-sight directional data distribution",
+      note: "Too heavy for small rotary UAVs — fit to LCS and M48-class hulls; aircraft contribute tracks via Link 16"
+    }
+  },
+  {
+    name: "Aegis Remote Fire Control",
+    provider: "Lockheed Martin",
+    type: "Remote Fires C2 Suite",
+    description: "Aegis-derived fire-control application giving a commanding ship launch authority over missiles physically carried on remote unmanned magazines. The watch team evaluates the CEC track, authorizes the engagement, and the round leaves a forward hull — DODD 3000.09 human judgment retained at the command node.",
+    capabilities: ["Launch-on-remote authorization workflow", "Magazine management across distributed cells", "Aegis combat system lineage"],
+    trl: "TRL 8",
+    icon: "Target",
+    category: "COMMAND & CONTROL",
+    subType: 'FIRE_CONTROL_NET',
+    swap: { weight: 400, power: 8, size: "medium" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 3, stealth: 0 },
+    securityLevel: ["ITAR Controlled", "DODD 3000.09 Compliant"],
+    securityIcons: ["encrypted", "milstd"],
+    specs: {
+      lineage: "Aegis Weapon System / Virtualized Aegis",
+      authorization: "Human operator required for every engagement",
+      integration: "CEC composite track picture + Mk 41 / Mk 70 cell interfaces"
+    }
+  },
+  {
+    name: "Nulka Active Missile Decoy",
+    provider: "BAE Systems",
+    type: "Active Off-Board Decoy",
+    description: "Hovering rocket-propelled active decoy that seduces anti-ship cruise missiles away from the launching ship. Protects the command node that must stay on station — the LCS keeps its position while the decoy takes the missile somewhere else.",
+    capabilities: ["Anti-ship missile seduction", "Hovering rocket airframe", "Broadband RF emulation of ship signature"],
+    trl: "TRL 9",
+    icon: "Shield",
+    category: "ELECTRONIC ATTACK",
+    subType: 'EW_DECOY',
+    swap: { weight: 1200, power: 5, size: "large" },
+    statImpacts: { speed: 0, power: -1, weight: 2, range: 0, stealth: 3 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      launcher: "Multi-round fixed launcher group",
+      airframe: "Hovering rocket, controlled flight profile",
+      protection: "Anti-ship cruise missile terminal-phase seduction"
+    }
+  },
+  {
+    name: "HENSOLDT RF Threat Warning",
+    provider: "HENSOLDT",
+    type: "Passive RF Warning Receiver",
+    description: "Passive radio-frequency threat warning suite — detects, classifies, and bears emitters targeting the force without radiating. Gives the command node warning time to cue Nulka and maneuver while staying silent.",
+    capabilities: ["Passive emitter detection and classification", "Threat bearing and warning", "Zero-emission operation"],
+    trl: "TRL 9",
+    icon: "Signal",
+    category: "ELECTRONIC SUPPORT",
+    subType: null,
+    swap: { weight: 180, power: 3, size: "medium" },
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 0, stealth: 2 },
+    securityLevel: ["Export Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      mode: "Fully passive — no active emissions",
+      coverage: "Wideband RF surveillance",
+      output: "Emitter ID, bearing, and threat priority to the C2 picture"
+    }
+  },
+
+  // ── Mission 02 — Contested Logistics ────────────────────────────────────────
+  {
+    name: "Mk 70 PDS Reload Module",
+    provider: "Lockheed Martin",
+    type: "Containerized Magazine Reload",
+    description: "Containerized 4-cell Mk 41 reload magazine, packaged for forward transfer on an unmanned logistics hull. Regenerates a Mission 01 shooter's magazine at sea, so an empty M48 takes a fresh module rather than transiting back to a rear node.",
+    capabilities: ["4× Mk 41 strike-length cells, containerized", "Forward transfer at sea", "Feeds Magazine Depth shooter cycling"],
+    trl: "TRL 7",
+    icon: "Anchor",
+    category: "LOGISTICS",
+    subType: 'CARGO_MAGAZINE',
+    swap: { weight: 20000, power: 5, size: "large" },
+    statImpacts: { speed: -2, power: 0, weight: 5, range: -2, stealth: -1 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      form: "20-ft ISO-compatible container group",
+      contents: "4-cell Mk 41 strike-length reload magazine",
+      transfer: "Autonomous alongside transfer — the gap this mission exists to prove"
+    }
+  },
+  {
+    name: "Autonomous Cargo Handling System",
+    provider: "Caliburn",
+    type: "Autonomous Transfer-at-Sea System",
+    description: "Deck handling and transfer system for moving ISO modules between unmanned hulls, combatants, and Remote Operating Sites without riggers aboard. The containers are mature; moving them between hulls at sea without people is the unresolved gap this system closes.",
+    capabilities: ["Autonomous alongside module transfer", "ISO container handling without deck crew", "TempestOS-tasked transfer sequencing"],
+    trl: "TRL 6",
+    icon: "Anchor",
+    category: "LOGISTICS",
+    subType: null,
+    swap: { weight: 4500, power: 40, size: "large" },
+    statImpacts: { speed: -1, power: -3, weight: 3, range: 0, stealth: 0 },
+    securityLevel: ["Commercial + Defense Hybrid"],
+    securityIcons: [],
+    specs: {
+      handling: "Powered deck rails + articulated transfer arm",
+      loads: "20-ft TEU modules to 24,000 kg",
+      control: "TempestOS mission-order tasking, human-on-the-loop"
+    }
+  },
+
+  // ── Mission 03 — Theater ASW ─────────────────────────────────────────────────
+  {
+    name: "AN/AQS-22 ALFS Dipping Sonar",
+    provider: "Raytheon",
+    type: "Airborne Low-Frequency Dipping Sonar",
+    description: "Airborne Low Frequency Sonar (ALFS) — the MH-60R's reelable dipping sonar. Lowered into the layer from a hover to refine a cross-fixed datum to attack quality in the minutes before a Mk 54 drop. The kill-chain sensor, not the search sensor.",
+    capabilities: ["Active/passive low-frequency dipping sonar", "Hover-deployed, reelable", "Attack-quality datum refinement"],
+    trl: "TRL 9",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_DIPPING',
+    swap: { weight: 350, power: 6, size: "medium" },
+    statImpacts: { speed: 0, power: -2, weight: 1, range: 0, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      deployment: "Helicopter hover, reelable cable",
+      band: "Low frequency — long detection range in the layer",
+      modes: "Active ping and passive listen"
+    }
+  },
+  {
+    name: "Sonobuoys (DIFAR / DICASS)",
+    provider: "ERAPSCO",
+    type: "Expendable Acoustic Sensors",
+    description: "Air-dropped expendable acoustic sensors: DIFAR passive directional buoys for silent tracking, DICASS active command buoys for range and closure when the prosecution goes overt. Carried by the MH-60R to hold the datum between dips.",
+    capabilities: ["DIFAR passive directional listening", "DICASS commanded active ranging", "Air-dropped pattern employment"],
+    trl: "TRL 9",
+    icon: "Waves",
+    category: "ACOUSTIC SENSORS",
+    subType: 'HYDROPHONE',
+    swap: { weight: 240, power: 0, size: "medium" },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 0, stealth: 0 },
+    securityLevel: ["Export Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      passive: "AN/SSQ-53 DIFAR directional hydrophone",
+      active: "AN/SSQ-62 DICASS command-activated sonar",
+      employment: "Pattern drops from rotary- and fixed-wing ASW aircraft"
+    }
+  },
+
+  // ── Mission 04 — Standoff MCM ────────────────────────────────────────────────
+  {
+    name: "AN/AQS-20C Towed Minehunting Sonar",
+    provider: "RTX",
+    type: "Towed Multi-Mode Minehunting Sonar",
+    description: "Towed minehunting sonar with side-looking, gap-filling, and forward-looking arrays plus electro-optic identification. Towed by the MCM USV across the field at standoff — the hunt happens in the water while every human stays outside the minefield.",
+    capabilities: ["Volume and bottom mine detection", "Side-scan and forward-looking arrays", "Electro-optic mine identification", "Single-pass hunt at standoff"],
+    trl: "TRL 9",
+    icon: "Waves",
+    category: "MCM SYSTEMS",
+    subType: 'SONAR_TOWED',
+    swap: { weight: 1400, power: 15, size: "large" },
+    statImpacts: { speed: -2, power: -3, weight: 3, range: -1, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      arrays: "Side-looking + gap-filler + forward-looking",
+      identification: "Electro-optic sensor for mine ID",
+      towedBy: "MCM USV at standoff from the mothership"
+    }
+  },
+  {
+    name: "Unmanned Influence Sweep System (UISS)",
+    provider: "Textron Systems",
+    type: "Towed Influence Minesweep",
+    description: "Towed magnetic and acoustic influence sweep — mimics the signature of a ship to safely trigger sensitive influence mines from an unmanned hull. The mine detonates against a signature, not a crew.",
+    capabilities: ["Magnetic signature emulation", "Acoustic signature emulation", "Sweep of sensitive influence mines"],
+    trl: "TRL 9",
+    icon: "Zap",
+    category: "MCM SYSTEMS",
+    subType: 'MCM_SWEEP',
+    swap: { weight: 3200, power: 20, size: "large" },
+    statImpacts: { speed: -3, power: -4, weight: 4, range: -2, stealth: -2 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      influence: "Magnetic + acoustic combined signature",
+      towedBy: "MCM USV",
+      effect: "Triggers sensitive mines at a safe distance from any hull"
+    }
+  },
+  {
+    name: "Barracuda Mine Neutralizer",
+    provider: "RTX",
+    type: "Expendable Mine Neutralizer",
+    description: "One-shot expendable neutralizer that swims to a confirmed mine and destroys it in place. Closes the detect-to-neutralize chain with no diver in the water and no EOD team inside the field.",
+    capabilities: ["Autonomous terminal homing on datum", "One-shot mine destruction", "No diver, no EOD exposure"],
+    trl: "TRL 9",
+    icon: "Target",
+    category: "MCM SYSTEMS",
+    subType: 'MCM_NEUTRALIZER',
+    swap: { weight: 300, power: 2, size: "medium" },
+    statImpacts: { speed: 0, power: 0, weight: 1, range: 0, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      form: "Expendable underwater vehicle, shaped-charge payload",
+      guidance: "Autonomous homing on the classified datum",
+      employment: "Expended per confirmed mine — lane advances behind it"
+    }
+  },
+  {
+    name: "AN/DVS-1 COBRA Coastal Recon",
+    provider: "Areté",
+    type: "Airborne Coastal Minefield Detection",
+    description: "Coastal Battlefield Reconnaissance and Analysis (COBRA) — airborne electro-optic sensor that detects minefields and obstacles in the beach and surf zone, extending the cleared lane from deep water to the sand.",
+    capabilities: ["Beach-zone and surf-zone minefield detection", "Airborne wide-area electro-optic survey", "Lane extension to the beach"],
+    trl: "TRL 9",
+    icon: "Eye",
+    category: "SENSORS & DETECTION",
+    subType: null,
+    swap: { weight: 120, power: 4, size: "medium" },
+    statImpacts: { speed: 0, power: -1, weight: 1, range: 0, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      sensor: "Multispectral electro-optic imager",
+      coverage: "Beach zone and surf zone",
+      host: "UAV-carried pod"
+    }
+  },
+  {
+    name: "Knifefish LFBB Mine ID Sonar",
+    provider: "General Dynamics Mission Systems",
+    type: "Low-Frequency Broadband Classification Sonar",
+    description: "Knifefish's low-frequency broadband synthetic aperture sonar — localizes and identifies mines that towed sonars can only cue: buried, moored, and bottom mines in high-clutter littorals. The classification step that turns a contact into a confirmed target.",
+    capabilities: ["Buried mine detection and identification", "Synthetic aperture imaging", "High-clutter littoral classification"],
+    trl: "TRL 8",
+    icon: "Waves",
+    category: "ACOUSTIC/SONAR",
+    subType: 'SONAR_SIDESCAN',
+    swap: { weight: 900, power: 12, size: "large" },
+    statImpacts: { speed: -1, power: -3, weight: 2, range: -1, stealth: 0 },
+    securityLevel: ["ITAR Controlled"],
+    securityIcons: ["milstd"],
+    specs: {
+      band: "Low-frequency broadband",
+      aperture: "Synthetic aperture processing",
+      targets: "Buried, moored, and bottom mines",
+      host: "Knifefish UUV"
+    }
   }
 
   // ============ END ADDITIONAL VESSEL CAPABILITY ENTRIES ============
@@ -4589,6 +4881,57 @@ export const squadrons = [
     location: "Multi-Theater Operations",
     readyTime: "CONTINUOUS OPERATIONS",
     icon: "logistics"
+  },
+  // Mirror of fleetData swarmSquadrons sqdn_016 — five existing missions plus
+  // Theater ASW reference it, and MissionLibrary resolves squadron chips against
+  // THIS array, rendering a blank chip on any miss.
+  {
+    id: "sqdn_016",
+    name: "Magnet Defense M48",
+    classification: "UNCLASSIFIED",
+    units: 9,
+    composition: ["9x Magnet Defense M48 MUSV"],
+    missionObjective: "multi_role",
+    primaryMission: "Long-range multi-role MUSV squadron — ISR, ASW towed arrays, strike, and logistics variants",
+    payloadConfiguration: "Mission-configurable — 100-ton / 4x ISO container capacity per hull",
+    interoperabilityStandard: "NATO STANAG 4586",
+    operationalStatus: "ACTIVE",
+    lastDeployment: "Autonomy Mission Series workups - ONGOING",
+    totalDeployments: 11,
+    successRate: "93%",
+    status: {
+      missionReady: 6,
+      deployed: 3
+    },
+    capabilities: ["Trans-Pacific Self-Deployment", "Towed Array Operations", "Distributed Fires", "Contested Logistics"],
+    location: "7th Fleet - Forward Deployed",
+    readyTime: "T+60 minutes",
+    icon: "vessels"
+  },
+  // Autonomy Mission Series — mirror of fleetData swarmSquadrons sqdn_034 so
+  // MissionLibrary squadron chips resolve (it reads this array, not fleetData).
+  {
+    id: "sqdn_034",
+    name: "LCS Squadron One",
+    classification: "UNCLASSIFIED",
+    units: 3,
+    composition: ["3x Freedom-class LCS", "3x MH-60R Seahawk detachment", "Embarked TempestOS fusion node"],
+    missionObjective: "command_node",
+    primaryMission: "Crewed command node for the Autonomy Mission Series — launch authority, tasking, and helicopter operations",
+    payloadConfiguration: "CEC / Aegis Remote Fire Control + TempestOS + MH-60R detachment",
+    interoperabilityStandard: "NATO STANAG 4586 + Link 16",
+    operationalStatus: "ACTIVE",
+    lastDeployment: "Autonomy Mission Series workups - ONGOING",
+    totalDeployments: 4,
+    successRate: "95%",
+    status: {
+      missionReady: 2,
+      deployed: 1
+    },
+    capabilities: ["Launch Authority Retention", "Distributed Fires C2", "Unmanned Systems Mothership", "Rotary-Wing ASW Prosecution"],
+    location: "7th Fleet - Forward Deployed",
+    readyTime: "T+30 minutes",
+    icon: "command"
   }
 ];
 
@@ -5325,6 +5668,145 @@ export const missionFlowTemplates = {
       { from: 'recover',  to: 'persistent' }
     ],
     loopBack: { from: 'hold', to: 'sense', label: 'Persistent Coverage' }
+  },
+
+  // ─── Mission 01 — Magazine Depth (Autonomy Mission Series) ───────────────────
+  // The human_checkpoint node is not decoration — it is the deck's central claim
+  // rendered as a diagram, and the one node a Navy reviewer will look for.
+  MAGAZINE_DEPTH: {
+    name: "Magazine Depth — Distributed Fires, Retained Authority",
+    category: "COMBAT",
+    subType: null,
+    nodes: [
+      { id: 'station',    type: 'trigger',          label: 'LCS On Station\n(Command Node)',            position: { x: 50,   y: 160 } },
+      { id: 'sense',      type: 'sense',            label: 'Sense — Any Node\nRadar / EO-IR / M48',     position: { x: 240,  y: 160 } },
+      { id: 'cec_fuse',   type: 'orient',           label: 'CEC Fuses One\nFire-Control Picture',       position: { x: 450,  y: 160 } },
+      { id: 'fc_quality', type: 'decision',         label: 'Fire-Control\nQuality Track?',              position: { x: 660,  y: 160 } },
+      { id: 'refine',     type: 'action',           label: 'Refine Track\nCue Additional Sensors',      position: { x: 660,  y: 320 } },
+      { id: 'human_auth', type: 'human_checkpoint', label: 'LCS Watch Team\nAuthorizes Engagement',     position: { x: 870,  y: 160 } },
+      { id: 'assign',     type: 'decide',           label: 'Assign Shooter\n& Round Type',              position: { x: 1070, y: 160 } },
+      { id: 'launch',     type: 'action',           label: 'M48 Fires from\nMk 70 PDS',                 position: { x: 1270, y: 160 } },
+      { id: 'cells_left', type: 'decision',         label: 'Cells\nRemaining?',                         position: { x: 1270, y: 320 } },
+      { id: 'cycle',      type: 'action',           label: 'Cycle M48 to ROS /\nMk 70 Reload Module',   position: { x: 1060, y: 430 } },
+      { id: 'sustained',  type: 'end',              label: 'Fires Sustained —\nLCS Never Left Station', position: { x: 1470, y: 320 } }
+    ],
+    connections: [
+      { from: 'station',    to: 'sense' },
+      { from: 'sense',      to: 'cec_fuse' },
+      { from: 'cec_fuse',   to: 'fc_quality' },
+      { from: 'fc_quality', to: 'human_auth', label: 'Yes' },
+      { from: 'fc_quality', to: 'refine',     label: 'Not Yet' },
+      { from: 'human_auth', to: 'assign',     label: 'Authorized' },
+      { from: 'human_auth', to: 'refine',     label: 'Hold — Do Not Engage' },
+      { from: 'assign',     to: 'launch' },
+      { from: 'launch',     to: 'cells_left' },
+      { from: 'cells_left', to: 'sustained',  label: 'Yes — Stay Forward' },
+      { from: 'cells_left', to: 'cycle',      label: 'Empty' },
+      { from: 'cycle',      to: 'sustained',  label: 'Magazine Regenerated' }
+    ],
+    loopBack: { from: 'refine', to: 'sense', label: 'Continue Sensing' }
+  },
+
+  // ─── Mission 02 — Contested Logistics (Autonomy Mission Series) ──────────────
+  CONTESTED_LOGISTICS_MOTHERSHIP: {
+    name: "Contested Logistics — Node to Edge, On Demand",
+    category: "LOGISTICS",
+    subType: null,
+    nodes: [
+      { id: 'demand',     type: 'trigger',  label: 'Combatant Reports\nFuel / Magazine State',      position: { x: 50,   y: 160 } },
+      { id: 'assign',     type: 'decide',   label: 'TempestOS Assigns\nRun by Mission Order',       position: { x: 250,  y: 160 } },
+      { id: 'load',       type: 'action',   label: 'Load Module at\nRear LCS Node',                 position: { x: 460,  y: 160 } },
+      { id: 'transit',    type: 'action',   label: 'Transit Forward\nEMCON Discipline',             position: { x: 660,  y: 160 } },
+      { id: 'link',       type: 'decision', label: 'Link\nHeld?',                                   position: { x: 860,  y: 160 } },
+      { id: 'autonomous', type: 'action',   label: 'Hold Last Routing Order\nPre-Authorized Rules', position: { x: 860,  y: 320 } },
+      { id: 'destination',type: 'decision', label: 'Delivery\nPoint?',                              position: { x: 1060, y: 160 } },
+      { id: 'combatant',  type: 'action',   label: 'Transfer Alongside\nCombatant on Station',      position: { x: 1270, y: 60  } },
+      { id: 'ros',        type: 'action',   label: 'Deliver to Remote\nOperating Site',             position: { x: 1270, y: 180 } },
+      { id: 'crossload',  type: 'action',   label: 'Cross-Load to\nAdjacent M48',                   position: { x: 1270, y: 300 } },
+      { id: 'sustained',  type: 'end',      label: 'Forward Fight Sustained —\nNo Crewed Oiler in the WEZ', position: { x: 1480, y: 180 } }
+    ],
+    connections: [
+      { from: 'demand',      to: 'assign' },
+      { from: 'assign',      to: 'load' },
+      { from: 'load',        to: 'transit' },
+      { from: 'transit',     to: 'link' },
+      { from: 'link',        to: 'destination', label: 'Held' },
+      { from: 'link',        to: 'autonomous',  label: 'Denied' },
+      { from: 'autonomous',  to: 'destination', label: 'Run Completes Regardless' },
+      { from: 'destination', to: 'combatant',   label: 'Combatant' },
+      { from: 'destination', to: 'ros',         label: 'ROS' },
+      { from: 'destination', to: 'crossload',   label: 'Adjacent Hull' },
+      { from: 'combatant',   to: 'sustained' },
+      { from: 'ros',         to: 'sustained' },
+      { from: 'crossload',   to: 'sustained' }
+    ],
+    loopBack: { from: 'sustained', to: 'demand', label: 'Next Run Assigned' }
+  },
+
+  // ─── Mission 03 — Theater ASW (Autonomy Mission Series) ──────────────────────
+  THEATER_ASW: {
+    name: "Theater ASW — Passive Barrier, Single Confirm, Airborne Kill",
+    category: "COMBAT",
+    subType: null,
+    nodes: [
+      { id: 'barrier',    type: 'trigger',          label: 'Barrier Established\n3× M48 Passive Arrays',  position: { x: 50,   y: 170 } },
+      { id: 'listen',     type: 'sense',            label: 'Listen — Passive Only\nZero Acoustic Emission', position: { x: 250, y: 170 } },
+      { id: 'tonal',      type: 'decision',         label: 'Tonal Above\nThreshold?',                     position: { x: 460,  y: 170 } },
+      { id: 'crossfix',   type: 'orient',           label: 'USW-DSS Cross-Fix\nOverlapping Bearings',     position: { x: 670,  y: 170 } },
+      { id: 'solution',   type: 'decision',         label: 'Firing-Solution\nQuality?',                   position: { x: 880,  y: 170 } },
+      { id: 'ping',       type: 'action',           label: 'Lead M48 —\nExactly One Active Ping',         position: { x: 1090, y: 170 } },
+      { id: 'weapons',    type: 'human_checkpoint', label: 'CTF-72 Weapons\nFree Authorization',          position: { x: 1090, y: 320 } },
+      { id: 'launch_helo',type: 'action',           label: 'MH-60R Launches\nfrom LCS Flight Deck',       position: { x: 1300, y: 320 } },
+      { id: 'prosecute',  type: 'action',           label: 'Mk 54 on Datum\nAirborne Kill',               position: { x: 1500, y: 320 } },
+      { id: 'held',       type: 'end',              label: 'Barrier Held —\nHunters Never Localized',     position: { x: 1500, y: 170 } }
+    ],
+    connections: [
+      { from: 'barrier',    to: 'listen' },
+      { from: 'listen',     to: 'tonal' },
+      { from: 'tonal',      to: 'crossfix',    label: 'Contact' },
+      { from: 'tonal',      to: 'listen',      label: 'Clear' },
+      { from: 'crossfix',   to: 'solution' },
+      { from: 'solution',   to: 'ping',        label: 'Yes' },
+      { from: 'solution',   to: 'crossfix',    label: 'Keep Listening — Stay Silent' },
+      { from: 'ping',       to: 'weapons' },
+      { from: 'weapons',    to: 'launch_helo', label: 'Weapons Free' },
+      { from: 'weapons',    to: 'crossfix',    label: 'Hold — Continue Track' },
+      { from: 'launch_helo',to: 'prosecute' },
+      { from: 'prosecute',  to: 'held' }
+    ],
+    loopBack: { from: 'held', to: 'listen', label: 'Resume Passive Barrier' }
+  },
+
+  // ─── Mission 04 — Standoff MCM (Autonomy Mission Series) ─────────────────────
+  STANDOFF_MCM: {
+    name: "Standoff MCM — One Chain, No Diver",
+    category: "DEFENSE",
+    subType: null,
+    nodes: [
+      { id: 'standoff',   type: 'trigger',  label: 'LCS On Station\nOutside the Minefield',      position: { x: 50,   y: 170 } },
+      { id: 'hunt',       type: 'sense',    label: 'Hunt — MCM USV Tows\nAN/AQS-20C at Standoff', position: { x: 250, y: 170 } },
+      { id: 'contact',    type: 'decision', label: 'Sonar\nContact?',                            position: { x: 470,  y: 170 } },
+      { id: 'classify',   type: 'orient',   label: 'Knifefish Localizes\n& Classifies Below',     position: { x: 680,  y: 170 } },
+      { id: 'is_mine',    type: 'decision', label: 'Mine\nConfirmed?',                            position: { x: 890,  y: 170 } },
+      { id: 'sweep',      type: 'action',   label: 'UISS Influence Sweep\nMimics Ship Signature', position: { x: 890,  y: 330 } },
+      { id: 'neutralize', type: 'action',   label: 'Barracuda Neutralizes\nNo Diver in the Water', position: { x: 1100, y: 170 } },
+      { id: 'lane_clear', type: 'decision', label: 'Lane\nComplete?',                             position: { x: 1310, y: 170 } },
+      { id: 'opened',     type: 'end',      label: 'Cleared Lane Opened —\nNo Hull, No Diver in the Field', position: { x: 1520, y: 170 } }
+    ],
+    connections: [
+      { from: 'standoff',   to: 'hunt' },
+      { from: 'hunt',       to: 'contact' },
+      { from: 'contact',    to: 'classify',   label: 'Contact Logged' },
+      { from: 'contact',    to: 'hunt',       label: 'Clear Water' },
+      { from: 'classify',   to: 'is_mine' },
+      { from: 'is_mine',    to: 'neutralize', label: 'Confirmed' },
+      { from: 'is_mine',    to: 'sweep',      label: 'Sensitive / Uncertain' },
+      { from: 'sweep',      to: 'lane_clear', label: 'Triggered Safely' },
+      { from: 'neutralize', to: 'lane_clear' },
+      { from: 'lane_clear', to: 'opened',     label: 'Yes' },
+      { from: 'lane_clear', to: 'hunt',       label: 'Continue — Next Segment' }
+    ],
+    loopBack: { from: 'opened', to: 'hunt', label: 'Next Lane' }
   }
 };
 
