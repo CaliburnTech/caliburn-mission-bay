@@ -3,7 +3,7 @@ import {
   ChevronLeft, Eye, Crosshair, Shield, Navigation, Cpu,
   Wifi, Zap, Plus, X, Check, Ship,
   AlertCircle, CheckCircle2, Search, Layers, ChevronDown,
-  FileText, GitBranch, Map, Lock
+  FileText, GitBranch, Map, Lock, Sparkles
 } from 'lucide-react';
 import useIsMobile from '../hooks/useIsMobile';
 import { getEligibleRolesByMission } from '../utils/roleUtils';
@@ -21,6 +21,8 @@ import useVersionStore from '../store/versionStore';
 import useDataStore from '../providers/dataStore';
 import SBOMDisplay from './shared/SBOMDisplay';
 import SV2Editor from './shared/SV2Editor';
+import MissionAdvisorChat from './shared/MissionAdvisorChat';
+import { buildLoadoutContext } from '../utils/advisorContext';
 import CreateVersionModal from './shared/CreateVersionModal';
 import VersionDetailPanel from './versions/VersionDetailPanel';
 import { vesselHullComponents, VESSEL_SLOT_CAPACITY, DEFAULT_SLOT_CAPACITY, LOADOUT_CATEGORY_KEYS } from '../data/vesselData';
@@ -569,6 +571,58 @@ const LoadoutBuilder = () => {
     const { missing } = meetsRequirements(activeConfig, matchedRole);
     return new Set(missing.filter(m => m.type === 'category').map(m => m.key));
   }, [configMission, pendingMissionSetKey, activeConfig, sessionRoleKey, selectedHull]);
+
+  // ─── Loadout Advisor (plan §5.5) ──────────────────────────────────────────
+  // Plain-text digest of the current loadout for the Mission Advisor, rebuilt
+  // whenever the loadout, hull, or applied mission/role changes. Role matching
+  // mirrors the missingRequiredCategories logic above.
+  const [showLoadoutAdvisor, setShowLoadoutAdvisor] = useState(false);
+  const loadoutAdvisorContext = useMemo(() => {
+    const activeMissionKey = configMission || pendingMissionSetKey;
+    const roles = activeMissionKey ? (MISSION_ROLES[activeMissionKey]?.roles || []) : [];
+    const matchedRole = (sessionRoleKey && roles.find(r => r.roleKey === sessionRoleKey))
+      || roles.find(r => r.platformTypes?.includes(selectedHull?.type))
+      || roles[0]
+      || null;
+    return buildLoadoutContext(selectedHull, activeConfig, activeMissionKey, matchedRole?.roleKey);
+  }, [configMission, pendingMissionSetKey, activeConfig, sessionRoleKey, selectedHull]);
+
+  // Shared between the desktop mission-sets column and the mobile Mission Sets
+  // tab (only one layout is mounted at a time — see `!isMobile` branch below).
+  const loadoutAdvisorPanel = (
+    <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[0.65rem] uppercase tracking-widest text-gray-500">Loadout Advisor</p>
+        <button
+          onClick={() => setShowLoadoutAdvisor(v => !v)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[0.7rem] font-semibold transition-colors ${showLoadoutAdvisor ? 'border-lime-brand/60 bg-lime-brand/10 text-lime-brand' : 'border-lime-brand/30 text-lime-brand hover:bg-lime-brand/10'}`}
+        >
+          <Sparkles size={12} />
+          {showLoadoutAdvisor ? 'Hide' : 'Ask'}
+        </button>
+      </div>
+      {missingRequiredCategories.size > 0 && (
+        <p className="text-[0.68rem] text-amber-400">
+          {missingRequiredCategories.size} requirement{missingRequiredCategories.size > 1 ? 's' : ''} unmet — ask why
+        </p>
+      )}
+      {showLoadoutAdvisor && (
+        <div className="h-[380px]">
+          <MissionAdvisorChat
+            embedded
+            contextText={loadoutAdvisorContext}
+            title="Loadout Advisor"
+            accentColor="lime"
+            suggestedQuestions={[
+              "Why isn't this loadout ready?",
+              'What should I add to meet requirements?',
+              'How much SWaP headroom is left?',
+            ]}
+          />
+        </div>
+      )}
+    </div>
+  );
 
   // Apply a mission role's capabilities to the loadout, then record the assignment.
   // vesselLabel overrides the default (selectedHull.name) — pass the displayed card name
@@ -1364,6 +1418,9 @@ const LoadoutBuilder = () => {
               );
             })()}
 
+            {/* Loadout Advisor (plan §5.5) */}
+            {loadoutAdvisorPanel}
+
             {/* Generic mission set — for all non-Port-Security missions */}
             {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (
               <div className="w-full rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 flex flex-col gap-3">
@@ -1690,6 +1747,9 @@ const LoadoutBuilder = () => {
                   </div>
                 );
               })()}
+
+              {/* Loadout Advisor (plan §5.5) */}
+              {loadoutAdvisorPanel}
 
               {/* Generic mission set — for all non-Port-Security missions */}
               {effectiveMissionSetKey && effectiveMissionSetKey !== 'PORT_SECURITY' && MISSION_SET_LABELS[effectiveMissionSetKey] && (

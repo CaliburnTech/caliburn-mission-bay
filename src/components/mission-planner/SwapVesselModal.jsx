@@ -1,11 +1,13 @@
-import React, { useMemo, useCallback } from 'react';
-import { Anchor, X, Star } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Anchor, X, Star, Sparkles, ChevronLeft } from 'lucide-react';
 import useMissionStore from '../../store/missionStore';
 import useIsMobile from '../../hooks/useIsMobile';
 import { vesselHullData, isAerialPlatform } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import { isHullSwapEligible } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
+import MissionAdvisorChat from '../shared/MissionAdvisorChat';
+import { buildSwapContext } from '../../utils/advisorContext';
 
 /**
  * SwapVesselModal
@@ -20,6 +22,15 @@ import { HULL_IMAGES } from '../../utils/hullImages';
 const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName }) => {
   const assignVesselToRole = useMissionStore(s => s.assignVesselToRole);
   const isMobile = useIsMobile();
+
+  // Swap Consequence Explainer (plan §5.6): when set to a candidate hull name,
+  // the modal body is replaced with the advisor chat (modal-over-modal is
+  // clumsy), prefilled with the gain/lose question for that candidate.
+  const [explainHull, setExplainHull] = useState(null);
+  const swapContext = useMemo(
+    () => (explainHull ? buildSwapContext(missionKey, roleKey, currentHullName, explainHull) : ''),
+    [explainHull, missionKey, roleKey, currentHullName]
+  );
 
   const role = useMemo(() => {
     const missionDef = MISSION_ROLES[missionKey];
@@ -111,11 +122,23 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
   const renderCard = (hull, eligible) => {
     const isSelected = hull.name === currentHullName;
     return (
+      <div key={hull.name} className="relative">
+      {/* Swap Consequence Explainer affordance — sibling of the card button
+          (nesting a button inside a button is invalid HTML) */}
+      {!isSelected && (
+        <button
+          onClick={() => setExplainHull(hull.name)}
+          title={`What changes if I swap to the ${hull.name}?`}
+          aria-label={`Explain swapping to ${hull.name}`}
+          className="absolute top-1.5 right-1.5 z-10 p-1 rounded-md text-cyan-500/70 hover:text-cyan-300 hover:bg-cyan-900/40 transition-colors"
+        >
+          <Sparkles size={12} />
+        </button>
+      )}
       <button
-        key={hull.name}
         onClick={() => handleSelect(hull.name)}
         className={[
-          'flex items-center gap-3 rounded-xl border p-2.5 text-left transition-all',
+          'w-full flex items-center gap-3 rounded-xl border p-2.5 text-left transition-all',
           isSelected
             ? 'border-cyan-500 bg-cyan-900/20 ring-1 ring-cyan-500/40'
             : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600/60 hover:bg-gray-800/60',
@@ -149,6 +172,7 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
           </div>
         </div>
       </button>
+      </div>
     );
   };
 
@@ -179,7 +203,28 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
           </button>
         </div>
 
-        {/* ── Hull list ── */}
+        {/* ── Swap Consequence Explainer — replaces the hull list ── */}
+        {explainHull ? (
+          <div className="flex-1 min-h-0 flex flex-col p-3 gap-2">
+            <button
+              onClick={() => setExplainHull(null)}
+              className="self-start flex items-center gap-1 text-gray-400 hover:text-white text-[0.72rem] font-semibold transition-colors"
+            >
+              <ChevronLeft size={13} /> Back to vessels
+            </button>
+            <div className="flex-1 min-h-0 h-[50vh]">
+              <MissionAdvisorChat
+                key={explainHull}
+                embedded
+                contextText={swapContext}
+                title={`Swap: ${currentHullName} → ${explainHull}`}
+                accentColor="cyan"
+                prefill={`What changes if I swap the ${currentHullName} for the ${explainHull} in this role?`}
+              />
+            </div>
+          </div>
+        ) : (
+
         <div className="flex-1 overflow-y-auto p-3 min-h-0 flex flex-col gap-3">
 
           {/* Suggested section */}
@@ -214,6 +259,7 @@ const SwapVesselModal = ({ isOpen, onClose, missionKey, roleKey, currentHullName
           )}
 
         </div>
+        )}
 
         {/* ── Footer ── */}
         <div className="px-4 py-2.5 border-t border-gray-700/50 flex-shrink-0">

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import {
   MapContainer, TileLayer, Polygon, CircleMarker, Polyline, Tooltip, ZoomControl, useMap
 } from 'react-leaflet';
-import { Play, Pause, RotateCcw, Target, ChevronLeft, Settings, ArrowLeftRight } from 'lucide-react';
+import { Play, Pause, RotateCcw, Target, ChevronLeft, Settings, ArrowLeftRight, Sparkles } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import useMissionStore from '../../store/missionStore';
 import useOutfitterStore from '../../store/outfitterStore';
@@ -12,6 +12,8 @@ import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
 import ReadinessChecklist from './ReadinessChecklist';
+import MissionAdvisorChat from '../shared/MissionAdvisorChat';
+import { buildMissionContext } from '../../utils/advisorContext';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
 import { ORCHESTRATION_LAYER, SUCCESS_CRITERIA } from './autonomySeriesShared';
@@ -33,6 +35,14 @@ const MINE_POSITIONS = [
 // Mine 1 (index) is the sensitive/uncertain contact cleared by the UISS sweep;
 // the other three are confirmed and neutralized by Barracuda.
 const SENSITIVE_MINE = 1;
+
+// ─── Mission Advisor (plan §5.4) — keep this block identical across the five
+// Autonomy Mission Series views except for the questions and accent color ────
+const ADVISOR_QUESTIONS = [
+  'Why does the LCS stay outside the minefield?',
+  'What does the AN/AQS-20C do here?',
+  'How are the mines neutralized without a diver in the water?',
+];
 
 // ─── Tick milestones ──────────────────────────────────────────────────────────
 const T_STANDOFF   =  8;   // lane corridor drawn
@@ -219,6 +229,8 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
   const roleAssignments = useMissionStore(s => s.roleAssignments);
   const savedConfigurations = useConfigurationStore(s => s.savedConfigurations);
   const [swapModal, setSwapModal] = useState(null);
+  const [showAdvisor, setShowAdvisor] = useState(false);
+  const advisorContext = useMemo(() => buildMissionContext(MISSION_SET_KEY), []);
 
   const missionRoleDefs = MISSION_ROLES[MISSION_SET_KEY]?.roles ?? [];
   const effectiveRoster = VESSEL_ROSTER.map((vessel, idx) => {
@@ -477,6 +489,14 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
         <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
         <span className="hidden md:inline text-gray-500 text-[0.68rem]">Hunt · Classify · Sweep · Neutralize — Open the Water Without a Diver in It</span>
         <div className="flex-1" />
+        <button
+          onClick={() => setShowAdvisor(v => !v)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[0.7rem] font-semibold transition-colors flex-shrink-0 ${showAdvisor ? 'border-orange-500/60 bg-orange-900/40 text-orange-300' : 'border-orange-500/30 text-orange-400 hover:bg-orange-900/30'}`}
+          title="Ask the Mission Advisor"
+        >
+          <Sparkles size={12} />
+          <span className="hidden sm:inline">Ask the Advisor</span>
+        </button>
         <span className="px-2 py-0.5 rounded-full bg-orange-900/50 text-orange-400 text-[0.65rem] font-bold uppercase tracking-wider border border-orange-500/30">DRAFT</span>
         <input
           value={missionName}
@@ -851,6 +871,16 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
         </div>
 
       </div>{/* /scrollable body */}
+
+      {showAdvisor && (
+        <MissionAdvisorChat
+          contextText={advisorContext}
+          title="Mission Advisor — Standoff MCM"
+          accentColor="orange"
+          suggestedQuestions={ADVISOR_QUESTIONS}
+          onClose={() => setShowAdvisor(false)}
+        />
+      )}
 
       {swapModal && (
         <SwapVesselModal
