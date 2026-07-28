@@ -38,19 +38,21 @@ const SENSITIVE_MINE = 1;
 const T_STANDOFF   =  8;   // lane corridor drawn
 const T_HUNT       = 20;   // MCM USV enters the field along the lane
 const T_CLASSIFY   = 40;   // Knifefish descends beneath each contact
-const T_SWEEP      = 56;   // UISS trail; the sensitive mine triggers safely
-const T_NEUTRALIZE = 66;   // Barracuda runs to each confirmed mine
-const T_COMPLETE   = 84;   // lane renders CLEARED
-const TOTAL_TICKS  = 84;
+const T_SWEEP      = 56;   // clearance pass begins — mines clear as the USV passes
+const T_NEUTRALIZE = 74;   // clearance pass complete — lane verification
+const T_COMPLETE   = 92;   // lane renders CLEARED
+const TOTAL_TICKS  = 92;
+
+const CLEAR_DURATION = 5;  // ticks a mine spends visibly detonating/neutralizing
 
 const TICK_MS = 280;
 
 // ─── Roster — order matches MISSION_ROLES[STANDOFF_MCM].roles ────────────────
+// Barracuda neutralizers launch from the MCM USV — no separate neutralizer UUV.
 const VESSEL_ROSTER = [
   { name: 'LCS Command Node', roleDescriptor: '(Command Node)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'SMCM_LCS', capabilities: ['TempestOS Core Platform', 'Link 16 Track Broadcast', 'MILSATCOM Terminal', 'HiveLink SDR', 'NSYTE AI Maintenance System'] },
-  { name: 'MCM USV', roleDescriptor: '(Hunter)', image: HULL_IMAGES['MCM USV'], hullName: 'MCM USV', roleKey: 'SMCM_HUNTER', capabilities: ['AN/AQS-20C Towed Minehunting Sonar', 'Unmanned Influence Sweep System (UISS)', 'AN/DVS-1 COBRA Coastal Recon', 'HiveLink SDR', 'SeaFIND Inertial Navigation', 'Marine AI Guardian Vision CVP'] },
+  { name: 'MCM USV', roleDescriptor: '(Hunter / Neutralizer)', image: HULL_IMAGES['MCM USV'], hullName: 'MCM USV', roleKey: 'SMCM_HUNTER', capabilities: ['AN/AQS-20C Towed Minehunting Sonar', 'Unmanned Influence Sweep System (UISS)', 'Barracuda Mine Neutralizer', 'AN/DVS-1 COBRA Coastal Recon', 'HiveLink SDR', 'SeaFIND Inertial Navigation', 'Marine AI Guardian Vision CVP'] },
   { name: 'Knifefish', roleDescriptor: '(Classifier)', image: HULL_IMAGES['Knifefish'], hullName: 'Knifefish', roleKey: 'SMCM_CLASSIFIER', capabilities: ['Knifefish LFBB Mine ID Sonar', 'EvoLogics Acoustic Modem', 'SeaFIND Inertial Navigation'] },
-  { name: 'Knifefish', roleDescriptor: '(Neutralizer)', image: HULL_IMAGES['Knifefish'], hullName: 'Knifefish', roleKey: 'SMCM_NEUTRALIZER', capabilities: ['Barracuda Mine Neutralizer', 'EvoLogics Acoustic Modem', 'SeaFIND Inertial Navigation'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -59,8 +61,8 @@ const PHASE_NARRATIVE = {
   standoff:     { title: 'LCS On Station — Outside the Field', body: 'The Freedom-class LCS holds station outside the minefield boundary with no crew at risk. TempestOS is up, and the lane to be opened is laid across the suspected field. Every hull that enters the field from here is unmanned.' },
   hunting:      { title: 'Hunt at Standoff', body: 'The MCM USV enters the field towing the AN/AQS-20C minehunting sonar. Contacts log as unknowns behind the swath — hunted from the surface, cued from standoff, with the mothership still outside the boundary.' },
   classifying:  { title: 'Classify Below', body: 'Knifefish works beneath each contact with low-frequency broadband sonar, identifying mines buried or moored — the classification step that turns a sonar contact into a confirmed target. Sea acceptance testing completed June 2026.' },
-  sweeping:     { title: 'Sweep the Sensitive Ones', body: 'The UISS influence sweep mimics a ship\'s magnetic and acoustic signature behind the MCM USV. The mine that cannot be safely approached is triggered instead — it detonates against a signature, not a crew.' },
-  neutralizing: { title: 'Neutralize — No Diver in the Water', body: 'Barracuda one-shot neutralizers run to each confirmed mine and destroy it on the datum. The legacy alternative puts an EOD diver on every one of these; here the water stays empty of people.' },
+  sweeping:     { title: 'The Clearance Pass', body: 'The MCM USV comes back up the lane and clears each mine as it passes: the UISS influence sweep triggers the sensitive one against a mimicked ship signature, and a Barracuda launches on every confirmed mine. The field clears behind the boat, 4 down to 1.' },
+  neutralizing: { title: 'Lane Verified — No Diver in the Water', body: 'Every mine is cleared and the USV holds at the lane entrance while the picture is verified. The legacy alternative puts an EOD diver on each of these datums; here the water stayed empty of people the entire time.' },
   complete:     { title: 'Lane Opened — Nobody Entered the Field', body: 'The cleared lane is open. Hunt, classify, sweep, and neutralize ran as one tasked chain under TempestOS rather than four systems with four operator workflows. Crewed hulls in the field: 0. Divers in the water: 0.' },
 };
 
@@ -87,37 +89,84 @@ const getPhase = (tick) => {
   return 'complete';
 };
 
-// MCM USV: waits with the LCS, hunts down the lane, sweeps back up it, then exits
+// MCM USV: launches FROM the mothership, transits to the lane entrance during
+// the standoff phase, hunts down the lane, sweeps back up it, holds at the lane
+// entrance to launch its Barracudas, then exits home
+const T_EXIT = T_COMPLETE - 6;
 const getHunterPos = (tick) => {
-  if (tick < T_HUNT) return LCS_POS;
+  if (tick < T_STANDOFF) return LCS_POS;   // aboard / alongside the mothership
+  if (tick < T_HUNT) return lerp2(LCS_POS, LANE_START, (tick - T_STANDOFF) / (T_HUNT - T_STANDOFF));
   if (tick < T_CLASSIFY) return lerp2(LANE_START, LANE_END, (tick - T_HUNT) / (T_CLASSIFY - T_HUNT));
   if (tick < T_SWEEP) return LANE_END;
   if (tick < T_NEUTRALIZE) return lerp2(LANE_END, LANE_START, (tick - T_SWEEP) / (T_NEUTRALIZE - T_SWEEP));
-  if (tick < T_COMPLETE) return lerp2(LANE_START, LCS_POS, (tick - T_NEUTRALIZE) / (T_COMPLETE - T_NEUTRALIZE));
+  if (tick < T_EXIT) return LANE_START;   // firing position — Barracudas away from here
+  if (tick < T_COMPLETE) return lerp2(LANE_START, LCS_POS, (tick - T_EXIT) / (T_COMPLETE - T_EXIT));
   return LCS_POS;
 };
 
+// Knifefish: launches from the LCS mission bay, transits into the field, works
+// mine to mine during classification, then swims home — no teleporting
+const getClassifierPos = (tick) => {
+  const launch = T_HUNT + 6;
+  if (tick < launch) return null;                       // still in the mission bay
+  if (tick < T_CLASSIFY) {
+    return lerp2(LCS_POS, MINE_POSITIONS[0], (tick - launch) / (T_CLASSIFY - launch));
+  }
+  if (tick < T_SWEEP) {
+    const seg = (tick - T_CLASSIFY) / (T_SWEEP - T_CLASSIFY) * (MINE_POSITIONS.length - 1);
+    const i = Math.min(Math.floor(seg), MINE_POSITIONS.length - 2);
+    return lerp2(MINE_POSITIONS[i], MINE_POSITIONS[i + 1], seg - i);
+  }
+  if (tick < T_COMPLETE) {
+    // Different route home: swing south out of the field and approach the LCS
+    // from below, instead of retracing the inbound leg
+    const RETURN_ROUTE = [
+      MINE_POSITIONS[MINE_POSITIONS.length - 1],
+      [21.18, 121.85],   // drop south inside the field
+      [21.02, 121.35],   // exit the southern boundary, well clear of the lane
+      LCS_POS,
+    ];
+    const t = (tick - T_SWEEP) / (T_COMPLETE - T_SWEEP);
+    const seg = t * (RETURN_ROUTE.length - 1);
+    const i = Math.min(Math.floor(seg), RETURN_ROUTE.length - 2);
+    return lerp2(RETURN_ROUTE[i], RETURN_ROUTE[i + 1], seg - i);
+  }
+  return null;                                          // recovered
+};
+
+// When the returning USV passes mine `idx` on its sweep-back leg (LANE_END →
+// LANE_START). Mines sit at lane fractions (idx+1)/5, so the pass order — and
+// therefore the clearing order — is 4, 3, 2, 1.
+const getPassAt = (idx) =>
+  T_SWEEP + Math.round((1 - (idx + 1) / (MINE_POSITIONS.length + 1)) * (T_NEUTRALIZE - T_SWEEP));
+
 // Per-mine state machine, derived from the tick
 // 'hidden' → 'unknown' (swath passes) → 'confirmed' | 'sensitive' → 'cleared'
+// Each mine clears AS THE USV PASSES IT on the return leg: UISS triggers the
+// sensitive one, a Barracuda takes each confirmed one.
+// `since` records when the current state began, so labels can fade after ~2 s.
 const getMineState = (idx, tick) => {
   const revealAt   = T_HUNT + 3 + idx * 4;
   const classifyAt = T_CLASSIFY + 2 + idx * 3;
-  const sweepAt    = T_SWEEP + 5;                    // sensitive mine triggers mid-sweep
-  const neutAt     = T_NEUTRALIZE + 3 + idx * 4;     // Barracuda runs, one per confirmed mine
-  if (tick < revealAt) return 'hidden';
-  if (tick < classifyAt) return 'unknown';
-  if (idx === SENSITIVE_MINE) {
-    if (tick < sweepAt) return 'sensitive';
-    return 'cleared';
-  }
-  if (tick < neutAt) return 'confirmed';
-  return 'cleared';
+  const passAt     = getPassAt(idx);
+  if (tick < revealAt) return { state: 'hidden', since: 0 };
+  if (tick < classifyAt) return { state: 'unknown', since: revealAt };
+  if (tick < passAt) return { state: idx === SENSITIVE_MINE ? 'sensitive' : 'confirmed', since: classifyAt };
+  // Neutralization takes visible time — the mine detonates over CLEAR_DURATION
+  // ticks rather than blinking out the instant the boat passes
+  if (tick < passAt + CLEAR_DURATION) return { state: 'clearing', since: passAt };
+  return { state: 'cleared', since: passAt + CLEAR_DURATION };
 };
+
+// A label stays on screen for ~2 s (7 ticks) after its state changes, then
+// collapses back to hover-only so the map doesn't drown in tags
+const LABEL_LINGER = 7;
 
 const MINE_STYLE = {
   unknown:   { color: '#facc15', fill: '#a16207', label: '? Unknown Contact' },
   sensitive: { color: '#fb923c', fill: '#9a3412', label: '⚠ Sensitive — Sweep' },
   confirmed: { color: '#ef4444', fill: '#7f1d1d', label: '● Mine Confirmed' },
+  clearing:  { color: '#fbbf24', fill: '#78350f', label: '✸ Neutralizing…' },
   cleared:   { color: '#4ade80', fill: '#14532d', label: '✓ Cleared' },
 };
 
@@ -126,8 +175,8 @@ const getPhaseBadge = (phase) => {
     standoff:     { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',                 label: '● LCS Outside the Field' },
     hunting:      { cls: 'bg-orange-900/80 text-orange-200 border-orange-400/40 animate-pulse',   label: '⌖ Hunting — AN/AQS-20C' },
     classifying:  { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',      label: '◎ Knifefish Classifying' },
-    sweeping:     { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '≋ UISS Influence Sweep' },
-    neutralizing: { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',            label: '✸ Barracuda Neutralizing' },
+    sweeping:     { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',            label: '✸ Clearance Pass — Mines Clearing 4 → 1' },
+    neutralizing: { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',                 label: '☑ Verifying the Cleared Lane' },
     complete:     { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Lane Cleared — No Diver in the Water' },
   };
   return m[phase] || null;
@@ -221,9 +270,10 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
   const phase     = getPhase(currentTick);
   const hunterPos = getHunterPos(currentTick);
 
-  const showHunter   = currentTick >= T_HUNT && currentTick < T_COMPLETE;
+  const showHunter   = currentTick >= T_STANDOFF && currentTick < T_COMPLETE;
   const sweeping     = phase === 'sweeping';
   const classifying  = phase === 'classifying';
+  const classifierWorking = classifying;   // on-station beneath the contacts
   const neutralizing = phase === 'neutralizing';
   const laneCleared  = currentTick >= T_COMPLETE;
   const mineStates   = MINE_POSITIONS.map((_, i) => getMineState(i, currentTick));
@@ -301,6 +351,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
 
       if (tick === T_STANDOFF) {
         addEvtRef.current(`${v0}: On station outside the minefield — TempestOS sequencing the chain`, 'info');
+        addEvtRef.current(`${v1}: Launched from the mothership — transiting to the lane entrance`, 'info');
         addEvtRef.current('Lane Alpha corridor laid across the suspected field', 'info');
       }
       if (tick === T_HUNT) {
@@ -317,16 +368,16 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
         addEvtRef.current('Contacts resolving: mines confirmed on the lane', 'alert');
       }
       if (tick === T_SWEEP) {
-        addEvtRef.current(`${v1}: UISS sweep streaming — mimicking a ship signature`, 'info');
+        addEvtRef.current(`${v1}: Clearance pass — neutralizing each mine as it passes, 4 down to 1`, 'info');
       }
-      if (tick === T_SWEEP + 5) {
-        addEvtRef.current('Sensitive mine triggered safely against the sweep signature', 'success');
+      if (tick === T_SWEEP + 4) {
+        addEvtRef.current(`${v1}: Barracuda away — MINE 4 neutralizing`, 'alert');
+      }
+      if (tick === T_SWEEP + 11) {
+        addEvtRef.current('Sensitive MINE 2 triggered safely against the UISS ship signature', 'success');
       }
       if (tick === T_NEUTRALIZE) {
-        addEvtRef.current('Barracuda neutralizers tasked — one per confirmed mine', 'info');
-      }
-      if (tick === T_NEUTRALIZE + 12) {
-        addEvtRef.current('All confirmed mines destroyed on the datum — no diver in the water', 'success');
+        addEvtRef.current('All mines cleared — 4 for 4 — verifying the lane', 'success');
       }
       if (tick === T_COMPLETE) {
         addEvtRef.current('Lane Alpha CLEARED — crewed hulls in the field: 0 · divers in the water: 0', 'success');
@@ -401,22 +452,15 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
     onBack();
   };
 
-  // Knifefish classifier position: steps from mine to mine during the classify phase
-  const classifierPos = (() => {
-    if (!classifying) return null;
-    const seg = (currentTick - T_CLASSIFY) / (T_SWEEP - T_CLASSIFY);
-    const idx = Math.min(Math.floor(seg * MINE_POSITIONS.length), MINE_POSITIONS.length - 1);
-    return MINE_POSITIONS[idx];
-  })();
+  // Knifefish classifier: full launch → transit → classify → recover track
+  const classifierPos = getClassifierPos(currentTick);
 
-  // Barracuda run lines during neutralize: from lane start toward each confirmed mine
-  const barracudaRuns = (() => {
-    if (!neutralizing) return [];
-    return MINE_POSITIONS
-      .map((pos, i) => ({ pos, i }))
-      .filter(({ i }) => i !== SENSITIVE_MINE && mineStates[i] === 'confirmed')
-      .map(({ pos }) => [LANE_START, pos]);
-  })();
+  // Barracuda run lines: launched FROM THE MCM USV at each confirmed mine in the
+  // seconds before the boat passes it on the sweep-back leg
+  const barracudaRuns = MINE_POSITIONS
+    .map((pos, i) => ({ pos, i, passAt: getPassAt(i) }))
+    .filter(({ i, passAt }) => i !== SENSITIVE_MINE && currentTick >= passAt - 3 && currentTick < passAt)
+    .map(({ pos }) => [hunterPos, pos]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -516,18 +560,22 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
 
               {/* ── Mines ── */}
               {MINE_POSITIONS.map((pos, i) => {
-                const st = mineStates[i];
+                const { state: st, since } = mineStates[i];
                 if (st === 'hidden') return null;
                 const s = MINE_STYLE[st];
+                // Label shows for ~2 s after each state change, then hover-only.
+                // The key forces the Tooltip to remount when permanence flips —
+                // Leaflet binds `permanent` at creation time.
+                const fresh = currentTick - since < LABEL_LINGER;
                 return (
                   <CircleMarker
-                    key={`mine-${i}`}
+                    key={`mine-${i}-${st}-${fresh}`}
                     center={pos}
-                    radius={st === 'cleared' ? 6 : 8}
-                    pathOptions={{ color: s.color, fillColor: s.fill, fillOpacity: 0.9, weight: 2 }}
+                    radius={st === 'clearing' ? (pulse ? 12 : 9) : st === 'cleared' ? 6 : 8}
+                    pathOptions={{ color: s.color, fillColor: s.fill, fillOpacity: 0.9, weight: st === 'clearing' ? 3 : 2 }}
                   >
-                    <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: s.color }}>{s.label}</span>
+                    <Tooltip direction="top" offset={[0, -8]} permanent={fresh}>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: s.color }}>{`MINE ${i + 1} · ${s.label}`}</span>
                     </Tooltip>
                   </CircleMarker>
                 );
@@ -541,7 +589,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                   pathOptions={{ color: '#4ade80', fillColor: '#166534', fillOpacity: 0.9, weight: 2, dashArray: '2 3' }}
                 >
                   <Tooltip direction="bottom" offset={[0, 8]}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80' }}>{`${effectiveRoster[2]?.hullName ?? 'Knifefish'} — classifying below`}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80' }}>{`${effectiveRoster[2]?.hullName ?? 'Knifefish'} — ${classifierWorking ? 'classifying below' : currentTick < T_CLASSIFY ? 'transiting from LCS mission bay' : 'RTB — recovering to LCS'}`}</span>
                   </Tooltip>
                 </CircleMarker>
               )}
@@ -560,7 +608,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                     pathOptions={{ color: '#fb923c', fillColor: '#9a3412', fillOpacity: 0.95, weight: 2 }}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>{`${effectiveRoster[1]?.hullName ?? 'MCM USV'} — ${sweeping ? 'UISS sweep' : 'AN/AQS-20C tow'}`}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>{`${effectiveRoster[1]?.hullName ?? 'MCM USV'} — ${currentTick < T_HUNT ? 'launched from mothership, transiting' : sweeping ? 'UISS sweep' : neutralizing ? 'Barracuda firing position' : 'AN/AQS-20C tow'}`}</span>
                     </Tooltip>
                   </CircleMarker>
                 </>
@@ -601,7 +649,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                     { color: '#fb923c', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Outside the Field` },
                     { color: '#fdba74', label: `${effectiveRoster[1]?.name ?? 'MCM USV'} — Hunter / Sweep` },
                     { color: '#4ade80', label: `${effectiveRoster[2]?.name ?? 'Knifefish'} — Classifier` },
-                    { color: '#ef4444', label: 'Barracuda — Neutralizer' },
+                    { color: '#ef4444', label: 'Barracuda — launched from the USV' },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -682,7 +730,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  1× LCS · MCM USV · 2× Knifefish
+                  1× LCS · MCM USV · Knifefish
                 </p>
               )}
 
@@ -776,7 +824,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                     <ArrowLeftRight size={13} />
                   </button>
                 </div>
-                {vessel.capabilities.map((cap, i) => (
+                {vessel.capabilities.filter(cap => cap !== 'TempestOS Core Platform').map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>

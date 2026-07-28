@@ -136,16 +136,15 @@ export const MISSION_ROLES = {
       },
       {
         roleKey: 'MDAM_AIR',
-        roleLabel: 'Air Layer (MQ-8C)',
-        description: 'MQ-8C Fire Scout flying over-the-horizon ISR from the LCS flight deck. Surface-search radar and EO/IR extend the air picture; tracks feed the mothership over Link 16.',
+        roleLabel: 'Air Layer (Switchblade)',
+        description: 'AeroVironment Switchblade tube-launched from the deck for expendable over-the-horizon ISR. Integrated EO/IR with onboard perception; contacts relay back to the mothership. Cheap, attritable eyes — no recovery cycle to manage.',
         capabilities: [
-          'Maritime Surface/Air Search Radar',
-          'Teledyne FLIR EO/IR Turret',
-          'Link 16 Track Broadcast',
+          'Marine AI Guardian Vision CVP',
+          'HiveLink SDR',
         ],
         allowedPlatformTypes: ['UAV'],
-        defaultHullName: 'MQ-8C Fire Scout',
-        suggestedHullNames: ['MQ-8C Fire Scout'],
+        defaultHullName: 'Switchblade',
+        suggestedHullNames: ['Switchblade', 'MQ-8C Fire Scout'],
         requirements: {
           categories: ['SENSORS', 'COMMS'],
           subTypes: [],
@@ -154,10 +153,11 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MDAM_SURFACE',
         roleLabel: 'Surface Layer (M48)',
-        description: 'M48 USV launched and recovered by the LCS to widen the surface net. Radar and EO/IR build the surface track picture; MarineAI perception classifies contacts.',
+        description: 'M48 USV operating alongside the LCS to widen the surface net. Radar and EO/IR build the surface track picture, MarineAI perception classifies contacts, and a DPI Vulture tethered UAS gives the hull an elevated mast for enormous sensor range.',
         capabilities: [
           'Maritime Surface/Air Search Radar',
           'Teledyne FLIR EO/IR Turret',
+          'DPI Vulture Tethered UAS',
           'Marine AI Guardian Vision CVP',
           'SeaFIND Inertial Navigation',
           'HiveLink SDR',
@@ -174,9 +174,10 @@ export const MISSION_ROLES = {
         roleKey: 'MDAM_SUB',
         roleLabel: 'Subsurface Layer (UUV)',
         description: 'Freedom AUV extending awareness into the water below. Passive acoustic sensing detects subsurface contacts and relays tracks to the LCS on surfacing/comms windows.',
+        // NB: the 1,800 kg ESM/SIGINT module was removed — Freedom AUV capacity is
+        // 500 kg, so the role failed SWaP on its own default hull (pre-existing bug).
         capabilities: [
           'Passive Sonar Track Relay',
-          'Passive ESM/SIGINT Collection Module',
         ],
         allowedPlatformTypes: ['UUV'],
         defaultHullName: 'Freedom AUV',
@@ -307,8 +308,10 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['Ship'],
         defaultHullName: 'Freedom-class LCS',
         suggestedHullNames: ['Freedom-class LCS', 'Lewis B. Puller Class ESB'],
+        // No C2 requirement — the logistics node orchestrates via TempestOS and
+        // comms; it carries no C2-category capability and shouldn't demand one.
         requirements: {
-          categories: ['C2', 'COMMS', 'UTILITY'],
+          categories: ['COMMS', 'UTILITY'],
           subTypes: [],
         },
       },
@@ -490,10 +493,12 @@ export const MISSION_ROLES = {
 
   // ─── STANDOFF MCM — Mission 04 — Bashi Channel (Autonomy Mission Series) ──────
   // MISSION_SET_KEY = 'STANDOFF_MCM'
-  // VESSEL_ROSTER order: [LCS (command node), MCM USV (hunter), Knifefish (classifier), Knifefish (neutralizer)]
+  // VESSEL_ROSTER order: [LCS (command node), MCM USV (hunter/neutralizer), Knifefish (classifier)]
+  // Barracuda neutralizers launch from the MCM USV — there is no separate
+  // neutralizer UUV role (removed at Alex's direction, 27 Jul 2026).
   STANDOFF_MCM: {
     missionLabel: 'Standoff MCM — Detect to Neutralize',
-    minVessels: 4,
+    minVessels: 3,
     roles: [
       {
         roleKey: 'SMCM_LCS',
@@ -509,18 +514,22 @@ export const MISSION_ROLES = {
         allowedPlatformTypes: ['Ship'],
         defaultHullName: 'Freedom-class LCS',
         suggestedHullNames: ['Freedom-class LCS'],
+        // No C2 requirement — same reasoning as the Contested Logistics node:
+        // TempestOS orchestrates the chain but is not a C2-category capability,
+        // so requiring C2 shows a permanently unmet checklist item.
         requirements: {
-          categories: ['C2', 'COMMS'],
+          categories: ['COMMS'],
           subTypes: [],
         },
       },
       {
         roleKey: 'SMCM_HUNTER',
-        roleLabel: 'Hunter (MCM USV)',
-        description: 'MCM USV towing the AN/AQS-20C minehunting sonar across the field at standoff from the mothership. Also carries the UISS influence sweep to trigger sensitive mines safely, and AN/DVS-1 COBRA for the beach and surf zone.',
+        roleLabel: 'Hunter / Neutralizer (MCM USV)',
+        description: 'MCM USV towing the AN/AQS-20C minehunting sonar across the field at standoff from the mothership. Carries the UISS influence sweep to trigger sensitive mines safely, launches Barracuda one-shot neutralizers against confirmed mines, and hosts AN/DVS-1 COBRA for the beach and surf zone.',
         capabilities: [
           'AN/AQS-20C Towed Minehunting Sonar',
           'Unmanned Influence Sweep System (UISS)',
+          'Barracuda Mine Neutralizer',
           'AN/DVS-1 COBRA Coastal Recon',
           'HiveLink SDR',
           'SeaFIND Inertial Navigation',
@@ -531,7 +540,7 @@ export const MISSION_ROLES = {
         suggestedHullNames: ['MCM USV', 'M48', 'Mariner'],
         requirements: {
           categories: ['SENSORS', 'COMMS'],
-          subTypes: ['SONAR_TOWED', 'MCM_SWEEP'],
+          subTypes: ['SONAR_TOWED', 'MCM_SWEEP', 'MCM_NEUTRALIZER'],
         },
       },
       {
@@ -549,23 +558,6 @@ export const MISSION_ROLES = {
         requirements: {
           categories: ['SENSORS', 'COMMS'],
           subTypes: ['SONAR_SIDESCAN'],
-        },
-      },
-      {
-        roleKey: 'SMCM_NEUTRALIZER',
-        roleLabel: 'Neutralizer (Barracuda)',
-        description: 'Barracuda one-shot neutralizers expended against confirmed mines. No diver enters the water — the neutralizer swims to the datum and closes the chain.',
-        capabilities: [
-          'Barracuda Mine Neutralizer',
-          'EvoLogics Acoustic Modem',
-          'SeaFIND Inertial Navigation',
-        ],
-        allowedPlatformTypes: ['UUV', 'USV'],
-        defaultHullName: 'Knifefish',
-        suggestedHullNames: ['Knifefish', 'Freedom AUV'],
-        requirements: {
-          categories: ['SENSORS', 'COMMS'],
-          subTypes: ['MCM_NEUTRALIZER'],
         },
       },
     ],

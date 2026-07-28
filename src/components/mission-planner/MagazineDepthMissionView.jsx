@@ -26,9 +26,20 @@ const MAP_ZOOM_IN = 8;
 const LCS_POS     = [20.45, 121.20];  // command node — held back, south-west. Never moves.
 const M48_A_POS   = [21.05, 122.10];  // forward shooter Alpha
 const M48_B_POS   = [20.70, 122.45];  // forward shooter Bravo
-const AIR_STATION = [21.40, 122.30];  // airborne sensor, forward and high
 const TARGET_POS  = [21.85, 122.95];  // PLAN SAG track
 const ROS_POS     = [19.95, 120.60];  // Remote Operating Site — rearm
+
+// Airborne sensor orbit — the Triton flies a continuous racetrack around the
+// target area rather than holding a fixed station
+const ORBIT_RADIUS_LAT = 0.32;
+const ORBIT_RADIUS_LNG = 0.45;
+const getAirPos = (tick) => {
+  const ang = tick * 0.11;
+  return [
+    TARGET_POS[0] + ORBIT_RADIUS_LAT * Math.cos(ang),
+    TARGET_POS[1] + ORBIT_RADIUS_LNG * Math.sin(ang),
+  ];
+};
 
 const ENGAGEMENT_BOX = [
   [20.20, 121.00], [21.60, 121.00], [21.60, 122.90], [20.20, 122.90],
@@ -406,7 +417,8 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
   };
 
   // Bearing/CEC lines into the LCS from every contributing node
-  const cecSources = [alphaPos, bravoPos, AIR_STATION];
+  const airPos = getAirPos(currentTick);
+  const cecSources = [alphaPos, bravoPos, airPos];
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -496,7 +508,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
               ))}
 
               {/* ── Bearings to the target from sensor + Alpha ── */}
-              {showTarget && !authorized && [AIR_STATION, alphaPos].map((src, i) => (
+              {showTarget && !authorized && [airPos, alphaPos].map((src, i) => (
                 <Polyline
                   key={`bearing-${i}`}
                   positions={[src, TARGET_POS]}
@@ -543,7 +555,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
               {/* ── Airborne sensor ── */}
               {currentTick >= T_ONSTATION && (
                 <CircleMarker
-                  center={AIR_STATION}
+                  center={airPos}
                   radius={8}
                   pathOptions={{ color: '#a78bfa', fillColor: '#4c1d95', fillOpacity: 0.95, weight: 2 }}
                 >
@@ -794,7 +806,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                     <ArrowLeftRight size={13} />
                   </button>
                 </div>
-                {vessel.capabilities.map((cap, i) => (
+                {vessel.capabilities.filter(cap => cap !== 'TempestOS Core Platform').map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>

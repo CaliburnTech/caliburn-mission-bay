@@ -35,16 +35,18 @@ const WEZ_CENTER    = [21.30, 122.30];                     // DF-26 threat ring,
 const WEZ_RADIUS_NM = 120;
 
 // ─── Tick milestones ──────────────────────────────────────────────────────────
-const T_DEMAND   = 8;    // combatant pulses amber — FUEL 22% / CELLS 1 of 4
-const T_LOAD     = 18;   // modules attach at the LCS node
-const T_TRANSIT  = 30;   // hulls cross the stand-off line and the WEZ boundary
-const T_DENIED   = 46;   // link drops on the fuel hull — it keeps going
-const T_TRANSFER = 60;   // alongside: combatant, adjacent M48, ROS
-const T_RTB      = 76;   // empty hulls return; combatant flips green
-const T_COMPLETE = 92;   // all hulls home — no crewed hull crossed the line
-const TOTAL_TICKS = 92;
+// Deliberately slower and longer than the other series missions — the story here
+// is logistics, and logistics should read as methodical, not frantic.
+const T_DEMAND   = 10;   // combatant pulses amber — FUEL 22% / CELLS 1 of 4
+const T_LOAD     = 26;   // cargo modules visibly attach at the LCS node
+const T_TRANSIT  = 44;   // hulls cross the stand-off line and the WEZ boundary
+const T_DENIED   = 68;   // link drops on the fuel hull — it keeps going
+const T_TRANSFER = 90;   // alongside: combatant, adjacent M48, ROS
+const T_RTB      = 114;  // empty hulls return; combatant flips green
+const T_COMPLETE = 136;  // all hulls home — no crewed hull crossed the line
+const TOTAL_TICKS = 136;
 
-const TICK_MS = 280;
+const TICK_MS = 360;
 
 // ─── Roster — order matches MISSION_ROLES[CONTESTED_LOGISTICS_MOTHERSHIP].roles ─
 const VESSEL_ROSTER = [
@@ -54,13 +56,21 @@ const VESSEL_ROSTER = [
   { name: 'M48', roleDescriptor: '(Magazine Run)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'CLM_MAGAZINE', capabilities: ['Mk 70 PDS Reload Module', 'Autonomous Cargo Handling System', 'Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR', 'Nulka Active Missile Decoy'] },
 ];
 
-// Run definitions: which hull goes where, and what it carries
+// Run definitions: which hull goes where, and what it carries.
+// One color for every M48 (violet) and one for every receiving point (red until
+// served, green after) — the distinction that matters is boats vs. islands,
+// not which run is which.
+const M48_COLOR      = '#a78bfa';  // all three resupply hulls
+const DEST_WAITING   = '#ef4444';  // receiving point, still waiting
+const DEST_SATISFIED = '#4ade80';  // receiving point, got what it wanted
 const RUNS = [
-  { rosterIdx: 1, dest: COMBATANT,    color: '#fbbf24', module: 'FUEL',     destLabel: 'Combatant on Station' },
-  { rosterIdx: 2, dest: ROS_POS,      color: '#67e8f9', module: 'CARGO',    destLabel: 'ROS Balintang' },
-  { rosterIdx: 3, dest: ADJACENT_M48, color: '#f43f5e', module: 'MAGAZINE', destLabel: 'Mission 01 M48 — Cross-Load' },
+  { rosterIdx: 1, dest: COMBATANT,    module: 'FUEL',     destLabel: 'Combatant on Station',        cargoOffset: [0.09, -0.09] },
+  { rosterIdx: 2, dest: ROS_POS,      module: 'CARGO',    destLabel: 'ROS Balintang',               cargoOffset: [0.11, 0.05] },
+  { rosterIdx: 3, dest: ADJACENT_M48, module: 'MAGAZINE', destLabel: 'Mission 01 M48 — Cross-Load', cargoOffset: [-0.02, 0.12] },
 ];
 const DENIED_RUN = 0;  // the fuel hull loses link mid-WEZ and keeps going
+// When each run's delivery lands (staggered like the departures)
+const getDeliveredAt = (i) => T_TRANSFER + i * 8 + 6;
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
 const PHASE_NARRATIVE = {
@@ -98,14 +108,24 @@ const getPhase = (tick) => {
   return 'complete';
 };
 
-// Resupply hull position: at the node, transit out, alongside, transit back
-const getRunPos = (dest, tick) => {
-  if (tick < T_TRANSIT)  return LCS_NODE;
-  if (tick < T_TRANSFER) return lerp2(LCS_NODE, dest, (tick - T_TRANSIT) / (T_TRANSFER - T_TRANSIT));
+// Resupply hull position: parked at the node (staggered), transit out, alongside,
+// transit back. `origin` is the hull's parking spot beside the LCS so the three
+// hulls don't stack on one pixel during loading. `delay` staggers the departures
+// so the runs leave one at a time and the sequence is readable: fuel, then cargo,
+// then magazine.
+const RUN_STAGGER = 8;
+const getRunPos = (origin, dest, tick, delay) => {
+  if (tick < T_TRANSIT + delay)  return origin;
+  if (tick < T_TRANSFER + delay) return lerp2(origin, dest, (tick - T_TRANSIT - delay) / (T_TRANSFER - T_TRANSIT));
   if (tick < T_RTB)      return dest;
-  if (tick < T_COMPLETE) return lerp2(dest, LCS_NODE, (tick - T_RTB) / (T_COMPLETE - T_RTB));
-  return LCS_NODE;
+  if (tick < T_COMPLETE) return lerp2(dest, origin, (tick - T_RTB) / (T_COMPLETE - T_RTB));
+  return origin;
 };
+
+const getParkedPos = (run) => [
+  LCS_NODE[0] + run.cargoOffset[0] * 1.4,
+  LCS_NODE[1] + run.cargoOffset[1] * 1.4,
+];
 
 const getPhaseBadge = (phase) => {
   const m = {
@@ -206,12 +226,11 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
   const runScenRef = useRef(null);
 
   const phase = getPhase(currentTick);
-  const runPositions = RUNS.map(r => getRunPos(r.dest, currentTick));
+  const runPositions = RUNS.map((r, i) => getRunPos(getParkedPos(r), r.dest, currentTick, i * RUN_STAGGER));
 
-  const showRuns      = currentTick >= T_TRANSIT && currentTick < T_COMPLETE;
+  const showRuns      = currentTick >= T_LOAD && currentTick < T_COMPLETE;  // visible from loading onward
   const linkDenied    = currentTick >= T_DENIED && currentTick < T_TRANSFER;
   const transferring  = phase === 'transferring';
-  const combatSatisfied = currentTick >= T_RTB;
 
   const narrative = PHASE_NARRATIVE[phase] || null;
   const badge     = getPhaseBadge(phase);
@@ -293,8 +312,14 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
         addEvtRef.current(`${v1}: fuel bladder · ${v2}: dry cargo · ${v3}: Mk 70 reload`, 'info');
       }
       if (tick === T_TRANSIT) {
-        addEvtRef.current('Three unmanned hulls cross the stand-off line — EMCON discipline', 'info');
+        addEvtRef.current(`${v1}: FUEL run underway — first across the stand-off line`, 'info');
         addEvtRef.current(`${v0}: Holding behind the line. No crewed hull goes forward`, 'success');
+      }
+      if (tick === T_TRANSIT + 8) {
+        addEvtRef.current(`${v2}: CARGO run underway — second across the line`, 'info');
+      }
+      if (tick === T_TRANSIT + 16) {
+        addEvtRef.current(`${v3}: MAGAZINE run underway — third across the line`, 'info');
       }
       if (tick === T_DENIED) {
         addEvtRef.current(`${v1}: LINK DENIED mid-WEZ — holding last routing order, INS-only`, 'alert');
@@ -463,65 +488,76 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                 </Tooltip>
               </Polyline>
 
-              {/* ── Remote Operating Site ── */}
-              <CircleMarker
-                center={ROS_POS}
-                radius={7}
-                pathOptions={{ color: '#94a3b8', fillColor: '#1e293b', fillOpacity: 0.9, weight: 1.5, dashArray: '2 3' }}
-              >
-                <Tooltip direction="bottom" offset={[0, 8]}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>ROS Balintang — refuel · rearm · repair, no port required</span>
-                </Tooltip>
-              </CircleMarker>
+              {/* ── Receiving points — one shared color scheme: red while waiting,
+                     green once their delivery lands ── */}
+              {RUNS.map((run, i) => {
+                const delivered = currentTick >= getDeliveredAt(i);
+                const waiting = currentTick >= T_DEMAND && !delivered;
+                const color = delivered ? DEST_SATISFIED : (waiting ? DEST_WAITING : '#94a3b8');
+                const fill  = delivered ? '#14532d' : (waiting ? '#450a0a' : '#1e293b');
+                const isCombatant = i === 0;
+                const label = isCombatant
+                  ? (delivered ? 'COMBATANT · FUEL 96% · CELLS 4/4' : (waiting ? 'COMBATANT · FUEL 22% · CELLS 1/4' : 'Combatant on Station'))
+                  : `${run.destLabel}${delivered ? ' · RESUPPLIED' : (waiting ? ' · AWAITING ' + run.module : '')}`;
+                // Labels pin for the first ~8 s (orientation), collapse to
+                // hover-only during the runs, then pin again once resupplied
+                const showLabel = currentTick < 22 || delivered;
+                return (
+                  <CircleMarker
+                    key={`dest-${i}-${delivered}-${waiting}-${showLabel}`}
+                    center={run.dest}
+                    radius={isCombatant && phase === 'demand' && pulse ? 12 : 10}
+                    pathOptions={{ color, fillColor: fill, fillOpacity: 0.9, weight: 2.5 }}
+                  >
+                    <Tooltip direction={i === 1 ? 'bottom' : 'top'} offset={[0, i === 1 ? 10 : -8]} permanent={showLabel}>
+                      <span style={{ fontSize: 9, fontWeight: 700, color }}>{label}</span>
+                    </Tooltip>
+                  </CircleMarker>
+                );
+              })}
 
-              {/* ── Adjacent Mission 01 M48 (cross-load recipient) ── */}
-              <CircleMarker
-                center={ADJACENT_M48}
-                radius={8}
-                pathOptions={{ color: '#fb7185', fillColor: '#881337', fillOpacity: 0.9, weight: 2 }}
-              >
-                <Tooltip direction="right" offset={[8, 0]}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#fb7185' }}>Mission 01 M48 — awaiting Mk 70 reload</span>
-                </Tooltip>
-              </CircleMarker>
-
-              {/* ── Combatant on station ── */}
-              <CircleMarker
-                center={COMBATANT}
-                radius={phase === 'demand' && pulse ? 12 : 9}
-                pathOptions={{
-                  color: combatSatisfied ? '#4ade80' : (currentTick >= T_DEMAND ? '#fbbf24' : '#94a3b8'),
-                  fillColor: combatSatisfied ? '#14532d' : (currentTick >= T_DEMAND ? '#92400e' : '#1e293b'),
-                  fillOpacity: 0.95, weight: 2,
-                }}
-              >
-                <Tooltip direction="top" offset={[0, -8]} permanent={currentTick >= T_DEMAND}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: combatSatisfied ? '#4ade80' : '#fbbf24' }}>
-                    {combatSatisfied ? 'COMBATANT · FUEL 96% · CELLS 4/4' : (currentTick >= T_DEMAND ? 'COMBATANT · FUEL 22% · CELLS 1/4' : 'Combatant on Station')}
-                  </span>
-                </Tooltip>
-              </CircleMarker>
-
-              {/* ── Resupply runs ── */}
+              {/* ── Resupply runs — every M48 wears the same violet ── */}
               {showRuns && RUNS.map((run, i) => {
                 const pos = runPositions[i];
                 const denied = i === DENIED_RUN && linkDenied;
+                // The cargo dot: rides beside the hull from loading until handoff,
+                // then sits at the destination — the run visibly delivers something.
+                const cargoDelivered = currentTick >= getDeliveredAt(i);
+                const cargoPos = cargoDelivered
+                  ? [run.dest[0] + 0.09, run.dest[1] + 0.09]
+                  : [pos[0] + 0.085, pos[1] + 0.085];
+                const showCargo = currentTick >= T_LOAD;
                 return (
                   <React.Fragment key={`run-${i}`}>
-                    <Polyline
-                      positions={[LCS_NODE, run.dest]}
-                      pathOptions={{ color: run.color, weight: 1, opacity: 0.25, dashArray: '3 7' }}
-                    />
+                    {currentTick >= T_TRANSIT && (
+                      <Polyline
+                        positions={[LCS_NODE, run.dest]}
+                        pathOptions={{ color: M48_COLOR, weight: 1, opacity: 0.25, dashArray: '3 7' }}
+                      />
+                    )}
+                    {showCargo && (
+                      <CircleMarker
+                        center={cargoPos}
+                        radius={6}
+                        pathOptions={{ color: '#ffffff', fillColor: M48_COLOR, fillOpacity: 1, weight: 2.5 }}
+                      >
+                        <Tooltip direction="right" offset={[6, 0]}>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: M48_COLOR }}>
+                            {cargoDelivered ? `${run.module} — DELIVERED` : `${run.module} module aboard`}
+                          </span>
+                        </Tooltip>
+                      </CircleMarker>
+                    )}
                     <CircleMarker
                       center={pos}
                       radius={transferring ? 11 : 9}
-                      pathOptions={{ color: denied ? '#ef4444' : run.color, fillColor: '#312e81', fillOpacity: 0.95, weight: denied ? 3 : 2, dashArray: denied ? '3 3' : undefined }}
+                      pathOptions={{ color: denied ? '#ef4444' : M48_COLOR, fillColor: '#312e81', fillOpacity: 0.95, weight: denied ? 3 : 2, dashArray: denied ? '3 3' : undefined }}
                     >
                       <Tooltip direction="top" offset={[0, -8]} permanent={denied}>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: denied ? '#ef4444' : run.color }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: denied ? '#ef4444' : M48_COLOR }}>
                           {denied
                             ? 'LINK DENIED — Holding Last Routing Order'
-                            : `${effectiveRoster[run.rosterIdx]?.hullName ?? 'M48'} · ${run.module} → ${run.destLabel}`}
+                            : `${effectiveRoster[run.rosterIdx]?.hullName ?? 'M48'} · ${run.module} ${cargoDelivered ? '(empty — RTB)' : `→ ${run.destLabel}`}`}
                         </span>
                       </Tooltip>
                     </CircleMarker>
@@ -562,9 +598,9 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                 <div className="flex flex-col gap-1">
                   {[
                     { color: '#a78bfa', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Rear Node` },
-                    { color: '#fbbf24', label: 'M48 — Fuel Run (22,000 kg)' },
-                    { color: '#67e8f9', label: 'M48 — Cargo Run (24,000 kg)' },
-                    { color: '#f43f5e', label: 'M48 — Magazine Run (Mk 70 reload)' },
+                    { color: M48_COLOR, label: '3× M48 — Fuel · Cargo · Magazine runs' },
+                    { color: DEST_WAITING, label: 'Receiving point — awaiting delivery' },
+                    { color: DEST_SATISFIED, label: 'Receiving point — resupplied' },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -739,7 +775,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                     <ArrowLeftRight size={13} />
                   </button>
                 </div>
-                {vessel.capabilities.map((cap, i) => (
+                {vessel.capabilities.filter(cap => cap !== 'TempestOS Core Platform').map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>

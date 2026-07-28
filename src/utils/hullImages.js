@@ -29,6 +29,7 @@ import imgLCS        from '../assets/images/LCS.png';
 import imgMCMUSV     from '../assets/images/MCM USV.png';
 import imgKnifefish  from '../assets/images/Knifefish.png';
 import imgMH60R      from '../assets/images/MH-60R Seahawk.png';
+import imgSwitchblade from '../assets/images/Switchblade.png';
 
 /** Map hull `name` (from vesselHullData) → imported PNG URL */
 export const HULL_IMAGES = {
@@ -61,4 +62,5 @@ export const HULL_IMAGES = {
   'MCM USV':            imgMCMUSV,
   'Knifefish':          imgKnifefish,
   'MH-60R Seahawk':     imgMH60R,
+  'Switchblade':        imgSwitchblade,
 };

@@ -1102,6 +1102,53 @@ export const vesselHullData = [
       manufacturer: "https://www.northropgrumman.com/what-we-do/aircraft/fire-scout"
     }
   },
+  {
+    name: "Switchblade",
+    type: "Loitering Munition / Tactical UAS",
+    platformType: "UAV",
+    displacement: "~50 lbs (Switchblade 600)",
+    description: "AeroVironment Switchblade 600 — tube-launched loitering UAS with integrated EO/IR. Launched from a ship deck or M48, it provides expendable forward ISR and precision effects. In the MDA Mothership mission it flies the air layer: cheap, attritable eyes over the horizon.",
+    icon: "Switchblade",
+    manufacturer: "AeroVironment",
+    specs: {
+      speed: 100,       // knots dash
+      range: 40,        // nm operational radius (extended w/ relay)
+      rcs: 0.05         // m² — tube-launched airframe
+    },
+    capacity: {
+      totalWeight: 25,  // kg sensor/comms headroom beyond the integrated payload
+      totalPower: 2
+    },
+    // Aerial-specific specs
+    aerialSpecs: {
+      endurance: 0.7,     // ~40+ minutes
+      missionRadius: 40,  // nm
+      ceiling: 15000,     // ft
+      datalinkTier: 2,    // Standard (LOS + relay)
+      burnRateType: 'Small UAS'
+    },
+    detailedSpecs: {
+      length: "~1.3 m",
+      launch: "Tube launch — deck, vehicle, or vessel",
+      endurance: "40+ minutes",
+      sensors: "Integrated EO/IR with onboard processing",
+      recovery: "Expendable / wave-off capable"
+    },
+    features: [
+      "Tube-launched from ship deck or USV",
+      "Integrated EO/IR sensor suite",
+      "Attritable — no recovery cycle required",
+      "Wave-off and re-attack capable"
+    ],
+    applications: [
+      "Forward ISR over the horizon",
+      "Target confirmation",
+      "Precision effects"
+    ],
+    externalLinks: {
+      manufacturer: "https://www.avinc.com/lms/switchblade"
+    }
+  },
   // ============ HELICOPTER CATEGORY ============
   {
     name: "MH-60R Seahawk",
@@ -1550,13 +1597,18 @@ export const VESSEL_SLOT_CAPACITY = {
   "MQ-25 Stingray": { SENSORS: 2, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
   "MQ-9 Reaper": { SENSORS: 5, COMMS: 2, WEAPONS: 2, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "MQ-4C Triton": { SENSORS: 7, COMMS: 3, WEAPONS: 0, C2: 2, NAV: 2, AI: 3, UTILITY: 1, OTHER: 0 },
+  "Switchblade": { SENSORS: 2, COMMS: 1, WEAPONS: 1, C2: 0, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   "MQ-8C Fire Scout": { SENSORS: 3, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 1, OTHER: 0 },
   "RQ-21A Blackjack": { SENSORS: 1, COMMS: 1, WEAPONS: 0, C2: 1, NAV: 1, AI: 1, UTILITY: 0, OTHER: 0 },
   // Autonomy Mission Series (Missions 01–04)
-  "MCM USV": { SENSORS: 4, COMMS: 2, WEAPONS: 0, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 0 },
+  "MCM USV": { SENSORS: 6, COMMS: 2, WEAPONS: 1, C2: 1, NAV: 1, AI: 2, UTILITY: 2, OTHER: 1 },
   "Knifefish": { SENSORS: 2, COMMS: 1, WEAPONS: 1, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
   "MH-60R Seahawk": { SENSORS: 3, COMMS: 2, WEAPONS: 2, C2: 1, NAV: 1, AI: 1, UTILITY: 1, OTHER: 0 },
   // Crewed vessels
+  // Freedom-class LCS: warship-sized slots. Without this entry it fell back to
+  // DEFAULT_SLOT_CAPACITY (2 COMMS / 1 C2 / 1 UTILITY), which silently dropped
+  // mission-set payloads during configure-for-mission on every series mission.
+  "Freedom-class LCS": { SENSORS: 6, COMMS: 4, WEAPONS: 3, C2: 3, NAV: 2, AI: 3, UTILITY: 4, OTHER: 2 },
   "Arleigh Burke": { SENSORS: 8, COMMS: 4, WEAPONS: 6, C2: 3, NAV: 2, AI: 4, UTILITY: 3, OTHER: 0 },
   "Virginia Class": { SENSORS: 6, COMMS: 3, WEAPONS: 4, C2: 2, NAV: 2, AI: 3, UTILITY: 2, OTHER: 0 },
   "Lewis B. Puller Class ESB": { SENSORS: 4, COMMS: 4, WEAPONS: 1, C2: 4, NAV: 2, AI: 3, UTILITY: 6, OTHER: 2 },

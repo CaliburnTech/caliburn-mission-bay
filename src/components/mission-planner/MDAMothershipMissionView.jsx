@@ -26,7 +26,7 @@ const MAP_ZOOM    = 7;
 const MAP_ZOOM_IN = 8;
 
 const LCS_POS      = [20.8, 121.9];   // Freedom-class LCS mothership — launch/recovery node
-const AIR_STATION  = [21.85, 121.70]; // MQ-8C over-the-horizon ISR (N)
+const AIR_STATION  = [21.85, 121.70]; // Switchblade over-the-horizon ISR (N)
 const SURF_STATION = [20.90, 123.15]; // M48 surface net (E)
 const SUB_STATION  = [19.85, 121.60]; // Freedom AUV subsurface (S)
 
@@ -45,18 +45,18 @@ const TICK_MS = 280;
 // ─── Roster ─────────────────────────────────────────────────────────────────
 const VESSEL_ROSTER = [
   { name: 'LCS Mothership', roleDescriptor: '(Mothership)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'MDAM_LCS', capabilities: ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'FMD AutoHook', 'NSYTE AI Maintenance System'] },
-  { name: 'MQ-8C Fire Scout', roleDescriptor: '(Air ISR)', image: HULL_IMAGES['MQ-8C Fire Scout'], hullName: 'MQ-8C Fire Scout', roleKey: 'MDAM_AIR', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Link 16 Track Broadcast'] },
-  { name: 'M48', roleDescriptor: '(Surface ISR)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MDAM_SURFACE', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR'] },
-  { name: 'Freedom AUV', roleDescriptor: '(Subsurface ISR)', image: HULL_IMAGES['Freedom AUV'], hullName: 'Freedom AUV', roleKey: 'MDAM_SUB', capabilities: ['Passive Sonar Track Relay', 'Passive ESM/SIGINT Collection Module'] },
+  { name: 'Switchblade', roleDescriptor: '(Air ISR)', image: HULL_IMAGES['Switchblade'], hullName: 'Switchblade', roleKey: 'MDAM_AIR', capabilities: ['Marine AI Guardian Vision CVP', 'HiveLink SDR'] },
+  { name: 'M48', roleDescriptor: '(Surface ISR)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MDAM_SURFACE', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'DPI Vulture Tethered UAS', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR'] },
+  { name: 'Freedom AUV', roleDescriptor: '(Subsurface ISR)', image: HULL_IMAGES['Freedom AUV'], hullName: 'Freedom AUV', roleKey: 'MDAM_SUB', capabilities: ['Passive Sonar Track Relay'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
 const PHASE_NARRATIVE = {
   idle:       null,
   deployed:   { title: 'LCS On Station', body: 'The Freedom-class LCS moves into the first-island-chain operating area as the launch, recovery, and comms node. TempestOS is up; the unmanned force is stowed on deck and ready.' },
-  launching:  { title: 'Launching Every Layer', body: 'The LCS puts the force out: the MQ-8C off the deck for the air layer, and the M48 and Freedom AUV lowered into the water for the surface and subsurface layers.' },
-  collecting: { title: 'Streaming Sensor Data', body: 'Air, surface, and subsurface assets are on station and streaming their sensor feeds back to the LCS over Link 16 and HiveLink. TempestOS fuses every layer into one picture — one hull covering more water than a carrier group.' },
-  recovering: { title: 'Recover & Cycle', body: 'On-station time complete: the MQ-8C recovers to the deck and the M48 and Freedom AUV are hoisted back aboard (AutoHook-class LARS, through Sea State 4). The force comes home.' },
+  launching:  { title: 'Launching Every Layer', body: 'The LCS puts the force out: a Switchblade tube-launched off the deck for the air layer, the M48 underway alongside with its tethered UAS aloft for the surface net, and the Freedom AUV lowered into the water for the subsurface layer.' },
+  collecting: { title: 'Streaming Sensor Data', body: 'The air and surface layers stream their feeds back to the LCS over Link 16 and HiveLink, and TempestOS fuses them into one picture. The Freedom AUV cannot transmit from depth — RF does not propagate underwater — so it records its acoustic take and delivers it when it surfaces for recovery.' },
+  recovering: { title: 'Recover & Cycle', body: 'On-station time complete: the Freedom AUV is hoisted back aboard (AutoHook-class LARS, through Sea State 4), the M48 takes station alongside with its tether reeled in, and the expendable Switchblade needs no recovery at all.' },
   complete:   { title: 'Assets Aboard — Picture Delivered', body: 'The unmanned force is recovered and the fused picture has been delivered. Swap the payload, not the platform — one squadron, one picture.' },
 };
 
@@ -277,7 +277,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     const cb = () => {
       const tick = ++tickRef.current;
       const v0 = vesselLabelsRef.current[0] ?? 'LCS Mothership';
-      const v1 = vesselLabelsRef.current[1] ?? 'MQ-8C Fire Scout';
+      const v1 = vesselLabelsRef.current[1] ?? 'Switchblade';
       const v2 = vesselLabelsRef.current[2] ?? 'M48';
       const v3 = vesselLabelsRef.current[3] ?? 'Freedom AUV';
       setCurrentTick(tick);
@@ -287,8 +287,8 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
         addEvtRef.current(`${v0}: Launch/recovery node set — unmanned force ready`, 'info');
       }
       if (tick === T_LAUNCH) {
-        addEvtRef.current(`${v1}: Off the deck — air layer over-the-horizon`, 'info');
-        addEvtRef.current(`${v2}: Lowered into the water — surface net`, 'info');
+        addEvtRef.current(`${v1}: Tube-launched off the deck — expendable air layer`, 'info');
+        addEvtRef.current(`${v2}: Underway alongside — surface net, tethered UAS aloft`, 'info');
         addEvtRef.current(`${v3}: Lowered into the water — subsurface layer`, 'info');
       }
       if (tick === T_ONSTATION) {
@@ -297,8 +297,12 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
       }
       if (tick === T_RECOVER) {
         addEvtRef.current(`${v0}: On-station time complete — recovering the force (LARS)`, 'info');
-        addEvtRef.current(`${v2} ${v3}: Hoisted back aboard — Sea State 4 recovery`, 'info');
-        addEvtRef.current(`${v1}: Recovering to the deck`, 'info');
+        addEvtRef.current(`${v2}: Alongside the mothership — tethered UAS reeled in`, 'info');
+        addEvtRef.current(`${v1}: Expendable — wave-off, no recovery cycle`, 'info');
+      }
+      if (tick === T_COMPLETE - 10) {
+        addEvtRef.current(`${v3}: SURFACED alongside — stored acoustic data uploading to TempestOS`, 'success');
+        addEvtRef.current(`${v3}: Hoisting aboard — Sea State 4 davit recovery`, 'info');
       }
       if (tick === T_COMPLETE) {
         addEvtRef.current(`${v0}: All assets aboard — fused picture delivered`, 'success');
@@ -371,10 +375,14 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     onBack();
   };
 
+  // senseNm: perception radius while collecting. The M48's is the largest —
+  // its DPI Vulture tethered UAS puts an elevated mast hundreds of feet up.
+  // liveLink: whether the asset can stream in real time. The Freedom AUV cannot —
+  // RF does not propagate underwater, so it stores its take and uploads on recovery.
   const LAYERS = [
-    { pos: airPos,  color: '#a78bfa', label: 'Air' },
-    { pos: surfPos, color: '#67e8f9', label: 'Surface' },
-    { pos: subPos,  color: '#4ade80', label: 'Subsurface' },
+    { pos: airPos,  color: '#a78bfa', label: 'Air',        senseNm: 14, liveLink: true },
+    { pos: surfPos, color: '#67e8f9', label: 'Surface',    senseNm: 28, liveLink: true },
+    { pos: subPos,  color: '#4ade80', label: 'Subsurface', senseNm: 8,  liveLink: false },
   ];
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -447,8 +455,18 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                     positions={[LCS_POS, L.pos]}
                     pathOptions={{ color: L.color, weight: 1.2, opacity: recovering ? 0.55 : (streaming ? 0.35 : 0.25), dashArray: '3 7' }}
                   />
-                  {/* sensor-data packets streaming asset → LCS */}
-                  {dataDots(L.pos).map((d, j) => (
+                  {/* sensing ring — the asset's perception of the water around it.
+                      The M48's is the largest: its tethered UAS is an elevated mast. */}
+                  {streaming && (
+                    <Circle
+                      center={L.pos}
+                      radius={(L.senseNm + (pulse ? 1.5 : 0)) * NM_TO_M}
+                      pathOptions={{ color: L.color, weight: 1.2, fill: true, fillColor: L.color, fillOpacity: 0.05, opacity: pulse ? 0.55 : 0.35, dashArray: '5 6' }}
+                    />
+                  )}
+                  {/* sensor-data packets streaming asset → LCS — live links only;
+                      the AUV is underwater and cannot transmit until it surfaces */}
+                  {L.liveLink && dataDots(L.pos).map((d, j) => (
                     <CircleMarker
                       key={`dot-${i}-${j}`}
                       center={d}
@@ -463,7 +481,9 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                     pathOptions={{ color: L.color, fillColor: L.color, fillOpacity: 0.9, weight: 2 }}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: L.color }}>{`${L.label} layer`}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: L.color }}>
+                        {L.liveLink || !streaming ? `${L.label} layer` : `${L.label} layer — storing data (no RF underwater; uploads on recovery)`}
+                      </span>
                     </Tooltip>
                   </CircleMarker>
                 </React.Fragment>
@@ -484,37 +504,46 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
 
             </MapContainer>
 
-            {/* ── Corner feed: launch & recovery (LARS) ── */}
+            {/* ── Corner feed: launch & recovery (LARS) — the Freedom AUV is what
+                   gets lowered; the M48 is far too big for the davit and launches
+                   alongside instead ── */}
             {(() => {
               const W = 240, H = 160;
               const waterY = 128;
               const lcsImg = effectiveRoster[0]?.image;
 
-              // USV animation: complete lowering very fast (by T_LAUNCH + 8 ticks), then drive away during collecting, return during recovery
-              const usvLowerCompleteAt = T_LAUNCH + 4;
-              const usvLowerProgress = currentTick < T_LAUNCH
+              // UUV animation: lowered by davit (by T_LAUNCH + 4 ticks), then swims away
+              // during collecting, returns and is hoisted during recovery
+              const uuvLowerCompleteAt = T_LAUNCH + 4;
+              const uuvLowerProgress = currentTick < T_LAUNCH
                 ? 0
-                : currentTick < usvLowerCompleteAt
-                  ? Math.min((currentTick - T_LAUNCH) / (usvLowerCompleteAt - T_LAUNCH), 1)
+                : currentTick < uuvLowerCompleteAt
+                  ? Math.min((currentTick - T_LAUNCH) / (uuvLowerCompleteAt - T_LAUNCH), 1)
                   : 1;
-              // Drive off immediately after lowering completes (30x speed), return during recovery (3x speed = 30x / 10)
-              let usvDriveProgress = 0;
-              let usvRaiseProgress = 0;
-              if (currentTick > usvLowerCompleteAt) {
-                if (phase === 'recovering') {
-                  // Delay raising by 2 ticks, then raise over 12 ticks (showcase the davit tech)
-                  const raiseDelay = 2;
-                  const raiseDuration = 12;
-                  usvRaiseProgress = currentTick < T_RECOVER + raiseDelay
-                    ? 0
-                    : Math.min(((currentTick - T_RECOVER - raiseDelay) / raiseDuration), 1);
-                  usvDriveProgress = Math.max(1 - (usvRaiseProgress * 3), 0);
+              // Swim off after lowering completes; return and hoist in sync with
+              // the MAIN MAP — the map's Freedom AUV arrives back at the LCS at
+              // T_COMPLETE, so the davit hoist finishes at exactly that tick.
+              let uuvSwimProgress = 0;
+              let uuvRaiseProgress = 0;
+              const hoistStart = T_COMPLETE - 10;
+              if (currentTick > uuvLowerCompleteAt) {
+                if (currentTick < T_RECOVER) {
+                  // out collecting — swims off frame quickly
+                  uuvSwimProgress = Math.min(((currentTick - uuvLowerCompleteAt) / (T_RECOVER - uuvLowerCompleteAt)) * 30, 1);
+                } else if (currentTick < hoistStart) {
+                  // recovery ordered — swims back into frame while the map asset transits home
+                  uuvSwimProgress = Math.max(1 - (currentTick - T_RECOVER) / (hoistStart - T_RECOVER), 0);
                 } else {
-                  usvDriveProgress = Math.min(((currentTick - usvLowerCompleteAt) / (T_RECOVER - usvLowerCompleteAt)) * 30, 1);
+                  // map asset is alongside — hoist aboard, finishing at T_COMPLETE
+                  uuvSwimProgress = 0;
+                  uuvRaiseProgress = Math.min((currentTick - hoistStart) / (T_COMPLETE - hoistStart), 1);
                 }
               }
-              const usvY = 95 + usvLowerProgress * (waterY - 95) - usvRaiseProgress * (waterY - 95);
-              const usvX = 135 - usvDriveProgress * 150; // drives off to the right, returns from off-screen during recovery
+              // The UUV dives below the surface as it swims off (unlike the old USV)
+              const uuvY = 95 + uuvLowerProgress * (waterY - 95) - uuvRaiseProgress * (waterY - 95)
+                + uuvSwimProgress * 14;
+              const uuvX = 135 - uuvSwimProgress * 150; // swims off, returns during recovery
+              const submerged = uuvY > waterY + 2;
 
               return (
                 <div
@@ -537,17 +566,20 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                     <line x1={0} y1={waterY} x2={W} y2={waterY} stroke="#164e63" strokeWidth={2} />
                     <rect x={0} y={waterY} width={W} height={H - waterY} fill="#0c2233" opacity={0.65} />
 
-                    {/* USV (show throughout) */}
-                    {(
-                      <g transform={`translate(${usvX},${usvY})`}>
-                        <path d="M -10 -3 L 10 -3 L 8 6 L -8 6 Z" fill="#67e8f9" opacity={0.96} />
-                        <rect x={-4} y={-8} width={8} height={5} rx={1} fill="#67e8f9" opacity={0.96} />
-                      </g>
-                    )}
+                    {/* Davit cable while lowering / hoisting */}
+                    {(uuvLowerProgress > 0 && uuvLowerProgress < 1) || uuvRaiseProgress > 0 ? (
+                      <line x1={uuvX} y1={78} x2={uuvX} y2={uuvY - 4} stroke="#94a3b8" strokeWidth={1} strokeDasharray="3 2" />
+                    ) : null}
 
-                    {/* Ripple where USV enters water */}
-                    {usvY > waterY - 5 && usvY < waterY + 5 && (
-                      <ellipse cx={usvX + 8} cy={waterY} rx={14} ry={3} fill="none" stroke="#38bdf8" strokeWidth={1} opacity={0.6} />
+                    {/* Freedom AUV — torpedo-form UUV on the hook */}
+                    <g transform={`translate(${uuvX},${uuvY})`} opacity={submerged ? 0.7 : 0.96}>
+                      <ellipse cx={0} cy={0} rx={13} ry={4} fill="#4ade80" />
+                      <path d="M 11 -3 L 16 -6 M 11 3 L 16 6" stroke="#4ade80" strokeWidth={1.5} fill="none" />
+                    </g>
+
+                    {/* Ripple where the UUV crosses the surface */}
+                    {uuvY > waterY - 5 && uuvY < waterY + 5 && (
+                      <ellipse cx={uuvX} cy={waterY} rx={14} ry={3} fill="none" stroke="#38bdf8" strokeWidth={1} opacity={0.6} />
                     )}
                   </svg>
                 </div>
@@ -567,9 +599,9 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 <div className="flex flex-col gap-1">
                   {[
                     { color: '#0ea5e9', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Mothership` },
-                    { color: '#a78bfa', label: `${effectiveRoster[1]?.name ?? 'MQ-8C'} — Air Layer` },
-                    { color: '#67e8f9', label: `${effectiveRoster[2]?.name ?? 'M48'} — Surface Layer` },
-                    { color: '#4ade80', label: `${effectiveRoster[3]?.name ?? 'Freedom AUV'} — Subsurface Layer` },
+                    { color: '#a78bfa', label: `${effectiveRoster[1]?.name ?? 'Switchblade'} — Air Layer` },
+                    { color: '#67e8f9', label: `${effectiveRoster[2]?.name ?? 'M48'} — Surface + Tethered UAS` },
+                    { color: '#4ade80', label: `${effectiveRoster[3]?.name ?? 'Freedom AUV'} — Subsurface (uploads on surfacing)` },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -650,7 +682,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  1× LCS · MQ-8C · M48 · Freedom AUV
+                  1× LCS · Switchblade · M48 · Freedom AUV
                 </p>
               )}
             </div>
@@ -732,7 +764,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                     <ArrowLeftRight size={13} />
                   </button>
                 </div>
-                {vessel.capabilities.map((cap, i) => (
+                {vessel.capabilities.filter(cap => cap !== 'TempestOS Core Platform').map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>

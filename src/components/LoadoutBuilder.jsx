@@ -475,6 +475,9 @@ const LoadoutBuilder = () => {
     const key = pk || ak;
     if (!caps) return;
     caps.forEach(capName => {
+      // TempestOS lives in the locked Operating System banner on every build —
+      // never place it into an AI & Autonomy slot as well.
+      if (capName === 'TempestOS Core Platform') return;
       const cap = individualCapabilities.find(c => c.name === capName);
       if (!cap) return;
       let placed = false;
@@ -600,6 +603,8 @@ const LoadoutBuilder = () => {
     }
     // Apply new role caps
     role.capabilities.forEach(capName => {
+      // TempestOS lives in the locked Operating System banner — never slotted.
+      if (capName === 'TempestOS Core Platform') return;
       const cap = individualCapabilities.find(c => c.name === capName);
       if (!cap) return;
       let placed = false;
@@ -1137,9 +1142,13 @@ const LoadoutBuilder = () => {
         </div>
       </div>
 
-      {/* Main Layout — Desktop: 4-column grid, Mobile: tab layout */}
+      {/* Main Layout — Desktop: 4-column grid, Mobile: tab layout.
+          minmax(0,1fr) lets the flexible columns shrink below their content's
+          min width — long capability names were forcing the grid wider than the
+          page and pushing the mission-sets rail off the right edge. Below xl the
+          rail drops to a full-width row instead of clipping. */}
       {!isMobile ? (
-        <div className="grid grid-cols-[1fr_260px_1fr_300px] gap-6">
+        <div className="grid gap-6 grid-cols-[minmax(0,1fr)_260px_minmax(0,1fr)] [&>*:nth-child(4)]:col-span-3 xl:grid-cols-[minmax(0,1fr)_260px_minmax(0,1fr)_300px] xl:[&>*:nth-child(4)]:col-span-1">
           {/* Left Column - Sensors, Comms, Weapons, Other */}
           <div className="space-y-4">
             {['SENSORS', 'COMMS', 'WEAPONS', 'OTHER'].filter(key => visibleCategories[key]).map(key => (

@@ -45,8 +45,10 @@ const T_CROSSFIX = 36;   // second and third bearings; track snaps to intersecti
 const T_PING     = 52;   // the single active ping — once, then gone
 const T_WEAPONS  = 62;   // CTF-72 weapons free
 const T_HELO     = 70;   // MH-60R lifts from the LCS
-const T_COMPLETE = 88;   // contact removed, barrier resumes
-const TOTAL_TICKS = 88;
+const T_DROP     = 82;   // Mk 54 away — torpedo in the water
+const T_KILL     = 90;   // detonation on the datum — confirmed kill
+const T_COMPLETE = 102;  // helo home, barrier resumes
+const TOTAL_TICKS = 102;
 
 const PING_DURATION = 6;  // ticks the single expanding ring lives — exactly one, ever
 
@@ -70,7 +72,7 @@ const PHASE_NARRATIVE = {
   confirming:  { title: 'Exactly One Ping', body: 'The track reaches firing-solution quality. The lead M48\'s CAPTAS-4 emits one active confirmation ping — one, and then silence again. The barrier gives away a single pulse for a firing solution.' },
   authorizing: { title: 'Weapons Free — A Human Decides', body: 'CTF-72 evaluates the confirmed contact and authorizes prosecution. The hunters stay silent and unlocalized; the decision to kill is made by people, off the barrier.' },
   prosecuting: { title: 'Kill From the Air', body: 'The MH-60R lifts off the LCS flight deck — the only crewed asset exposed, after the contact is found, for the kill rather than the search. ALFS refines the datum and a Mk 54 goes on it.' },
-  complete:    { title: 'Barrier Held — Hunters Never Localized', body: 'The contact is prosecuted and the barrier resumes passive watch. Total acoustic emissions for the entire engagement: one ping. Hunt on passive. Confirm with one ping. Kill from the air.' },
+  complete:    { title: 'Confirmed Kill — Barrier Held', body: 'Mk 54 detonation on the datum: contact destroyed, kill confirmed by the ALFS. The helo recovers to the LCS and the barrier resumes passive watch. Total acoustic emissions for the entire engagement: one ping. Hunt on passive. Confirm with one ping. Kill from the air.' },
 };
 
 const EVENT_COLORS = {
@@ -98,23 +100,24 @@ const getPhase = (tick) => {
 };
 
 // Submarine position along its transit track: moves from T_TONAL, freezes at the
-// datum once the ping has fixed it, removed at complete
+// datum once the ping has fixed it, destroyed at T_KILL
 const getSubPos = (tick) => {
   if (tick < T_TONAL) return null;
-  if (tick >= T_COMPLETE) return null;
+  if (tick >= T_KILL) return null;   // confirmed kill — the boat is gone
   const t = Math.min((tick - T_TONAL) / (T_PING - T_TONAL), 1);
   const seg = t * (SUB_TRACK.length - 1);
   const i = Math.min(Math.floor(seg), SUB_TRACK.length - 2);
   return lerp2(SUB_TRACK[i], SUB_TRACK[i + 1], seg - i);
 };
 
-// MH-60R: on deck until T_HELO, flies to the datum, holds, gone at complete
+// MH-60R: on deck until T_HELO, flies to the datum, drops, returns to the LCS
 const getHeloPos = (tick, datum) => {
   if (tick < T_HELO || !datum) return null;
   if (tick >= T_COMPLETE) return null;
   const arrive = T_HELO + 10;
   if (tick < arrive) return lerp2(LCS_POS, datum, (tick - T_HELO) / (arrive - T_HELO));
-  return datum;
+  if (tick < T_KILL + 2) return datum;
+  return lerp2(datum, LCS_POS, (tick - T_KILL - 2) / (T_COMPLETE - T_KILL - 2));
 };
 
 const getPhaseBadge = (phase) => {
@@ -125,7 +128,7 @@ const getPhaseBadge = (phase) => {
     confirming:  { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '◎ One Active Ping' },
     authorizing: { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse', label: '⚑ CTF-72 — Weapons Free?' },
     prosecuting: { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '➤ MH-60R Prosecuting' },
-    complete:    { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Barrier Held — One Ping Total' },
+    complete:    { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Confirmed Kill — One Ping Total' },
   };
   return m[phase] || null;
 };
@@ -328,11 +331,17 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
       if (tick === T_HELO) {
         addEvtRef.current(`${v4}: Airborne off the LCS deck — only crewed asset exposed`, 'info');
       }
-      if (tick === T_HELO + 12) {
-        addEvtRef.current(`${v4}: Mk 54 away — on the datum`, 'alert');
+      if (tick === T_DROP) {
+        addEvtRef.current(`${v4}: Mk 54 away — torpedo in the water`, 'alert');
+      }
+      if (tick === T_KILL) {
+        addEvtRef.current('Detonation on the datum — CONFIRMED KILL', 'alert');
+      }
+      if (tick === T_KILL + 4) {
+        addEvtRef.current(`${v4}: Kill assessed via ALFS — recovering to the LCS`, 'success');
       }
       if (tick === T_COMPLETE) {
-        addEvtRef.current('Contact prosecuted — barrier resumes passive watch', 'success');
+        addEvtRef.current('Contact destroyed — barrier resumes passive watch', 'success');
         addEvtRef.current('Total acoustic emissions this engagement: 1 ping', 'success');
       }
 
@@ -516,6 +525,28 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
                 </CircleMarker>
               )}
 
+              {/* ── Mk 54 detonation on the datum ── */}
+              {currentTick >= T_KILL && currentTick < T_KILL + 8 && datum && (
+                <Circle
+                  center={datum}
+                  radius={(2 + (currentTick - T_KILL) * 2.5) * NM_TO_M}
+                  pathOptions={{ color: '#f97316', weight: 2.5, fillColor: '#f97316', fillOpacity: Math.max(0.4 - (currentTick - T_KILL) * 0.06, 0), opacity: Math.max(0.9 - (currentTick - T_KILL) * 0.12, 0.1) }}
+                />
+              )}
+
+              {/* ── Confirmed kill marker — persists once the boat is dead ── */}
+              {currentTick >= T_KILL + 2 && datum && (
+                <CircleMarker
+                  center={datum}
+                  radius={7}
+                  pathOptions={{ color: '#ef4444', fillColor: '#7f1d1d', fillOpacity: 0.9, weight: 2.5 }}
+                >
+                  <Tooltip direction="bottom" offset={[0, 8]} permanent>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444' }}>✕ CONFIRMED KILL</span>
+                  </Tooltip>
+                </CircleMarker>
+              )}
+
               {/* ── M48 arrays with trailing MFTA lines ── */}
               {ARRAYS.map((a, i) => {
                 const isLead = i === 0;
@@ -581,6 +612,96 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
               </CircleMarker>
 
             </MapContainer>
+
+            {/* ── Corner feed: the prosecution — helo, torpedo, confirmed kill ── */}
+            {currentTick >= T_HELO && (() => {
+              const W = 240, H = 160;
+              const waterY = 72;
+              const heloImg = effectiveRoster[4]?.image;
+
+              // Helo flies in from the left and hovers DIRECTLY over the boat,
+              // nose-forward (art is mirrored below), so the drop is a plumb line
+              const heloArrive = T_HELO + 8;
+              const heloX = currentTick < heloArrive
+                ? -70 + ((currentTick - T_HELO) / (heloArrive - T_HELO)) * 218
+                : 148;   // image center ≈ heloX + 10 = 158 — right above the sub
+
+              // Torpedo: released over the boat and falls STRAIGHT DOWN
+              let torpY = null;
+              const torpX = 158;
+              if (currentTick >= T_DROP && currentTick < T_KILL) {
+                const p = (currentTick - T_DROP) / (T_KILL - T_DROP);
+                torpY = 52 + p * (120 - 52);
+              }
+
+              const subVisible = currentTick < T_KILL + 2;
+              const explAge = currentTick - T_KILL;
+              const exploding = explAge >= 0 && explAge < 8;
+              const killed = currentTick >= T_KILL + 6;
+
+              return (
+                <div
+                  className="absolute bottom-3 right-3 z-[500] pointer-events-none"
+                  style={{ width: W, height: H, borderRadius: 12, overflow: 'hidden',
+                    background: 'rgba(5,10,18,0.88)', border: '1px solid rgba(100,120,150,0.3)',
+                    backdropFilter: 'blur(4px)' }}
+                >
+                  {/* Helicopter artwork — mirrored so the nose leads the flight path */}
+                  {heloImg && (
+                    <img
+                      src={heloImg} alt="MH-60R"
+                      style={{ position: 'absolute', left: heloX - 55, top: 6,
+                        width: 130, height: 62, objectFit: 'contain', opacity: 0.95,
+                        transform: 'scaleX(-1)' }}
+                    />
+                  )}
+
+                  <svg width={W} height={H} style={{ position: 'absolute', inset: 0 }}>
+                    {/* Water line and column */}
+                    <line x1={0} y1={waterY} x2={W} y2={waterY} stroke="#164e63" strokeWidth={2} />
+                    <rect x={0} y={waterY} width={W} height={H - waterY} fill="#0c2233" opacity={0.65} />
+
+                    {/* Dipping-sonar cable while on station, before the drop */}
+                    {currentTick >= heloArrive && currentTick < T_DROP && (
+                      <>
+                        <line x1={heloX + 10} y1={54} x2={heloX + 10} y2={104} stroke="#22d3ee" strokeWidth={1} strokeDasharray="4 3" />
+                        <circle cx={heloX + 10} cy={108} r={4} fill="none" stroke="#22d3ee" strokeWidth={1.2} />
+                      </>
+                    )}
+
+                    {/* Torpedo — nose-down, falling vertically onto the boat */}
+                    {torpY !== null && (
+                      <g transform={`translate(${torpX},${torpY}) rotate(90)`}>
+                        <rect x={-7} y={-2} width={14} height={4} rx={2} fill="#fbbf24" />
+                      </g>
+                    )}
+
+                    {/* The boat */}
+                    {subVisible && (
+                      <g transform="translate(158,124)">
+                        <ellipse cx={0} cy={0} rx={30} ry={7} fill="#450a0a" stroke="#ef4444" strokeWidth={1.5} />
+                        <rect x={-5} y={-13} width={10} height={7} rx={2} fill="#450a0a" stroke="#ef4444" strokeWidth={1.2} />
+                      </g>
+                    )}
+
+                    {/* Detonation */}
+                    {exploding && (
+                      <>
+                        <circle cx={158} cy={124} r={6 + explAge * 5} fill="#f97316" opacity={Math.max(0.55 - explAge * 0.07, 0)} />
+                        <circle cx={158} cy={124} r={10 + explAge * 7} fill="none" stroke="#fbbf24" strokeWidth={2} opacity={Math.max(0.9 - explAge * 0.12, 0)} />
+                      </>
+                    )}
+
+                    {/* Kill confirmation */}
+                    {killed && (
+                      <text x={W / 2} y={H - 14} textAnchor="middle" fontSize={13} fontWeight={800} fill="#4ade80" fontFamily="monospace">
+                        ✕ CONFIRMED KILL
+                      </text>
+                    )}
+                  </svg>
+                </div>
+              );
+            })()}
 
             {/* ── Emissions counter — the deck's argument in one number ── */}
             <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-cyan-500/30 backdrop-blur-sm">
@@ -780,7 +901,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
                     <ArrowLeftRight size={13} />
                   </button>
                 </div>
-                {vessel.capabilities.map((cap, i) => (
+                {vessel.capabilities.filter(cap => cap !== 'TempestOS Core Platform').map((cap, i) => (
                   <div key={i} className="border border-gray-700/50 rounded px-2 py-0.5 text-[0.62rem] text-gray-400 bg-gray-800/30">
                     {cap}
                   </div>

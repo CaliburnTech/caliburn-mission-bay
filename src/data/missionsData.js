@@ -1432,8 +1432,8 @@ export const initialMissions = [
       },
       squadronComposition: {
         mothership: "Freedom-class LCS — 1× — launch/recovery + TempestOS fusion node",
-        airLayer: "MQ-8C Fire Scout — 1× — over-the-horizon radar + EO/IR from the deck",
-        surfaceLayer: "Magnet Defense M48 — 1× — launched/recovered USV, radar + EO/IR surface net",
+        airLayer: "AV Switchblade — 1× — tube-launched expendable EO/IR over the horizon",
+        surfaceLayer: "Magnet Defense M48 — 1× — radar + EO/IR surface net with DPI Vulture tethered UAS for elevated sensor range",
         subsurfaceLayer: "Freedom AUV — 1× — passive acoustic subsurface awareness"
       },
       threat: "PLAN/PLAAF surface, air, and subsurface incursions across the first island chain; AIS-dark maritime militia; contested EMCON environment",
@@ -1697,10 +1697,10 @@ export const initialMissions = [
       },
       squadronComposition: {
         commandNode: "Freedom-class LCS — 1× — holds outside the minefield boundary; TempestOS sequences the chain; no crew at risk",
-        hunter: "MCM USV — 1× — tows AN/AQS-20C minehunting sonar across the field at standoff from the mothership",
-        classifier: "Knifefish UUV — 2× — low-frequency broadband sonar; localize and identify mines, buried or moored",
+        hunter: "MCM USV — 1× — tows AN/AQS-20C minehunting sonar across the field at standoff and launches the neutralizers",
+        classifier: "Knifefish UUV — 1× — low-frequency broadband sonar; localizes and identifies mines, buried or moored",
         sweep: "UISS influence sweep — 1× — mimics a ship's magnetic and acoustic signature to safely trigger sensitive mines",
-        neutralizer: "Barracuda one-shot neutralizers — 4× — destroy confirmed mines; no divers"
+        neutralizer: "Barracuda one-shot neutralizers — 4× — launched from the MCM USV against confirmed mines; no divers"
       },
       threat: "Moored and buried influence mines emplaced across the Bashi Channel; a mine costing a few thousand dollars can sink a warship or close the strait. Legacy alternatives are four remaining Avenger-class hulls and a sundowning MH-53E detachment, both of which must enter the field to work.",
       whyThisConfig: "Mine countermeasures is measured by water opened per unit of time, not by the sophistication of the sweeper, and every legacy method must place ships or people inside the field. The Navy already owns the components: the MCM USV reached IOC in May 2023 and first deployed March 2025, and Knifefish completed sea acceptance testing in June 2026. The unresolved problem is that detect-to-neutralize runs as four systems with four operator workflows. TempestOS sequences them as one tasked chain across the squadron.",
@@ -1708,7 +1708,7 @@ export const initialMissions = [
         "MCM USV tows AN/AQS-20C across the assigned area → contacts logged and cued from standoff",
         "Contact cued → Knifefish tasked to localize and classify; buried or moored, identified below",
         "Sensitive-mine risk in the lane → UISS influence sweep mimics a ship signature to trigger it safely",
-        "Mine confirmed → Barracuda neutralizer expended on the datum; lane advances, no diver enters the water"
+        "Mine confirmed → Barracuda neutralizer launched from the MCM USV onto the datum; lane advances, no diver enters the water"
       ],
     },
     stateHierarchies: {
