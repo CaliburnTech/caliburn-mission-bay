@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Send, Sparkles, Loader2 } from 'lucide-react';
+import { apiUrl } from '../../services/apiBase';
 
 /**
  * MissionAdvisorChat — reusable chat drawer for the Mission Advisor
@@ -19,8 +20,6 @@ import { X, Send, Sparkles, Loader2 } from 'lucide-react';
  *   embedded           {boolean}  render as an inline panel instead of a
  *                                 fixed drawer (LoadoutBuilder / SwapVesselModal)
  */
-
-const API_BASE = import.meta.env.VITE_API_URL || '';
 
 // Tailwind cannot build dynamic class names — accents are static literals.
 const ACCENTS = {
@@ -75,7 +74,11 @@ const MissionAdvisorChat = ({
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/ai/mission-advisor`, {
+      // apiUrl dedupes the '/api' segment — VITE_API_URL is '/api' in
+      // production, so naive `${base}/api/...` concatenation 404s (learned
+      // the hard way; AIChat.jsx has the same latent issue in its
+      // authenticated mode, untouched per standing rule).
+      const res = await fetch(apiUrl('/ai/mission-advisor'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // Server caps the body at 12 messages; history is always
