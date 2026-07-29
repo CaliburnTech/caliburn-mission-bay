@@ -67,11 +67,11 @@ const VESSEL_ROSTER = [
 ];
 
 // Run definitions: which hull goes where, and what it carries.
-// One color for every M48 (violet) and one for every receiving point (red until
-// served, green after) — the distinction that matters is boats vs. islands,
-// not which run is which.
-const M48_COLOR      = '#a78bfa';  // all three resupply hulls
-const DEST_WAITING   = '#ef4444';  // receiving point, still waiting
+// One color for every M48 (blue — friendly force) and one for every receiving
+// point (yellow until served, green after) — the distinction that matters is
+// boats vs. islands, not which run is which.
+const M48_COLOR      = '#60a5fa';  // all three resupply hulls — friendly blue
+const DEST_WAITING   = '#eab308';  // friendly receiving point, still waiting
 const DEST_SATISFIED = '#4ade80';  // receiving point, got what it wanted
 const RUNS = [
   { rosterIdx: 1, dest: COMBATANT,    module: 'FUEL',     destLabel: 'Combatant on Station',        cargoOffset: [0.09, -0.09] },
@@ -514,7 +514,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                 const delivered = currentTick >= getDeliveredAt(i);
                 const waiting = currentTick >= T_DEMAND && !delivered;
                 const color = delivered ? DEST_SATISFIED : (waiting ? DEST_WAITING : '#94a3b8');
-                const fill  = delivered ? '#14532d' : (waiting ? '#450a0a' : '#1e293b');
+                const fill  = delivered ? '#14532d' : (waiting ? '#713f12' : '#1e293b');
                 const isCombatant = i === 0;
                 const label = isCombatant
                   ? (delivered ? 'COMBATANT · FUEL 96% · CELLS 4/4' : (waiting ? 'COMBATANT · FUEL 22% · CELLS 1/4' : 'Combatant on Station'))
@@ -536,7 +536,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                 );
               })}
 
-              {/* ── Resupply runs — every M48 wears the same violet ── */}
+              {/* ── Resupply runs — every M48 wears the same friendly blue ── */}
               {showRuns && RUNS.map((run, i) => {
                 const pos = runPositions[i];
                 const denied = i === DENIED_RUN && linkDenied;
@@ -571,7 +571,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                     <CircleMarker
                       center={pos}
                       radius={transferring ? 11 : 9}
-                      pathOptions={{ color: denied ? '#ef4444' : M48_COLOR, fillColor: '#312e81', fillOpacity: 0.95, weight: denied ? 3 : 2, dashArray: denied ? '3 3' : undefined }}
+                      pathOptions={{ color: denied ? '#ef4444' : M48_COLOR, fillColor: '#1e3a8a', fillOpacity: 0.95, weight: denied ? 3 : 2, dashArray: denied ? '3 3' : undefined }}
                     >
                       <Tooltip direction="top" offset={[0, -8]} permanent={denied}>
                         <span style={{ fontSize: 9, fontWeight: 700, color: denied ? '#ef4444' : M48_COLOR }}>
@@ -589,10 +589,10 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
               <CircleMarker
                 center={LCS_NODE}
                 radius={14}
-                pathOptions={{ color: '#a78bfa', fillColor: '#4c1d95', fillOpacity: 0.95, weight: 3 }}
+                pathOptions={{ color: '#3b82f6', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 3 }}
               >
                 <Tooltip direction="bottom" offset={[0, 10]} permanent={currentTick >= T_DEMAND}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa' }}>LCS NODE — Behind the Line · Loads, Routes, Orchestrates</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#60a5fa' }}>LCS NODE — Behind the Line · Loads, Routes, Orchestrates</span>
                 </Tooltip>
               </CircleMarker>
 
@@ -617,7 +617,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
               <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#a78bfa', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Rear Node` },
+                    { color: '#3b82f6', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Rear Node` },
                     { color: M48_COLOR, label: '3× M48 — Fuel · Cargo · Magazine runs' },
                     { color: DEST_WAITING, label: 'Receiving point — awaiting delivery' },
                     { color: DEST_SATISFIED, label: 'Receiving point — resupplied' },

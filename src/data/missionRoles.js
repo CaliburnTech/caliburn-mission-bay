@@ -264,16 +264,16 @@ export const MISSION_ROLES = {
       },
       {
         roleKey: 'MAGDEP_SENSOR',
-        roleLabel: 'Airborne Sensor (MQ-4C Triton)',
-        description: 'MQ-4C Triton extending the radar and EO/IR horizon and feeding the fire-control picture over Link 16, so the engagement can be authorized against a track no single hull could hold.',
+        roleLabel: 'Airborne Sensor (RQ-21A Blackjack)',
+        description: 'RQ-21A Blackjack launched from the LCS deck via pneumatic launcher and recovered by SkyHook, extending the radar and EO/IR horizon and feeding the fire-control picture over Link 16, so the engagement can be authorized against a track no single hull could hold.',
         capabilities: [
           'Maritime Surface/Air Search Radar',
           'Teledyne FLIR EO/IR Turret',
           'Link 16 Track Broadcast',
         ],
         allowedPlatformTypes: ['UAV'],
-        defaultHullName: 'MQ-4C Triton',
-        suggestedHullNames: ['MQ-4C Triton', 'MQ-8C Fire Scout'],
+        defaultHullName: 'RQ-21A Blackjack',
+        suggestedHullNames: ['RQ-21A Blackjack', 'MQ-4C Triton'],
         requirements: {
           categories: ['SENSORS', 'COMMS'],
           subTypes: [],

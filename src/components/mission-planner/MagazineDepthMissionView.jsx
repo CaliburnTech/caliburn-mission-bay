@@ -39,8 +39,8 @@ const M48_B_POS   = [20.70, 122.45];  // forward shooter Bravo
 const TARGET_POS  = [21.85, 122.95];  // PLAN SAG track
 const ROS_POS     = [19.95, 120.60];  // Remote Operating Site — rearm
 
-// Airborne sensor orbit — the Triton flies a continuous racetrack around the
-// target area rather than holding a fixed station
+// Airborne sensor orbit — the Blackjack flies a continuous racetrack around
+// the target area rather than holding a fixed station
 const ORBIT_RADIUS_LAT = 0.32;
 const ORBIT_RADIUS_LNG = 0.45;
 const getAirPos = (tick) => {
@@ -74,7 +74,7 @@ const VESSEL_ROSTER = [
   { name: 'LCS Command Node', roleDescriptor: '(Command Node — Launch Authority)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'MAGDEP_LCS', capabilities: ['TempestOS Core Platform', 'Cooperative Engagement Capability (AN/USG-2)', 'Aegis Remote Fire Control', 'Link 16 Track Broadcast', 'MILSATCOM Terminal', 'Nulka Active Missile Decoy', 'NSYTE AI Maintenance System'] },
   { name: 'M48', roleDescriptor: '(Forward Shooter — Alpha)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MAGDEP_SHOOTER_1', capabilities: ['Mk 70 Payload Delivery System', 'SM-6 Missile System', 'Tomahawk Block V 8-cell VLS', 'Cooperative Engagement Capability (AN/USG-2)', 'Maritime Surface/Air Search Radar', 'HiveLink SDR', 'SeaFIND Inertial Navigation'] },
   { name: 'M48', roleDescriptor: '(Forward Shooter — Bravo)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MAGDEP_SHOOTER_2', capabilities: ['Mk 70 Payload Delivery System', 'SM-6 Missile System', 'Tomahawk Block V 8-cell VLS', 'Cooperative Engagement Capability (AN/USG-2)', 'Maritime Surface/Air Search Radar', 'HiveLink SDR', 'SeaFIND Inertial Navigation'] },
-  { name: 'MQ-4C Triton', roleDescriptor: '(Airborne Sensor)', image: HULL_IMAGES['MQ-4C Triton'], hullName: 'MQ-4C Triton', roleKey: 'MAGDEP_SENSOR', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Link 16 Track Broadcast'] },
+  { name: 'RQ-21A Blackjack', roleDescriptor: '(Airborne Sensor)', image: HULL_IMAGES['RQ-21A Blackjack'], hullName: 'RQ-21A Blackjack', roleKey: 'MAGDEP_SENSOR', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'Link 16 Track Broadcast'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -328,7 +328,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
       const v0 = vesselLabelsRef.current[0] ?? 'LCS Command Node';
       const v1 = vesselLabelsRef.current[1] ?? 'M48 (Alpha)';
       const v2 = vesselLabelsRef.current[2] ?? 'M48 (Bravo)';
-      const v3 = vesselLabelsRef.current[3] ?? 'MQ-4C Triton';
+      const v3 = vesselLabelsRef.current[3] ?? 'RQ-21A Blackjack';
       setCurrentTick(tick);
 
       if (tick === T_ONSTATION) {
@@ -497,10 +497,10 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
               {currentTick >= T_ONSTATION && (
                 <Polygon
                   positions={ENGAGEMENT_BOX}
-                  pathOptions={{ color: '#f43f5e', weight: 1.5, dashArray: '8 10', fillColor: '#f43f5e', fillOpacity: 0.05 }}
+                  pathOptions={{ color: '#3b82f6', weight: 1.5, dashArray: '8 10', fillColor: '#3b82f6', fillOpacity: 0.05 }}
                 >
                   <Tooltip direction="top" sticky>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#fb7185' }}>Fires Engagement Box</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#60a5fa' }}>Fires Engagement Box</span>
                   </Tooltip>
                 </Polygon>
               )}
@@ -523,7 +523,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                 <Polyline
                   key={`cec-${i}`}
                   positions={[src, LCS_POS]}
-                  pathOptions={{ color: cecFused ? '#f43f5e' : '#fda4af', weight: cecFused ? 1.6 : 1.0, opacity: cecFused ? 0.6 : 0.35, dashArray: cecFused ? undefined : '4 6' }}
+                  pathOptions={{ color: cecFused ? '#3b82f6' : '#93c5fd', weight: cecFused ? 1.6 : 1.0, opacity: cecFused ? 0.6 : 0.35, dashArray: cecFused ? undefined : '4 6' }}
                 />
               ))}
 
@@ -580,7 +580,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                   pathOptions={{ color: '#a78bfa', fillColor: '#4c1d95', fillOpacity: 0.95, weight: 2 }}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa' }}>{`${effectiveRoster[3]?.hullName ?? 'MQ-4C Triton'} — Airborne Sensor`}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa' }}>{`${effectiveRoster[3]?.hullName ?? 'RQ-21A Blackjack'} — Airborne Sensor`}</span>
                   </Tooltip>
                 </CircleMarker>
               )}
@@ -590,10 +590,10 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                 <CircleMarker
                   center={alphaPos}
                   radius={firing && pulse ? 12 : 10}
-                  pathOptions={{ color: cycling && alphaCells === 0 ? '#94a3b8' : '#fb7185', fillColor: '#881337', fillOpacity: 0.95, weight: 2 }}
+                  pathOptions={{ color: cycling && alphaCells === 0 ? '#94a3b8' : '#60a5fa', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
                 >
                   <Tooltip direction="right" offset={[8, 0]} permanent={currentTick >= T_ONSTATION}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: '#fb7185' }}>{`ALPHA · Mk 70: ${alphaCells}/4`}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#60a5fa' }}>{`ALPHA · Mk 70: ${alphaCells}/4`}</span>
                   </Tooltip>
                 </CircleMarker>
               )}
@@ -603,10 +603,10 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                 <CircleMarker
                   center={bravoPos}
                   radius={10}
-                  pathOptions={{ color: '#fb7185', fillColor: '#881337', fillOpacity: 0.95, weight: 2 }}
+                  pathOptions={{ color: '#60a5fa', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
                 >
                   <Tooltip direction="right" offset={[8, 0]} permanent={currentTick >= T_ONSTATION}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: '#fb7185' }}>BRAVO · Mk 70: 4/4</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#60a5fa' }}>BRAVO · Mk 70: 4/4</span>
                   </Tooltip>
                 </CircleMarker>
               )}
@@ -615,10 +615,10 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
               <CircleMarker
                 center={LCS_POS}
                 radius={authorizing && pulse ? 17 : 14}
-                pathOptions={{ color: authorizing ? '#fbbf24' : '#f43f5e', fillColor: authorizing ? '#92400e' : '#881337', fillOpacity: 0.95, weight: 3 }}
+                pathOptions={{ color: authorizing ? '#fbbf24' : '#3b82f6', fillColor: authorizing ? '#92400e' : '#1e3a8a', fillOpacity: 0.95, weight: 3 }}
               >
                 <Tooltip direction="top" offset={[0, -10]} permanent={currentTick >= T_ONSTATION}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: authorizing ? '#fbbf24' : '#fb7185' }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: authorizing ? '#fbbf24' : '#60a5fa' }}>
                     {authorizing
                       ? 'LCS WATCH TEAM — AUTHORIZE ENGAGEMENT'
                       : `LCS — Launch Authority · Own Cells: ${LCS_CELLS}/${LCS_CELLS}`}
@@ -648,9 +648,9 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
               <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-1">
                   {[
-                    { color: '#f43f5e', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Launch Authority` },
-                    { color: '#fb7185', label: '2× M48 — Forward Shooters (Mk 70)' },
-                    { color: '#a78bfa', label: `${effectiveRoster[3]?.name ?? 'MQ-4C'} — Airborne Sensor` },
+                    { color: '#3b82f6', label: `${effectiveRoster[0]?.name ?? 'LCS'} — Launch Authority` },
+                    { color: '#60a5fa', label: '2× M48 — Forward Shooters (Mk 70)' },
+                    { color: '#a78bfa', label: `${effectiveRoster[3]?.name ?? 'RQ-21A'} — Airborne Sensor` },
                     { color: '#fbbf24', label: 'Launch-on-Remote (after human auth)' },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-2">
@@ -732,7 +732,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                 </div>
               ) : (
                 <p className="text-gray-600 text-[0.68rem]">
-                  1× LCS · 2× M48 · MQ-4C Triton
+                  1× LCS · 2× M48 · RQ-21A Blackjack
                 </p>
               )}
 

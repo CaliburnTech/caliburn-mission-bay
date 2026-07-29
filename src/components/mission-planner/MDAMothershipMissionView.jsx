@@ -387,12 +387,12 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     onBack();
   };
 
-  // senseNm: perception radius while collecting. The M48's is the largest —
-  // its DPI Vulture tethered UAS puts an elevated mast hundreds of feet up.
+  // senseNm: perception radius while collecting. The UAV's is the largest —
+  // it flies the highest, so its sensor horizon dwarfs anything at the surface.
   // liveLink: whether the asset can stream in real time. The Freedom AUV cannot —
   // RF does not propagate underwater, so it stores its take and uploads on recovery.
   const LAYERS = [
-    { pos: airPos,  color: '#a78bfa', label: 'Air',        senseNm: 14, liveLink: true },
+    { pos: airPos,  color: '#a78bfa', label: 'Air',        senseNm: 48, liveLink: true },
     { pos: surfPos, color: '#67e8f9', label: 'Surface',    senseNm: 28, liveLink: true },
     { pos: subPos,  color: '#4ade80', label: 'Subsurface', senseNm: 8,  liveLink: false },
   ];
@@ -476,7 +476,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                     pathOptions={{ color: L.color, weight: 1.2, opacity: recovering ? 0.55 : (streaming ? 0.35 : 0.25), dashArray: '3 7' }}
                   />
                   {/* sensing ring — the asset's perception of the water around it.
-                      The M48's is the largest: its tethered UAS is an elevated mast. */}
+                      The UAV's is the largest: altitude buys sensor horizon. */}
                   {streaming && (
                     <Circle
                       center={L.pos}

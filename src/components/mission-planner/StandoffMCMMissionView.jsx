@@ -21,9 +21,10 @@ import { ORCHESTRATION_LAYER, SUCCESS_CRITERIA } from './autonomySeriesShared';
 const MISSION_SET_KEY = 'STANDOFF_MCM';
 
 // ─── Geography — Bashi Channel ────────────────────────────────────────────────
+// Single fixed frame — the whole scenario (LCS, minefield, lane) fits at this
+// zoom, so the camera never moves during the run. No flyTo, no zoom changes.
 const MAP_CENTER  = [21.55, 121.55];
 const MAP_ZOOM    = 8;
-const MAP_ZOOM_IN = 9;
 
 const LCS_POS    = [21.05, 120.85];  // command node — outside the minefield boundary. This matters.
 const MINEFIELD  = [[21.25, 121.20], [21.90, 121.20], [21.90, 122.00], [21.25, 122.00]];
@@ -190,22 +191,6 @@ const getPhaseBadge = (phase) => {
     complete:     { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Lane Cleared — No Diver in the Water' },
   };
   return m[phase] || null;
-};
-
-// ─── Map controller — handles flyTo zoom ──────────────────────────────────────
-const MapController = ({ phase }) => {
-  const map = useMap();
-  const prev = useRef(phase);
-  useEffect(() => {
-    if (prev.current === phase) return;
-    prev.current = phase;
-    if (phase === 'classifying') {
-      map.flyTo(MAP_CENTER, MAP_ZOOM_IN, { duration: 1.5 });
-    } else if (phase === 'standoff' || phase === 'idle') {
-      map.flyTo(MAP_CENTER, MAP_ZOOM, { duration: 1.2 });
-    }
-  }, [phase, map]);
-  return null;
 };
 
 // Forces Leaflet to recalculate tile layout after flex containers settle
@@ -533,7 +518,6 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
               <TileLayer url={TILE_BASE} />
               <TileLayer url={TILE_SEAMARK} opacity={0.4} />
               <MapInvalidateSize />
-              <MapController phase={phase} />
 
               {/* ── Suspected minefield ── */}
               <Polygon
