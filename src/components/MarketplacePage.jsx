@@ -25,6 +25,10 @@ import VersionControlView from './VersionControlView';
 import AdminSubmissionsView from './AdminSubmissionsView';
 import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
+import { isProduction } from '../providers/dataInterface';
+import HeaderAuth from '../auth/HeaderAuth';
+import SignInModal from '../auth/SignInModal';
+import OnboardingModal from '../auth/OnboardingModal';
 
 const MarketplacePage = ({ onLogoClick }) => {
   const _dataStore = useDataStore();
@@ -132,6 +136,8 @@ const MarketplacePage = ({ onLogoClick }) => {
             </div>
           </div>
 
+          {/* Production-only auth controls — demo mode renders nothing here */}
+          {isProduction && <HeaderAuth />}
         </div>
       </header>
 
@@ -342,6 +348,15 @@ const MarketplacePage = ({ onLogoClick }) => {
         selectedCapabilityDetails={selectedCapabilityDetails}
         setSelectedCapabilityDetails={setSelectedCapabilityDetails}
       />
+
+      {/* Production-only auth modals (sign-in prompt + post-sign-in onboarding).
+          Never mounted in demo mode — demo behavior is unchanged. */}
+      {isProduction && (
+        <>
+          <SignInModal />
+          <OnboardingModal />
+        </>
+      )}
     </div>
   );
 };

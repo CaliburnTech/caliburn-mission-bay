@@ -65,6 +65,10 @@ const SupabaseAuthProvider = ({ children }) => {
     role: session?.user?.app_metadata?.role ?? 'viewer',
     mode: 'production',
     signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
+    signInWithMagicLink: (email) => supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    }),
     signInWithOAuth: (provider) => supabase.auth.signInWithOAuth({ provider }),
     signOut: () => supabase.auth.signOut(),
   };
