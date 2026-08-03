@@ -64,3 +64,32 @@ button:focus-visible {
 }
 
 /* Light mode disabled - app is dark mode only */
+
+/* ─── High-contrast pass (Aug 2026) ─────────────────────────────────────────
+   The product may be shown on low-quality, washed-out government displays and
+   projectors. The dimmest text tiers and hairline borders disappear first on
+   those screens, so remap them brighter app-wide. Utility class names keep
+   their semantic tier (600 stays the dimmest) — only the rendered values move
+   up. Remove this block to restore the original design-spec palette. */
+
+.text-gray-600 { color: #9ca3af !important; }        /* was #4b5563 */
+.text-gray-500 { color: #b6bdc7 !important; }        /* was #6b7280 */
+.text-gray-400 { color: #d4d8dd !important; }        /* was #9ca3af */
+.placeholder-gray-600::placeholder { color: #9ca3af !important; }
+
+.border-gray-700,
+.border-gray-700\/60,
+.border-gray-700\/50,
+.border-gray-700\/40,
+.border-gray-700\/30 { border-color: rgba(120, 130, 145, 0.75) !important; }
+
+.border-gray-600,
+.border-gray-600\/50,
+.border-gray-600\/40,
+.border-gray-600\/30 { border-color: rgba(140, 150, 165, 0.8) !important; }
+
+/* Map unit labels and leaflet tooltips: heavier shadow so they hold up
+   against bright chart tiles on a washed-out panel */
+.ntds-marker span {
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.95), 0 0 7px rgba(0, 0, 0, 0.8) !important;
+}

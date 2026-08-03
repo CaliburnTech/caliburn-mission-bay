@@ -15,6 +15,7 @@ import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -505,7 +506,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -568,7 +569,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Map + Sidebar ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -687,17 +688,22 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
 
               {/* ── Sea Jeep marker ── */}
               {phase !== 'idle' && seaJeepPos && (
-                <CircleMarker
-                  center={seaJeepPos}
-                  radius={7}
-                  pathOptions={{ color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={seaJeepPos}
+                  domain="surface"
+                  affiliation="friend"
+                  size={14}
+                  color="#06b6d4"
+                  fill="#06b6d4"
+                  fillOpacity={0.9}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -12]}>
                     <span style={{ fontSize: 10, color: '#67e8f9', fontWeight: 700 }}>
                       SEA-JEEP-LOG-1{hasCargo ? ' · CARGO' : ''}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── Cargo pod indicator — small yellow dot offset from Sea Jeep while loaded ── */}
@@ -777,7 +783,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -821,7 +827,7 @@ const SeaJeepLogisticsMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

@@ -14,6 +14,7 @@ import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -478,7 +479,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -512,7 +513,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
       <div>
 
       {/* ── Animation row ── */}
-      <div className="flex h-[40vh] md:h-[460px]">
+      <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
         {/* ── Map ── */}
         <div className="flex-1 relative overflow-hidden">
@@ -613,11 +614,12 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
 
             {/* ── Boat markers ── */}
             {BOATS.map(b => (
-              <CircleMarker
+              <NTDSMarker
                 key={b.id}
-                center={b.pos}
-                radius={7}
-                pathOptions={{ color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.9, weight: 2 }}
+                position={b.pos}
+                domain="surface"
+                affiliation="friend"
+                color="#06b6d4" fill="#06b6d4" fillOpacity={0.9} size={14} weight={2}
               >
                 <Tooltip direction="top" offset={[0, -10]}>
                   <div style={{ fontSize: 11 }}>
@@ -625,7 +627,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
                     {b.sector} · 3nm coverage
                   </div>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
             ))}
 
             {/* ── Naval Base San Diego ── */}
@@ -664,15 +666,16 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
 
             {/* ── Interceptor vessel (moving blue force) ── */}
             {interceptorPos && (
-              <CircleMarker
-                center={interceptorPos}
-                radius={7}
-                pathOptions={{ color: '#3b82f6', fillColor: '#93c5fd', fillOpacity: 1, weight: 2 }}
+              <NTDSMarker
+                position={interceptorPos}
+                domain="surface"
+                affiliation="friend"
+                color="#3b82f6" fill="#93c5fd" fillOpacity={1} size={14} weight={2}
               >
                 <Tooltip direction="top" offset={[0, -10]}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6' }}>↗ Interceptor</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
             )}
 
             {/* ── Kill marker ── */}
@@ -690,15 +693,16 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
 
             {/* ── Bad guy USV (keeps advancing until killed) ── */}
             {badGuyPos && (
-              <CircleMarker
-                center={badGuyPos}
-                radius={8}
-                pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2 }}
+              <NTDSMarker
+                position={badGuyPos}
+                domain="surface"
+                affiliation="hostile"
+                color="#ef4444" fill="#ef4444" fillOpacity={0.9} size={16} weight={2}
               >
                 <Tooltip permanent direction="top" offset={[0, -12]}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444' }}>⚠ SIERRA-7743</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
             )}
           </MapContainer>
 
@@ -815,7 +819,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
           </div>
 
           {/* Controls */}
-          <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+          <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
             <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
             <div className="flex gap-2 mb-3">
               {running ? (
@@ -862,7 +866,7 @@ const PortSecurityMissionView = ({ mission, onBack }) => {
           </div>
 
           {/* Event log */}
-          <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+          <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
             <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
               Event Log
             </p>

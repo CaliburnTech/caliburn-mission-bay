@@ -12,6 +12,7 @@ import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -571,7 +572,7 @@ const MDAISRMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -601,7 +602,7 @@ const MDAISRMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -645,22 +646,22 @@ const MDAISRMissionView = ({ mission, onBack }) => {
               {/* ── Dark ship contact ── */}
               {showDarkShip && (
                 <>
-                  <CircleMarker
-                    center={DARK_SHIP_POS}
-                    radius={darkShipConfirmed ? 10 : (contactPulse ? 13 : 10)}
-                    pathOptions={{
-                      color:       darkShipConfirmed ? '#dc2626' : '#ef4444',
-                      fillColor:   darkShipConfirmed ? '#dc2626' : '#ef4444',
-                      fillOpacity: darkShipConfirmed ? 0.95 : (contactPulse ? 0.85 : 0.55),
-                      weight: 2,
-                    }}
+                  <NTDSMarker
+                    position={DARK_SHIP_POS}
+                    domain="surface"
+                    affiliation="hostile"
+                    color={darkShipConfirmed ? '#dc2626' : '#ef4444'}
+                    fill={darkShipConfirmed ? '#dc2626' : '#ef4444'}
+                    fillOpacity={darkShipConfirmed ? 0.95 : (contactPulse ? 0.85 : 0.55)}
+                    size={darkShipConfirmed ? 20 : (contactPulse ? 26 : 20)}
+                    weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]} permanent={darkShipAlerted}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: darkShipConfirmed ? '#dc2626' : '#ef4444' }}>
                         {darkShipConfirmed ? '⚠ MILITIA — HOTEL-7' : '⚠ DARK CONTACT — HOTEL-7'}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                   {contactPulse && !darkShipConfirmed && (
                     <CircleMarker center={DARK_SHIP_POS} radius={22}
                       pathOptions={{ color: '#ef4444', fillOpacity: 0, weight: 1.5, opacity: 0.25 }}
@@ -671,25 +672,25 @@ const MDAISRMissionView = ({ mission, onBack }) => {
 
               {/* ── Saildrone Voyager dot ── */}
               {showPlatforms && (
-                <CircleMarker center={VOYAGER_POS} radius={9}
-                  pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.90, weight: 2 }}
+                <NTDSMarker position={VOYAGER_POS} domain="surface" affiliation="friend"
+                  color="#22d3ee" fill="#22d3ee" fillOpacity={0.90} size={18} weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 10 }}>Saildrone Voyager — SIGINT</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
 
               {/* ── MQ-4C Triton ── */}
               {showTriton && (
-                <CircleMarker center={tritonPos} radius={10}
-                  pathOptions={{ color: '#a78bfa', fillColor: '#a78bfa', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker position={tritonPos} domain="air" affiliation="friend"
+                  color="#a78bfa" fill="#a78bfa" fillOpacity={0.95} size={20} weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 10 }}>MQ-4C Triton — BAMS (55,000 ft)</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
             </MapContainer>
@@ -748,7 +749,7 @@ const MDAISRMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -794,7 +795,7 @@ const MDAISRMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

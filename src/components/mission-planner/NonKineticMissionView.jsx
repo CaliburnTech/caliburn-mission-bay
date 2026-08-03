@@ -13,6 +13,7 @@ import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
 // imgSaildrone unused
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -532,7 +533,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -562,7 +563,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* Animation row */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* Map */}
           <div className="flex-1 relative overflow-hidden">
@@ -705,14 +706,14 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                 <>
                   {/* M48 ALPHA + BRAVO */}
                   {[M48_ALPHA, M48_BRAVO].map((pos, i) => (
-                    <CircleMarker key={`masc-${i}`} center={pos}
-                      radius={falseFleetUp && !terminated ? (pulse ? 12 : 10) : 9}
-                      pathOptions={{
-                        color:       terminated ? '#4b5563' : falseFleetUp ? '#f59e0b' : '#78716c',
-                        fillColor:   terminated ? '#1f2937' : falseFleetUp ? '#f59e0b' : '#44403c',
-                        fillOpacity: falseFleetUp && !terminated ? 0.90 : 0.65,
-                        weight: 2,
-                      }}
+                    <NTDSMarker key={`masc-${i}`} position={pos}
+                      domain="surface"
+                      affiliation="friend"
+                      size={falseFleetUp && !terminated ? (pulse ? 24 : 20) : 18}
+                      color={terminated ? '#4b5563' : falseFleetUp ? '#f59e0b' : '#78716c'}
+                      fill={terminated ? '#1f2937' : falseFleetUp ? '#f59e0b' : '#44403c'}
+                      fillOpacity={falseFleetUp && !terminated ? 0.90 : 0.65}
+                      weight={2}
                     >
                       <Tooltip direction="top" offset={[0, -10]}>
                         <div>
@@ -721,18 +722,18 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                           {falseFleetUp && <div style={{ fontSize: 10, color: '#f59e0b' }}>{i === 0 ? 'DDG-174 HEFEI' : 'DDG-139 NINGBO'}</div>}
                         </div>
                       </Tooltip>
-                    </CircleMarker>
+                    </NTDSMarker>
                   ))}
 
                   {/* M48 CHARLIE — jammer */}
-                  <CircleMarker center={BS_M48}
-                    radius={jammerActive && !terminated ? (pulse ? 12 : 10) : 9}
-                    pathOptions={{
-                      color:       terminated ? '#4b5563' : jammerActive ? '#ef4444' : '#78716c',
-                      fillColor:   terminated ? '#1f2937' : jammerActive ? '#ef4444' : '#44403c',
-                      fillOpacity: jammerActive && !terminated ? 0.90 : 0.65,
-                      weight: 2,
-                    }}
+                  <NTDSMarker position={BS_M48}
+                    domain="surface"
+                    affiliation="friend"
+                    size={jammerActive && !terminated ? (pulse ? 24 : 20) : 18}
+                    color={terminated ? '#4b5563' : jammerActive ? '#ef4444' : '#78716c'}
+                    fill={terminated ? '#1f2937' : jammerActive ? '#ef4444' : '#44403c'}
+                    fillOpacity={jammerActive && !terminated ? 0.90 : 0.65}
+                    weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]}>
                       <div>
@@ -741,13 +742,15 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                         {jammerActive && !terminated && <div style={{ fontSize: 10, color: '#ef4444' }}>SOEA 100kW ACTIVE</div>}
                       </div>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
 
 
                   {/* Saildrone Voyager */}
-                  <CircleMarker center={SAILDRONE}
-                    radius={8}
-                    pathOptions={{ color: '#a855f7', fillColor: '#a855f7', fillOpacity: 0.75, weight: 2 }}
+                  <NTDSMarker position={SAILDRONE}
+                    domain="surface"
+                    affiliation="friend"
+                    size={16}
+                    color="#a855f7" fill="#a855f7" fillOpacity={0.75} weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]}>
                       <div>
@@ -755,19 +758,19 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                         <div style={{ fontSize: 10, opacity: 0.7 }}>Passive ESM — Silent</div>
                       </div>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
               {/* PLAN Type-055 radar picket */}
               {currentTick >= T_PLAN_SEARCH && (
-                <CircleMarker center={PINGTAN} radius={10}
-                  pathOptions={{
-                    color:       radarLocked ? '#ef4444' : '#3b82f6',
-                    fillColor:   radarLocked ? '#dc2626' : '#1d4ed8',
-                    fillOpacity: 0.90,
-                    weight: 2,
-                  }}
+                <NTDSMarker position={PINGTAN} size={20}
+                  domain="surface"
+                  affiliation="hostile"
+                  color={radarLocked ? '#ef4444' : '#3b82f6'}
+                  fill={radarLocked ? '#dc2626' : '#1d4ed8'}
+                  fillOpacity={0.90}
+                  weight={2}
                 >
                   <Tooltip permanent direction="top" offset={[0, -12]}>
                     <div>
@@ -777,18 +780,18 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                       <div style={{ fontSize: 10, opacity: 0.7 }}>Radar Picket — Western SCS</div>
                     </div>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* PLAN Luyang-III destroyer */}
               {currentTick >= T_DEPLOYED && (
-                <CircleMarker center={destroyerPos} radius={destroyerMoving ? 11 : 9}
-                  pathOptions={{
-                    color:       '#ef4444',
-                    fillColor:   destroyerMoving ? '#dc2626' : '#7f1d1d',
-                    fillOpacity: 0.90,
-                    weight: 2,
-                  }}
+                <NTDSMarker position={destroyerPos} size={destroyerMoving ? 22 : 18}
+                  domain="surface"
+                  affiliation="hostile"
+                  color="#ef4444"
+                  fill={destroyerMoving ? '#dc2626' : '#7f1d1d'}
+                  fillOpacity={0.90}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -10]}>
                     <div>
@@ -796,19 +799,18 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                       <div style={{ fontSize: 10, opacity: 0.7 }}>{destroyerMoving ? 'Intercepting false fleet — 28 kts' : 'Patrol'}</div>
                     </div>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* CVN-78 Gerald R. Ford */}
               {currentTick >= T_DEPLOYED && !cvnCleared && (
-                <CircleMarker center={cvnPos}
-                  radius={cvnCleared ? 0 : 14}
-                  pathOptions={{
-                    color:       '#e2e8f0',
-                    fillColor:   '#1e3a8a',
-                    fillOpacity: 0.95,
-                    weight: 3,
-                  }}
+                <NTDSMarker position={cvnPos}
+                  affiliation="ownship"
+                  size={cvnCleared ? 0 : 28}
+                  color="#e2e8f0"
+                  fill="#1e3a8a"
+                  fillOpacity={0.95}
+                  weight={3}
                 >
                   <Tooltip direction="right" offset={[12, 0]}>
                     <div>
@@ -818,7 +820,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
                       </div>
                     </div>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* CVN cleared — anchor dot where it exited */}
@@ -885,7 +887,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -930,7 +932,7 @@ const NonKineticMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

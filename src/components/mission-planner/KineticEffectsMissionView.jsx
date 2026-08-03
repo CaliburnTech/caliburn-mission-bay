@@ -14,6 +14,7 @@ import imgM48 from '../../assets/images/M48.png';
 import imgSaildrone from '../../assets/images/SaildroneUSV.png';
 import imgMQ4CTriton from '../../assets/images/MQ4C Triton.png';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -407,7 +408,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -437,7 +438,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -457,7 +458,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
               {/* Spectre ISR — draws BDA observation line after impact */}
               {showSpectre && (
                 <>
-                  <CircleMarker center={SPECTRE_POS} radius={7} pathOptions={{ color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.9, weight: 2 }} />
+                  <NTDSMarker position={SPECTRE_POS} domain="surface" affiliation="friend" color="#06b6d4" fill="#06b6d4" fillOpacity={0.9} size={14} weight={2} />
                   {tick >= T_IMPACT && (
                     <Polyline
                       positions={[SPECTRE_POS, TARGET_POS]}
@@ -473,7 +474,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
               {/* Triton — flies an elliptical ISR orbit; targeting line while target is alive, BDA line after impact */}
               {showTriton && (
                 <>
-                  <CircleMarker center={tritonPos} radius={6} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.7, weight: 2 }} />
+                  <NTDSMarker position={tritonPos} domain="air" affiliation="friend" color="#3b82f6" fill="#3b82f6" fillOpacity={0.7} size={12} weight={2} />
                   {!targetDead && (
                     <Polyline
                       positions={[tritonPos, TARGET_POS]}
@@ -496,12 +497,12 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
                 { pos: bravoPos,   color: '#f97316' },
                 { pos: charliePos, color: '#fbbf24' },
               ].map(({ pos, color }, i) => (
-                <CircleMarker key={i} center={pos} radius={8} pathOptions={{ color, fillColor: color, fillOpacity: 0.95, weight: 2 }} />
+                <NTDSMarker key={i} position={pos} domain="surface" affiliation="friend" color={color} fill={color} fillOpacity={0.95} size={16} weight={2} />
               ))}
 
               {/* Target */}
               {showTarget && !targetDead && (
-                <CircleMarker center={TARGET_POS} radius={8} pathOptions={{ color: '#ef4444', fillColor: '#1a0000', fillOpacity: 0.95, weight: 2.5, dashArray: '5 3' }} />
+                <NTDSMarker position={TARGET_POS} domain="surface" affiliation="hostile" color="#ef4444" fill="#1a0000" fillOpacity={0.95} size={16} weight={2.5} dashed />
               )}
               {targetDead && boomO < 0.1 && (
                 <CircleMarker center={TARGET_POS} radius={8} pathOptions={{ color: '#6b7280', fillColor: '#111', fillOpacity: 0.9, weight: 2 }} />
@@ -584,7 +585,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -631,7 +632,7 @@ const KineticEffectsMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

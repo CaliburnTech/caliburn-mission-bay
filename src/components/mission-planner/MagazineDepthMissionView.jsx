@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import MissionAdvisorChat from '../shared/MissionAdvisorChat';
 import { buildMissionContext } from '../../utils/advisorContext';
 import ReadinessChecklist from './ReadinessChecklist';
@@ -428,7 +429,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -466,7 +467,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -549,55 +550,81 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
 
               {/* ── Target — PLAN SAG ── */}
               {showTarget && (
-                <CircleMarker
-                  center={TARGET_POS}
-                  radius={9}
-                  pathOptions={{ color: '#ef4444', fillColor: '#450a0a', fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={TARGET_POS}
+                  domain="surface"
+                  affiliation="hostile"
+                  color="#ef4444"
+                  fill="#450a0a"
+                  fillOpacity={0.9}
+                  size={18}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#ef4444' }}>
                       {cecFused ? 'PLAN SAG — Fire-Control Quality' : 'PLAN SAG — Track Building'}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── Airborne sensor ── */}
               {currentTick >= T_ONSTATION && (
-                <CircleMarker
-                  center={airPos}
-                  radius={8}
-                  pathOptions={{ color: '#a78bfa', fillColor: '#4c1d95', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker
+                  position={airPos}
+                  domain="air"
+                  affiliation="friend"
+                  color="#a78bfa"
+                  size={16}
+                  weight={2}
+                  label={effectiveRoster[3]?.hullName ?? 'RQ-21A'}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa' }}>{`${effectiveRoster[3]?.hullName ?? 'RQ-21A Blackjack'} — Airborne Sensor`}</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── M48 Alpha with cell counter ── */}
               {currentTick >= T_ONSTATION && (
-                <CircleMarker
-                  center={alphaPos}
-                  radius={firing && pulse ? 12 : 10}
-                  pathOptions={{ color: cycling && alphaCells === 0 ? '#94a3b8' : '#60a5fa', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker
+                  position={alphaPos}
+                  domain="surface"
+                  affiliation="friend"
+                  color={cycling && alphaCells === 0 ? '#94a3b8' : '#60a5fa'}
+                  fill="#1e3a8a"
+                  fillOpacity={0.95}
+                  size={firing && pulse ? 24 : 20}
+                  weight={2}
+                  label="M48 Alpha"
                 />
               )}
 
               {/* ── M48 Bravo with cell counter ── */}
               {currentTick >= T_ONSTATION && (
-                <CircleMarker
-                  center={bravoPos}
-                  radius={10}
-                  pathOptions={{ color: '#60a5fa', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker
+                  position={bravoPos}
+                  domain="surface"
+                  affiliation="friend"
+                  color="#60a5fa"
+                  fill="#1e3a8a"
+                  fillOpacity={0.95}
+                  size={20}
+                  weight={2}
+                  label="M48 Bravo"
                 />
               )}
 
               {/* ── LCS command node — cell counter NEVER decrements, position never changes ── */}
-              <CircleMarker
-                center={LCS_POS}
-                radius={authorizing && pulse ? 17 : 14}
-                pathOptions={{ color: authorizing ? '#fbbf24' : '#3b82f6', fillColor: authorizing ? '#92400e' : '#1e3a8a', fillOpacity: 0.95, weight: 3 }}
+              <NTDSMarker
+                position={LCS_POS}
+                affiliation="ownship"
+                color={authorizing ? '#fbbf24' : '#3b82f6'}
+                fill={authorizing ? '#92400e' : '#1e3a8a'}
+                fillOpacity={0.95}
+                size={authorizing && pulse ? 34 : 28}
+                weight={3}
+                label="LCS"
               >
                 <Tooltip direction="top" offset={[0, -10]} permanent={currentTick >= T_ONSTATION}>
                   <span style={{ fontSize: 9, fontWeight: 700, color: authorizing ? '#fbbf24' : '#60a5fa' }}>
@@ -606,12 +633,12 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
                       : `LCS — Launch Authority · Own Cells: ${LCS_CELLS}/${LCS_CELLS}`}
                   </span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
             </MapContainer>
 
             {/* ── The deck's claim, in numbers that never change ── */}
-            <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-rose-500/30 backdrop-blur-sm">
+            <div className="absolute top-3 right-14 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-rose-500/30 backdrop-blur-sm">
               <div className="text-[0.6rem] uppercase tracking-widest text-rose-400/80 font-bold mb-0.5">Command Node</div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">LCS cells expended: <span className="font-bold text-emerald-400">0</span></div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">LCS station changes: <span className="font-bold text-emerald-400">0</span></div>
@@ -673,7 +700,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -732,7 +759,7 @@ const MagazineDepthMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

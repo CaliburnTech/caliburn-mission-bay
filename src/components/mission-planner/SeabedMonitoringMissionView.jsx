@@ -9,6 +9,7 @@ import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -575,7 +576,7 @@ const SeabedMonitoringMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -621,7 +622,7 @@ const SeabedMonitoringMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -679,23 +680,23 @@ const SeabedMonitoringMissionView = ({ mission, onBack }) => {
 
               {/* ── Surveyor (Ocean Aero Triton) ── */}
               {surveyorPos && (
-                <CircleMarker
-                  center={surveyorPos}
-                  radius={7}
-                  pathOptions={{
-                    color:       surveyorPulse ? '#ffffff' : (isDiving ? '#0e7490' : '#22d3ee'),
-                    fillColor:   surveyorPulse ? '#ffffff' : (isDiving ? '#0e7490' : '#22d3ee'),
-                    fillOpacity: isDiving ? 0.6 : 0.95,
-                    weight:      surveyorPulse ? 3 : 2,
-                    dashArray:   isDiving ? '3 3' : undefined,
-                  }}
+                <NTDSMarker
+                  position={surveyorPos}
+                  domain="surface"
+                  affiliation="friend"
+                  size={14}
+                  color={surveyorPulse ? '#ffffff' : (isDiving ? '#0e7490' : '#22d3ee')}
+                  fill={surveyorPulse ? '#ffffff' : (isDiving ? '#0e7490' : '#22d3ee')}
+                  fillOpacity={isDiving ? 0.6 : 0.95}
+                  weight={surveyorPulse ? 3 : 2}
+                  dashed={isDiving}
                 >
                   <Tooltip direction="top" offset={[0, -10]}>
                     <span style={{ fontSize: 11, fontWeight: 700 }}>
                       SEABED-TRITON-1{isDiving ? ' — Submerged, Close-Look' : ''}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── Station-hold pulse ring on Surveyor ── */}
@@ -932,7 +933,7 @@ const SeabedMonitoringMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -979,7 +980,7 @@ const SeabedMonitoringMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

@@ -13,6 +13,7 @@ import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
 import imgSubSeaSail from '../../assets/images/SubSeaSail.png';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -557,7 +558,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -620,7 +621,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Map + Sidebar ── */}
-        <div className="flex h-[40vh] md:h-[430px]">
+        <div className="flex h-[40vh] md:h-[430px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -664,15 +665,20 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
 
               {/* PLAN surface contact (visible during probe phase) */}
               {planContactVisible && (
-                <CircleMarker
-                    center={[12.5, 114.2]}
-                    radius={pulseTick ? 8 : 6}
-                    pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.85, weight: 2 }}
+                <NTDSMarker
+                    position={[12.5, 114.2]}
+                    domain="surface"
+                    affiliation="hostile"
+                    color="#f97316"
+                    fill="#f97316"
+                    fillOpacity={0.85}
+                    size={pulseTick ? 16 : 12}
+                    weight={2}
                 >
                     <Tooltip permanent direction="top" offset={[0, -12]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>⚠ PLAN FAC — Tracking</span>
                     </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* GPS-denied zone (amber) */}
@@ -709,13 +715,13 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
               )}
 
               {/* ESB staging marker */}
-              <CircleMarker center={ESB_POS} radius={7}
-                pathOptions={{ color: '#3b82f6', fillColor: '#1e3a8a', fillOpacity: 0.9, weight: 2 }}
+              <NTDSMarker position={ESB_POS} affiliation="ownship"
+                color="#3b82f6" fill="#1e3a8a" fillOpacity={0.9} size={14} weight={2}
               >
                 <Tooltip direction="right" offset={[10, 0]}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: '#93c5fd' }}>ESB Staging</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
               {/* EABO island base — always visible so destination is clear from the start */}
               <CircleMarker
@@ -750,33 +756,43 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
                       pathOptions={{ color: '#06b6d4', opacity: 0.45, weight: 1.5, dashArray: '4 6' }}
                     />
                   )}
-                  <CircleMarker
-                    center={scoutPos}
-                    radius={currentTick >= T_BEACH_CLEAR ? 4 : 5}
-                    pathOptions={{ color: '#06b6d4', fillColor: '#06b6d4', fillOpacity: 0.9, weight: 1.5 }}
+                  <NTDSMarker
+                    position={scoutPos}
+                    domain="surface"
+                    affiliation="friend"
+                    color="#06b6d4"
+                    fill="#06b6d4"
+                    fillOpacity={0.9}
+                    size={currentTick >= T_BEACH_CLEAR ? 8 : 10}
+                    weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]}>
                       <span style={{ fontSize: 9, color: '#67e8f9' }}>
                         {currentTick >= T_BEACH_CLEAR ? 'HORUS · LZ OVERWATCH' : 'HORUS SCOUT'}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
               {/* T82 main vessel */}
               {currentTick >= T_TRANSIT_START && (
-                <CircleMarker
-                  center={t82Pos}
-                  radius={9}
-                  pathOptions={{ color: '#8b5cf6', fillColor: '#8b5cf6', fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={t82Pos}
+                  domain="surface"
+                  affiliation="friend"
+                  color="#8b5cf6"
+                  fill="#8b5cf6"
+                  fillOpacity={0.9}
+                  size={18}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: isInWez ? '#a78bfa' : '#c4b5fd' }}>
                       {offloadActive ? 'M48 · OFFLOADING' : inRTB ? 'M48 · RTB' : `M48 BRAVO${gpsDeniedVisible ? ' · INS' : ''}`}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
             </MapContainer>
@@ -841,7 +857,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -884,7 +900,7 @@ const ContestedLogisticsMissionView = ({ mission, onBack }) => {
               )}
             </div>
 
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">Event Log</p>
               <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
                 {events.length === 0 ? (

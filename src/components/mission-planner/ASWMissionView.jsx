@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -499,7 +500,7 @@ const ASWMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -529,7 +530,7 @@ const ASWMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -643,10 +644,15 @@ const ASWMissionView = ({ mission, onBack }) => {
               {/* ── Hostile sub — anomalous (orange pulsing) ── */}
               {showSubAnomaly && subPos && (
                 <>
-                  <CircleMarker
-                    center={subPos}
-                    radius={subPulse ? 13 : 10}
-                    pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: subPulse ? 0.85 : 0.55, weight: 2 }}
+                  <NTDSMarker
+                    position={subPos}
+                    domain="sub"
+                    affiliation="hostile"
+                    color="#f97316"
+                    fill="#f97316"
+                    fillOpacity={subPulse ? 0.85 : 0.55}
+                    size={subPulse ? 26 : 20}
+                    weight={2}
                   />
 
                   {subPulse && (
@@ -660,10 +666,15 @@ const ASWMissionView = ({ mission, onBack }) => {
               {/* ── Hostile sub — confirmed contact (red) ── */}
               {showSubContact && subPos && (
                 <>
-                  <CircleMarker
-                    center={subPos}
-                    radius={subPulse ? 14 : 11}
-                    pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: subPulse ? 0.95 : 0.80, weight: 2 }}
+                  <NTDSMarker
+                    position={subPos}
+                    domain="sub"
+                    affiliation="hostile"
+                    color="#ef4444"
+                    fill="#ef4444"
+                    fillOpacity={subPulse ? 0.95 : 0.80}
+                    size={subPulse ? 28 : 22}
+                    weight={2}
                   />
                   {subPulse && (
                     <CircleMarker center={subPos} radius={22}
@@ -689,54 +700,54 @@ const ASWMissionView = ({ mission, onBack }) => {
 
               {/* ── MQ-8C Fire Scout ── */}
               {showHelo && heloPos && (
-                <CircleMarker center={heloPos} radius={10}
-                  pathOptions={{ color: '#4ade80', fillColor: '#166534', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker position={heloPos} domain="air" affiliation="friend"
+                  color="#4ade80" fill="#166534" fillOpacity={0.95} size={20} weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80' }}>MQ-8C Fire Scout</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── M48-ALPHA (lead passive array / single confirm ping) ── */}
               {currentTick >= T_DEPLOYED && (
-                <CircleMarker
-                  center={M48_CAPTAS_POS}
-                  radius={alphaPinging ? 16 : 13}
-                  pathOptions={{
-                    color:       '#67e8f9',
-                    fillColor:   '#67e8f9',
-                    fillOpacity: 0.90,
-                    weight: 2,
-                  }}
+                <NTDSMarker
+                  position={M48_CAPTAS_POS}
+                  domain="surface"
+                  affiliation="friend"
+                  color="#67e8f9"
+                  fill="#67e8f9"
+                  fillOpacity={0.90}
+                  size={alphaPinging ? 32 : 26}
+                  weight={2}
                 />
               )}
 
               {/* ── M48-BRAVO (MFTA passive SE) ── */}
               {currentTick >= T_DEPLOYED && (
-                <CircleMarker
-                  center={M48_MFTA_1_POS}
-                  radius={showBravoBearing ? 13 : 11}
-                  pathOptions={{
-                    color:       showBravoBearing ? '#fbbf24' : '#3b82f6',
-                    fillColor:   showBravoBearing ? '#fbbf24' : '#3b82f6',
-                    fillOpacity: 0.90,
-                    weight: 2,
-                  }}
+                <NTDSMarker
+                  position={M48_MFTA_1_POS}
+                  domain="surface"
+                  affiliation="friend"
+                  color={showBravoBearing ? '#fbbf24' : '#3b82f6'}
+                  fill={showBravoBearing ? '#fbbf24' : '#3b82f6'}
+                  fillOpacity={0.90}
+                  size={showBravoBearing ? 26 : 22}
+                  weight={2}
                 />
               )}
 
               {/* ── M48-CHARLIE (MFTA passive NE) ── */}
               {currentTick >= T_DEPLOYED && (
-                <CircleMarker
-                  center={M48_MFTA_2_POS}
-                  radius={showCharlieBearing ? 13 : 11}
-                  pathOptions={{
-                    color:       showCharlieBearing ? '#fbbf24' : '#3b82f6',
-                    fillColor:   showCharlieBearing ? '#fbbf24' : '#3b82f6',
-                    fillOpacity: 0.90,
-                    weight: 2,
-                  }}
+                <NTDSMarker
+                  position={M48_MFTA_2_POS}
+                  domain="surface"
+                  affiliation="friend"
+                  color={showCharlieBearing ? '#fbbf24' : '#3b82f6'}
+                  fill={showCharlieBearing ? '#fbbf24' : '#3b82f6'}
+                  fillOpacity={0.90}
+                  size={showCharlieBearing ? 26 : 22}
+                  weight={2}
                 />
               )}
 
@@ -798,7 +809,7 @@ const ASWMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -845,7 +856,7 @@ const ASWMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

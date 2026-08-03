@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -405,7 +406,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest relative">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -442,7 +443,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
 
       {/* ── Scrollable content ── */}
       <div>
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -498,37 +499,47 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
                     positions={currentTick < T_UAV_RTB ? [ADVERSARY_BASE, uavPos] : [uavPos, ADVERSARY_BASE]}
                     pathOptions={{ color: '#f97316', opacity: 0.5, weight: 1.5, dashArray: '5 6' }}
                   />
-                  <CircleMarker
-                    center={uavPos}
-                    radius={pulseTick && phase === 'uav_inbound' ? 8 : 6}
-                    pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.9, weight: 2 }}
+                  <NTDSMarker
+                    position={uavPos}
+                    domain="air"
+                    affiliation="hostile"
+                    color="#f97316"
+                    fill="#f97316"
+                    fillOpacity={0.9}
+                    size={pulseTick && phase === 'uav_inbound' ? 16 : 12}
+                    weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>Adversary ISR UAV (high-value)</span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
               {/* Horus decoy — the real (tiny) platform */}
               {currentTick >= T_START && (
-                <CircleMarker
-                  center={HORUS_STATION}
-                  radius={5}
-                  pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker
+                  position={HORUS_STATION}
+                  domain="surface"
+                  affiliation="friend"
+                  color="#22d3ee"
+                  fill="#22d3ee"
+                  fillOpacity={0.95}
+                  size={10}
+                  weight={2}
                 >
                   <Tooltip direction="bottom" offset={[0, 10]}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#67e8f9' }}>
                       {decoyOn ? 'HORUS-DECOY · emitter active' : 'HORUS-DECOY'}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
             </MapContainer>
 
             {badge && (
-              <div className={`absolute top-3 right-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+              <div className={`absolute top-3 right-14 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
                 {badge.label}
               </div>
             )}
@@ -595,7 +606,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -638,7 +649,7 @@ const TaiwanISRMissionView = ({ mission, onBack }) => {
               )}
             </div>
 
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">Event Log</p>
               <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
                 {events.length === 0 ? (

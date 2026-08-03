@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import MissionAdvisorChat from '../shared/MissionAdvisorChat';
 import { buildMissionContext } from '../../utils/advisorContext';
 import ReadinessChecklist from './ReadinessChecklist';
@@ -383,9 +384,9 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
   // liveLink: whether the asset can stream in real time. The Freedom AUV cannot —
   // RF does not propagate underwater, so it stores its take and uploads on recovery.
   const LAYERS = [
-    { pos: airPos,  color: '#a78bfa', label: 'Air',        senseNm: 48, liveLink: true },
-    { pos: surfPos, color: '#67e8f9', label: 'Surface',    senseNm: 28, liveLink: true },
-    { pos: subPos,  color: '#4ade80', label: 'Subsurface', senseNm: 8,  liveLink: false },
+    { pos: airPos,  color: '#a78bfa', label: 'Air',        senseNm: 48, liveLink: true,  domain: 'air',     unitLabel: effectiveRoster[1]?.hullName ?? 'Switchblade' },
+    { pos: surfPos, color: '#67e8f9', label: 'Surface',    senseNm: 28, liveLink: true,  domain: 'surface', unitLabel: effectiveRoster[2]?.hullName ?? 'M48' },
+    { pos: subPos,  color: '#4ade80', label: 'Subsurface', senseNm: 8,  liveLink: false, domain: 'sub',     unitLabel: effectiveRoster[3]?.hullName ?? 'Freedom AUV' },
   ];
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -393,7 +394,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -431,7 +432,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -485,31 +486,42 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
                     />
                   ))}
                   {/* asset marker */}
-                  <CircleMarker
-                    center={L.pos}
-                    radius={11}
-                    pathOptions={{ color: L.color, fillColor: L.color, fillOpacity: 0.9, weight: 2 }}
+                  <NTDSMarker
+                    position={L.pos}
+                    domain={L.domain}
+                    affiliation="friend"
+                    color={L.color}
+                    fill={L.color}
+                    fillOpacity={0.9}
+                    size={22}
+                    weight={2}
+                    label={L.unitLabel}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: L.color }}>
                         {L.liveLink || !streaming ? `${L.label} layer` : `${L.label} layer — storing data (no RF underwater; uploads on recovery)`}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </React.Fragment>
               ))}
 
               {/* ── LCS mothership (glows while receiving data) ── */}
               {currentTick >= T_DEPLOYED && (
-                <CircleMarker
-                  center={LCS_POS}
-                  radius={streaming && pulse ? 17 : 14}
-                  pathOptions={{ color: '#0ea5e9', fillColor: '#0369a1', fillOpacity: 0.95, weight: 3 }}
+                <NTDSMarker
+                  position={LCS_POS}
+                  affiliation="ownship"
+                  color="#0ea5e9"
+                  fill="#0369a1"
+                  fillOpacity={0.95}
+                  size={streaming && pulse ? 34 : 28}
+                  weight={3}
+                  label="LCS"
                 >
                   <Tooltip direction="top" offset={[0, -10]}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#38bdf8' }}>LCS Mothership</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
             </MapContainer>
@@ -651,7 +663,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -698,7 +710,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

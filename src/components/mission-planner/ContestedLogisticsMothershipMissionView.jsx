@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import MissionAdvisorChat from '../shared/MissionAdvisorChat';
 import { buildMissionContext } from '../../utils/advisorContext';
 import ReadinessChecklist from './ReadinessChecklist';
@@ -421,7 +422,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -459,7 +460,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -563,10 +564,17 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                         </Tooltip>
                       </CircleMarker>
                     )}
-                    <CircleMarker
-                      center={pos}
-                      radius={transferring ? 11 : 9}
-                      pathOptions={{ color: denied ? '#ef4444' : M48_COLOR, fillColor: '#1e3a8a', fillOpacity: 0.95, weight: denied ? 3 : 2, dashArray: denied ? '3 3' : undefined }}
+                    <NTDSMarker
+                      position={pos}
+                      domain="surface"
+                      affiliation="friend"
+                      color={denied ? '#ef4444' : M48_COLOR}
+                      fill="#1e3a8a"
+                      fillOpacity={0.95}
+                      size={transferring ? 22 : 18}
+                      weight={denied ? 3 : 2}
+                      dashed={denied}
+                      label={`M48 ${run.module.charAt(0) + run.module.slice(1).toLowerCase()}`}
                     >
                       <Tooltip direction="top" offset={[0, -8]} permanent={denied}>
                         <span style={{ fontSize: 9, fontWeight: 700, color: denied ? '#ef4444' : M48_COLOR }}>
@@ -575,26 +583,31 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
                             : `${effectiveRoster[run.rosterIdx]?.hullName ?? 'M48'} · ${run.module} ${cargoDelivered ? '(empty — RTB)' : `→ ${run.destLabel}`}`}
                         </span>
                       </Tooltip>
-                    </CircleMarker>
+                    </NTDSMarker>
                   </React.Fragment>
                 );
               })}
 
               {/* ── LCS logistics node — never moves, never crosses ── */}
-              <CircleMarker
-                center={LCS_NODE}
-                radius={14}
-                pathOptions={{ color: '#3b82f6', fillColor: '#1e3a8a', fillOpacity: 0.95, weight: 3 }}
+              <NTDSMarker
+                position={LCS_NODE}
+                affiliation="ownship"
+                color="#3b82f6"
+                fill="#1e3a8a"
+                fillOpacity={0.95}
+                size={28}
+                weight={3}
+                label="LCS"
               >
                 <Tooltip direction="bottom" offset={[0, 10]} permanent={currentTick >= T_DEMAND}>
                   <span style={{ fontSize: 9, fontWeight: 700, color: '#60a5fa' }}>LCS NODE · Outside the WEZ · Loads, Routes, Orchestrates</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
             </MapContainer>
 
             {/* ── The whole mission in two numbers ── */}
-            <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-violet-500/30 backdrop-blur-sm">
+            <div className="absolute top-3 right-14 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-violet-500/30 backdrop-blur-sm">
               <div className="text-[0.6rem] uppercase tracking-widest text-violet-400/80 font-bold mb-0.5">Inside the WEZ</div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">Unmanned hulls: <span className="font-bold text-violet-300">{showRuns ? 3 : 0}</span></div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">Crewed hulls: <span className="font-bold text-emerald-400">0</span></div>
@@ -655,7 +668,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -714,7 +727,7 @@ const ContestedLogisticsMothershipMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

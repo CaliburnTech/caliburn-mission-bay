@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import MissionAdvisorChat from '../shared/MissionAdvisorChat';
 import { buildMissionContext } from '../../utils/advisorContext';
 import ReadinessChecklist from './ReadinessChecklist';
@@ -39,7 +40,9 @@ const LCS_POS      = [21.70, 122.35];  // command node, north-east of the barrie
 const M48_LEAD     = [21.00, 121.70];  // lead array, centre of the barrier (CAPTAS-4)
 const M48_BRAVO    = [20.40, 121.95];  // south array
 const M48_CHARLIE  = [21.55, 121.40];  // north array
-const SUB_TRACK    = [[20.25, 121.00], [20.80, 121.55], [21.15, 121.85]];  // PLAN boat transit, SW → NE
+// PLAN boat transit, SW → NE. Terminal point held clear of the lead array's
+// marker + label so the contact never renders on top of "M48 Lead".
+const SUB_TRACK    = [[20.25, 121.00], [20.80, 121.55], [21.24, 122.00]];
 const BARRIER_LINE = [[20.10, 122.10], [21.90, 121.35]];  // ~150 nm Taiwan-to-Luzon gap
 
 const ARRAYS = [
@@ -434,13 +437,13 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
         <div className="w-px h-4 bg-gray-700/60" />
         <Waves size={13} className="text-cyan-400" />
-        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">Theater ASW — Mission 03</span>
+        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide whitespace-nowrap">Theater ASW — Mission 03 · Philippine Sea</span>
         <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
         <span className="hidden md:inline text-gray-500 text-[0.68rem]">Hunt on Passive · Confirm With One Ping · Kill From the Air</span>
         <div className="flex-1" />
@@ -472,7 +475,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -535,15 +538,11 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
 
               {/* ── Hostile submarine ── */}
               {subPos && (
-                <CircleMarker
-                  center={subPos}
-                  radius={8}
-                  pathOptions={{ color: '#ef4444', fillColor: '#450a0a', fillOpacity: 0.9, weight: 2 }}
-                >
+                <NTDSMarker position={subPos} domain="sub" affiliation="hostile" color="#ef4444" size={18} weight={2.5}>
                   <Tooltip direction="bottom" offset={[0, 8]}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#ef4444' }}>PLAN Submarine</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── Mk 54 detonation on the datum ── */}
@@ -581,10 +580,15 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
                         pathOptions={{ color: '#0891b2', weight: 1.4, opacity: 0.55, dashArray: '2 4' }}
                       />
                     )}
-                    <CircleMarker
-                      center={a.pos}
-                      radius={active ? 12 : 10}
-                      pathOptions={{ color: active ? '#fbbf24' : '#0891b2', fillColor: active ? '#92400e' : '#164e63', fillOpacity: 0.95, weight: 2 }}
+                    <NTDSMarker
+                      position={a.pos}
+                      domain="surface"
+                      affiliation="friend"
+                      color={active ? '#fbbf24' : '#0891b2'}
+                      fill={active ? '#92400e' : '#164e63'}
+                      size={active ? 24 : 20}
+                      weight={2}
+                      label={`${effectiveRoster[i + 1]?.hullName ?? 'M48'} ${['Lead', 'Bravo', 'Charlie'][i]}`}
                     >
                       <Tooltip direction="top" offset={[0, -8]}>
                         <span style={{ fontSize: 10, fontWeight: 700, color: active ? '#fbbf24' : '#22d3ee' }}>
@@ -593,7 +597,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
                             : `${effectiveRoster[i + 1]?.hullName ?? 'M48'} — EMCON PASSIVE`}
                         </span>
                       </Tooltip>
-                    </CircleMarker>
+                    </NTDSMarker>
                   </React.Fragment>
                 );
               })}
@@ -605,32 +609,39 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
                     positions={[LCS_POS, heloPos]}
                     pathOptions={{ color: '#f97316', weight: 1.2, opacity: 0.5, dashArray: '3 6' }}
                   />
-                  <CircleMarker
-                    center={heloPos}
-                    radius={9}
-                    pathOptions={{ color: '#f97316', fillColor: '#7c2d12', fillOpacity: 0.95, weight: 2 }}
+                  <NTDSMarker
+                    position={heloPos}
+                    domain="air"
+                    affiliation="friend"
+                    color="#f97316"
+                    size={20}
+                    weight={2.5}
+                    label={effectiveRoster[4]?.hullName ?? 'MH-60R'}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>
                         {`${effectiveRoster[4]?.hullName ?? 'MH-60R'} — ${currentTick >= T_DROP ? 'Mk 54 away' : 'inbound to datum'}`}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
-              {/* ── LCS command node ── */}
-              <CircleMarker
-                center={LCS_POS}
-                radius={phase === 'authorizing' && pulse ? 17 : 14}
-                pathOptions={{ color: phase === 'authorizing' ? '#fbbf24' : '#0891b2', fillColor: phase === 'authorizing' ? '#92400e' : '#155e75', fillOpacity: 0.95, weight: 3 }}
+              {/* ── LCS command node — ownship symbol (circle + cross) ── */}
+              <NTDSMarker
+                position={LCS_POS}
+                affiliation="ownship"
+                color={phase === 'authorizing' ? '#fbbf24' : '#0891b2'}
+                size={phase === 'authorizing' && pulse ? 32 : 28}
+                weight={2.5}
+                label="LCS"
               >
-                <Tooltip direction="top" offset={[0, -10]} permanent={phase === 'authorizing'}>
+                <Tooltip direction="top" offset={[0, -14]} permanent={phase === 'authorizing'}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: phase === 'authorizing' ? '#fbbf24' : '#22d3ee' }}>
                     {phase === 'authorizing' ? 'CTF-72 — Weapons Free Authorization' : 'LCS Command Node'}
                   </span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
             </MapContainer>
 
@@ -730,7 +741,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
             })()}
 
             {/* ── Emissions counter — the deck's argument in one number ── */}
-            <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-cyan-500/30 backdrop-blur-sm">
+            <div className="absolute top-3 right-14 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-cyan-500/30 backdrop-blur-sm">
               <div className="text-[0.6rem] uppercase tracking-widest text-cyan-400/80 font-bold mb-0.5">Barrier Acoustic Emissions</div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">
                 Active pings this mission: <span className={`font-bold ${currentTick >= T_PING ? 'text-amber-400' : 'text-emerald-400'}`}>{currentTick >= T_PING ? 1 : 0}</span>
@@ -792,7 +803,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -851,7 +862,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

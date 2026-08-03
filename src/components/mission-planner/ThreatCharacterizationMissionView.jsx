@@ -12,6 +12,7 @@ import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -479,7 +480,7 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -509,7 +510,7 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -576,22 +577,22 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
               {/* ── SLEEPER-01 contact (NARCOTIC) ── */}
               {showContact1 && (
                 <>
-                  <CircleMarker
-                    center={CONTACT_1_POS}
-                    radius={contact1Characterized ? 10 : (contactPulse ? 13 : 10)}
-                    pathOptions={{
-                      color:       contact1Characterized ? '#10b981' : '#f59e0b',
-                      fillColor:   contact1Characterized ? '#10b981' : '#f59e0b',
-                      fillOpacity: contact1Characterized ? 0.95 : (contactPulse ? 0.85 : 0.55),
-                      weight: 2,
-                    }}
+                  <NTDSMarker
+                    position={CONTACT_1_POS}
+                    domain="surface"
+                    affiliation="hostile"
+                    size={contact1Characterized ? 20 : (contactPulse ? 26 : 20)}
+                    color={contact1Characterized ? '#10b981' : '#f59e0b'}
+                    fill={contact1Characterized ? '#10b981' : '#f59e0b'}
+                    fillOpacity={contact1Characterized ? 0.95 : (contactPulse ? 0.85 : 0.55)}
+                    weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]} permanent={currentTick >= T_EOIR}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: contact1Characterized ? '#10b981' : '#f59e0b' }}>
                         {contact1Characterized ? '✓ SLEEPER-01 — NARCOTIC' : '⚠ SLEEPER-01 — SEMI-SUB'}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                   {contactPulse && !contact1Characterized && (
                     <CircleMarker center={CONTACT_1_POS} radius={22}
                       pathOptions={{ color: '#f59e0b', fillOpacity: 0, weight: 1.5, opacity: 0.25 }}
@@ -602,13 +603,13 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
 
               {/* ── Saildrone Voyager picket ── */}
               {showPicket && (
-                <CircleMarker center={picketPos} radius={9}
-                  pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.90, weight: 2 }}
+                <NTDSMarker position={picketPos} domain="surface" affiliation="friend" size={18}
+                  color="#22d3ee" fill="#22d3ee" fillOpacity={0.90} weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 10 }}>{effectiveRoster[0]?.name ?? 'Saildrone Voyager — Characterization Picket'}</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── USCG cutter ── */}
@@ -619,15 +620,15 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
                     pathOptions={{ color: '#a78bfa', weight: 2, opacity: 0.55, dashArray: '5 6' }}
                   />
                   {/* Larger radius than the picket (9) or the contact (10, pulses to 13) — a cutter is a much bigger hull */}
-                  <CircleMarker center={cutterPos} radius={16}
-                    pathOptions={{ color: '#a78bfa', fillColor: '#a78bfa', fillOpacity: 0.95, weight: 2 }}
+                  <NTDSMarker position={cutterPos} domain="surface" affiliation="friend" size={32}
+                    color="#a78bfa" fill="#a78bfa" fillOpacity={0.95} weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -12]}>
                       <span style={{ fontSize: 10 }}>
                         {currentTick < T_HANDOFF ? 'USCG Cutter — Inbound from Patrol Station' : 'USCG Cutter — Prosecuting Asset'}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
@@ -687,7 +688,7 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -733,7 +734,7 @@ const ThreatCharacterizationMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

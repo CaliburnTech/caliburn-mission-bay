@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import MissionAdvisorChat from '../shared/MissionAdvisorChat';
 import { buildMissionContext } from '../../utils/advisorContext';
@@ -467,7 +468,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -505,7 +506,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -590,15 +591,20 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
 
               {/* ── Knifefish classifier ── */}
               {classifierPos && (
-                <CircleMarker
-                  center={classifierPos}
-                  radius={7}
-                  pathOptions={{ color: '#4ade80', fillColor: '#166534', fillOpacity: 0.9, weight: 2, dashArray: '2 3' }}
+                <NTDSMarker
+                  position={classifierPos}
+                  domain="sub"
+                  affiliation="friend"
+                  color="#4ade80"
+                  size={14}
+                  weight={2}
+                  dashed
+                  label={effectiveRoster[2]?.hullName ?? 'Knifefish'}
                 >
                   <Tooltip direction="bottom" offset={[0, 8]}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80' }}>{`${effectiveRoster[2]?.hullName ?? 'Knifefish'} — ${classifierWorking ? 'classifying below' : currentTick < T_CLASSIFY ? 'transiting from LCS mission bay' : 'RTB — recovering to LCS'}`}</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── MCM USV hunter with sonar swath ── */}
@@ -609,33 +615,44 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                     radius={pulse && (phase === 'hunting' || sweeping) ? 24 : 20}
                     pathOptions={{ color: '#fdba74', fill: false, weight: 1, opacity: 0.35 }}
                   />
-                  <CircleMarker
-                    center={hunterPos}
-                    radius={10}
-                    pathOptions={{ color: '#fb923c', fillColor: '#9a3412', fillOpacity: 0.95, weight: 2 }}
+                  <NTDSMarker
+                    position={hunterPos}
+                    domain="surface"
+                    affiliation="friend"
+                    color="#fb923c"
+                    fill="#9a3412"
+                    fillOpacity={0.95}
+                    size={20}
+                    weight={2}
+                    label={effectiveRoster[1]?.hullName ?? 'MCM USV'}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>{`${effectiveRoster[1]?.hullName ?? 'MCM USV'} — ${currentTick < T_HUNT ? 'launched from mothership, transiting' : sweeping ? 'clearance pass' : neutralizing ? 'Barracuda firing position' : 'AN/AQS-20C tow'}`}</span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
               {/* ── LCS command node — outside the field, never moves ── */}
-              <CircleMarker
-                center={LCS_POS}
-                radius={14}
-                pathOptions={{ color: '#fb923c', fillColor: '#7c2d12', fillOpacity: 0.95, weight: 3 }}
+              <NTDSMarker
+                position={LCS_POS}
+                affiliation="ownship"
+                color="#fb923c"
+                fill="#7c2d12"
+                fillOpacity={0.95}
+                size={28}
+                weight={3}
+                label="LCS"
               >
                 <Tooltip direction="top" offset={[0, -10]} permanent={currentTick >= T_STANDOFF}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: '#fdba74' }}>LCS — No Crew at Risk</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
             </MapContainer>
 
             {/* ── The whole mission in two numbers — on screen from tick 0 ── */}
-            <div className="absolute top-3 right-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-orange-500/30 backdrop-blur-sm">
+            <div className="absolute top-3 right-14 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/85 border border-orange-500/30 backdrop-blur-sm">
               <div className="text-[0.6rem] uppercase tracking-widest text-orange-400/80 font-bold mb-0.5">Inside the Minefield</div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">Crewed hulls: <span className="font-bold text-emerald-400">0</span></div>
               <div className="text-[0.72rem] text-gray-200 tabular-nums">Divers in the water: <span className="font-bold text-emerald-400">0</span></div>
@@ -696,7 +713,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -755,7 +772,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

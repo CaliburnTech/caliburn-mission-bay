@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -508,7 +509,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -545,7 +546,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
       {/* ── Scrollable content ── */}
       <div>
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -685,15 +686,20 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
               )}
 
               {/* USS Laboon */}
-              <CircleMarker
-                center={USS_LABOON_POS}
-                radius={7}
-                pathOptions={{ color: 'var(--caliburn-text-secondary)', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
+              <NTDSMarker
+                position={USS_LABOON_POS}
+                domain="surface"
+                affiliation="friend"
+                color="var(--caliburn-text-secondary)"
+                fill="#334155"
+                fillOpacity={0.9}
+                size={14}
+                weight={2}
               >
                 <Tooltip permanent direction="right" offset={[10, 0]}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--caliburn-text-secondary)' }}>USS Laboon</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
               {/* Engagement solution vector USS Laboon → threat */}
               {phase === 'fire_control_alerted' && threatPos && (
@@ -742,10 +748,15 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
               {/* Threat marker */}
               {showThreat && threatPos && (
-                <CircleMarker
-                  center={threatPos}
-                  radius={threatPulse && ['rf_detect', 'radar_track', 'scion_classify'].includes(phase) ? 10 : 8}
-                  pathOptions={{ color: tColor, fillColor: tColor, fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={threatPos}
+                  domain="air"
+                  affiliation="hostile"
+                  color={tColor}
+                  fill={tColor}
+                  fillOpacity={0.9}
+                  size={threatPulse && ['rf_detect', 'radar_track', 'scion_classify'].includes(phase) ? 20 : 16}
+                  weight={2}
                 >
                   <Tooltip permanent direction="top" offset={[0, -12]}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: tColor }}>
@@ -757,7 +768,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
                       }
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* NAVCENT — NSA Bahrain */}
@@ -773,17 +784,22 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
 
               {/* M48 vessel marker */}
               {currentTick >= T_PATROL_START && (
-                <CircleMarker
-                  center={m48Pos}
-                  radius={8}
-                  pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={m48Pos}
+                  domain="surface"
+                  affiliation="friend"
+                  color="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.9}
+                  size={16}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: lanternDeployed ? '#22d3ee' : lanternRising ? '#67e8f9' : '#93c5fd' }}>
                       {lanternDeployed ? `${effectiveRoster[0]?.name ?? 'M48'} · DPI Vulture ↑ 500ft` : lanternRising ? `${effectiveRoster[0]?.name ?? 'M48'} · LANTERN ↑ ascending…` : (effectiveRoster[0]?.name ?? 'M48')}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
             </MapContainer>
@@ -903,7 +919,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
             })()}
 
             {badge && (
-              <div className={`absolute top-3 right-3 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
+              <div className={`absolute top-3 right-14 z-[500] px-3 py-1.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider pointer-events-none border ${badge.cls}`}>
                 {badge.label}
               </div>
             )}
@@ -937,7 +953,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -981,7 +997,7 @@ const ISRTetheredDroneMissionView = ({ mission, onBack }) => {
               )}
             </div>
 
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">Event Log</p>
               <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
                 {events.length === 0 ? (

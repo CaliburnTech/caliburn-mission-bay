@@ -13,6 +13,7 @@ import { MISSION_ROLES } from '../../data/missionRoles';
 import imgM48 from '../../assets/images/M48.png';
 import imgMariner from '../../assets/images/Mariner.png';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -427,7 +428,7 @@ const ProtectionsMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button onClick={onBack} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]">
           <ChevronLeft size={13} /> Back to Library
         </button>
@@ -457,7 +458,7 @@ const ProtectionsMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -476,29 +477,29 @@ const ProtectionsMissionView = ({ mission, onBack }) => {
 
               {/* CVN */}
               {showCVN && (
-                <CircleMarker center={hvuPos} radius={12} pathOptions={{ color: '#eab308', fillColor: '#1a1500', fillOpacity: 0.95, weight: 3 }} />
+                <NTDSMarker position={hvuPos} affiliation="ownship" color="#eab308" fill="#1a1500" fillOpacity={0.95} size={24} weight={3} />
               )}
 
               {/* M48-A (port) */}
               {showCVN && (
-                <CircleMarker center={picketAPos} radius={7} pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2 }} />
+                <NTDSMarker position={picketAPos} domain="surface" affiliation="friend" color="#ef4444" fill="#ef4444" fillOpacity={0.9} size={14} weight={2} />
               )}
 
               {/* M48-B (starboard) */}
               {showCVN && (
-                <CircleMarker center={picketBPos} radius={7} pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.9, weight: 2 }} />
+                <NTDSMarker position={picketBPos} domain="surface" affiliation="friend" color="#f97316" fill="#f97316" fillOpacity={0.9} size={14} weight={2} />
               )}
 
               {/* Mariner */}
               {showCVN && (
-                <CircleMarker center={shadowPos} radius={6} pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.85, weight: 2 }} />
+                <NTDSMarker position={shadowPos} domain="surface" affiliation="friend" color="#10b981" fill="#10b981" fillOpacity={0.85} size={12} weight={2} />
               )}
 
               {/* Drone swarm dots */}
               {dronesActive && DRONE_TARGETS.map((target, i) => {
                 const pos = getDronePos(tick, target);
                 if (!pos) return null;
-                return <CircleMarker key={`d${i}`} center={pos} radius={3} pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.75, weight: 1 }} />;
+                return <NTDSMarker key={`d${i}`} position={pos} domain="air" affiliation="hostile" color="#ef4444" fill="#ef4444" fillOpacity={0.75} size={6} weight={2} />;
               })}
 
               {/* HPM burst ring */}
@@ -506,11 +507,11 @@ const ProtectionsMissionView = ({ mission, onBack }) => {
 
               {/* Fast-attack USV */}
               {showUSV && usvPos && (
-                <CircleMarker center={usvPos} radius={6} pathOptions={{ color: '#ef4444', fillColor: '#7f0000', fillOpacity: 0.9, weight: 2, dashArray: '4 2' }}>
+                <NTDSMarker position={usvPos} domain="surface" affiliation="hostile" color="#ef4444" fill="#7f0000" fillOpacity={0.9} size={12} weight={2} dashed>
                   <Tooltip permanent direction="right" offset={[8, 0]}>
                     <span style={{ fontSize: 10, whiteSpace: 'nowrap', color: '#ef4444', fontWeight: 700 }}>Magura V5 · HOSTILE USV</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* Coyote */}
@@ -589,7 +590,7 @@ const ProtectionsMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -636,7 +637,7 @@ const ProtectionsMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

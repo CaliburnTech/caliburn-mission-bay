@@ -11,6 +11,7 @@ import useOutfitterStore from '../../store/outfitterStore';
 import useConfigurationStore from '../../store/configurationStore';
 import useNavigationStore from '../../store/navigationStore';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -468,7 +469,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -505,7 +506,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
 
       {/* ── Scrollable content ── */}
       <div>
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -523,17 +524,22 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
               <MapInvalidateSize />
 
               {/* ── Sea Jeep · static holding position ── */}
-              <CircleMarker
-                center={SEA_JEEP_STATION}
-                radius={7}
-                pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.9, weight: 2 }}
+              <NTDSMarker
+                position={SEA_JEEP_STATION}
+                domain="surface"
+                affiliation="friend"
+                size={14}
+                color="#22d3ee"
+                fill="#22d3ee"
+                fillOpacity={0.9}
+                weight={2}
               >
                 <Tooltip direction="top" offset={[0, -12]}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#22d3ee' }}>
                     SEA-JEEP-ISR-1
                   </span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
               {/* ── Mast indicator · small white dot above Sea Jeep when on station ── */}
               {onStation && (
@@ -574,15 +580,19 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
 
               {/* ── DDG · visible once on station ── */}
               {showDDG && (
-                <CircleMarker
-                  center={DDG_POS}
-                  radius={7}
-                  pathOptions={{ color: 'var(--caliburn-text-secondary)', fillColor: '#334155', fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={DDG_POS}
+                  affiliation="ownship"
+                  size={14}
+                  color="var(--caliburn-text-secondary)"
+                  fill="#334155"
+                  fillOpacity={0.9}
+                  weight={2}
                 >
                   <Tooltip permanent direction="left" offset={[-10, 0]}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--caliburn-text-secondary)' }}>DDG ON STATION</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── Launch flash · orange pulse at LAUNCH_SITE ── */}
@@ -613,15 +623,20 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
 
               {/* ── Drone marker · red, animated along DRONE_TRACK ── */}
               {droneVisible && dronePos && (
-                <CircleMarker
-                  center={dronePos}
-                  radius={5}
-                  pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker
+                  position={dronePos}
+                  domain="air"
+                  affiliation="hostile"
+                  size={10}
+                  color="#ef4444"
+                  fill="#ef4444"
+                  fillOpacity={0.95}
+                  weight={2}
                 >
                   <Tooltip permanent direction="top" offset={[0, -10]}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444' }}>⚠ HOSTILE UAS</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── Relay line · dashed cyan Sea Jeep → DDG ── */}
@@ -738,7 +753,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -783,7 +798,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

@@ -11,6 +11,7 @@ import useNavigationStore from '../../store/navigationStore';
 import { vesselHullData } from '../../data/vesselData';
 import { MISSION_ROLES } from '../../data/missionRoles';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -542,7 +543,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -581,7 +582,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Animation row ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -609,27 +610,36 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
 
               {/* ── AUV marker ── */}
               {auvPos && (
-                <CircleMarker
-                  center={auvPos}
-                  radius={5}
-                  pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.95, weight: 2 }}
+                <NTDSMarker
+                  position={auvPos}
+                  domain="sub"
+                  affiliation="friend"
+                  color="#22d3ee"
+                  fill="#22d3ee"
+                  fillOpacity={0.95}
+                  size={10}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -8]}>
                     <span style={{ fontSize: 11, fontWeight: 700 }}>FREEDOM-1 AUV</span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
               {/* ── USS Lewis B. Puller launch vessel ── */}
-              <CircleMarker
-                center={AUV_SHIP}
-                radius={7}
-                pathOptions={{ color: '#94a3b8', fillColor: '#475569', fillOpacity: 0.9, weight: 2 }}
+              <NTDSMarker
+                position={AUV_SHIP}
+                affiliation="ownship"
+                color="#94a3b8"
+                fill="#475569"
+                fillOpacity={0.9}
+                size={14}
+                weight={2}
               >
                 <Tooltip direction="right" offset={[10, 0]}>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>USS Puller</span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
               {/* ── NSA Bahrain MOC ── */}
               <CircleMarker
@@ -720,15 +730,20 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
                 const mineState = vessel.targetMine ? getMineState(vessel.targetMine, currentTick) : 'hidden';
                 return (
                   <React.Fragment key={vessel.id}>
-                    <CircleMarker
-                      center={pos}
-                      radius={7}
-                      pathOptions={{ color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.9, weight: 2 }}
+                    <NTDSMarker
+                      position={pos}
+                      domain="surface"
+                      affiliation="friend"
+                      color="#22d3ee"
+                      fill="#22d3ee"
+                      fillOpacity={0.9}
+                      size={14}
+                      weight={2}
                     >
                       <Tooltip direction="top" offset={[0, -10]}>
                         <span style={{ fontSize: 11, fontWeight: 700 }}>SubSeaSail {vessel.label}</span>
                       </Tooltip>
-                    </CircleMarker>
+                    </NTDSMarker>
 
                     {/* Acoustic homing line — HORUS tracking pinger while inbound and locked */}
                     {mine && mineState !== 'neutralized' && currentTick >= T_HORUS_TASK && (
@@ -811,7 +826,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -858,7 +873,7 @@ const MineClearanceMissionView = ({ mission, onBack }) => {
             </div>
 
             {/* Event log */}
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">
                 Event Log
               </p>

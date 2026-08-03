@@ -13,6 +13,7 @@ import { MISSION_ROLES } from '../../data/missionRoles';
 import imgSaildrone from '../../assets/images/SaildroneUSV.png';
 import imgVATN from '../../assets/images/VATN_New.png';
 import SwapVesselModal from './SwapVesselModal';
+import NTDSMarker from './NTDSMarker';
 import ReadinessChecklist from './ReadinessChecklist';
 import { getMissionReadiness } from '../../utils/missionReadiness';
 import { HULL_IMAGES } from '../../utils/hullImages';
@@ -602,7 +603,7 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
     <div className="flex flex-col bg-darkest">
 
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-x border-t border-b border-gray-700/50 flex-shrink-0 overflow-x-auto">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-[0.75rem]"
@@ -666,7 +667,7 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
       <div>
 
         {/* ── Map + Sidebar ── */}
-        <div className="flex h-[40vh] md:h-[460px]">
+        <div className="flex h-[40vh] md:h-[460px] border-x border-b border-gray-700/50">
 
           {/* ── Map ── */}
           <div className="flex-1 relative overflow-hidden">
@@ -779,22 +780,22 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
               </CircleMarker>
 
               {/* Target hull — always visible */}
-              <CircleMarker
-                center={TARGET_HULL}
-                radius={disablementActive ? (pulseTick ? 11 : 9) : 8}
-                pathOptions={{
-                  color:       disablementActive ? '#ef4444' : '#f87171',
-                  fillColor:   disablementActive ? '#7f1d1d' : '#450a0a',
-                  fillOpacity: 0.9,
-                  weight: 2,
-                }}
+              <NTDSMarker
+                position={TARGET_HULL}
+                domain="surface"
+                affiliation="hostile"
+                size={disablementActive ? (pulseTick ? 22 : 18) : 16}
+                color={disablementActive ? '#ef4444' : '#f87171'}
+                fill={disablementActive ? '#7f1d1d' : '#450a0a'}
+                fillOpacity={0.9}
+                weight={2}
               >
                 <Tooltip direction="bottom" offset={[0, 12]}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: '#f87171' }}>
                     {disablementActive ? '✷ TARGET HULL — MOBILITY KILL' : 'Target Hull'}
                   </span>
                 </Tooltip>
-              </CircleMarker>
+              </NTDSMarker>
 
               {/* Disablement effect ring — pulses at target hull */}
               {disablementActive && (
@@ -815,26 +816,36 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
                       pathOptions={{ color: '#14b8a6', opacity: 0.45, weight: 1.5, dashArray: '4 6' }}
                     />
                   )}
-                  <CircleMarker
-                    center={uuvPos}
-                    radius={6}
-                    pathOptions={{ color: '#14b8a6', fillColor: '#0f766e', fillOpacity: 0.9, weight: 2 }}
+                  <NTDSMarker
+                    position={uuvPos}
+                    domain="sub"
+                    affiliation="friend"
+                    size={12}
+                    color="#14b8a6"
+                    fill="#0f766e"
+                    fillOpacity={0.9}
+                    weight={2}
                   >
                     <Tooltip direction="top" offset={[0, -10]}>
                       <span style={{ fontSize: 9, color: '#5eead4' }}>
                         {currentTick >= T_TARGET_ACQUIRED ? `${uuvName} · ON TARGET` : `${uuvName}${gpsDeniedVisible ? ' · INS' : ''}`}
                       </span>
                     </Tooltip>
-                  </CircleMarker>
+                  </NTDSMarker>
                 </>
               )}
 
               {/* Host (Saildrone Spectre) — makes the SOF delivery run itself */}
               {hostActive && (
-                <CircleMarker
-                  center={hostPos}
-                  radius={9}
-                  pathOptions={{ color: '#8b5cf6', fillColor: '#8b5cf6', fillOpacity: 0.9, weight: 2 }}
+                <NTDSMarker
+                  position={hostPos}
+                  domain="surface"
+                  affiliation="friend"
+                  size={18}
+                  color="#8b5cf6"
+                  fill="#8b5cf6"
+                  fillOpacity={0.9}
+                  weight={2}
                 >
                   <Tooltip direction="top" offset={[0, -14]}>
                     <span style={{ fontSize: 10, color: '#c4b5fd' }}>
@@ -845,7 +856,7 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
                         : `${hostName}${gpsDeniedVisible ? ' · EMCON · INS' : ''}`}
                     </span>
                   </Tooltip>
-                </CircleMarker>
+                </NTDSMarker>
               )}
 
             </MapContainer>
@@ -926,7 +937,7 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-700/50 flex-shrink-0">
+            <div className="p-4 border-b border-gray-700/50 overflow-y-auto min-h-0">
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest mb-3">Scenario</p>
               <div className="flex gap-2 mb-3">
                 {running ? (
@@ -969,7 +980,7 @@ const SOFStrikeSupportMissionView = ({ mission, onBack }) => {
               )}
             </div>
 
-            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0' }}>
+            <div className="flex flex-col overflow-hidden" style={{ flex: '1 1 0', minHeight: 110 }}>
               <p className="text-gray-500 text-[0.65rem] uppercase tracking-widest px-4 pt-3 pb-2 flex-shrink-0">Event Log</p>
               <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-0">
                 {events.length === 0 ? (
