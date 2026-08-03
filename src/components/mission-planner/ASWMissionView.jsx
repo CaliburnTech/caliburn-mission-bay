@@ -174,12 +174,12 @@ const getFriendlyTorpedoPos = (tick) => {
 const getPhaseBadge = (phase) => {
   const m = {
     deployed:       { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                   label: '● Sensors Deployed' },
-    passive_search: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                   label: '◌ Passive Barrier — Silent' },
+    passive_search: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                   label: '◌ Passive Barrier · Silent' },
     passive_detect: { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',  label: '⚠ Passive Tonal Held' },
     mfta_correlate: { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40 animate-pulse',  label: '◈ Multistatic Cross-Fix' },
     contact_est:    { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Localized (Passive)' },
     active_confirm: { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40 animate-pulse',     label: '⚡ Single Confirmation Ping' },
-    confirmed:      { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Confirmed — Weapons Free' },
+    confirmed:      { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                      label: '● SIERRA-7 Confirmed · Weapons Free' },
     helo_inbound:   { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',     label: '→ MQ-8C Fire Scout Inbound' },
     torpedo_drop:   { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',        label: '⚡ Mk 54 Away' },
     contact_lost:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ SIERRA-7 Prosecuted' },

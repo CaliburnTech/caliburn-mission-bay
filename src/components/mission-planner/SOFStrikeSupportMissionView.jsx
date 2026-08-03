@@ -203,20 +203,20 @@ const getUuvPos = (tick) => {
 
 const getPhaseBadge = (phase) => {
   const m = {
-    idle:                 { cls: 'bg-gray-800/80 text-gray-300 border-gray-600/40',                        label: '⬛ On Station — EMCON Hold' },
-    covert_transit:       { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse',    label: '◈ Covert Transit — EMCON · Stealth Strike Config' },
-    release_point:        { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                         label: '→ Release Point Reached — INS Hold' },
+    idle:                 { cls: 'bg-gray-800/80 text-gray-300 border-gray-600/40',                        label: '⬛ On Station · EMCON Hold' },
+    covert_transit:       { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse',    label: '◈ Covert Transit · EMCON · Stealth Strike Config' },
+    release_point:        { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                         label: '→ Release Point Reached · INS Hold' },
     release_uuv:          { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',           label: '⬇ Releasing Disablement UUV' },
-    sof_delivery_transit: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',           label: '→ Spectre Inbound — Delivering SOF Element' },
-    uuv_ins_transit:      { cls: 'bg-amber-900/80 text-amber-400 border-amber-400/60 animate-pulse',        label: '⚡ UUV INS Transit — GPS-Denied · RF Screen Up' },
-    sof_ashore:           { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                label: '✓ At Shore Objective — SOF Disembarking' },
+    sof_delivery_transit: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',           label: '→ Spectre Inbound · Delivering SOF Element' },
+    uuv_ins_transit:      { cls: 'bg-amber-900/80 text-amber-400 border-amber-400/60 animate-pulse',        label: '⚡ UUV INS Transit · GPS-Denied · RF Screen Up' },
+    sof_ashore:           { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                label: '✓ At Shore Objective · SOF Disembarking' },
     return_transit:       { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',           label: '← Spectre Returning to Release Point' },
     target_acquired:      { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',        label: '◎ Target Hull Localized' },
     firing_solution:      { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',        label: '◎ Attach / Firing Solution Computed' },
-    hitl_authorize:       { cls: 'bg-orange-900/80 text-orange-300 border-orange-400/60 animate-pulse',     label: '⚠ HITL GATE — Awaiting Operator Authorization' },
-    disablement_effect:   { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',              label: '✷ Disablement Effect — Mobility Kill' },
-    egress:               { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',           label: '← Egress — EMCON Maintained' },
-    exfil_confirm:        { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                label: '✓ Exfil Confirmed — SOF & Host Clear' },
+    hitl_authorize:       { cls: 'bg-orange-900/80 text-orange-300 border-orange-400/60 animate-pulse',     label: '⚠ HITL GATE · Awaiting Operator Authorization' },
+    disablement_effect:   { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',              label: '✷ Disablement Effect · Mobility Kill' },
+    egress:               { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',           label: '← Egress · EMCON Maintained' },
+    exfil_confirm:        { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                label: '✓ Exfil Confirmed · SOF & Host Clear' },
   };
   return m[phase] || null;
 };

@@ -100,12 +100,12 @@ const getPhaseBadge = (phase) => {
     deployed:        { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '● Barrier Patrol Active' },
     dark_ship:       { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Dark Contact Detected' },
     ais_check:       { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40',               label: '◈ AIS Correlation Failure' },
-    pol_flag:        { cls: 'bg-orange-900/80 text-orange-300 border-orange-400/50 animate-pulse', label: '⚠ Behavioral Anomaly — Loitering' },
-    alert_gen:       { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                     label: '● CoT Alert Generated — ATAK Push' },
-    link16_tx:       { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',    label: '⚡ Link 16 Broadcast — HOTEL-7' },
+    pol_flag:        { cls: 'bg-orange-900/80 text-orange-300 border-orange-400/50 animate-pulse', label: '⚠ Behavioral Anomaly · Loitering' },
+    alert_gen:       { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                     label: '● CoT Alert Generated · ATAK Push' },
+    link16_tx:       { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',    label: '⚡ Link 16 Broadcast · HOTEL-7' },
     triton_vectors:  { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40',            label: '→ MQ-4C Triton Vectored' },
-    triton_on_stn:   { cls: 'bg-violet-900/80 text-violet-200 border-violet-400/60',            label: '◈ Triton On Station — ISAR' },
-    classified:      { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Contact Classified — Militia' },
+    triton_on_stn:   { cls: 'bg-violet-900/80 text-violet-200 border-violet-400/60',            label: '◈ Triton On Station · ISAR' },
+    classified:      { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Contact Classified · Militia' },
   };
   return m[phase] || null;
 };

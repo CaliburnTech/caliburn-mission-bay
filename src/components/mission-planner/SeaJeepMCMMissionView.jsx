@@ -208,16 +208,16 @@ const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'departing':             return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',       label: '→ Departing Odessa' };
     case 'tow_deployed':          return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',       label: '◈ Tow Fish Deployed' };
-    case 'fls_halt_alpha':        return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ FLS HALT — Classifying' };
-    case 'mine_alpha_confirmed':  return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',          label: '● ALPHA Confirmed — Marking' };
+    case 'fls_halt_alpha':        return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ FLS HALT · Classifying' };
+    case 'mine_alpha_confirmed':  return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',          label: '● ALPHA Confirmed · Marking' };
     case 'resume_survey':         return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',       label: '→ Routing Around ALPHA' };
-    case 'sidescan_bravo':        return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',    label: '◉ Side-Scan Contact — BRAVO' };
-    case 'mine_bravo_confirmed':  return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',          label: '● BRAVO Confirmed — Marking' };
-    case 'mid_survey':            return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',       label: '◈ Mid-Corridor — 90% Coverage' };
-    case 'fls_halt_charlie':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ FLS HALT — Classifying' };
-    case 'mine_charlie_confirmed':return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',          label: '● CHARLIE Confirmed — Marking' };
-    case 'survey_complete':       return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Survey Complete — 3 Mines Mapped' };
-    case 'data_transmitted':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Mine Map Transmitted — HORUS Tasked' };
+    case 'sidescan_bravo':        return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',    label: '◉ Side-Scan Contact · BRAVO' };
+    case 'mine_bravo_confirmed':  return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',          label: '● BRAVO Confirmed · Marking' };
+    case 'mid_survey':            return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',       label: '◈ Mid-Corridor · 90% Coverage' };
+    case 'fls_halt_charlie':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ FLS HALT · Classifying' };
+    case 'mine_charlie_confirmed':return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',          label: '● CHARLIE Confirmed · Marking' };
+    case 'survey_complete':       return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Survey Complete · 3 Mines Mapped' };
+    case 'data_transmitted':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Mine Map Transmitted · HORUS Tasked' };
     default:                      return null;
   }
 };

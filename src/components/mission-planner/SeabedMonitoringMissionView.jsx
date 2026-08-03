@@ -246,15 +246,15 @@ const anomalyMarkerOpts = (state, pulse) => {
 const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'deploy_survey_lane':  return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '→ Deploying to Survey Lane' };
-    case 'baseline_scan':       return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '◈ Baseline Scan — SAS Active' };
-    case 'anomaly_flagged':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Anomaly Flagged — Change Detected' };
-    case 'das_alert':           return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse', label: '● DAS ALERT — Third-Party Interference' };
-    case 'close_look_dive':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',     label: '↓ Diving — Close-Look Inbound' };
+    case 'baseline_scan':       return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '◈ Baseline Scan · SAS Active' };
+    case 'anomaly_flagged':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ Anomaly Flagged · Change Detected' };
+    case 'das_alert':           return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse', label: '● DAS ALERT · Third-Party Interference' };
+    case 'close_look_dive':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',     label: '↓ Diving · Close-Look Inbound' };
     case 'close_look_imaging':  return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse', label: '◎ Close-Look Imaging' };
     case 'anomaly_characterized':return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',    label: '◈ Anomaly Characterized' };
-    case 'contact_report':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Contact Report — NATO CUI Cell' };
+    case 'contact_report':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Contact Report · NATO CUI Cell' };
     case 'resume_survey':       return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',        label: '→ Resuming Survey Lane' };
-    case 'survey_complete':     return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Survey Complete — Corridor Cleared' };
+    case 'survey_complete':     return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Survey Complete · Corridor Cleared' };
     default:                    return null;
   }
 };

@@ -173,18 +173,22 @@ export const MISSION_ROLES = {
       {
         roleKey: 'MDAM_SUB',
         roleLabel: 'Subsurface Layer (UUV)',
-        description: 'Freedom AUV extending awareness into the water below. Passive acoustic sensing detects subsurface contacts and relays tracks to the LCS on surfacing/comms windows.',
+        description: 'Freedom AUV extending awareness into the water below. Passive acoustic sensing detects subsurface contacts and relays tracks to the LCS on surfacing/comms windows. MOOS-IvP mission autonomy runs the profile without a link, SeaFIND INS holds position through GPS-denied depth, and a FarSounder forward-looking sonar gives it below-water obstacle awareness.',
         // NB: the 1,800 kg ESM/SIGINT module was removed — Freedom AUV capacity is
         // 500 kg, so the role failed SWaP on its own default hull (pre-existing bug).
+        // Current payload ≈ 40 kg (relay 15 + MOOS-IvP 0 + SeaFIND 10.4 + FarSounder 14).
         capabilities: [
           'Passive Sonar Track Relay',
+          'MOOS-IvP',
+          'SeaFIND Inertial Navigation',
+          'FarSounder Argos 500',
         ],
         allowedPlatformTypes: ['UUV'],
         defaultHullName: 'Freedom AUV',
         suggestedHullNames: ['Freedom AUV', 'VATN S6'],
         requirements: {
-          categories: ['SENSORS'],
-          subTypes: [],
+          categories: ['SENSORS', 'NAV', 'AI'],
+          subTypes: ['NAV_INS'],
         },
       },
     ],
@@ -302,7 +306,7 @@ export const MISSION_ROLES = {
           'MILSATCOM Terminal',
           'Link 16 Track Broadcast',
           'HiveLink SDR',
-          'Autonomous Cargo Handling System',
+          'FMD AutoHook',
           'NSYTE AI Maintenance System',
         ],
         allowedPlatformTypes: ['Ship'],
@@ -362,7 +366,7 @@ export const MISSION_ROLES = {
       {
         roleKey: 'CLM_MAGAZINE',
         roleLabel: 'Magazine Run (M48)',
-        description: 'M48 carrying a Mk 70 PDS reload module forward to a Mission 01 shooter, so an empty M48 regenerates its magazine without transiting all the way back to a rear node.',
+        description: 'M48 carrying a Mk 70 PDS reload module forward to the combatant on station, regenerating its magazine without pulling it off the line. M48s are never resupply destinations — an empty delivery hull transits back to the node itself.',
         capabilities: [
           'Mk 70 PDS Reload Module',
           'Autonomous Cargo Handling System',
@@ -491,7 +495,7 @@ export const MISSION_ROLES = {
     ],
   },
 
-  // ─── STANDOFF MCM — Mission 04 — Bashi Channel (Autonomy Mission Series) ──────
+  // ─── STANDOFF MCM — Mission 04 — Strait of Hormuz (Autonomy Mission Series) ───
   // MISSION_SET_KEY = 'STANDOFF_MCM'
   // VESSEL_ROSTER order: [LCS (command node), MCM USV (hunter/neutralizer), Knifefish (classifier)]
   // Barracuda neutralizers launch from the MCM USV — there is no separate
@@ -509,6 +513,7 @@ export const MISSION_ROLES = {
           'Link 16 Track Broadcast',
           'MILSATCOM Terminal',
           'HiveLink SDR',
+          'FMD AutoHook',
           'NSYTE AI Maintenance System',
         ],
         allowedPlatformTypes: ['Ship'],

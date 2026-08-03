@@ -35,12 +35,12 @@ const MAP_CENTER  = [21.00, 121.65];
 const MAP_ZOOM    = 7;
 const MAP_ZOOM_IN = 8;
 
-const LCS_POS      = [20.30, 120.95];  // command node, south-west of the barrier
-const M48_LEAD     = [21.00, 121.60];  // lead array, centre of the barrier (CAPTAS-4)
-const M48_BRAVO    = [21.60, 121.35];  // north array
-const M48_CHARLIE  = [20.45, 121.90];  // south array
-const SUB_TRACK    = [[21.75, 122.30], [21.20, 121.75], [20.85, 121.45]];  // PLAN boat transit
-const BARRIER_LINE = [[21.90, 121.20], [20.10, 121.95]];  // ~150 nm Taiwan-to-Luzon gap
+const LCS_POS      = [21.70, 122.35];  // command node, north-east of the barrier
+const M48_LEAD     = [21.00, 121.70];  // lead array, centre of the barrier (CAPTAS-4)
+const M48_BRAVO    = [20.40, 121.95];  // south array
+const M48_CHARLIE  = [21.55, 121.40];  // north array
+const SUB_TRACK    = [[20.25, 121.00], [20.80, 121.55], [21.15, 121.85]];  // PLAN boat transit, SW → NE
+const BARRIER_LINE = [[20.10, 122.10], [21.90, 121.35]];  // ~150 nm Taiwan-to-Luzon gap
 
 const ARRAYS = [
   { pos: M48_LEAD,    key: 'lead' },
@@ -52,9 +52,9 @@ const ARRAYS = [
 const T_BARRIER  =  8;   // arrays streaming, EMCON — PASSIVE
 const T_TONAL    = 22;   // first bearing from the nearest array
 const T_CROSSFIX = 36;   // second and third bearings; track snaps to intersection
-const T_PING     = 52;   // the single active ping — once, then gone
-const T_WEAPONS  = 62;   // CTF-72 weapons free
-const T_HELO     = 70;   // MH-60R lifts from the LCS
+const T_WEAPONS  = 52;   // CTF-72 weapons free on the passive track
+const T_HELO     = 60;   // MH-60R lifts from the LCS
+const T_PING     = 68;   // the single active ping — held until the helo is inbound
 const T_DROP     = 82;   // Mk 54 away — torpedo in the water
 const T_KILL     = 90;   // detonation on the datum — confirmed kill
 const T_COMPLETE = 102;  // helo home, barrier resumes
@@ -79,8 +79,8 @@ const PHASE_NARRATIVE = {
   listening:   { title: 'The Barrier Listens', body: 'Three M48s tow passive MFTA arrays across the Taiwan-to-Luzon gap and never radiate. The barrier is held by machines under emission control; the LCS command node fuses whatever they hear. Nothing in the water is emitting.' },
   contact:     { title: 'A Tonal, One Bearing', body: 'A submarine tonal rises above threshold on the nearest array. One passive bearing is a line on a chart, not a target — the barrier stays silent and keeps listening while USW-DSS is tasked.' },
   crossfixing: { title: 'Cross-Fix Without a Sound', body: 'Overlapping bearings from the dispersed arrays intersect at the LCS. USW-DSS cross-fixes the contact into a track — still zero acoustic emissions. No single hull could have held this track alone.' },
-  confirming:  { title: 'Exactly One Ping', body: 'The track reaches firing-solution quality. The lead M48\'s CAPTAS-4 emits one active confirmation ping — one, and then silence again. The barrier gives away a single pulse for a firing solution.' },
-  authorizing: { title: 'Weapons Free — A Human Decides', body: 'CTF-72 evaluates the confirmed contact and authorizes prosecution. The hunters stay silent and unlocalized; the decision to kill is made by people, off the barrier.' },
+  confirming:  { title: 'Exactly One Ping', body: 'With the MH-60R already inbound, the lead M48\'s CAPTAS-4 emits one active confirmation ping — one, and then silence again. Range and classification are confirmed seconds before the drop, so the barrier gives away nothing until the shooter is on top of the contact.' },
+  authorizing: { title: 'Weapons Free — A Human Decides', body: 'CTF-72 evaluates the passive track and authorizes prosecution. The hunters stay silent and unlocalized; the decision to kill is made by people, off the barrier. The confirmation ping is held until the shooter is airborne.' },
   prosecuting: { title: 'Kill From the Air', body: 'The MH-60R lifts off the LCS flight deck — the only crewed asset exposed, after the contact is found, for the kill rather than the search. ALFS refines the datum and a Mk 54 goes on it.' },
   complete:    { title: 'Confirmed Kill — Barrier Held', body: 'Mk 54 detonation on the datum: contact destroyed, kill confirmed by the ALFS. The helo recovers to the LCS and the barrier resumes passive watch. Total acoustic emissions for the entire engagement: one ping. Hunt on passive. Confirm with one ping. Kill from the air.' },
 };
@@ -102,9 +102,10 @@ const getPhase = (tick) => {
   if (tick < T_BARRIER)  return 'idle';
   if (tick < T_TONAL)    return 'listening';
   if (tick < T_CROSSFIX) return 'contact';
-  if (tick < T_PING)     return 'crossfixing';
-  if (tick < T_WEAPONS)  return 'confirming';
+  if (tick < T_WEAPONS)  return 'crossfixing';
   if (tick < T_HELO)     return 'authorizing';
+  if (tick < T_PING)     return 'prosecuting';
+  if (tick < T_PING + PING_DURATION) return 'confirming';
   if (tick < T_COMPLETE) return 'prosecuting';
   return 'complete';
 };
@@ -132,13 +133,13 @@ const getHeloPos = (tick, datum) => {
 
 const getPhaseBadge = (phase) => {
   const m = {
-    listening:   { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '◉ EMCON — Passive Barrier' },
+    listening:   { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '◉ EMCON · Passive Barrier' },
     contact:     { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40 animate-pulse',    label: '⌐ Tonal Above Threshold' },
-    crossfixing: { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40 animate-pulse',    label: '✕ USW-DSS Cross-Fix — Still Silent' },
+    crossfixing: { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/40 animate-pulse',    label: '✕ USW-DSS Cross-Fix · Still Silent' },
     confirming:  { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '◎ One Active Ping' },
-    authorizing: { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse', label: '⚑ CTF-72 — Weapons Free?' },
+    authorizing: { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse', label: '⚑ CTF-72 · Weapons Free?' },
     prosecuting: { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '➤ MH-60R Prosecuting' },
-    complete:    { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Confirmed Kill — One Ping Total' },
+    complete:    { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Confirmed Kill · One Ping Total' },
   };
   return m[phase] || null;
 };
@@ -331,17 +332,17 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
         addEvtRef.current('Overlapping bearings cross-fix the contact — track opened', 'warn');
         addEvtRef.current(`${v0}: Track building toward firing-solution quality — still zero emissions`, 'info');
       }
-      if (tick === T_PING) {
-        addEvtRef.current(`${v1}: CAPTAS-4 — ONE active confirmation ping`, 'alert');
-      }
-      if (tick === T_PING + PING_DURATION) {
-        addEvtRef.current('Silence resumed — firing solution held', 'info');
-      }
       if (tick === T_WEAPONS) {
-        addEvtRef.current('CTF-72: contact confirmed — WEAPONS FREE', 'alert');
+        addEvtRef.current('CTF-72: passive track at firing-solution quality — WEAPONS FREE', 'alert');
       }
       if (tick === T_HELO) {
         addEvtRef.current(`${v4}: Airborne off the LCS deck — only crewed asset exposed`, 'info');
+      }
+      if (tick === T_PING) {
+        addEvtRef.current(`${v1}: CAPTAS-4 — ONE active confirmation ping — ${v4} inbound`, 'alert');
+      }
+      if (tick === T_PING + PING_DURATION) {
+        addEvtRef.current('Silence resumed — firing solution confirmed for the drop', 'info');
       }
       if (tick === T_DROP) {
         addEvtRef.current(`${v4}: Mk 54 away — torpedo in the water`, 'alert');
@@ -611,7 +612,7 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>
-                        {`${effectiveRoster[4]?.hullName ?? 'MH-60R'} — ${currentTick >= T_HELO + 12 ? 'Mk 54 away' : 'inbound to datum'}`}
+                        {`${effectiveRoster[4]?.hullName ?? 'MH-60R'} — ${currentTick >= T_DROP ? 'Mk 54 away' : 'inbound to datum'}`}
                       </span>
                     </Tooltip>
                   </CircleMarker>
@@ -640,11 +641,16 @@ const TheaterASWMissionView = ({ mission, onBack }) => {
               const heloImg = effectiveRoster[4]?.image;
 
               // Helo flies in from the left and hovers DIRECTLY over the boat,
-              // nose-forward (art is mirrored below), so the drop is a plumb line
+              // nose-forward (art is mirrored below), so the drop is a plumb line.
+              // When it turns for home on the main map (T_KILL + 2), it exits the
+              // frame to the right — it should not linger over a dead contact.
               const heloArrive = T_HELO + 8;
+              const heloDepart = T_KILL + 2;
               const heloX = currentTick < heloArrive
                 ? -70 + ((currentTick - T_HELO) / (heloArrive - T_HELO)) * 218
-                : 148;   // image center ≈ heloX + 10 = 158 — right above the sub
+                : currentTick < heloDepart
+                  ? 148   // image center ≈ heloX + 10 = 158 — right above the sub
+                  : 148 + ((currentTick - heloDepart) / (T_COMPLETE - heloDepart)) * 220;
 
               // Torpedo: released over the boat and falls STRAIGHT DOWN
               let torpY = null;

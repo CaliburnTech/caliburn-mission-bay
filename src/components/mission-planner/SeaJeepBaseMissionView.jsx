@@ -181,13 +181,13 @@ const getContactState = (cId, tick) => {
 const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'transit':           return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',          label: '→ Transit to Patrol Box' };
-    case 'patrol_box':        return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',          label: '◈ Patrol Box Active — EO/IR Scanning' };
-    case 'contact_alpha':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ CONTACT — DARK-ALPHA' };
+    case 'patrol_box':        return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',          label: '◈ Patrol Box Active · EO/IR Scanning' };
+    case 'contact_alpha':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ CONTACT · DARK-ALPHA' };
     case 'photo_alpha':       return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',          label: '📷 DARK-ALPHA Photographed' };
-    case 'contact_bravo':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ CONTACT — DARK-BRAVO' };
+    case 'contact_bravo':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ CONTACT · DARK-BRAVO' };
     case 'transit_whitsun':   return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',          label: '→ Transit to Whitsun Reef' };
-    case 'contact_charlie':   return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ CONTACT — DARK-CHARLIE' };
-    case 'report_transmitted':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '↑ Report Transmitted — 7th Fleet MOC' };
+    case 'contact_charlie':   return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ CONTACT · DARK-CHARLIE' };
+    case 'report_transmitted':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '↑ Report Transmitted · 7th Fleet MOC' };
     case 'patrol_complete':   return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40', label: '✓ Patrol Cycle Complete' };
     default:                  return null;
   }

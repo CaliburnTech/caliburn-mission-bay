@@ -130,8 +130,8 @@ const getPhaseBadge = (phase) => {
     case 'decoy_active':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',      label: '◈ Projecting Frigate Signature' };
     case 'adversary_detect': return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',           label: '⚠ Adversary Paints Phantom Contact' };
     case 'uav_inbound':      return { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '→ High-Value ISR UAV Inbound' };
-    case 'uav_investigate':  return { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '◎ UAV Investigating — Finds a Sailboat' };
-    case 'uav_rtb':          return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                    label: '← UAV RTB — Nothing Gained' };
+    case 'uav_investigate':  return { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40 animate-pulse',   label: '◎ UAV Investigating · Finds a Sailboat' };
+    case 'uav_rtb':          return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                    label: '← UAV RTB · Nothing Gained' };
     case 'resource_waste':   return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Adversary Resources Wasted' };
     default: return null;
   }

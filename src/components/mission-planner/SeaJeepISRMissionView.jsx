@@ -393,15 +393,15 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
   const getPhaseBadge = () => {
     switch (phase) {
       case 'transit':           return { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                    label: '→ Transit to Station' };
-      case 'on_station':        return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                    label: '↑ Mast Deployed — EO/IR Active' };
-      case 'mast_deployed':     return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                    label: '↑ Mast Stable — Scanning' };
-      case 'loitering':         return { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/50',                    label: '◉ Loitering — Sector Clear' };
-      case 'launch_flash':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ LAUNCH FLASH — Bearing 045' };
-      case 'drone_tracked':     return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '⚠ UAS Track — Relaying to DDG' };
-      case 'relay_to_ddg':      return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '⚡ Track Relay — DDG Computing Solution' };
-      case 'ddg_intercept':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                 label: '→ SM-2 Away — Intercept Inbound' };
-      case 'threat_neutralized':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ UAS Destroyed — Merchant Safe' };
-      case 'resume_watch':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ Lane BRAVO-2 Open — Watch Resumed' };
+      case 'on_station':        return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                    label: '↑ Mast Deployed · EO/IR Active' };
+      case 'mast_deployed':     return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                    label: '↑ Mast Stable · Scanning' };
+      case 'loitering':         return { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/50',                    label: '◉ Loitering · Sector Clear' };
+      case 'launch_flash':      return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',   label: '⚠ LAUNCH FLASH · Bearing 045' };
+      case 'drone_tracked':     return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '⚠ UAS Track · Relaying to DDG' };
+      case 'relay_to_ddg':      return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',         label: '⚡ Track Relay · DDG Computing Solution' };
+      case 'ddg_intercept':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',                 label: '→ SM-2 Away · Intercept Inbound' };
+      case 'threat_neutralized':return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ UAS Destroyed · Merchant Safe' };
+      case 'resume_watch':      return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',           label: '✓ Lane BRAVO-2 Open · Watch Resumed' };
       default: return null;
     }
   };
@@ -413,7 +413,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
     const hull = vesselHullData.find(h => h.name === vessel.hullName);
     if (!hull) return;
     setSelectedHull(hull);
-    // Only start fresh if no active config for this hull — preserve user's customisations on re-entry
+    // Only start fresh if no active config for this hull · preserve user's customisations on re-entry
     const currentActive = useConfigurationStore.getState().activeConfig;
     if (!currentActive || currentActive.hullName !== vessel.hullName) {
       startNewConfiguration(vessel.hullName);
@@ -435,7 +435,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
       status: 'active',
       duration: 'continuous',
       zoneConfig: {
-        name: 'Bab-el-Mandeb — Red Sea ISR Station',
+        name: 'Bab-el-Mandeb · Red Sea ISR Station',
         coordinates: [
           { lat: 12.0, lng: 43.2 },
           { lat: 13.2, lng: 43.2 },
@@ -477,9 +477,9 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
         </button>
         <div className="w-px h-4 bg-gray-700/60" />
         <Anchor size={13} className="text-cyan-400" />
-        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">Bab-el-Mandeb ISR — Red Sea</span>
+        <span className="text-cyan-400 text-[0.8rem] font-semibold tracking-wide">Bab-el-Mandeb ISR · Red Sea</span>
         <span className="hidden md:inline text-gray-600 text-[0.7rem]">·</span>
-        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Autonomous drone-watch station — Houthi UAS threat, NAVCENT AOR</span>
+        <span className="hidden md:inline text-gray-500 text-[0.68rem]">Autonomous drone-watch station · Houthi UAS threat, NAVCENT AOR</span>
         <div className="flex-1" />
         <span className="px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 text-[0.65rem] font-bold uppercase tracking-wider border border-emerald-500/30">
           ACTIVE
@@ -522,7 +522,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
               <TileLayer url={TILE_SEAMARK} opacity={0.55} />
               <MapInvalidateSize />
 
-              {/* ── Sea Jeep — static holding position ── */}
+              {/* ── Sea Jeep · static holding position ── */}
               <CircleMarker
                 center={SEA_JEEP_STATION}
                 radius={7}
@@ -535,7 +535,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 </Tooltip>
               </CircleMarker>
 
-              {/* ── Mast indicator — small white dot above Sea Jeep when on station ── */}
+              {/* ── Mast indicator · small white dot above Sea Jeep when on station ── */}
               {onStation && (
                 <CircleMarker
                   center={[SEA_JEEP_STATION[0] + 0.018, SEA_JEEP_STATION[1]]}
@@ -561,18 +561,18 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Merchant vessel — always visible ── */}
+              {/* ── Merchant vessel · always visible ── */}
               <CircleMarker
                 center={MERCHANT_POS}
                 radius={5}
                 pathOptions={{ color: '#e5e7eb', fillColor: '#e5e7eb', fillOpacity: 0.85, weight: 1.5 }}
               >
                 <Tooltip direction="left" offset={[-10, 0]}>
-                  <span style={{ fontSize: 10 }}>Commercial Vessel — Lane BRAVO-2</span>
+                  <span style={{ fontSize: 10 }}>Commercial Vessel · Lane BRAVO-2</span>
                 </Tooltip>
               </CircleMarker>
 
-              {/* ── DDG — visible once on station ── */}
+              {/* ── DDG · visible once on station ── */}
               {showDDG && (
                 <CircleMarker
                   center={DDG_POS}
@@ -585,7 +585,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 </CircleMarker>
               )}
 
-              {/* ── Launch flash — orange pulse at LAUNCH_SITE ── */}
+              {/* ── Launch flash · orange pulse at LAUNCH_SITE ── */}
               {phase === 'launch_flash' && (
                 <CircleMarker
                   center={LAUNCH_SITE}
@@ -603,7 +603,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 </CircleMarker>
               )}
 
-              {/* ── Drone track polyline — dashed red ── */}
+              {/* ── Drone track polyline · dashed red ── */}
               {(phase === 'drone_tracked' || phase === 'relay_to_ddg' || phase === 'ddg_intercept') && droneVisible && (
                 <Polyline
                   positions={DRONE_TRACK}
@@ -611,7 +611,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 />
               )}
 
-              {/* ── Drone marker — red, animated along DRONE_TRACK ── */}
+              {/* ── Drone marker · red, animated along DRONE_TRACK ── */}
               {droneVisible && dronePos && (
                 <CircleMarker
                   center={dronePos}
@@ -624,7 +624,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 </CircleMarker>
               )}
 
-              {/* ── Relay line — dashed cyan Sea Jeep → DDG ── */}
+              {/* ── Relay line · dashed cyan Sea Jeep → DDG ── */}
               {showRelay && (
                 <Polyline
                   positions={[SEA_JEEP_STATION, DDG_POS]}
@@ -651,7 +651,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                 </>
               )}
 
-              {/* ── Intercept flash — orange/yellow burst at INTERCEPT_POINT ── */}
+              {/* ── Intercept flash · orange/yellow burst at INTERCEPT_POINT ── */}
               {interceptFlash && (
                 <CircleMarker
                   center={INTERCEPT_POINT}
@@ -695,11 +695,11 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
             <div className="hidden md:block absolute bottom-3 left-3 z-[500] pointer-events-none px-3 py-2 rounded-xl bg-gray-950/80 border border-gray-700/50 backdrop-blur-sm">
               <div className="flex flex-col gap-1">
                 {[
-                  { color: '#22d3ee', label: 'SEA-JEEP-ISR-1 — GP-USV on station' },
-                  { color: 'var(--caliburn-text-secondary)', label: 'DDG — Arleigh Burke destroyer' },
-                  { color: '#e5e7eb', label: 'Merchant — Lane BRAVO-2' },
-                  { color: '#ef4444', label: 'Hostile UAS — Houthi drone' },
-                  { color: '#fde68a', label: 'SM-2 — Standard Missile' },
+                  { color: '#22d3ee', label: 'SEA-JEEP-ISR-1 · GP-USV on station' },
+                  { color: 'var(--caliburn-text-secondary)', label: 'DDG · Arleigh Burke destroyer' },
+                  { color: '#e5e7eb', label: 'Merchant · Lane BRAVO-2' },
+                  { color: '#ef4444', label: 'Hostile UAS · Houthi drone' },
+                  { color: '#fde68a', label: 'SM-2 · Standard Missile' },
                 ].map(({ color, label }) => (
                   <div key={label} className="flex items-center gap-2">
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -870,7 +870,7 @@ const SeaJeepISRMissionView = ({ mission, onBack }) => {
                       (() => {
                         const assignment = roleAssignments?.[MISSION_SET_KEY]?.[missionRoleDefs[idx]?.roleKey];
                         if (!assignment) return null;
-                        // Prefer the in-flight active config — it reflects the latest unsaved changes.
+                        // Prefer the in-flight active config · it reflects the latest unsaved changes.
                         // Only fall back to savedConfigurations if activeConfig is for a different hull.
                         const ac = useConfigurationStore.getState().activeConfig;
                         if (ac && ac.hullName === assignment.hullName) return ac;

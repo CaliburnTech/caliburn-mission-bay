@@ -136,15 +136,15 @@ const getThreatPos = (tick) => {
 const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'm48_patrol':          return { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                  label: '→ M48-ALPHA Autonomous Patrol' };
-    case 'lantern_deployed':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '↑ DPI Vulture Ascending — 500ft' };
+    case 'lantern_deployed':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '↑ DPI Vulture Ascending · 500ft' };
     case 'rf_detect':           return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ HiddenLevel RF Anomaly' };
     case 'radar_track':         return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse', label: '⚠ DPI Vulture Radar Track Initiated' };
-    case 'scion_classify':      return { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse', label: '◈ Scion — Multi-Sensor Fusion' };
-    case 'threat_confirmed':    return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ THREAT CONFIRMED — Shahed-136' };
+    case 'scion_classify':      return { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse', label: '◈ Scion · Multi-Sensor Fusion' };
+    case 'threat_confirmed':    return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ THREAT CONFIRMED · Shahed-136' };
     case 'razorchassis_cueing': return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ RazorChassis FC Track Transmitted' };
     case 'fire_control_alerted':return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',               label: '→ USS Laboon Engagement Solution Locked' };
     case 'threat_neutralized':  return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Shahed-136 Destroyed' };
-    case 'lane_secure':         return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Shipping Lane Secure — Patrol Resuming' };
+    case 'lane_secure':         return { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',         label: '✓ Shipping Lane Secure · Patrol Resuming' };
     default: return null;
   }
 };

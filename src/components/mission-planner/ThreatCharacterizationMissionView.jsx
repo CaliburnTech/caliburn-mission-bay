@@ -109,11 +109,11 @@ const PHASE_NARRATIVE = {
 const getPhaseBadge = (phase) => {
   const m = {
     barrier_patrol:       { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                     label: '● Barrier Patrol Active' },
-    passive_contact:      { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',    label: '⚠ Passive Contact — Sleeper' },
+    passive_contact:      { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',    label: '⚠ Passive Contact · Sleeper' },
     covert_approach:      { cls: 'bg-amber-900/80 text-amber-200 border-amber-500/40',                  label: '◈ Covert Approach' },
     eoir_classify:        { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                     label: '◉ EO/IR Classification' },
-    material_scan:        { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse', label: '⚡ Material Scan — Characterize' },
-    threat_characterized: { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse', label: '✓ Threat Characterized — Narcotic' },
+    material_scan:        { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse', label: '⚡ Material Scan · Characterize' },
+    threat_characterized: { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse', label: '✓ Threat Characterized · Narcotic' },
     track_report:         { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                     label: '→ Track Report → JIATF-South' },
     handoff_to_cutter:    { cls: 'bg-emerald-900/80 text-emerald-200 border-emerald-400/60',            label: '⚓ Hand-off to USCG Cutter' },
     resume_patrol:        { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                     label: '● Resume Barrier Patrol' },

@@ -144,17 +144,17 @@ const getReturnTrail = (tick) => {
 const getPhaseBadge = (phase) => {
   const m = {
     idle:              null,
-    cargo_loading:     { cls: 'bg-gray-800/80 text-gray-300 border-gray-600/40',                      label: '⬛ Cargo Loading — Subic Bay' },
-    outbound_transit:  { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '→ Outbound Transit — 380nm to Batanes' },
-    waypoint_bravo:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '◉ Waypoint BRAVO — North Luzon Coast' },
-    waypoint_charlie:  { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '◉ Waypoint CHARLIE — Open Water' },
-    waypoint_delta:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '◉ Waypoint DELTA — 28nm to Delivery' },
-    approach_batanes:  { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/50 animate-pulse',        label: '→ Approach — Batan Island in Sight' },
-    delivery_confirmed:{ cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse',label: '✓ DELIVERY CONFIRMED — Cargo Released' },
-    return_transit:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '← Recovery Transit — 130nm to Aparri' },
-    return_waypoint:   { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '← Recovery — Babuyan Channel' },
+    cargo_loading:     { cls: 'bg-gray-800/80 text-gray-300 border-gray-600/40',                      label: '⬛ Cargo Loading · Subic Bay' },
+    outbound_transit:  { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '→ Outbound Transit · 380nm to Batanes' },
+    waypoint_bravo:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '◉ Waypoint BRAVO · North Luzon Coast' },
+    waypoint_charlie:  { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '◉ Waypoint CHARLIE · Open Water' },
+    waypoint_delta:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '◉ Waypoint DELTA · 28nm to Delivery' },
+    approach_batanes:  { cls: 'bg-cyan-900/80 text-cyan-200 border-cyan-400/50 animate-pulse',        label: '→ Approach · Batan Island in Sight' },
+    delivery_confirmed:{ cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse',label: '✓ DELIVERY CONFIRMED · Cargo Released' },
+    return_transit:    { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '← Recovery Transit · 130nm to Aparri' },
+    return_waypoint:   { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                      label: '← Recovery · Babuyan Channel' },
     arrival_aparri:    { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',             label: '✓ Arrived Aparri Naval Station' },
-    mission_complete:  { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',             label: '✓ Mission Complete — WHISKEY-3 Cycle Logged' },
+    mission_complete:  { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',             label: '✓ Mission Complete · WHISKEY-3 Cycle Logged' },
   };
   return m[phase] || null;
 };

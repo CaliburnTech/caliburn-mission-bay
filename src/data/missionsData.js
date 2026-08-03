@@ -1660,21 +1660,21 @@ export const initialMissions = [
         details: "Mission 03 — Theater ASW — LCS command node, 3× M48 passive barrier, single confirm ping, MH-60R Mk 54 prosecution (from pitch deck)" }
     ]
   },
-  // STANDOFF MCM — Mission 04 — Bashi Channel (Autonomy Mission Series)
+  // STANDOFF MCM — Mission 04 — Strait of Hormuz (Autonomy Mission Series)
   {
     id: "mission-standoffmcm-001",
-    name: "Bashi-Channel-STANDOFF-MCM-Lane-Alpha",
+    name: "Hormuz-STANDOFF-MCM-Lane-Alpha",
     template: "STANDOFF_MCM",
     status: "draft",
     assignedSquadrons: ["sqdn_034"],
     domain: "MARITIME",
     zoneConfig: {
-      name: "Bashi Channel — Suspected Minefield and Cleared Lane Alpha",
+      name: "Strait of Hormuz — Suspected Minefield and Cleared Lane Alpha",
       coordinates: [
-        { lat: 21.20, lng: 121.10 },
-        { lat: 21.95, lng: 121.10 },
-        { lat: 21.95, lng: 122.05 },
-        { lat: 21.20, lng: 122.05 },
+        { lat: 26.38, lng: 56.25 },
+        { lat: 26.85, lng: 56.25 },
+        { lat: 26.85, lng: 56.95 },
+        { lat: 26.38, lng: 56.95 },
       ],
       swarmSize: 4,
       swarmFormation: "standoff-lane-clearance",
@@ -1688,11 +1688,11 @@ export const initialMissions = [
         primary: "Link 16 (MIDS-JTRS)",
         secondary: "HiveLink SDR mesh",
         tertiary: "Doodle Labs MANET / Peplink failover",
-        groundStation: "7th Fleet MOC, Yokosuka",
+        groundStation: "5th Fleet MOC, Manama (Bahrain)",
         homeBase: "Freedom-class LCS (command node, stationed outside the minefield)"
       },
       objectives: {
-        primary: "Open a cleared lane through the Bashi Channel by executing hunt, classify, sweep, and neutralize as a single tasked chain from outside the minefield, so no crewed hull and no diver ever enters the field",
+        primary: "Open a cleared lane through the Strait of Hormuz by executing hunt, classify, sweep, and neutralize as a single tasked chain from outside the minefield, so no crewed hull and no diver ever enters the field",
         secondary: "Demonstrate that detect-to-neutralize can run at machine tempo as one sequence rather than as four systems with four operator workflows — the components are government-owned; the sequencing is the gap"
       },
       squadronComposition: {
@@ -1702,7 +1702,7 @@ export const initialMissions = [
         sweep: "UISS influence sweep — 1× — mimics a ship's magnetic and acoustic signature to safely trigger sensitive mines",
         neutralizer: "Barracuda one-shot neutralizers — 4× — launched from the MCM USV against confirmed mines; no divers"
       },
-      threat: "Moored and buried influence mines emplaced across the Bashi Channel; a mine costing a few thousand dollars can sink a warship or close the strait. Legacy alternatives are four remaining Avenger-class hulls and a sundowning MH-53E detachment, both of which must enter the field to work.",
+      threat: "Moored and buried influence mines emplaced across the Strait of Hormuz shipping lanes; a mine costing a few thousand dollars can sink a warship or close the strait. Legacy alternatives are four remaining Avenger-class hulls and a sundowning MH-53E detachment, both of which must enter the field to work.",
       whyThisConfig: "Mine countermeasures is measured by water opened per unit of time, not by the sophistication of the sweeper, and every legacy method must place ships or people inside the field. The Navy already owns the components: the MCM USV reached IOC in May 2023 and first deployed March 2025, and Knifefish completed sea acceptance testing in June 2026. The unresolved problem is that detect-to-neutralize runs as four systems with four operator workflows. TempestOS sequences them as one tasked chain across the squadron.",
       escalationTriggers: [
         "MCM USV tows AN/AQS-20C across the assigned area → contacts logged and cued from standoff",

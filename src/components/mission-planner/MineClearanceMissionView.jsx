@@ -252,8 +252,8 @@ const getPhaseBadge = (phase) => {
   switch (phase) {
     case 'auv_transit':      return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '→ AUV Transit' };
     case 'sweeping':         return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '◈ SAS Sweep Active' };
-    case 'sweep_complete':   return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',               label: '↑ Sweep Complete — Uploading' };
-    case 'marking_alpha':    return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                     label: '● Re-Attack — Marking Mines' };
+    case 'sweep_complete':   return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',               label: '↑ Sweep Complete · Uploading' };
+    case 'marking_alpha':    return { cls: 'bg-red-900/80 text-red-300 border-red-500/40',                     label: '● Re-Attack · Marking Mines' };
     case 'horus_inbound':    return { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40',                  label: '→ HORUS Inbound' };
     case 'horus_locked':     return { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40',               label: '◉ Acoustic Lock' };
     case 'engaging_alpha':   return { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',       label: '⚡ Engaging MINE-ALPHA' };

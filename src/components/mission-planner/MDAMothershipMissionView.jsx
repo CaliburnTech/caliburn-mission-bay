@@ -31,13 +31,18 @@ const MISSION_SET_CAPS = ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link
 // ─── Geography — First Island Chain / Luzon Strait ─────────────────────────────
 const NM_TO_M = 1852;
 
+// Single fixed frame at the working scale — the camera never moves or zooms
+// during the run.
 const MAP_CENTER  = [20.8, 121.9];
-const MAP_ZOOM    = 7;
-const MAP_ZOOM_IN = 8;
+const MAP_ZOOM    = 8;
 
 const LCS_POS      = [20.8, 121.9];   // Freedom-class LCS mothership — launch/recovery node
 const AIR_STATION  = [21.85, 121.70]; // Switchblade over-the-horizon ISR (N)
 const SURF_STATION = [20.90, 123.15]; // M48 surface net (E)
+// M48 home station — held alongside the LCS, offset east toward its net. The M48
+// is far too big for the davit; it launches and recovers alongside, so its marker
+// must never overlap the LCS marker (it read as being craned aboard).
+const SURF_HOME    = [20.83, 122.25];
 const SUB_STATION  = [19.85, 121.60]; // Freedom AUV subsurface (S)
 
 const OP_AREA_NM = 70; // mothership operating-area radius
@@ -57,7 +62,7 @@ const VESSEL_ROSTER = [
   { name: 'LCS Mothership', roleDescriptor: '(Mothership)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'MDAM_LCS', capabilities: ['TempestOS Core Platform', 'MILSATCOM Terminal', 'Link 16 Track Broadcast', 'HiveLink SDR', 'FMD AutoHook', 'NSYTE AI Maintenance System'] },
   { name: 'Switchblade', roleDescriptor: '(Air ISR)', image: HULL_IMAGES['Switchblade'], hullName: 'Switchblade', roleKey: 'MDAM_AIR', capabilities: ['Marine AI Guardian Vision CVP', 'HiveLink SDR'] },
   { name: 'M48', roleDescriptor: '(Surface ISR)', image: HULL_IMAGES['M48'], hullName: 'M48', roleKey: 'MDAM_SURFACE', capabilities: ['Maritime Surface/Air Search Radar', 'Teledyne FLIR EO/IR Turret', 'DPI Vulture Tethered UAS', 'Marine AI Guardian Vision CVP', 'SeaFIND Inertial Navigation', 'HiveLink SDR'] },
-  { name: 'Freedom AUV', roleDescriptor: '(Subsurface ISR)', image: HULL_IMAGES['Freedom AUV'], hullName: 'Freedom AUV', roleKey: 'MDAM_SUB', capabilities: ['Passive Sonar Track Relay'] },
+  { name: 'Freedom AUV', roleDescriptor: '(Subsurface ISR)', image: HULL_IMAGES['Freedom AUV'], hullName: 'Freedom AUV', roleKey: 'MDAM_SUB', capabilities: ['Passive Sonar Track Relay', 'MOOS-IvP', 'SeaFIND Inertial Navigation', 'FarSounder Argos 500'] },
 ];
 
 // ─── Phase narratives ─────────────────────────────────────────────────────────
@@ -92,13 +97,14 @@ const getPhase = (tick) => {
   return 'complete';
 };
 
-// Asset position: on the LCS, out to station, then recovered back
-const getAssetPos = (station, tick) => {
-  if (tick < T_LAUNCH)    return LCS_POS;
-  if (tick < T_ONSTATION) return lerp2(LCS_POS, station, (tick - T_LAUNCH) / (T_ONSTATION - T_LAUNCH));
+// Asset position: at home (the LCS by default), out to station, then recovered
+// back. The M48 passes SURF_HOME so it stays alongside, never on the LCS marker.
+const getAssetPos = (station, tick, home = LCS_POS) => {
+  if (tick < T_LAUNCH)    return home;
+  if (tick < T_ONSTATION) return lerp2(home, station, (tick - T_LAUNCH) / (T_ONSTATION - T_LAUNCH));
   if (tick < T_RECOVER)   return station;
-  if (tick < T_COMPLETE)  return lerp2(station, LCS_POS, (tick - T_RECOVER) / (T_COMPLETE - T_RECOVER));
-  return LCS_POS;
+  if (tick < T_COMPLETE)  return lerp2(station, home, (tick - T_RECOVER) / (T_COMPLETE - T_RECOVER));
+  return home;
 };
 
 const getPhaseBadge = (phase) => {
@@ -107,26 +113,11 @@ const getPhaseBadge = (phase) => {
     launching:  { cls: 'bg-sky-900/80 text-sky-200 border-sky-400/40 animate-pulse',        label: '↓ Launching Layers' },
     collecting: { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',     label: '⇠ Streaming Sensor Data' },
     recovering: { cls: 'bg-sky-900/80 text-sky-300 border-sky-500/40',                      label: '↑ Recover & Cycle' },
-    complete:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ Assets Aboard — Picture Delivered' },
+    complete:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',          label: '✓ Assets Aboard · Picture Delivered' },
   };
   return m[phase] || null;
 };
 
-// ─── Map controller — handles flyTo zoom ──────────────────────────────────────
-const MapController = ({ phase }) => {
-  const map = useMap();
-  const prev = useRef(phase);
-  useEffect(() => {
-    if (prev.current === phase) return;
-    prev.current = phase;
-    if (phase === 'collecting') {
-      map.flyTo(MAP_CENTER, MAP_ZOOM_IN, { duration: 1.5 });
-    } else if (phase === 'deployed' || phase === 'idle') {
-      map.flyTo(MAP_CENTER, MAP_ZOOM, { duration: 1.2 });
-    }
-  }, [phase, map]);
-  return null;
-};
 
 // Forces Leaflet to recalculate tile layout after flex containers settle
 const MapInvalidateSize = () => {
@@ -204,7 +195,7 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
 
   const phase   = getPhase(currentTick);
   const airPos  = getAssetPos(AIR_STATION, currentTick);
-  const surfPos = getAssetPos(SURF_STATION, currentTick);
+  const surfPos = getAssetPos(SURF_STATION, currentTick, SURF_HOME);
   const subPos  = getAssetPos(SUB_STATION, currentTick);
 
   const showAssets  = currentTick >= T_LAUNCH;
@@ -456,7 +447,6 @@ const MDAMothershipMissionView = ({ mission, onBack }) => {
               <TileLayer url={TILE_BASE} />
               <TileLayer url={TILE_SEAMARK} opacity={0.4} />
               <MapInvalidateSize />
-              <MapController phase={phase} />
 
               {/* ── Mothership operating area ── */}
               {currentTick >= T_DEPLOYED && (

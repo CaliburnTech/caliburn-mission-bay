@@ -20,22 +20,25 @@ import { ORCHESTRATION_LAYER, SUCCESS_CRITERIA } from './autonomySeriesShared';
 
 const MISSION_SET_KEY = 'STANDOFF_MCM';
 
-// ─── Geography — Bashi Channel ────────────────────────────────────────────────
+// ─── Geography — Strait of Hormuz ─────────────────────────────────────────────
+// Mines laid across the traffic separation scheme between Musandam and the
+// Iranian islands; the LCS holds in the Gulf of Oman, outside the field.
 // Single fixed frame — the whole scenario (LCS, minefield, lane) fits at this
 // zoom, so the camera never moves during the run. No flyTo, no zoom changes.
-const MAP_CENTER  = [21.55, 121.55];
-const MAP_ZOOM    = 8;
+const MAP_CENTER  = [26.58, 56.62];
+const MAP_ZOOM    = 9;
 
-const LCS_POS    = [21.05, 120.85];  // command node — outside the minefield boundary. This matters.
-const MINEFIELD  = [[21.25, 121.20], [21.90, 121.20], [21.90, 122.00], [21.25, 122.00]];
-const LANE_START = [21.30, 121.30];
-const LANE_END   = [21.85, 121.90];
+const LCS_POS    = [26.18, 57.00];  // command node in the Gulf of Oman — outside the minefield boundary. This matters.
+const MINEFIELD  = [[26.42, 56.32], [26.80, 56.32], [26.80, 56.88], [26.42, 56.88]];
+const LANE_START = [26.48, 56.78];
+const LANE_END   = [26.74, 56.42];
 const MINE_POSITIONS = [
-  [21.42, 121.44], [21.55, 121.58], [21.63, 121.71], [21.74, 121.82],
+  [26.53, 56.71], [26.58, 56.64], [26.64, 56.56], [26.69, 56.49],
 ];
-// Mine 1 (index) is the sensitive/uncertain contact cleared by the UISS sweep;
-// the other three are confirmed and neutralized by Barracuda.
-const SENSITIVE_MINE = 1;
+// All four contacts classify as confirmed mines and each takes a Barracuda.
+// Set to a valid index to make one mine a sensitive/UISS-sweep contact instead;
+// -1 means none.
+const SENSITIVE_MINE = -1;
 
 // ─── Mission Advisor (plan §5.4) — keep this block identical across the five
 // Autonomy Mission Series views except for the questions and accent color ────
@@ -61,7 +64,7 @@ const TICK_MS = 280;
 // ─── Roster — order matches MISSION_ROLES[STANDOFF_MCM].roles ────────────────
 // Barracuda neutralizers launch from the MCM USV — no separate neutralizer UUV.
 const VESSEL_ROSTER = [
-  { name: 'LCS Command Node', roleDescriptor: '(Command Node)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'SMCM_LCS', capabilities: ['TempestOS Core Platform', 'Link 16 Track Broadcast', 'MILSATCOM Terminal', 'HiveLink SDR', 'NSYTE AI Maintenance System'] },
+  { name: 'LCS Command Node', roleDescriptor: '(Command Node)', image: HULL_IMAGES['Freedom-class LCS'], hullName: 'Freedom-class LCS', roleKey: 'SMCM_LCS', capabilities: ['TempestOS Core Platform', 'Link 16 Track Broadcast', 'MILSATCOM Terminal', 'HiveLink SDR', 'FMD AutoHook', 'NSYTE AI Maintenance System'] },
   { name: 'MCM USV', roleDescriptor: '(Hunter / Neutralizer)', image: HULL_IMAGES['MCM USV'], hullName: 'MCM USV', roleKey: 'SMCM_HUNTER', capabilities: ['AN/AQS-20C Towed Minehunting Sonar', 'Unmanned Influence Sweep System (UISS)', 'Barracuda Mine Neutralizer', 'AN/DVS-1 COBRA Coastal Recon', 'HiveLink SDR', 'SeaFIND Inertial Navigation', 'Marine AI Guardian Vision CVP'] },
   { name: 'Knifefish', roleDescriptor: '(Classifier)', image: HULL_IMAGES['Knifefish'], hullName: 'Knifefish', roleKey: 'SMCM_CLASSIFIER', capabilities: ['Knifefish LFBB Mine ID Sonar', 'EvoLogics Acoustic Modem', 'SeaFIND Inertial Navigation'] },
 ];
@@ -72,7 +75,7 @@ const PHASE_NARRATIVE = {
   standoff:     { title: 'LCS On Station — Outside the Field', body: 'The Freedom-class LCS holds station outside the minefield boundary with no crew at risk. TempestOS is up, and the lane to be opened is laid across the suspected field. Every hull that enters the field from here is unmanned.' },
   hunting:      { title: 'Hunt at Standoff', body: 'The MCM USV enters the field towing the AN/AQS-20C minehunting sonar. Contacts log as unknowns behind the swath — hunted from the surface, cued from standoff, with the mothership still outside the boundary.' },
   classifying:  { title: 'Classify Below', body: 'Knifefish works beneath each contact with low-frequency broadband sonar, identifying mines buried or moored — the classification step that turns a sonar contact into a confirmed target. Sea acceptance testing completed June 2026.' },
-  sweeping:     { title: 'The Clearance Pass', body: 'The MCM USV comes back up the lane and clears each mine as it passes: the UISS influence sweep triggers the sensitive one against a mimicked ship signature, and a Barracuda launches on every confirmed mine. The field clears behind the boat, 4 down to 1.' },
+  sweeping:     { title: 'The Clearance Pass', body: 'The MCM USV comes back up the lane and clears each mine as it passes: a Barracuda one-shot neutralizer launches on every confirmed mine, with the UISS influence sweep held in reserve for sensitive contacts. The field clears behind the boat, 4 down to 1.' },
   neutralizing: { title: 'Lane Verified — No Diver in the Water', body: 'Every mine is cleared and the USV holds at the lane entrance while the picture is verified. The legacy alternative puts an EOD diver on each of these datums; here the water stayed empty of people the entire time.' },
   complete:     { title: 'Lane Opened — Nobody Entered the Field', body: 'The cleared lane is open. Hunt, classify, sweep, and neutralize ran as one tasked chain under TempestOS rather than four systems with four operator workflows. Crewed hulls in the field: 0. Divers in the water: 0.' },
 };
@@ -133,8 +136,8 @@ const getClassifierPos = (tick) => {
     // from below, instead of retracing the inbound leg
     const RETURN_ROUTE = [
       MINE_POSITIONS[MINE_POSITIONS.length - 1],
-      [21.18, 121.85],   // drop south inside the field
-      [21.02, 121.35],   // exit the southern boundary, well clear of the lane
+      [26.46, 56.82],   // drop south inside the field
+      [26.25, 56.88],   // exit the southern boundary, well clear of the lane
       LCS_POS,
     ];
     const t = (tick - T_SWEEP) / (T_COMPLETE - T_SWEEP);
@@ -153,8 +156,8 @@ const getPassAt = (idx) =>
 
 // Per-mine state machine, derived from the tick
 // 'hidden' → 'unknown' (swath passes) → 'confirmed' | 'sensitive' → 'cleared'
-// Each mine clears AS THE USV PASSES IT on the return leg: UISS triggers the
-// sensitive one, a Barracuda takes each confirmed one.
+// Each mine clears AS THE USV PASSES IT on the return leg: a Barracuda takes
+// each confirmed one (UISS handles a sensitive contact if one is designated).
 // `since` records when the current state began, so labels can fade after ~2 s.
 const getMineState = (idx, tick) => {
   const revealAt   = T_HUNT + 3 + idx * 4;
@@ -184,11 +187,11 @@ const MINE_STYLE = {
 const getPhaseBadge = (phase) => {
   const m = {
     standoff:     { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',                 label: '● LCS Outside the Field' },
-    hunting:      { cls: 'bg-orange-900/80 text-orange-200 border-orange-400/40 animate-pulse',   label: '⌖ Hunting — AN/AQS-20C' },
+    hunting:      { cls: 'bg-orange-900/80 text-orange-200 border-orange-400/40 animate-pulse',   label: '⌖ Hunting · AN/AQS-20C' },
     classifying:  { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',      label: '◎ Knifefish Classifying' },
-    sweeping:     { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',            label: '✸ Clearance Pass — Mines Clearing 4 → 1' },
+    sweeping:     { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',            label: '✸ Clearance Pass · Mines Clearing 4 → 1' },
     neutralizing: { cls: 'bg-orange-900/80 text-orange-300 border-orange-500/40',                 label: '☑ Verifying the Cleared Lane' },
-    complete:     { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Lane Cleared — No Diver in the Water' },
+    complete:     { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',              label: '✓ Lane Cleared · No Diver in the Water' },
   };
   return m[phase] || null;
 };
@@ -371,7 +374,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
         addEvtRef.current(`${v1}: Barracuda away — MINE 4 neutralizing`, 'alert');
       }
       if (tick === T_SWEEP + 11) {
-        addEvtRef.current('Sensitive MINE 2 triggered safely against the UISS ship signature', 'success');
+        addEvtRef.current(`${v1}: Barracuda away — MINE 2 neutralizing`, 'alert');
       }
       if (tick === T_NEUTRALIZE) {
         addEvtRef.current('All mines cleared — 4 for 4 — verifying the lane', 'success');
@@ -423,10 +426,10 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
       status: 'draft',
       duration: '14d',
       zoneConfig: {
-        name: 'Bashi Channel — Suspected Minefield and Cleared Lane Alpha',
+        name: 'Strait of Hormuz — Suspected Minefield and Cleared Lane Alpha',
         coordinates: [
-          { lat: 21.20, lng: 121.10 }, { lat: 21.95, lng: 121.10 },
-          { lat: 21.95, lng: 122.05 }, { lat: 21.20, lng: 122.05 },
+          { lat: 26.38, lng: 56.25 }, { lat: 26.85, lng: 56.25 },
+          { lat: 26.85, lng: 56.95 }, { lat: 26.38, lng: 56.95 },
         ],
         swarmSize: 4,
         swarmFormation: 'standoff-lane-clearance',
@@ -612,7 +615,7 @@ const StandoffMCMMissionView = ({ mission, onBack }) => {
                     pathOptions={{ color: '#fb923c', fillColor: '#9a3412', fillOpacity: 0.95, weight: 2 }}
                   >
                     <Tooltip direction="top" offset={[0, -8]}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>{`${effectiveRoster[1]?.hullName ?? 'MCM USV'} — ${currentTick < T_HUNT ? 'launched from mothership, transiting' : sweeping ? 'UISS sweep' : neutralizing ? 'Barracuda firing position' : 'AN/AQS-20C tow'}`}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#fb923c' }}>{`${effectiveRoster[1]?.hullName ?? 'MCM USV'} — ${currentTick < T_HUNT ? 'launched from mothership, transiting' : sweeping ? 'clearance pass' : neutralizing ? 'Barracuda firing position' : 'AN/AQS-20C tow'}`}</span>
                     </Tooltip>
                   </CircleMarker>
                 </>

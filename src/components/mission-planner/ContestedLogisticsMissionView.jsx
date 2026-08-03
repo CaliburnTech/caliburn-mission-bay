@@ -158,20 +158,20 @@ const getScoutPos = (tick) => {
 
 const getPhaseBadge = (phase) => {
   const m = {
-    loading:       { cls: 'bg-gray-800/80 text-gray-300 border-gray-600/40',                            label: '⬛ Cargo Loading — Manifest Verification' },
+    loading:       { cls: 'bg-gray-800/80 text-gray-300 border-gray-600/40',                            label: '⬛ Cargo Loading · Manifest Verification' },
     pre_departure: { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                            label: '→ Pre-Departure Checks Complete' },
-    transit:       { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                            label: '→ M48 Autonomous Transit — EMCON Route' },
-    emcon:         { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse',        label: '◈ EMCON Active — Iridium LPI Intervals Only' },
-    gps_entry:     { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',           label: '⚠ GPS Jamming Detected — Zone Entry' },
-    ins_active:    { cls: 'bg-amber-900/80 text-amber-400 border-amber-400/60 animate-pulse',           label: '⚡ INS Fallback Active — Magnet DriveAI INS' },
-    plan_probe:    { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',                 label: '⚠ PLAN Surface Contact — M48 Maintaining Course' },
-    approach:      { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',              label: '→ Beach Approach — Speed ↓ — Visual Nav Active' },
-    beach_clear:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse',     label: '✓ HORUS: Site Clear — Delivery Authorized' },
-    offload:       { cls: 'bg-emerald-900/80 text-emerald-400 border-emerald-400/60 animate-pulse',     label: '⬇ Bow Ramp Deployed — Offloading 8.5 MT Cargo' },
-    ramp_retract:  { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                            label: '↑ Ramp Retracted — RTB via Alternate Route' },
-    rtb:           { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',              label: '← RTB — Alternate Route — EMCON Maintained' },
-    gps_restored:  { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                   label: '✓ GPS Restored — Normal Navigation Resumed' },
-    complete:      { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                   label: '✓ EABO Resupply Complete — 0 Crew Exposure' },
+    transit:       { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                            label: '→ M48 Autonomous Transit · EMCON Route' },
+    emcon:         { cls: 'bg-violet-900/80 text-violet-300 border-violet-500/40 animate-pulse',        label: '◈ EMCON Active · Iridium LPI Intervals Only' },
+    gps_entry:     { cls: 'bg-amber-900/80 text-amber-300 border-amber-500/40 animate-pulse',           label: '⚠ GPS Jamming Detected · Zone Entry' },
+    ins_active:    { cls: 'bg-amber-900/80 text-amber-400 border-amber-400/60 animate-pulse',           label: '⚡ INS Fallback Active · Magnet DriveAI INS' },
+    plan_probe:    { cls: 'bg-red-900/80 text-red-300 border-red-500/40 animate-pulse',                 label: '⚠ PLAN Surface Contact · M48 Maintaining Course' },
+    approach:      { cls: 'bg-cyan-900/80 text-cyan-300 border-cyan-500/40 animate-pulse',              label: '→ Beach Approach · Speed ↓ · Visual Nav Active' },
+    beach_clear:   { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40 animate-pulse',     label: '✓ HORUS: Site Clear · Delivery Authorized' },
+    offload:       { cls: 'bg-emerald-900/80 text-emerald-400 border-emerald-400/60 animate-pulse',     label: '⬇ Bow Ramp Deployed · Offloading 8.5 MT Cargo' },
+    ramp_retract:  { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40',                            label: '↑ Ramp Retracted · RTB via Alternate Route' },
+    rtb:           { cls: 'bg-blue-900/80 text-blue-300 border-blue-500/40 animate-pulse',              label: '← RTB · Alternate Route · EMCON Maintained' },
+    gps_restored:  { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                   label: '✓ GPS Restored · Normal Navigation Resumed' },
+    complete:      { cls: 'bg-emerald-900/80 text-emerald-300 border-emerald-500/40',                   label: '✓ EABO Resupply Complete · 0 Crew Exposure' },
   };
   return m[phase] || null;
 };
