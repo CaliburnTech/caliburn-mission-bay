@@ -1,8 +1,13 @@
 import { useState, useMemo } from 'react';
 import { X, Download, Copy, ChevronDown, ChevronRight, FileText, Package, Shield } from 'lucide-react';
 import { sbomToJSON, sbomToCSV, getSBOMStats } from '../../utils/sbomGenerator';
+import { useRequireAuth } from '../../auth/useRequireAuth';
 
 const SBOMDisplay = ({ sbom, onClose }) => {
+  // Production auth gate for exports — no-op in demo mode. Also covers entry
+  // points that show stored SBOM snapshots without a generation gate
+  // (e.g. the Versions view).
+  const requireAuth = useRequireAuth();
   const [sortField, setSortField] = useState('name');
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -31,6 +36,7 @@ const SBOMDisplay = ({ sbom, onClose }) => {
   };
 
   const handleDownloadJSON = () => {
+    if (!requireAuth('export this SBOM')) return;
     const json = sbomToJSON(sbom);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -42,6 +48,7 @@ const SBOMDisplay = ({ sbom, onClose }) => {
   };
 
   const handleDownloadCSV = () => {
+    if (!requireAuth('export this SBOM')) return;
     const csv = sbomToCSV(sbom);
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -53,6 +60,7 @@ const SBOMDisplay = ({ sbom, onClose }) => {
   };
 
   const handleCopyJSON = () => {
+    if (!requireAuth('export this SBOM')) return;
     navigator.clipboard.writeText(sbomToJSON(sbom));
     setCopiedJSON(true);
     setTimeout(() => setCopiedJSON(false), 2000);

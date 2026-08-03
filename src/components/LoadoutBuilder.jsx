@@ -20,6 +20,9 @@ import { submitPublicConfig } from '../services/submissions';
 import useVersionStore from '../store/versionStore';
 import useDataStore from '../providers/dataStore';
 import SBOMDisplay from './shared/SBOMDisplay';
+import PurchaseRequestModal from './shared/PurchaseRequestModal';
+import { useRequireAuth } from '../auth/useRequireAuth';
+import { isProduction } from '../providers/dataInterface';
 import SV2Editor from './shared/SV2Editor';
 import MissionAdvisorChat from './shared/MissionAdvisorChat';
 import { buildLoadoutContext } from '../utils/advisorContext';
@@ -199,8 +202,13 @@ const LoadoutBuilder = () => {
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
   const [viewingVersion, setViewingVersion] = useState(null);
   const [lastSavedConfigId, setLastSavedConfigId] = useState(null);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+
+  // Production auth gate — no-op in demo mode (always allows)
+  const requireAuth = useRequireAuth();
 
   const handleGenerateSBOM = () => {
+    if (!requireAuth('generate an SBOM')) return;
     const sbom = generateSBOMFromActiveConfig(activeConfig, selectedHull?.name || '');
     if (sbom) {
       setSbomData(sbom);
@@ -778,6 +786,8 @@ const LoadoutBuilder = () => {
 
   // Handle save configuration — saves config, then shows version commit modal
   const handleSave = () => {
+    // Production: saving requires a signed-in user (demo mode is ungated)
+    if (!requireAuth('save this configuration')) return;
     // Name is required — block save if blank
     if (!activeConfig?.name?.trim()) {
       setNameError(true);
@@ -794,6 +804,18 @@ const LoadoutBuilder = () => {
       // Store snapshot for the API call (fired after modal closes)
       _pendingSaveRef.current = { configId, configSnapshot };
     }
+  };
+
+  // Production-only Buy / book-a-call flow — gated behind sign-in
+  const handleRequestPurchase = () => {
+    if (!requireAuth('request a purchase')) return;
+    // A name is required — the request persists the config server-side
+    if (!activeConfig?.name?.trim()) {
+      setNameError(true);
+      document.getElementById('config-name-input')?.focus();
+      return;
+    }
+    setShowPurchaseModal(true);
   };
 
   // Ref to hold data for the pending API save (set in handleSave, consumed in handleVersionModalClose)
@@ -1043,6 +1065,16 @@ const LoadoutBuilder = () => {
             <Check size={18} />
             {activeConfig?.isDirty ? 'Save Configuration' : 'Saved'}
           </button>
+          {/* Production-only Buy flow — demo mode has no purchase requests */}
+          {isProduction && (
+            <button
+              onClick={handleRequestPurchase}
+              className="px-5 py-3 rounded-lg font-bold flex items-center gap-2 bg-transparent border border-lime-brand/60 text-lime-brand hover:bg-lime-brand/10 transition-colors"
+              title="Request purchase — the Caliburn team will book a call"
+            >
+              Request Purchase
+            </button>
+          )}
         </div>
       </div>
 
@@ -1870,6 +1902,16 @@ const LoadoutBuilder = () => {
       {/* SBOM Modal */}
       {showSBOM && sbomData && (
         <SBOMDisplay sbom={sbomData} onClose={() => setShowSBOM(false)} />
+      )}
+
+      {/* Purchase Request Modal — production only */}
+      {isProduction && showPurchaseModal && (
+        <PurchaseRequestModal
+          isOpen={showPurchaseModal}
+          onClose={() => setShowPurchaseModal(false)}
+          config={activeConfig}
+          hullName={selectedHull?.name || ''}
+        />
       )}
 
       {/* Version Detail Modal */}

@@ -20,9 +20,13 @@ import { resolveSV2 } from '../../utils/sv2AutoGenerator';
 import { sv2DataToFlowchart, mergeWithEngineerAdditions, hasAutoSectionChanged, ENGINEER_MARKER } from '../../utils/sv2MermaidGenerator';
 import useSV2Store from '../../store/sv2Store';
 import useConfigurationStore, { CATEGORY_KEYS } from '../../store/configurationStore';
+import { useRequireAuth } from '../../auth/useRequireAuth';
 
 const SV2Editor = ({ activeConfig, hullName, onClose }) => {
   const { getConfigKey, saveCustomizations, getCustomizations } = useSV2Store();
+
+  // Production auth gate — saving here persists the configuration (no-op in demo)
+  const requireAuth = useRequireAuth();
 
   // Generate fresh Mermaid from current config
   const sv2Data = useMemo(() => resolveSV2(activeConfig, hullName), [activeConfig, hullName]);
@@ -127,6 +131,8 @@ const SV2Editor = ({ activeConfig, hullName, onClose }) => {
 
   // Save: detect removals, confirm if needed, create version
   const handleSave = () => {
+    // Production: saving persists the configuration — requires sign-in
+    if (!requireAuth('save this configuration')) return;
     const removed = detectRemovedCapabilities();
     if (removed.length > 0) {
       setRemovedCaps(removed);

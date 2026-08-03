@@ -8,6 +8,7 @@ import { generateSBOMFromMission } from '../../utils/sbomGenerator';
 import { activeDeployments } from '../../data/fleetData';
 import SBOMDisplay from '../shared/SBOMDisplay';
 import SV2Editor from '../shared/SV2Editor';
+import { useRequireAuth } from '../../auth/useRequireAuth';
 
 // Domain badge colors
 const domainStyles = {
@@ -130,7 +131,11 @@ export const MissionLibraryTable = ({ onSelectMission, onNewMission }) => {
   const [sbomData, setSbomData] = useState(null);
   const [_sv2Data, _setSv2Data] = useState(null);
 
+  // Production auth gate — no-op in demo mode
+  const requireAuth = useRequireAuth();
+
   const handleGenerateSBOM = (mission) => {
+    if (!requireAuth('generate an SBOM')) return;
     const deps = activeDeployments.filter(d => d.missionId === mission.id);
     setSbomData(generateSBOMFromMission(mission, deps));
     setShowSBOM(true);
