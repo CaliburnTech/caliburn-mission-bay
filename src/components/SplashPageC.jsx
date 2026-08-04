@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronRight, Cpu, Layers, Ship, Target, Shield, Plane, Waves, Zap, Plus } from 'lucide-react';
 import missionBayLogotype from '../assets/Mission Bay Logotype.png';
 import missionBayMark from '../assets/Mission Bay Mark.png';
+import useDataStore from '../providers/dataStore';
+import { isProduction } from '../providers/dataInterface';
 
 /**
  * Splash Page C: Mission Control
@@ -13,6 +15,16 @@ const SplashPageC = ({ onEnter }) => {
   const [scanPosition, setScanPosition] = useState(0);
   const [deployingItem, setDeployingItem] = useState(null);
   const [deployedItems, setDeployedItems] = useState([]);
+
+  // Live catalog stats (production only — demo keeps its scripted numbers).
+  // Subscribes to the data store, so the numbers fill in when the catalog loads.
+  const storeCapabilities = useDataStore((s) => s.capabilities);
+  const storeVessels = useDataStore((s) => s.vessels);
+  const prodStats = {
+    capabilities: storeCapabilities?.length ?? 0,
+    vendors: new Set((storeCapabilities ?? []).map((c) => c.provider).filter(Boolean)).size,
+    platforms: storeVessels?.length ?? 0,
+  };
 
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100);
@@ -235,9 +247,21 @@ const SplashPageC = ({ onEnter }) => {
         </div>
 
         <div className="flex gap-6 pt-4 border-t border-gray-800">
-          <div><div className="text-xl font-bold text-white">2,662</div><div className="text-gray-500 text-[10px]">Vessels</div></div>
-          <div><div className="text-xl font-bold text-white">9</div><div className="text-gray-500 text-[10px]">Squadrons</div></div>
-          <div><div className="text-xl font-bold text-white">47</div><div className="text-gray-500 text-[10px]">Capabilities</div></div>
+          {/* Production derives stats from the real catalog; demo keeps its
+              scripted numbers (the demo world is static by design). */}
+          {isProduction ? (
+            <>
+              <div><div className="text-xl font-bold text-white">{prodStats.capabilities || '—'}</div><div className="text-gray-500 text-[10px]">Certified Capabilities</div></div>
+              <div><div className="text-xl font-bold text-white">{prodStats.vendors || '—'}</div><div className="text-gray-500 text-[10px]">Manufacturers</div></div>
+              <div><div className="text-xl font-bold text-white">{prodStats.platforms || '—'}</div><div className="text-gray-500 text-[10px]">Platforms</div></div>
+            </>
+          ) : (
+            <>
+              <div><div className="text-xl font-bold text-white">2,662</div><div className="text-gray-500 text-[10px]">Vessels</div></div>
+              <div><div className="text-xl font-bold text-white">9</div><div className="text-gray-500 text-[10px]">Squadrons</div></div>
+              <div><div className="text-xl font-bold text-white">47</div><div className="text-gray-500 text-[10px]">Capabilities</div></div>
+            </>
+          )}
         </div>
       </div>
 

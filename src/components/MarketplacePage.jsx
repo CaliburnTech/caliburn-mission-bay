@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Ship, SlidersHorizontal } from 'lucide-react';
-import { engineeringStacks, individualCapabilities, capabilityCategories } from '../data/marketplaceData';
+import React, { useEffect } from 'react';
+import { Ship } from 'lucide-react';
+import { individualCapabilities } from '../data/marketplaceData';
+import { vesselHullData } from '../data/vesselData';
 import useDataStore from '../providers/dataStore';
 import useNavigationStore from '../store/navigationStore';
 import useFilterStore from '../store/filterStore';
@@ -15,7 +16,7 @@ import MissionPlanner from './MissionPlanner';
 import MissionMatrix from './MissionMatrix';
 import GlobalSearch from './GlobalSearch';
 import StacksView from './StacksView';
-import CapabilitiesView from './CapabilitiesView';
+import CapabilityCatalogView from './CapabilityCatalogView';
 import OutfitterView from './OutfitterView';
 import LoadoutBuilder from './LoadoutBuilder';
 import DeploymentModal from './DeploymentModal';
@@ -23,7 +24,6 @@ import SquadronManagementModal from './SquadronManagementModal';
 import CapabilityDetailsModal from './CapabilityDetailsModal';
 import VersionControlView from './VersionControlView';
 import AdminSubmissionsView from './AdminSubmissionsView';
-import FilterSidebar from './FilterSidebar';
 import CartDropdown from './CartDropdown';
 import { isProduction } from '../providers/dataInterface';
 import HeaderAuth from '../auth/HeaderAuth';
@@ -38,17 +38,19 @@ const MarketplacePage = ({ onLogoClick }) => {
   const mergedCapabilities = _dataStore.capabilities?.length
     ? _dataStore.capabilities
     : individualCapabilities;
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  // Platforms for the "Will it fit?" picker — the store merges static hulls
+  // (demo) with vendor platform products (production); fall back to the
+  // static hull list before the store has loaded.
+  const mergedPlatforms = _dataStore.vessels?.length
+    ? _dataStore.vessels
+    : vesselHullData;
 
   // Navigation store
   const { selectedView, setSelectedView } = useNavigationStore();
 
-  // Filter store
-  const {
-    searchTerm, setSearchTerm,
-    selectedFilters, toggleFilter, clearAllFilters, getFilteredItems,
-    selectedSecurityFilters, setSelectedSecurityFilters
-  } = useFilterStore();
+  // Filter store (the redesigned capability catalog filters locally; the
+  // global search term is still cleared on logo click)
+  const { setSearchTerm } = useFilterStore();
 
   // Outfitter store
   const {
@@ -60,8 +62,7 @@ const MarketplacePage = ({ onLogoClick }) => {
 
   // UI store
   const {
-    outfitterCart, addToOutfitterCart,
-    expandedStack, setExpandedStack,
+    setExpandedStack,
     showSquadrons, setShowSquadrons
   } = useUIStore();
 
@@ -209,75 +210,16 @@ const MarketplacePage = ({ onLogoClick }) => {
 
         {/* Main Content Layout */}
         <div className="flex gap-6">
-          {/* Left Sidebar - Filters (desktop only) */}
-          {selectedView === 'capabilities' && (
-            <div className="hidden md:block">
-              <FilterSidebar
-                selectedFilters={selectedFilters}
-                selectedSecurityFilters={selectedSecurityFilters}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                toggleFilter={toggleFilter}
-                setSelectedSecurityFilters={setSelectedSecurityFilters}
-                clearAllFilters={clearAllFilters}
-                capabilityCategories={capabilityCategories}
-              />
-            </div>
-          )}
-
-          {/* Mobile Filter bottom sheet */}
-          {selectedView === 'capabilities' && showMobileFilters && (
-            <div className="md:hidden fixed inset-0 z-[800] flex flex-col justify-end bg-black/60" onClick={() => setShowMobileFilters(false)}>
-              <div
-                className="bg-darkest rounded-t-2xl p-5 max-h-[85vh] overflow-y-auto"
-                onClick={e => e.stopPropagation()}
-              >
-                <FilterSidebar
-                  selectedFilters={selectedFilters}
-                  selectedSecurityFilters={selectedSecurityFilters}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  toggleFilter={toggleFilter}
-                  setSelectedSecurityFilters={setSelectedSecurityFilters}
-                  clearAllFilters={clearAllFilters}
-                  capabilityCategories={capabilityCategories}
-                  onClose={() => setShowMobileFilters(false)}
-                />
-              </div>
-            </div>
-          )}
-
           {/* Main Content Area */}
           <div className="flex-1 min-w-0 overflow-x-clip">
-            {/* Mobile Filter button — capabilities only */}
             {selectedView === 'capabilities' && (
-              <div className="md:hidden mb-3">
-                <button
-                  onClick={() => setShowMobileFilters(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600/50 bg-darker text-gray-300 text-sm font-semibold hover:border-lime-brand/50 hover:text-lime-brand transition-colors"
-                >
-                  <SlidersHorizontal size={15} />
-                  Filters
-                  {(selectedFilters.length > 0 || selectedSecurityFilters.length > 0) && (
-                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-lime-brand text-black text-[0.6rem] font-bold">
-                      {selectedFilters.length + selectedSecurityFilters.length}
-                    </span>
-                  )}
-                </button>
-              </div>
-            )}
-            {selectedView === 'capabilities' && (
-              <CapabilitiesView
-                individualCapabilities={mergedCapabilities}
-                engineeringStacks={engineeringStacks}
-                getFilteredItems={getFilteredItems}
-                searchTerm={searchTerm}
-                selectedFilters={selectedFilters}
-                addToCart={addToOutfitterCart}
-                outfitterCart={outfitterCart}
-                setSelectedCapabilityDetails={setSelectedCapabilityDetails}
-                expandedStack={expandedStack}
-                setExpandedStack={setExpandedStack}
+              <CapabilityCatalogView
+                capabilities={mergedCapabilities}
+                platforms={mergedPlatforms}
+                onConfigure={() => {
+                  setSelectedHull(null);
+                  setSelectedView('shipyard');
+                }}
               />
             )}
 
