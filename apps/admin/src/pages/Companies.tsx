@@ -3,6 +3,7 @@ import { Search, Ban, CheckCircle, Eye, RefreshCw, Building2, Undo2 } from 'luci
 import { getAllCompanies, approveCompany, banCompany, unbanCompany, startImpersonation } from '../lib/api'
 import { setImpersonationSession } from '../lib/api'
 import type { Company, BanType, ImpersonationSession } from '../types'
+import { formatDate } from '../lib/dates'
 import { StatusBadge } from '../components/StatusBadge'
 import { BanModal } from '../components/BanModal'
 
@@ -194,7 +195,7 @@ export function Companies({ onImpersonate }: Props) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-gray-500">
-                  {new Date(company.approvalRequestedAt).toLocaleDateString()}
+                  {formatDate(company.approvalRequestedAt, company.createdAt)}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5 justify-end">

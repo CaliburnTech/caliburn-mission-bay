@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { CheckCircle, Ban, Clock, RefreshCw, Building2 } from 'lucide-react'
 import { getPendingCompanies, approveCompany, banCompany } from '../lib/api'
 import type { Company, BanType } from '../types'
+import { formatDateTime } from '../lib/dates'
 import { BanModal } from '../components/BanModal'
 
 export function PendingApprovals() {
@@ -97,7 +98,7 @@ export function PendingApprovals() {
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">{company.description}</p>
               )}
               <p className="text-xs text-gray-400 mt-2">
-                Requested {new Date(company.approvalRequestedAt).toLocaleString()}
+                Requested {formatDateTime(company.approvalRequestedAt, company.createdAt)}
               </p>
             </div>
             <div className="flex gap-2 flex-shrink-0">

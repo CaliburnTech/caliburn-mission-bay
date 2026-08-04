@@ -40,7 +40,7 @@ const OnboardingModal = () => {
     e.preventDefault();
     if (submitting) return;
 
-    if (role === 'SELLER' && !companyName.trim()) {
+    if (role === 'SELLER' && !existingCompany && !companyName.trim()) {
       setError('Please enter your company name.');
       return;
     }
@@ -50,7 +50,7 @@ const OnboardingModal = () => {
     try {
       await completeOnboarding({
         role,
-        companyName: role === 'SELLER' ? companyName.trim() : undefined,
+        companyName: role === 'SELLER' && !existingCompany ? companyName.trim() : undefined,
       });
       // fetchMe inside completeOnboarding refreshes `me`; onboardingComplete
       // flips true and this modal unmounts.
@@ -66,6 +66,10 @@ const OnboardingModal = () => {
   };
 
   const email = me?.email || user?.email || '';
+  // A company may already exist (e.g. the auth webhook auto-created one from
+  // the email domain on first sign-in). In that case the backend ignores any
+  // typed companyName — so show the existing company instead of asking.
+  const existingCompany = me?.company || null;
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4" style={{ zIndex: 11000 }}>
@@ -114,7 +118,25 @@ const OnboardingModal = () => {
               </div>
             </div>
 
-            {role === 'SELLER' && (
+            {role === 'SELLER' && existingCompany && (
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Your company
+                </label>
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-darkest border border-gray-700/60 rounded-lg">
+                  <Building2 size={14} className="text-lime-brand shrink-0" />
+                  <span className="text-white text-sm">{existingCompany.name}</span>
+                  <span className="ml-auto text-[10px] uppercase tracking-wide text-gray-500">
+                    {existingCompany.status === 'PENDING_APPROVAL' ? 'pending review' : (existingCompany.status || '').toLowerCase()}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-600 mt-1.5 leading-relaxed">
+                  You already belong to this company; continuing links your seller account to it.
+                </p>
+              </div>
+            )}
+
+            {role === 'SELLER' && !existingCompany && (
               <div>
                 <label className="block text-xs font-medium text-gray-400 mb-1.5">
                   Company name
@@ -145,7 +167,7 @@ const OnboardingModal = () => {
 
             <button
               type="submit"
-              disabled={submitting || (role === 'SELLER' && !companyName.trim())}
+              disabled={submitting || (role === 'SELLER' && !existingCompany && !companyName.trim())}
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-lime-brand text-black font-semibold rounded-lg text-sm disabled:opacity-40 hover:bg-lime-brand/90 transition-colors"
             >
               {submitting ? 'Saving…' : 'Continue'}

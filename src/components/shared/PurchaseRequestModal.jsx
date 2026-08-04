@@ -21,7 +21,7 @@ import {
   createPurchaseRequest,
 } from '../../services/purchaseRequests';
 
-const PurchaseRequestModal = ({ isOpen, onClose, config, hullName }) => {
+const PurchaseRequestModal = ({ isOpen, onClose, config, hullName, savedConfigId = null }) => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -44,16 +44,21 @@ const PurchaseRequestModal = ({ isOpen, onClose, config, hullName }) => {
     setSubmitting(true);
     setError(null);
     try {
-      // 1. Persist the configuration to get a DB id owned by this user
-      const products = Object.values(config.slots || {}).flat().filter(Boolean);
-      const saved = await saveConfigurationToBackend({
-        name: configName,
-        configData: { ...config, hullName: hullName || config.hullName || '', products },
-      });
-      if (!saved?.id) throw new Error('Could not save the configuration');
+      // 1. Reuse the row the Save flow already persisted when it's current;
+      //    otherwise persist a fresh snapshot to get a DB id owned by this user.
+      let configId = savedConfigId;
+      if (!configId) {
+        const products = Object.values(config.slots || {}).flat().filter(Boolean);
+        const saved = await saveConfigurationToBackend({
+          name: configName,
+          configData: { ...config, hullName: hullName || config.hullName || '', products },
+        });
+        if (!saved?.id) throw new Error('Could not save the configuration');
+        configId = saved.id;
+      }
 
       // 2. File the purchase request against it
-      await createPurchaseRequest({ configId: saved.id, message: message.trim() || null });
+      await createPurchaseRequest({ configId, message: message.trim() || null });
 
       setDone(true);
     } catch (err) {

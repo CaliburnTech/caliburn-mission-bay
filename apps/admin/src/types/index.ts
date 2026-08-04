@@ -40,7 +40,8 @@ export interface Company {
   id: string
   name: string
   status: CompanyStatus
-  approvalRequestedAt: string
+  approvalRequestedAt?: string
+  createdAt?: string
   approvedAt?: string
   approvedByUserId?: string
   bannedAt?: string

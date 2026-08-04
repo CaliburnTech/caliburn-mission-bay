@@ -204,6 +204,10 @@ const LoadoutBuilder = () => {
   const [viewingVersion, setViewingVersion] = useState(null);
   const [lastSavedConfigId, setLastSavedConfigId] = useState(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  // Backend SavedConfiguration row created by the last production save, keyed
+  // to the local config it came from — lets Request Purchase reuse that row
+  // instead of persisting a duplicate. Shape: { localId, backendId } | null
+  const [backendSave, setBackendSave] = useState(null);
 
   // Production auth gate — no-op in demo mode (always allows)
   const requireAuth = useRequireAuth();
@@ -852,6 +856,9 @@ const LoadoutBuilder = () => {
       // The dataStore mirror below speaks the static adapter's shape (config_data),
       // which the API rejects — so production uses the typed service instead.
       saveConfigurationToBackend({ name: displayName, configData })
+        .then((row) => {
+          if (row?.id) setBackendSave({ localId: pending.configId, backendId: row.id });
+        })
         .catch((err) => console.warn('[save] backend save failed:', err?.message || err));
     } else {
       // Demo: mirror into the local data store so in-app views stay in sync.
@@ -1920,6 +1927,13 @@ const LoadoutBuilder = () => {
           onClose={() => setShowPurchaseModal(false)}
           config={activeConfig}
           hullName={selectedHull?.name || ''}
+          savedConfigId={
+            // Reuse the saved backend row only when it belongs to this local
+            // config and nothing changed since the save — else save fresh.
+            !activeConfig?.isDirty && backendSave?.localId === activeConfig?.id
+              ? backendSave.backendId
+              : null
+          }
         />
       )}
 
