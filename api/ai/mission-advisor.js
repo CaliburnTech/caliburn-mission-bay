@@ -11,7 +11,10 @@ import { ok, badRequest, methodNotAllowed } from '../_lib/respond.js';
  * Response: { reply: string, usage: { inputTokens, outputTokens } }
  *
  * Design decisions (do not change casually):
- * - auth: 'none' — the mission planner demo runs unauthenticated. Abuse is
+ * - auth is DEPLOYMENT-DEPENDENT: the demo deployment (missionbay) stays
+ *   unauthenticated so Navy demos never see a sign-in prompt; the production
+ *   deployment (VITE_APP_MODE=production) requires a signed-in user so
+ *   anonymous visitors cannot spend Anthropic tokens. Public-demo abuse is
  *   bounded by the 10/min/IP rate limit, MAX_TOKENS 1024, and Haiku pricing.
  * - The guardrail system prompt is a SERVER-SIDE CONSTANT. Any `system` field
  *   in the body is ignored — the client can never override the guardrail.
@@ -116,5 +119,8 @@ export default withHandler(
       },
     });
   },
-  { auth: 'none' }
+  // VITE_APP_MODE is baked into the frontend at build time AND present as a
+  // plain server env var on each Vercel project — 'production' only on the
+  // real marketplace deployment, 'demo' on missionbay.
+  { auth: process.env.VITE_APP_MODE === 'production' ? 'user' : 'none' }
 );

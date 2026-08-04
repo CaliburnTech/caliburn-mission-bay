@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Send, Sparkles, Loader2 } from 'lucide-react';
 import { apiUrl } from '../../services/apiBase';
+import { isProduction } from '../../providers/dataInterface';
+import { supabase } from '../../auth/supabaseClient';
+import { useRequireAuth } from '../../auth/useRequireAuth';
 
 /**
  * MissionAdvisorChat — reusable chat drawer for the Mission Advisor
@@ -36,6 +39,7 @@ const ACCENTS = {
 };
 
 const ERROR_MESSAGES = {
+  401: 'Sign in to use the Advisor.',
   429: 'The Advisor is rate-limited — try again in a minute.',
   503: 'The Advisor is not configured.',
 };
@@ -58,6 +62,9 @@ const MissionAdvisorChat = ({
   const [error, setError] = useState(null);
   const scrollRef = useRef(null);
   const prefillSent = useRef(false);
+  // Production gates Advisor use behind sign-in (anonymous visitors would
+  // spend Anthropic tokens); returns true unconditionally in demo mode.
+  const requireAuth = useRequireAuth();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -66,6 +73,9 @@ const MissionAdvisorChat = ({
   const send = useCallback(async (question) => {
     const content = question.trim().slice(0, MAX_QUESTION_CHARS);
     if (!content || loading) return;
+    // Gate at first send: opens the sign-in modal when signed out in
+    // production. The drawer itself stays browsable (suggested questions).
+    if (!requireAuth('use the Mission Advisor')) return;
     setError(null);
     setInput('');
 
@@ -78,9 +88,17 @@ const MissionAdvisorChat = ({
       // production, so naive `${base}/api/...` concatenation 404s (learned
       // the hard way; AIChat.jsx has the same latent issue in its
       // authenticated mode, untouched per standing rule).
+      // Production: the endpoint requires a signed-in user — attach the
+      // Supabase access token. Demo mode sends no auth (endpoint is public).
+      const headers = { 'Content-Type': 'application/json' };
+      if (isProduction && supabase) {
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (token) headers.Authorization = `Bearer ${token}`;
+      }
       const res = await fetch(apiUrl('/ai/mission-advisor'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         // Server caps the body at 12 messages; history is always
         // [user, assistant, ..., user] so slice(-11) stays user-first.
         body: JSON.stringify({ context: contextText, messages: history.slice(-11) }),
@@ -103,7 +121,7 @@ const MissionAdvisorChat = ({
     } finally {
       setLoading(false);
     }
-  }, [messages, loading, contextText]);
+  }, [messages, loading, contextText, requireAuth]);
 
   // Swap explainer: auto-ask the prefilled question once, on mount.
   useEffect(() => {
