@@ -14,8 +14,12 @@ export default withHandler(
   async (req, res) => {
     if (req.method !== 'GET') return methodNotAllowed(res);
 
+    // scope=all returns every product regardless of status (used by the
+    // white-glove Catalog page, which also needs DRAFT and ARCHIVED rows).
+    const scopeAll = req.query.scope === 'all';
+
     const products = await prisma.product.findMany({
-      where: { status: { in: ['IN_REVIEW', 'APPROVED'] } },
+      where: scopeAll ? {} : { status: { in: ['IN_REVIEW', 'APPROVED'] } },
       include: {
         company: { select: { id: true, name: true } },
         versions: {

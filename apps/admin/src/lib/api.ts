@@ -32,7 +32,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers['Authorization'] = `Bearer ${session.access_token}`
   }
 
-  if (impersonationSessionId) {
+  // An explicit per-call header (used by white-glove catalog calls) wins over
+  // the module-global impersonation session.
+  if (impersonationSessionId && !headers['X-Impersonation-Session-Id']) {
     headers['X-Impersonation-Session-Id'] = impersonationSessionId
   }
 
@@ -170,3 +172,73 @@ export const getAuditLog = (params?: {
  */
 export const resetUserPassword = (userId: string) =>
   request<void>(`/api/admin/users/${userId}/reset-password`, { method: 'POST' })
+
+// ─── White-glove catalog ──────────────────────────────────────────────────────
+// Caliburn lists certified vendors and their products on their behalf, before
+// the vendor ever signs up. Product writes go through the normal seller
+// endpoints inside an explicit, short-lived impersonation session so the
+// audit trail shows "Caliburn, acting as <company>" on every step.
+
+/** Create a vendor company directly in APPROVED state. */
+export const createCompany = (payload: {
+  name: string
+  email?: string
+  website?: string
+  description?: string
+}) =>
+  request<{ company: import('../types').Company }>('/api/admin/companies', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+
+/** Every product on the platform regardless of status (Catalog page). */
+export const getCatalogProducts = () =>
+  request<import('../types').AdminProduct[]>('/api/admin/products?scope=all')
+
+/** Explicit per-call impersonation header (does not touch the global session). */
+const asCompany = (sessionId: string) => ({
+  'X-Impersonation-Session-Id': sessionId,
+})
+
+export interface ProductPayload {
+  type: import('../types').ProductType
+  name: string
+  description?: string
+  category?: string
+  trlLevel?: number
+  specJson?: import('../types').ProductSpec
+}
+
+/** Create a product (DRAFT) on behalf of the impersonated company. */
+export const createProductAs = (sessionId: string, payload: ProductPayload) =>
+  request<{ id: string }>('/api/products', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: asCompany(sessionId),
+  })
+
+/** Update a product's fields on behalf of the impersonated company. */
+export const updateProductAs = (
+  sessionId: string,
+  id: string,
+  payload: Omit<ProductPayload, 'type'>,
+) =>
+  request<{ id: string }>(`/api/products/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    headers: asCompany(sessionId),
+  })
+
+/** Submit a DRAFT product for review on behalf of the impersonated company. */
+export const submitProductAs = (sessionId: string, id: string) =>
+  request<{ id: string }>(`/api/products/${id}/submit`, {
+    method: 'POST',
+    headers: asCompany(sessionId),
+  })
+
+/** End a specific impersonation session (not the global one). */
+export const endImpersonationAs = (sessionId: string) =>
+  request<void>('/api/admin/impersonate', {
+    method: 'DELETE',
+    headers: asCompany(sessionId),
+  })
