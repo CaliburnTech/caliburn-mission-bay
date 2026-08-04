@@ -17,6 +17,7 @@ import useConfigurationStore, { getCapabilityByName, CATEGORY_KEYS } from '../st
 import useMissionStore from '../store/missionStore';
 import { generateSBOMFromActiveConfig } from '../utils/sbomGenerator';
 import { submitPublicConfig } from '../services/submissions';
+import { saveConfigurationToBackend } from '../services/purchaseRequests';
 import useVersionStore from '../store/versionStore';
 import useDataStore from '../providers/dataStore';
 import SBOMDisplay from './shared/SBOMDisplay';
@@ -846,16 +847,24 @@ const LoadoutBuilder = () => {
     submitPublicConfig({ name: displayName, configData, submittedBy: submittedBy || null })
       .catch(() => { /* best-effort — swallow errors silently */ });
 
-    // Also mirror into the local data store so in-app/demo views stay in sync.
-    try {
-      useDataStore.getState().createConfig({
-        id: pending.configId,
-        name: displayName,
-        config_data: configData,
-        submitted_by: submittedBy || null,
-        products,
-      }).catch(() => { /* best-effort local mirror */ });
-    } catch { /* best-effort local mirror */ }
+    if (isProduction) {
+      // Production: persist the authenticated, org-scoped SavedConfiguration row.
+      // The dataStore mirror below speaks the static adapter's shape (config_data),
+      // which the API rejects — so production uses the typed service instead.
+      saveConfigurationToBackend({ name: displayName, configData })
+        .catch((err) => console.warn('[save] backend save failed:', err?.message || err));
+    } else {
+      // Demo: mirror into the local data store so in-app views stay in sync.
+      try {
+        useDataStore.getState().createConfig({
+          id: pending.configId,
+          name: displayName,
+          config_data: configData,
+          submitted_by: submittedBy || null,
+          products,
+        }).catch(() => { /* best-effort local mirror */ });
+      } catch { /* best-effort local mirror */ }
+    }
   };
 
   // Handle back navigation - close active config and go to previous view
