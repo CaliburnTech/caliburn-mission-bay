@@ -11,9 +11,10 @@
  */
 
 import { useEffect } from 'react';
-import { LogIn, LogOut, UserRound } from 'lucide-react';
+import { LogIn, LogOut, Store, UserRound } from 'lucide-react';
 import { useAuth } from './useAuth';
 import useAuthUIStore from './authUIStore';
+import { MAKER_PORTAL_URL } from './portalUrls';
 
 const HeaderAuth = () => {
   const { mode, isAuthenticated, isLoading, user, signOut } = useAuth();
@@ -48,9 +49,20 @@ const HeaderAuth = () => {
 
   const email = me?.email || user?.email || '';
   const companyName = me?.company?.name || null;
+  const isSeller = Boolean(me?.company?.isSeller);
 
   return (
     <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 min-w-0">
+      {isSeller && (
+        <a
+          href={MAKER_PORTAL_URL}
+          title="Manage your listings in the Maker Portal"
+          className="flex items-center gap-1.5 px-3 py-2 bg-transparent border border-lime-brand/40 text-lime-brand rounded-lg text-xs font-semibold hover:bg-lime-brand/10 transition-colors whitespace-nowrap"
+        >
+          <Store size={13} />
+          <span className="hidden md:inline">Maker Portal</span>
+        </a>
+      )}
       <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-600/40 bg-darkest min-w-0">
         <UserRound size={14} className="text-lime-brand flex-shrink-0" />
         <div className="min-w-0 text-right md:text-left">

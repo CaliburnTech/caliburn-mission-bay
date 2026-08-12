@@ -14,9 +14,10 @@
  */
 
 import { useState } from 'react';
-import { Building2, ShoppingCart, LogOut } from 'lucide-react';
+import { ArrowRight, Building2, CheckCircle2, ShoppingCart, LogOut } from 'lucide-react';
 import { useAuth } from './useAuth';
 import useAuthUIStore from './authUIStore';
+import { MAKER_PORTAL_URL } from './portalUrls';
 
 const OnboardingModal = () => {
   const { mode, isAuthenticated, user, signOut } = useAuth();
@@ -26,6 +27,11 @@ const OnboardingModal = () => {
   const [companyName, setCompanyName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  // Sellers get a follow-up step pointing at the Maker Portal — their
+  // listings live there, not in this buyer app. Kept in local state because
+  // completing onboarding flips needsOnboarding false (which would otherwise
+  // unmount the modal before they ever learn the Maker Portal exists).
+  const [sellerDone, setSellerDone] = useState(false);
 
   const needsOnboarding =
     mode === 'production' &&
@@ -34,7 +40,7 @@ const OnboardingModal = () => {
     me &&
     !me.onboardingComplete;
 
-  if (!needsOnboarding) return null;
+  if (!needsOnboarding && !sellerDone) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,7 +59,12 @@ const OnboardingModal = () => {
         companyName: role === 'SELLER' && !existingCompany ? companyName.trim() : undefined,
       });
       // fetchMe inside completeOnboarding refreshes `me`; onboardingComplete
-      // flips true and this modal unmounts.
+      // flips true. Buyers: the modal unmounts and they're in the right app
+      // already. Sellers: show the hand-off step to the Maker Portal.
+      if (role === 'SELLER') {
+        setSellerDone(true);
+        setSubmitting(false);
+      }
     } catch (err) {
       setError(err?.message || 'Failed to complete setup');
       setSubmitting(false);
@@ -70,6 +81,45 @@ const OnboardingModal = () => {
   // the email domain on first sign-in). In that case the backend ignores any
   // typed companyName — so show the existing company instead of asking.
   const existingCompany = me?.company || null;
+
+  // ── Seller hand-off step ──────────────────────────────────────────────────
+  if (sellerDone) {
+    const sellerCompanyName = me?.company?.name || companyName || 'your company';
+    const pending = (me?.company?.status ?? 'PENDING_APPROVAL') === 'PENDING_APPROVAL';
+    return (
+      <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4" style={{ zIndex: 11000 }}>
+        <div className="w-full max-w-sm">
+          <div className="bg-darker border border-gray-700/40 rounded-xl p-6 text-center">
+            <CheckCircle2 size={32} className="text-lime-brand mx-auto mb-3" />
+            <h1 className="text-xl font-semibold text-white">You&apos;re set up as a seller</h1>
+            <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+              <span className="text-gray-200">{sellerCompanyName}</span>
+              {pending
+                ? ' is awaiting review by the Caliburn team.'
+                : ' is ready to go.'}{' '}
+              Your products, listings, and company profile live in the Maker Portal.
+            </p>
+            <a
+              href={MAKER_PORTAL_URL}
+              className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 bg-lime-brand text-black font-semibold rounded-lg text-sm hover:bg-lime-brand/90 transition-colors"
+            >
+              Open the Maker Portal
+              <ArrowRight size={15} />
+            </a>
+            <button
+              onClick={() => setSellerDone(false)}
+              className="mt-3 w-full py-2.5 border border-gray-700/60 text-gray-300 rounded-lg text-sm hover:text-white hover:border-gray-500 transition-colors"
+            >
+              Browse the marketplace instead
+            </button>
+            <p className="text-[11px] text-gray-600 mt-3 leading-relaxed">
+              You can always get back to it from the Maker Portal link in the header.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4" style={{ zIndex: 11000 }}>
