@@ -16,7 +16,11 @@
 import { Resend } from 'resend';
 
 const APP_URL = process.env.APP_URL || 'https://caliburn-marketplace.vercel.app';
-const FROM = 'Mission Bay <noreply@caliburn.us>';
+// Sender must be on a domain verified in the company's shared Resend team.
+// The root caliburn.us was lost in an Aug 2026 cross-team domain claim; the
+// shared team's verified sending domain is mail.caliburn.us. Override via
+// the EMAIL_FROM env var if the sender ever changes again — no code edit.
+const FROM = process.env.EMAIL_FROM || 'Mission Bay <noreply@mail.caliburn.us>';
 const NOTIFY = process.env.CALIBURN_NOTIFY_EMAIL ?? 'team@caliburn.us';
 
 /** True when a real Resend API key is configured (emails will actually send). */
